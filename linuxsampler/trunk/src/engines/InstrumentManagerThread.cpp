@@ -99,9 +99,9 @@ namespace LinuxSampler {
     int InstrumentManagerThread::Main() {
         while (true) {
 
-			#if CONFIG_PTHREAD_TESTCANCEL
-			TestCancel();
-			#endif
+            #if CONFIG_PTHREAD_TESTCANCEL
+            TestCancel();
+            #endif
 
             while (!queue.empty()) {
                 command_t cmd;
@@ -167,4 +167,13 @@ namespace LinuxSampler {
         } 
         pThread->mutex.Unlock();
     }
+
+    int InstrumentManagerThread::StopThread() {
+        // This is a fix for Mac OS X, where SignalStopThread doesn't
+        // wake up a thread waiting for a condition variable.
+        SignalStopThread(); // send stop signal, but don't wait
+        conditionJobsLeft.Set(true); // wake thread
+        return Thread::StopThread(); // then wait for it to cancel
+    }
+
 } // namespace LinuxSampler

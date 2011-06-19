@@ -5,7 +5,7 @@ plugin_LTLIBRARIES = linuxsampler.la
 plugin_DATA = manifest.ttl linuxsampler.ttl
 
 linuxsampler_la_SOURCES = PluginLv2.cpp PluginLv2.h \
-	lv2_event.h lv2-saverestore.h
+	lv2_event.h lv2_persist.h lv2_uri_map.h lv2_files.h
 linuxsampler_la_LDFLAGS = -module -avoid-version
 linuxsampler_la_LIBADD = $(top_builddir)/src/liblinuxsampler.la
 endif

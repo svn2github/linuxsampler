@@ -87,6 +87,7 @@ namespace LinuxSampler {
 
     int EventThread::Main() {
         for (;;) {
+            TestCancel();
             sleep(1);
             pSampler->fireStatistics();
         }

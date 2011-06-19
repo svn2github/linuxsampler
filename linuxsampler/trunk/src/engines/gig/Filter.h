@@ -103,6 +103,8 @@ namespace LinuxSampler {
      */
     class LowpassFilter1p : public FilterBase {
     public:
+        LowpassFilter1p() { }
+
         float Apply(FilterData& d, float x) const {
             float y = x + d.a1 * (x - d.y1); // d.b0 * x - d.a1 * d.y1;
             KillDenormal(y);
@@ -127,6 +129,8 @@ namespace LinuxSampler {
      */
     class HighpassFilter1p : public FilterBase {
     public:
+        HighpassFilter1p() { }
+
         float Apply(FilterData& d, float x) const {
             // d.b0 * x + d.b1 * d.x1 - d.a1 * d.y1;
             float y = d.a1 * (-x + d.x1 - d.y1);
@@ -216,6 +220,8 @@ namespace LinuxSampler {
      */
     class LowpassFilter : public BiquadFilter {
     public:
+        LowpassFilter() { }
+
         void SetParameters(FilterData& d, float fc, float r, float fs) const {
             float omega = 2.0 * M_PI * fc / fs;
             float sn    = sin(omega);
@@ -237,6 +243,8 @@ namespace LinuxSampler {
      */
     class LowpassFilter4p : public DoubleBiquadFilter {
     public:
+        LowpassFilter4p() { }
+
         void SetParameters(FilterData& d, float fc, float r, float fs) const {
             float omega = 2.0 * M_PI * fc / fs;
             float sn    = sin(omega);
@@ -267,6 +275,8 @@ namespace LinuxSampler {
      */
     class LowpassFilter6p : public TripleBiquadFilter {
     public:
+        LowpassFilter6p() { }
+
         void SetParameters(FilterData& d, float fc, float r, float fs) const {
             float omega = 2.0 * M_PI * fc / fs;
             float sn    = sin(omega);
@@ -297,6 +307,8 @@ namespace LinuxSampler {
      */
     class BandpassFilter : public BiquadFilter {
     public:
+        BandpassFilter() { }
+
         void SetParameters(FilterData& d, float fc, float r, float fs) const {
             float omega = 2.0 * M_PI * fc / fs;
             float sn    = sin(omega);
@@ -318,6 +330,8 @@ namespace LinuxSampler {
      */
     class BandrejectFilter : public BiquadFilter {
     public:
+        BandrejectFilter() { }
+
         void SetParameters(FilterData& d, float fc, float r, float fs) const {
             float omega = 2.0 * M_PI * fc / fs;
             float sn    = sin(omega);
@@ -339,6 +353,8 @@ namespace LinuxSampler {
      */
     class HighpassFilter : public BiquadFilter {
     public:
+        HighpassFilter() { }
+
         void SetParameters(FilterData& d, float fc, float r, float fs) const {
             float omega = 2.0 * M_PI * fc / fs;
             float sn    = sin(omega);
@@ -360,6 +376,8 @@ namespace LinuxSampler {
      */
     class HighpassFilter4p : public DoubleBiquadFilter {
     public:
+        HighpassFilter4p() { }
+
         void SetParameters(FilterData& d, float fc, float r, float fs) const {
             float omega = 2.0 * M_PI * fc / fs;
             float sn    = sin(omega);
@@ -390,6 +408,8 @@ namespace LinuxSampler {
      */
     class HighpassFilter6p : public TripleBiquadFilter {
     public:
+        HighpassFilter6p() { }
+
         void SetParameters(FilterData& d, float fc, float r, float fs) const {
             float omega = 2.0 * M_PI * fc / fs;
             float sn    = sin(omega);
@@ -443,6 +463,8 @@ namespace gig {
 
     class LowpassFilter : public GigFilter {
     public:
+        LowpassFilter() { }
+
         float Apply(FilterData& d, float x) const {
             return ApplyA(d, d.b0 * x);
         }
@@ -460,6 +482,8 @@ namespace gig {
 
     class BandpassFilter : public GigFilter {
     public:
+        BandpassFilter() { }
+
         float Apply(FilterData& d, float x) const {
             float y = ApplyA(d, d.b0 * x + d.b2 * d.x2);
             d.x2 = d.x1;
@@ -479,6 +503,9 @@ namespace gig {
     };
 
     class HighpassFilter : public GigFilter {
+    public:
+        HighpassFilter() { }
+
         float Apply(FilterData& d, float x) const {
             float y = ApplyA(d, -x + d.x1 + d.x2 - d.x3);
             d.x3 = d.x2;
@@ -498,6 +525,9 @@ namespace gig {
     };
 
     class BandrejectFilter : public GigFilter {
+    public:
+        BandrejectFilter() { }
+
         float Apply(FilterData& d, float x) const {
             float y = ApplyA(d, x - d.x1 + d.b2 * d.x2 + d.x3);
             d.x3 = d.x2;
@@ -519,6 +549,8 @@ namespace gig {
 
     class LowpassTurboFilter : public LowpassFilter {
     public:
+        LowpassTurboFilter() { }
+
         float Apply(FilterData& d, float x) const {
             float y = d.b20 * LowpassFilter::Apply(d, x)
                 - d.a1 * d.y21 - d.a2 * d.y22 - d.a3 * d.y23;

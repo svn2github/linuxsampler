@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -57,11 +57,7 @@ class Thread {
         virtual int  SignalStartThread();
         virtual int  SignalStopThread();
 
-        inline void TestCancel() {
-#if CONFIG_PTHREAD_TESTCANCEL
-            pthread_testcancel();
-#endif
-        }
+        void TestCancel();
 
         virtual bool IsRunning();
         virtual int  SetSchedulingPriority(); //FIXME: should be private

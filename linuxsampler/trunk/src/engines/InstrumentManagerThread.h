@@ -48,6 +48,7 @@ namespace LinuxSampler {
             void StartNewLoad(String Filename, uint uiInstrumentIndex, EngineChannel* pEngineChannel);
             void StartSettingMode(InstrumentManager* pManager, const InstrumentManager::instrument_id_t& ID, InstrumentManager::mode_t Mode);
             virtual ~InstrumentManagerThread();
+            int StopThread();
         protected:
             struct command_t {
                 enum cmd_type_t {

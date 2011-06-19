@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -559,7 +559,7 @@ namespace LinuxSampler { namespace gig {
 
     ::gig::Instrument* InstrumentResourceManager::Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) {
         // get gig file from internal gig file manager
-        ::gig::File* pGig = Gigs.Borrow(Key.FileName, (GigConsumer*) Key.Index); // conversion kinda hackish :/
+        ::gig::File* pGig = Gigs.Borrow(Key.FileName, reinterpret_cast<GigConsumer*>(Key.Index)); // conversion kinda hackish :/
 
         // we pass this to the progress callback mechanism of libgig
         progress_callback_arg_t callbackArg;
@@ -624,7 +624,7 @@ namespace LinuxSampler { namespace gig {
     void InstrumentResourceManager::Destroy( ::gig::Instrument* pResource, void* pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
         // we don't need the .gig file here anymore
-        Gigs.HandBack(pEntry->pGig, (GigConsumer*) pEntry->ID.Index); // conversion kinda hackish :/
+        Gigs.HandBack(pEntry->pGig, reinterpret_cast<GigConsumer*>(pEntry->ID.Index)); // conversion kinda hackish :/
         delete pEntry;
     }
 

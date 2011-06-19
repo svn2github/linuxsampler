@@ -10,6 +10,9 @@ Version CVS HEAD (?)
     - made sure all source files for hostplugins are included when
       doing "make dist"
     - removed empty directories left from the cvs to svn migration
+    - fixed compilation with gcc 4.6.1
+    - another "make dist" fix, for LV2 plugin
+    - made --enable-pthread-testcancel default on Mac OS X
 
   * general changes:
     - Refactoring: moved the independent code from
@@ -162,6 +165,7 @@ Version CVS HEAD (?)
       refresh) could cause instruments to be unloaded
     - Mac OS X: fixed name collision of enum in EffectControl and
       wrong name of destructor in AudioOutputDeviceCoreAudio.cpp
+    - Mac OS X: fixed hanging threads
 
 Version 1.0.0 (31 July 2009)
 

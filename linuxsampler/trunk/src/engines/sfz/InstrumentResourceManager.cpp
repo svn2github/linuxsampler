@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009 - 2011 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -110,7 +110,7 @@ namespace LinuxSampler { namespace sfz {
 
     ::sfz::Instrument* InstrumentResourceManager::Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) {
         // get sfz file from internal sfz file manager
-        ::sfz::File* pSfz = Sfzs.Borrow(Key.FileName, (SfzConsumer*) Key.Index); // conversion kinda hackish :/
+        ::sfz::File* pSfz = Sfzs.Borrow(Key.FileName, reinterpret_cast<SfzConsumer*>(Key.Index)); // conversion kinda hackish :/
 
         dmsg(1,("Loading sfz instrument ('%s',%d)...",Key.FileName.c_str(),Key.Index));
         if (Key.Index) {
@@ -159,7 +159,7 @@ namespace LinuxSampler { namespace sfz {
     void InstrumentResourceManager::Destroy( ::sfz::Instrument* pResource, void* pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
         // we don't need the .sfz file here anymore
-        Sfzs.HandBack(pEntry->pSfz, (SfzConsumer*) pEntry->ID.Index); // conversion kinda hackish :/
+        Sfzs.HandBack(pEntry->pSfz, reinterpret_cast<SfzConsumer*>(pEntry->ID.Index)); // conversion kinda hackish :/
         delete pEntry;
     }
 

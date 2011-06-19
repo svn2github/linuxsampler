@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,6 +22,10 @@
  ***************************************************************************/
 
 #include "Thread.h"
+
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 // this is the minimum stack size a thread will be spawned with
 // if this value is too small, the OS will allocate memory on demand and
@@ -361,6 +365,12 @@ int Thread::Destructor() {
     RunningCondition.Set(false);
 #endif	
     return 0;
+}
+
+void Thread::TestCancel() {
+#if CONFIG_PTHREAD_TESTCANCEL
+    pthread_testcancel();
+#endif
 }
 
 #if defined(WIN32)

@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009 - 2011 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -148,7 +148,7 @@ namespace LinuxSampler { namespace sf2 {
 
     ::sf2::Preset* InstrumentResourceManager::Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) {
         // get sfz file from internal sfz file manager
-        ::sf2::File* pSf2 = Sf2s.Borrow(Key.FileName, (Sf2Consumer*) Key.Index); // conversion kinda hackish :/
+        ::sf2::File* pSf2 = Sf2s.Borrow(Key.FileName, reinterpret_cast<Sf2Consumer*>(Key.Index)); // conversion kinda hackish :/
 
         dmsg(1,("Loading sf2 instrument ('%s',%d)...",Key.FileName.c_str(),Key.Index));
         ::sf2::Preset* pInstrument = GetSfInstrument(pSf2, Key.Index);
@@ -196,7 +196,7 @@ namespace LinuxSampler { namespace sf2 {
     void InstrumentResourceManager::Destroy( ::sf2::Preset* pResource, void* pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
         // we don't need the .sf2 file here anymore
-        Sf2s.HandBack(pEntry->pSf2, (Sf2Consumer*) pEntry->ID.Index); // conversion kinda hackish :/
+        Sf2s.HandBack(pEntry->pSf2, reinterpret_cast<Sf2Consumer*>(pEntry->ID.Index)); // conversion kinda hackish :/
         delete pEntry;
     }
 
