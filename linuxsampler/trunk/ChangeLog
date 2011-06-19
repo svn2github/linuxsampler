@@ -166,6 +166,8 @@ Version CVS HEAD (?)
     - Mac OS X: fixed name collision of enum in EffectControl and
       wrong name of destructor in AudioOutputDeviceCoreAudio.cpp
     - Mac OS X: fixed hanging threads
+    - Windows: disabled the previous thread fix on non-Mac systems, as
+      it caused hanging threads on Windows
 
 Version 1.0.0 (31 July 2009)
 

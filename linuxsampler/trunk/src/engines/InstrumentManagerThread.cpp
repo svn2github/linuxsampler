@@ -168,6 +168,7 @@ namespace LinuxSampler {
         pThread->mutex.Unlock();
     }
 
+#ifdef __APPLE__
     int InstrumentManagerThread::StopThread() {
         // This is a fix for Mac OS X, where SignalStopThread doesn't
         // wake up a thread waiting for a condition variable.
@@ -175,5 +176,6 @@ namespace LinuxSampler {
         conditionJobsLeft.Set(true); // wake thread
         return Thread::StopThread(); // then wait for it to cancel
     }
+#endif
 
 } // namespace LinuxSampler
