@@ -702,7 +702,6 @@ public class Client {
 	parseMidiDataType(String s) {
 		if("NOTE_ON".equals(s)) return MidiDataEvent.Type.NOTE_ON;
 		if("NOTE_OFF".equals(s)) return MidiDataEvent.Type.NOTE_OFF;
-		if("CC".equals(s)) return MidiDataEvent.Type.CC;
 		
 		getLogger().warning("Unknown MIDI data type: " + s);
 		return null;
