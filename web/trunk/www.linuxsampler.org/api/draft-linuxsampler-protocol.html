@@ -3,7 +3,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="description" content="LinuxSampler Control Protocol">
 <meta name="keywords" content="LSCP">
-<meta name="generator" content="xml2rfc v1.35 (http://xml.resource.org/)">
+<meta name="generator" content="xml2rfc v1.34 (http://xml.resource.org/)">
 <style type='text/css'><!--
         body {
                 font-family: verdana, charcoal, helvetica, arial, sans-serif;
@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: April 8, 2011</td><td class="header">October 5, 2010</td></tr>
+<tr><td class="header">Expires: December 26, 2011</td><td class="header">June 24, 2011</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.5</h1>
 
@@ -167,16 +167,22 @@ and any of which he or she becomes aware will be disclosed,
 in accordance with Section&nbsp;6 of BCP&nbsp;79.</p>
 <p>
 Internet-Drafts are working documents of the Internet Engineering
-Task Force (IETF).  Note that other groups may also distribute
-working documents as Internet-Drafts.  The list of current
-Internet-Drafts is at http://datatracker.ietf.org/drafts/current/.</p>
+Task Force (IETF), its areas, and its working groups.
+Note that other groups may also distribute working documents as
+Internet-Drafts.</p>
 <p>
 Internet-Drafts are draft documents valid for a maximum of six months
 and may be updated, replaced, or obsoleted by other documents at any time.
 It is inappropriate to use Internet-Drafts as reference material or to cite
 them other than as &ldquo;work in progress.&rdquo;</p>
 <p>
-This Internet-Draft will expire on April 8, 2011.</p>
+The list of current Internet-Drafts can be accessed at
+<a href='http://www.ietf.org/ietf/1id-abstracts.txt'>http://www.ietf.org/ietf/1id-abstracts.txt</a>.</p>
+<p>
+The list of Internet-Draft Shadow Directories can be accessed at
+<a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
+<p>
+This Internet-Draft will expire on December 26, 2011.</p>
 <a name="toc"></a><br /><hr />
 <h3>Table of Contents</h3>
 <p class="toc">
@@ -552,7 +558,15 @@ Number of database instruments changed<br />
 Database instrument information changed<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENTS_JOB_INFO">8.25.</a>&nbsp;
 Database job status information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.26.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE EFFECT_INSTANCE_COUNT">8.26.</a>&nbsp;
+Number of effect instances changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE EFFECT_INSTANCE_INFO">8.27.</a>&nbsp;
+Effect instance information changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE SEND_EFFECT_CHAIN_COUNT">8.28.</a>&nbsp;
+Number of send effect chains changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE SEND_EFFECT_CHAIN_INFO">8.29.</a>&nbsp;
+Send effect chain information changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.30.</a>&nbsp;
 Miscellaneous and debugging events<br />
 <a href="#anchor14">9.</a>&nbsp;
 Security Considerations<br />
@@ -11786,6 +11800,18 @@ Command Syntax</h3>
 <p>/ GLOBAL_INFO
 		
 </p>
+<p>/ EFFECT_INSTANCE_COUNT
+		
+</p>
+<p>/ EFFECT_INSTANCE_INFO
+		
+</p>
+<p>/ SEND_EFFECT_CHAIN_COUNT
+		
+</p>
+<p>/ SEND_EFFECT_CHAIN_INFO
+		
+</p>
 </blockquote><p>
 
 </p>
@@ -11868,6 +11894,18 @@ Command Syntax</h3>
 		
 </p>
 <p>/ GLOBAL_INFO
+		
+</p>
+<p>/ EFFECT_INSTANCE_COUNT
+		
+</p>
+<p>/ EFFECT_INSTANCE_INFO
+		
+</p>
+<p>/ SEND_EFFECT_CHAIN_COUNT
+		
+</p>
+<p>/ SEND_EFFECT_CHAIN_INFO
 		
 </p>
 </blockquote><p>
@@ -13909,9 +13947,129 @@ Database job status information changed</h3>
                 time events happening on the server, it is believed that an empty notification
                 message is sufficient here.
 </p>
-<a name="SUBSCRIBE MISCELLANEOUS"></a><br /><hr />
+<a name="SUBSCRIBE EFFECT_INSTANCE_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.8.26"></a><h3>8.26.&nbsp;
+Number of effect instances changed</h3>
+
+<p>Client may want to be notified when the number of effect instances
+                is changed by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE EFFECT_INSTANCE_COUNT
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"EFFECT_INSTANCE_COUNT:&lt;instances&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;instances&gt; will be replaced by the new number
+                of effect instances.
+</p>
+<a name="SUBSCRIBE EFFECT_INSTANCE_INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.27"></a><h3>8.27.&nbsp;
+Effect instance information changed</h3>
+
+<p>Client may want to be notified when changes were made to effect instances
+                on the back-end by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE EFFECT_INSTANCE_INFO
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                   </p>
+<blockquote class="text">
+<p>"EFFECT_INSTANCE_INFO:&lt;instance-id&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;instance-id&gt; will be replaced by the numerical ID
+                of the effect instance.
+</p>
+<a name="SUBSCRIBE SEND_EFFECT_CHAIN_COUNT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.28"></a><h3>8.28.&nbsp;
+Number of send effect chains changed</h3>
+
+<p>Client may want to be notified when the number of send effect chains
+                is changed by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE SEND_EFFECT_CHAIN_COUNT
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:SEND_EFFECT_CHAIN_COUNT:&lt;device-id&gt; &lt;chains&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;device-id&gt; will be replaced by the numerical ID of the audio
+                output device, in which the number of send effect chains is changed and
+                &lt;chains&gt; will be replaced by the new number of send effect chains.
+</p>
+<a name="SUBSCRIBE SEND_EFFECT_CHAIN_INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.29"></a><h3>8.29.&nbsp;
+Send effect chain information changed</h3>
+
+<p>Client may want to be notified when changes were made to send effect chains
+                on the back-end by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE SEND_EFFECT_CHAIN_INFO
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                   </p>
+<blockquote class="text">
+<p>"SEND_EFFECT_CHAIN_INFO:&lt;device-id&gt; &lt;chain-id&gt; &lt;instances&gt;" -
+                        Notifies that the number of effect instances in a particular send effect chain
+                        is changed, where &lt;device-id&gt; will be replaced by the numerical ID of the audio
+                        output device the send effect chain belongs to, &lt;chain-id&gt; will be replaced
+                        by the numerical ID of the send effect chain in which the number of effect instances
+                        has changed and &lt;instances&gt; will be replaced by the new number
+                        of effect instances in the specified send effect chain.
+</p>
+</blockquote><p>
+                
+</p>
+<a name="SUBSCRIBE MISCELLANEOUS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.30"></a><h3>8.30.&nbsp;
 Miscellaneous and debugging events</h3>
 
 <p>Client may want to be notified of miscellaneous and debugging events occurring at
@@ -14008,7 +14166,7 @@ Schoenebeck</td></tr>
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <h3>Full Copyright Statement</h3>
 <p class='copyright'>
-Copyright &copy; The IETF Trust (2010).</p>
+Copyright &copy; The IETF Trust (2011).</p>
 <p class='copyright'>
 This document is subject to the rights,
 licenses and restrictions contained in BCP&nbsp;78,
