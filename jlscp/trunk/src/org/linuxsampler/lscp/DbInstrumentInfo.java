@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2007 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2010 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -55,6 +55,10 @@ public class DbInstrumentInfo extends AbstractInstrument implements Parseable {
 		numberFormat.setMinimumFractionDigits(0);
 		numberFormat.setMaximumFractionDigits(1);
 	}
+
+	/** Creates a new instance of <code>DbInstrumentInfo</code>. */
+	public
+	DbInstrumentInfo() { }
 	
 	/**
 	 * Creates a new instance of <code>DbInstrumentInfo</code>.

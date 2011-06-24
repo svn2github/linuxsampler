@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2006 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2011 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -31,6 +31,10 @@ public final class ServerInfo implements Parseable {
 	private String ver = null;
 	private String protoVer = null;
 	private boolean instrumentsDbSupport = false;
+
+	/** Creates a new instance of <code>ServerInfo</code>. */
+	public
+	ServerInfo() { }
 	
 	/**
 	 * Creates a new instance of <code>ServerInfo</code> and parses the information

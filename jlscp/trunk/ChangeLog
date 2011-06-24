@@ -1,3 +1,6 @@
+CVS HEAD
+  * Added support for send effects
+
 jlscp v0.8: 2009-08-03
   * Added support for monitoring MIDI events on sampler channels
     and MIDI devices

@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2008 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2011 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -29,6 +29,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,9 +41,9 @@ import static org.linuxsampler.lscp.Parser.*;
 
 /**
  * This class is the abstraction representing a client endpoint for communication with LinuxSampler
- * instance. Since it implements all commands specified in the LSCP protocol v1.3, for more 
+ * instance. Since it implements all commands specified in the LSCP protocol v1.5, for more
  * information look at the
- * <a href=http://www.linuxsampler.org/api/lscp-1.3.html>LSCP</a> specification.
+ * <a href=http://www.linuxsampler.org/api/lscp-1.5.html>LSCP</a> specification.
  *
  * <p> The following code establishes connection to LinuxSampler instance and gets the
  * LinuxSampler version:
@@ -77,6 +78,21 @@ public class Client {
 	private EventThread eventThread;
 	
 	private boolean printOnlyMode = false;
+
+	public enum ResultSetType {
+		EMPTY, SINGLE_LINE, MULTI_LINE
+	}
+	
+	private static class ResultSetEntry {
+		public ResultSetType type;
+		
+		public
+		ResultSetEntry(ResultSetType type) {
+			this.type = type;
+		}
+	}
+
+	private Vector<ResultSetEntry> resultSetQueue = new Vector<ResultSetEntry>();
 	
 	class EventThread extends Thread {
 		private Vector<String> queue = new Vector<String>();
@@ -405,6 +421,10 @@ public class Client {
 			subscribe("DB_INSTRUMENTS_JOB_INFO");
 		}
 		if(!llGI.isEmpty()) subscribe("GLOBAL_INFO");
+		if(!llEIC.isEmpty()) subscribe("EFFECT_INSTANCE_COUNT");
+		if(!llEII.isEmpty()) subscribe("EFFECT_INSTANCE_INFO");
+		if(!llSECC.isEmpty()) subscribe("SEND_EFFECT_CHAIN_COUNT");
+		if(!llSECI.isEmpty()) subscribe("SEND_EFFECT_CHAIN_INFO");
 	}
 	
 	/**
@@ -468,18 +488,45 @@ public class Client {
 			else getLogger().severe("Unknown notification format: " + s);
 		}
 	}
+
+	private synchronized void
+	processResultSetQueue() {
+		for(int i = 0; i < resultSetQueue.size(); i++) {
+			try {
+				switch(resultSetQueue.get(i).type) {
+					case EMPTY:
+						getEmptyResultSet();
+						break;
+					case SINGLE_LINE:
+						getSingleLineResultSet();
+						break;
+					case MULTI_LINE:
+						getMultiLineResultSet();
+						break;
+					default:
+						getLogger().severe("Unknown result set type");
+				}
+			} catch(Exception x) {
+				getLogger().log(Level.FINE, "Error while processing result set queue", x);
+			}
+		}
+
+		resultSetQueue.removeAllElements();
+	}
 	
 	/**
 	 * Gets empty result set.
 	 * @return <code>ResultSet</code> instance.
 	 */
 	private ResultSet
-	getEmptyResultSet() throws IOException, LscpException, LSException { 
+	getEmptyResultSet() throws IOException, LscpException, LSException {
+		processResultSetQueue();
 		return parseEmptyResultSet(getLine());
 	}
 	
 	private ResultSet
-	getSingleLineResultSet() throws IOException, LscpException, LSException { 
+	getSingleLineResultSet() throws IOException, LscpException, LSException {
+		processResultSetQueue();
 		ResultSet rs = new ResultSet();
 		String ln = getLine();
 		
@@ -498,6 +545,7 @@ public class Client {
 	
 	private ResultSet
 	getMultiLineResultSet() throws IOException, LscpException, LSException {
+		processResultSetQueue();
 		ResultSet rs = new ResultSet();
 		String ln = getLine();
 		
@@ -551,6 +599,10 @@ public class Client {
 	private final Vector<ChannelMidiDataListener> llCMD = new Vector<ChannelMidiDataListener>();
 	private final Vector<InstrumentsDbListener> llID = new Vector<InstrumentsDbListener>();
 	private final Vector<GlobalInfoListener> llGI = new Vector<GlobalInfoListener>();
+	private final ArrayList<EffectInstanceCountListener> llEIC = new ArrayList<EffectInstanceCountListener>();
+	private final Vector<EffectInstanceInfoListener> llEII = new Vector<EffectInstanceInfoListener>();
+	private final Vector<SendEffectChainCountListener> llSECC = new Vector<SendEffectChainCountListener>();
+	private final Vector<SendEffectChainInfoListener> llSECI = new Vector<SendEffectChainInfoListener>();
 	
 	
 	/**
@@ -583,7 +635,11 @@ public class Client {
 			!llDMD.isEmpty()  ||
 			!llCMD.isEmpty()  ||
 			!llID.isEmpty()   ||
-			!llGI.isEmpty();
+			!llGI.isEmpty()   ||
+			!llEIC.isEmpty()  ||
+			!llEII.isEmpty()  ||
+			!llSECC.isEmpty() ||
+			!llSECI.isEmpty();
 	}
 	
 	private synchronized void
@@ -646,6 +702,7 @@ public class Client {
 	parseMidiDataType(String s) {
 		if("NOTE_ON".equals(s)) return MidiDataEvent.Type.NOTE_ON;
 		if("NOTE_OFF".equals(s)) return MidiDataEvent.Type.NOTE_OFF;
+		if("CC".equals(s)) return MidiDataEvent.Type.CC;
 		
 		getLogger().warning("Unknown MIDI data type: " + s);
 		return null;
@@ -947,6 +1004,66 @@ public class Client {
 				}
 			} catch(Exception x) {
 				getLogger().log(Level.WARNING, "Unknown FX_SEND_INFO format", x);
+			}
+		} else if(s.startsWith("EFFECT_INSTANCE_COUNT:")) {
+			try {
+				s = s.substring("EFFECT_INSTANCE_COUNT:".length());
+				int i = Integer.parseInt(s);
+				
+				EffectInstanceCountEvent e = new EffectInstanceCountEvent(this, i);
+				for(EffectInstanceCountListener l : llEIC) {
+					l.effectInstanceCountChanged(e);
+				}
+			} catch(Exception x) {
+				getLogger().log(Level.WARNING, "Unknown EFFECT_INSTANCE_COUNT format", x);
+			}
+		} else if(s.startsWith("EFFECT_INSTANCE_INFO:")) {
+			try {
+				s = s.substring("EFFECT_INSTANCE_INFO:".length());
+				int i = Integer.parseInt(s);
+				
+				EffectInstanceInfoEvent e = new EffectInstanceInfoEvent(this, i);
+				for(EffectInstanceInfoListener l : llEII) {
+					l.effectInstanceInfoChanged(e);
+				}
+			} catch(Exception x) {
+				getLogger().log(Level.WARNING, "Unknown EFFECT_INSTANCE_INFO format", x);
+			}
+		} else if(s.startsWith("SEND_EFFECT_CHAIN_COUNT:")) {
+			try {
+				s = s.substring("SEND_EFFECT_CHAIN_COUNT:".length());
+				Integer[] i = parseIntList(s, ' ');
+				if(i.length != 2) {
+					getLogger().warning("Unknown SEND_EFFECT_CHAIN_COUNT format");
+					return;
+				}
+				
+				SendEffectChainCountEvent e =
+					new SendEffectChainCountEvent(this, i[0], i[1]);
+				
+				for(SendEffectChainCountListener l : llSECC) {
+					l.sendEffectChainCountChanged(e);
+				}
+			} catch(Exception x) {
+				getLogger().log(Level.WARNING, "Unknown SEND_EFFECT_CHAIN_COUNT format", x);
+			}
+		} else if(s.startsWith("SEND_EFFECT_CHAIN_INFO:")) {
+			try {
+				s = s.substring("SEND_EFFECT_CHAIN_INFO:".length());
+				Integer[] i = parseIntList(s, ' ');
+				if(i.length != 3) {
+					getLogger().warning("Unknown SEND_EFFECT_CHAIN_INFO format");
+					return;
+				}
+				
+				SendEffectChainInfoEvent e =
+					new SendEffectChainInfoEvent(this, i[0], i[1], i[2]);
+				
+				for(SendEffectChainInfoListener l : llSECI) {
+					l.sendEffectChainInfoChanged(e);
+				}
+			} catch(Exception x) {
+				getLogger().log(Level.WARNING, "Unknown SEND_EFFECT_CHAIN_INFO format", x);
 			}
 		} else if(s.startsWith("GLOBAL_INFO:")) {
 			handleGlobalInfoEvent(s.substring("GLOBAL_INFO:".length()));
@@ -1513,23 +1630,105 @@ public class Client {
 	}
 	
 	/**
+	 * Registers the specified listener for receiving event messages.
+	 * Listeners can be registered regardless of the connection state.
+	 * @param l The <code>EffectInstanceCountListener</code> to register.
+	 */
+	public synchronized void
+	addEffectInstanceCountListener(EffectInstanceCountListener l) {
+		if(llEIC.isEmpty()) subscribe("EFFECT_INSTANCE_COUNT");
+		llEIC.add(l);
+	}
+	
+	/**
+	 * Removes the specified listener.
+	 * Listeners can be removed regardless of the connection state.
+	 * @param l The <code>EffectInstanceCountListener</code> to remove.
+	 */
+	public synchronized void
+	removeEffectInstanceCountListener(EffectInstanceCountListener l) {
+		boolean b = llEIC.remove(l);
+		if(b && llEIC.isEmpty()) unsubscribe("EFFECT_INSTANCE_COUNT");
+	}
+	
+	/**
+	 * Registers the specified listener for receiving event messages.
+	 * Listeners can be registered regardless of the connection state.
+	 * @param l The <code>EffectInstanceInfoListener</code> to register.
+	 */
+	public synchronized void
+	addEffectInstanceInfoListener(EffectInstanceInfoListener l) {
+		if(llEII.isEmpty()) subscribe("EFFECT_INSTANCE_INFO");
+		llEII.add(l);
+	}
+	
+	/**
+	 * Removes the specified listener.
+	 * Listeners can be removed regardless of the connection state.
+	 * @param l The <code>EffectInstanceInfoListener</code> to remove.
+	 */
+	public synchronized void
+	removeEffectInstanceInfoListener(EffectInstanceInfoListener l) {
+		boolean b = llEII.remove(l);
+		if(b && llEII.isEmpty()) unsubscribe("EFFECT_INSTANCE_INFO");
+	}
+	
+	/**
+	 * Registers the specified listener for receiving event messages.
+	 * Listeners can be registered regardless of the connection state.
+	 * @param l The <code>SendEffectChainCountListener</code> to register.
+	 */
+	public synchronized void
+	addSendEffectChainCountListener(SendEffectChainCountListener l) {
+		if(llSECC.isEmpty()) subscribe("SEND_EFFECT_CHAIN_COUNT");
+		llSECC.add(l);
+	}
+	
+	/**
+	 * Removes the specified listener.
+	 * Listeners can be removed regardless of the connection state.
+	 * @param l The <code>SendEffectChainCountListener</code> to remove.
+	 */
+	public synchronized void
+	removeSendEffectChainCountListener(SendEffectChainCountListener l) {
+		boolean b = llSECC.remove(l);
+		if(b && llSECC.isEmpty()) unsubscribe("SEND_EFFECT_CHAIN_COUNT");
+	}
+	
+	/**
+	 * Registers the specified listener for receiving event messages.
+	 * Listeners can be registered regardless of the connection state.
+	 * @param l The <code>SendEffectChainInfoListener</code> to register.
+	 */
+	public synchronized void
+	addSendEffectChainInfoListener(SendEffectChainInfoListener l) {
+		if(llSECI.isEmpty()) subscribe("SEND_EFFECT_CHAIN_INFO");
+		llSECI.add(l);
+	}
+	
+	/**
+	 * Removes the specified listener.
+	 * Listeners can be removed regardless of the connection state.
+	 * @param l The <code>SendEffectChainInfoListener</code> to remove.
+	 */
+	public synchronized void
+	removeSendEffectChainInfoListener(SendEffectChainInfoListener l) {
+		boolean b = llSECI.remove(l);
+		if(b && llSECI.isEmpty()) unsubscribe("SEND_EFFECT_CHAIN_INFO");
+	}
+	
+	/**
 	 * Gets the number of all audio output drivers currently 
 	 * available for the LinuxSampler instance.
 	 * @return The number of all audio output drivers currently 
-	 * available for the LinuxSampler instance.
+	 * available for the LinuxSampler instance or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getAudioOutputDriverCount() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET AVAILABLE_AUDIO_OUTPUT_DRIVERS");
-		
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET AVAILABLE_AUDIO_OUTPUT_DRIVERS");
 	}
 	
 	/**
@@ -1588,13 +1787,9 @@ public class Client {
 	public synchronized AudioOutputDriver
 	getAudioOutputDriverInfo(String driverName, Parameter... depList) 
 					throws IOException, LscpException, LSException {
-		
-		verifyConnection();
-		out.writeLine("GET AUDIO_OUTPUT_DRIVER INFO " + driverName);
-		if(getPrintOnlyMode()) return null;
-		
-		ResultSet rs = getMultiLineResultSet();
-		AudioOutputDriver aod = new AudioOutputDriver(rs.getMultiLineResult());
+
+		AudioOutputDriver aod = new AudioOutputDriver();
+		if(!retrieveInfo("GET AUDIO_OUTPUT_DRIVER INFO " + driverName, aod)) return null;
 		aod.setName(driverName);
 		
 		for(String s : aod.getParameterNames())
@@ -1693,20 +1888,14 @@ public class Client {
 	createAudioOutputDevice(String aoDriver, Parameter... paramList)
 					throws IOException, LSException, LscpException {
 		
-		verifyConnection();
 		StringBuffer args = new StringBuffer(aoDriver);
 		
 		for(Parameter p : paramList) {
 			if(p == null || p.getName() == null || p.getValue() == null) continue;
 			args.append(' ').append(p.getName()).append('=').append(p.getStringValue());
 		}
-		
-		out.writeLine("CREATE AUDIO_OUTPUT_DEVICE " + args.toString());
-		if(getPrintOnlyMode()) return -1;
-		
-		ResultSet rs = getEmptyResultSet();
-		
-		return rs.getIndex();
+
+		return retrieveIndex("CREATE AUDIO_OUTPUT_DEVICE " + args.toString());
 	}
 	
 	/**
@@ -1719,11 +1908,7 @@ public class Client {
 	 */
 	public synchronized void
 	destroyAudioOutputDevice(int deviceId) throws IOException, LSException, LscpException {
-		verifyConnection();
-		out.writeLine("DESTROY AUDIO_OUTPUT_DEVICE " + deviceId);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("DESTROY AUDIO_OUTPUT_DEVICE " + deviceId);
 	}
 	
 	/** 
@@ -1745,19 +1930,15 @@ public class Client {
 	
 	/**
 	 * Gets the current number of all created audio output devices.
-	 * @return The current number of all created audio output devices.
+	 * @return The current number of all created audio output devices
+	 *  or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getAudioOutputDeviceCount() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET AUDIO_OUTPUT_DEVICES");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET AUDIO_OUTPUT_DEVICES");
 	}
 		
 	/**
@@ -1791,11 +1972,7 @@ public class Client {
 	 */
 	public synchronized Integer[]
 	getAudioOutputDeviceIDs() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("LIST AUDIO_OUTPUT_DEVICES");
-		if(getPrintOnlyMode()) return null;
-		
-		return parseIntList(getSingleLineResultSet().getResult());
+		return getIntegerList("LIST AUDIO_OUTPUT_DEVICES");
 	}
 	
 	/**
@@ -1898,14 +2075,10 @@ public class Client {
 	 */
 	public synchronized void
 	setAudioOutputDeviceParameter(int deviceId, Parameter prm) 
-						throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+					throws IOException, LscpException, LSException
+	{
 		String kv = prm.getName() + '=' + prm.getStringValue();
-		out.writeLine("SET AUDIO_OUTPUT_DEVICE_PARAMETER " + deviceId + ' ' + kv);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET AUDIO_OUTPUT_DEVICE_PARAMETER " + deviceId + ' ' + kv);
 	}
 	
 	/**
@@ -2089,31 +2262,22 @@ public class Client {
 	 */
 	public synchronized void
 	setAudioOutputChannelParameter(int devId, int chn,  Parameter prm) 
-						throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+						throws IOException, LscpException, LSException
+	{
 		String args = devId + " " + chn + " " + prm.getName() + '=' + prm.getStringValue();
-		out.writeLine("SET AUDIO_OUTPUT_CHANNEL_PARAMETER " + args);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET AUDIO_OUTPUT_CHANNEL_PARAMETER " + args);
 	}
 	
 	/**
 	 * Gets the current number of all MIDI input drivers.
-	 * @return The current number of all MIDI input drivers.
+	 * @return The current number of all MIDI input drivers or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getMidiInputDriverCount() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET AVAILABLE_MIDI_INPUT_DRIVERS");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET AVAILABLE_MIDI_INPUT_DRIVERS");
 	}
 	
 	/**
@@ -2173,14 +2337,9 @@ public class Client {
 	public synchronized MidiInputDriver
 	getMidiInputDriverInfo(String driverName, Parameter... depList)
 					throws IOException, LscpException, LSException {
-		
-		verifyConnection();
-		out.writeLine("GET MIDI_INPUT_DRIVER INFO " + driverName);
-		if(getPrintOnlyMode()) return null;
-		
-		ResultSet rs = getMultiLineResultSet();
-		
-		MidiInputDriver mid = new MidiInputDriver(rs.getMultiLineResult());
+
+		MidiInputDriver mid = new MidiInputDriver();
+		if(!retrieveInfo("GET MIDI_INPUT_DRIVER INFO " + driverName, mid)) return null;
 		mid.setName(driverName);
 		
 		for(String s : mid.getParameterNames())
@@ -2278,22 +2437,16 @@ public class Client {
 	 */
 	public synchronized int
 	createMidiInputDevice(String miDriver, Parameter... paramList) 
-					throws IOException, LSException, LscpException {
-		
-		verifyConnection();
+					throws IOException, LSException, LscpException
+	{
 		StringBuffer args = new StringBuffer(miDriver);
 		
 		for(Parameter p : paramList) {
 			if(p == null || p.getName() == null || p.getValue() == null) continue;
 			args.append(' ').append(p.getName()).append('=').append(p.getStringValue());
 		}
-		
-		out.writeLine("CREATE MIDI_INPUT_DEVICE " + args.toString());
-		if(getPrintOnlyMode()) return -1;
-		
-		ResultSet rs = getEmptyResultSet();
-		
-		return rs.getIndex();
+
+		return retrieveIndex("CREATE MIDI_INPUT_DEVICE " + args.toString());
 	}
 	
 	/**
@@ -2307,11 +2460,7 @@ public class Client {
 	 */
 	public synchronized void
 	destroyMidiInputDevice(int deviceId) throws IOException, LSException, LscpException {
-		verifyConnection();
-		out.writeLine("DESTROY MIDI_INPUT_DEVICE " + deviceId);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("DESTROY MIDI_INPUT_DEVICE " + deviceId);
 	}
 	
 	/** 
@@ -2333,19 +2482,15 @@ public class Client {
 	
 	/**
 	 * Gets the current number of all created MIDI input devices.
-	 * @return The current number of all created MIDI input devices.
+	 * @return The current number of all created MIDI input
+	 * devices or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getMidiInputDeviceCount() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET MIDI_INPUT_DEVICES");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET MIDI_INPUT_DEVICES");
 	}
 	
 	/**
@@ -2385,11 +2530,7 @@ public class Client {
 	 */
 	public synchronized Integer[]
 	getMidiInputDeviceIDs() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("LIST MIDI_INPUT_DEVICES");
-		if(getPrintOnlyMode()) return null;
-		
-		return parseIntList(getSingleLineResultSet().getResult());
+		return getIntegerList("LIST MIDI_INPUT_DEVICES");
 	}
 	
 	/**
@@ -2486,19 +2627,15 @@ public class Client {
 	 */
 	public synchronized void
 	setMidiInputDeviceParameter(int deviceId, Parameter prm) 
-						throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+						throws IOException, LscpException, LSException
+	{
 		String kv = prm.getName() + '=' + prm.getStringValue();
-		out.writeLine("SET MIDI_INPUT_DEVICE_PARAMETER " + deviceId + ' ' + kv);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET MIDI_INPUT_DEVICE_PARAMETER " + deviceId + ' ' + kv);
 	}
 	
 	
 	/**
-	 * Changes the port number of the speicified MIDI input device.
+	 * Changes the port number of the specified MIDI input device.
 	 * @param deviceId The numerical ID of the MIDI input device.
 	 * @param ports The new number of MIDI input ports.
 	 *
@@ -2659,15 +2796,11 @@ public class Client {
 	 */
 	public synchronized void
 	setMidiInputPortParameter(int deviceId, int port,  Parameter prm) 
-						throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+						throws IOException, LscpException, LSException
+	{
 		String args = deviceId + " " + port + " " + 
 			prm.getName() + '=' + prm.getStringValue();
-		out.writeLine("SET MIDI_INPUT_PORT_PARAMETER " + args);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET MIDI_INPUT_PORT_PARAMETER " + args);
 	}
 	
 	/**
@@ -2681,13 +2814,7 @@ public class Client {
 	 */
 	public synchronized int
 	addMidiInstrumentMap(String name) throws IOException, LSException, LscpException {
-		verifyConnection();
-		out.writeLine("ADD MIDI_INSTRUMENT_MAP '" + toEscapedText(name) + "'");
-		if(getPrintOnlyMode()) return -1;
-		
-		ResultSet rs = getEmptyResultSet();
-		
-		return rs.getIndex();
+		return retrieveIndex("ADD MIDI_INSTRUMENT_MAP '" + toEscapedText(name) + "'");
 	}
 	
 	/**
@@ -2701,11 +2828,7 @@ public class Client {
 	 */
 	public synchronized void
 	removeMidiInstrumentMap(int mapId) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("REMOVE MIDI_INSTRUMENT_MAP " + mapId);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("REMOVE MIDI_INSTRUMENT_MAP " + mapId);
 	}
 	
 	/**
@@ -2716,28 +2839,20 @@ public class Client {
 	 */
 	public synchronized void
 	removeAllMidiInstrumentMaps() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("REMOVE MIDI_INSTRUMENT_MAP ALL");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("REMOVE MIDI_INSTRUMENT_MAP ALL");
 	}
 	
 	/**
 	 * Gets the current number of all MIDI instrument maps.
-	 * @return The current number of all MIDI instrument maps.
+	 * @return The current number of all MIDI instrument maps
+	 *  or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getMidiInstrumentMapCount() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET MIDI_INSTRUMENT_MAPS");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET MIDI_INSTRUMENT_MAPS");
 	}
 	
 	/**
@@ -2752,11 +2867,7 @@ public class Client {
 	 */
 	public synchronized Integer[]
 	getMidiInstrumentMapIDs() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("LIST MIDI_INSTRUMENT_MAPS");
-		if(getPrintOnlyMode()) return null;
-		
-		return parseIntList(getSingleLineResultSet().getResult());
+		return getIntegerList("LIST MIDI_INSTRUMENT_MAPS");
 	}
 	
 	/**
@@ -2830,14 +2941,10 @@ public class Client {
 	 */
 	public synchronized void
 	setMidiInstrumentMapName(int mapId, String name)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+				throws IOException, LscpException, LSException
+	{
 		name = toEscapedText(name);
-		out.writeLine("SET MIDI_INSTRUMENT_MAP NAME " +  + mapId + " '" + name + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET MIDI_INSTRUMENT_MAP NAME " +  + mapId + " '" + name + "'");
 	}
 	
 	
@@ -2913,53 +3020,41 @@ public class Client {
 	 */
 	public synchronized void
 	unmapMidiInstrument(int mapId, MidiInstrumentEntry entry) 
-					throws IOException, LSException, LscpException {
-		
-		verifyConnection();
+					throws IOException, LSException, LscpException
+	{
 		StringBuffer cmd = new StringBuffer("UNMAP MIDI_INSTRUMENT ");
 		cmd.append(mapId).append(' ');
 		cmd.append(entry.getMidiBank()).append(' ');
 		cmd.append(entry.getMidiProgram());
-		
-		out.writeLine(cmd.toString());
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+
+		retrieveIndex(cmd.toString());
 	}
 	
 	/**
 	 * Gets the current number of all MIDI instrument in all maps.
-	 * @return The current number of all MIDI instrument in all maps.
+	 * @return The current number of all MIDI instrument in all maps
+	 * or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getMidiInstrumentCount() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET MIDI_INSTRUMENTS ALL");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET MIDI_INSTRUMENTS ALL");
 	}
 	
 	/**
 	 * Gets the current number of MIDI instrument in the specified map.
 	 * @param mapId The ID of the map.
-	 * @return The current number of MIDI instrument in the specified map.
+	 * @return The current number of MIDI instrument in the
+	 * specified map or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getMidiInstrumentCount(int mapId) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET MIDI_INSTRUMENTS " + String.valueOf(mapId));
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET MIDI_INSTRUMENTS " + String.valueOf(mapId));
 	}
 	
 	/**
@@ -3130,15 +3225,12 @@ public class Client {
 	 */
 	public synchronized void
 	loadInstrument(String filename, int instrIdx, int samplerChn, boolean nonModal)
-						throws IOException, LscpException, LSException {
-		
+						throws IOException, LscpException, LSException
+	{
 		String cmd = nonModal ? "LOAD INSTRUMENT NON_MODAL " : "LOAD INSTRUMENT ";
 		String args = '\'' + conv(filename) + "' " + instrIdx + ' ' + samplerChn;
-		
-		out.writeLine(cmd + args);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+
+		retrieveIndex(cmd + args);
 	}
 	
 	/**
@@ -3155,30 +3247,20 @@ public class Client {
 	 */
 	public synchronized void
 	loadSamplerEngine(String engineName, int samplerChn)
-					throws IOException, LscpException, LSException {
-		
-		verifyConnection();
-		out.writeLine("LOAD ENGINE " + engineName + ' ' + samplerChn);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+					throws IOException, LscpException, LSException
+	{ retrieveIndex("LOAD ENGINE " + engineName + ' ' + samplerChn); }
 	
 	/**
 	 * Gets the current number of all created sampler channels.
-	 * @return The current number of all created sampler channels.
+	 * @return The current number of all created sampler
+	 * channels or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getSamplerChannelCount() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET CHANNELS");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET CHANNELS");
 	}
 	
 	/**
@@ -3202,6 +3284,115 @@ public class Client {
 		
 		return channels;
 	}
+
+	/**
+	 * Gets a list of the specified sampler channels.
+	 * @return A <code>SamplerChannel</code> array providing all created sampler channels.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 * @see #addSamplerChannel
+	 * @see #removeSamplerChannel
+	 */
+	public synchronized SamplerChannel[]
+	getSamplerChannels(final Integer[] ids) throws IOException, LscpException, LSException {
+		verifyConnection();
+
+		int count = 0;
+		for(int i = 0; i < ids.length; i++) {
+			if(ids[i] >= 0) {
+				int tmp = ids[i]; // to avoid overlapping
+				ids[i] = -1;
+				ids[count++] = tmp;
+			}
+		}
+		if(getPrintOnlyMode()) return null;
+
+		final SamplerChannel[] channels = new SamplerChannel[count];
+
+		new CmdListIterator(count) {
+			@Override
+			protected void
+			writeOutput(int index) throws IOException {
+				channels[index] = new SamplerChannel();
+				out.writeLine("GET CHANNEL INFO " + ids[index]);
+				channels[index].setChannelId(ids[index]);
+			}
+
+			@Override
+			protected void
+			readInput(int index) throws IOException, LscpException, LSException {
+				if(getPrintOnlyMode()) return;
+				ResultSet rs = getMultiLineResultSet();
+
+				for(String s : rs.getMultiLineResult()) {
+					if(!channels[index].parse(s)) {
+						String msg = LscpI18n.getLogMsg("unknownLine", s);
+						Client.getLogger().info(msg);
+					}
+				}
+			}
+		}.run();
+
+
+
+		for(SamplerChannel sc : channels) {
+			if(sc.getEngine() != null) {
+				sc.setEngine(getEngineInfo(sc.getEngine().getName()));
+			}
+		}
+
+		return channels;
+	}
+
+	private static abstract class CmdListIterator {
+		private final int cmdCount;
+		private final int cmdsPerStep;
+
+		CmdListIterator(int cmdCount) {
+			this(cmdCount, 100);
+		}
+
+		CmdListIterator(int cmdCount, int cmdsPerStep) {
+			this.cmdCount = cmdCount;
+			this.cmdsPerStep = cmdsPerStep;
+		}
+
+		public void
+		run() throws IOException, LscpException, LSException {
+			int currentStep = 0;
+			int stepCount = cmdCount / cmdsPerStep;
+
+			for(currentStep = 0; currentStep < stepCount; currentStep++) {
+				for(int j = 0; j < cmdsPerStep; j++) {
+					int idx = (currentStep * cmdsPerStep) + j;
+					writeOutput(idx);
+				}
+
+				for(int j = 0; j < cmdsPerStep; j++) {
+					int idx = (currentStep * cmdsPerStep) + j;
+					readInput(idx);
+				}
+			}
+
+			int cmdsLeft = cmdCount % cmdsPerStep;
+			if(cmdsLeft > 0) {
+				for(int j = 0; j < cmdsLeft; j++) {
+					int idx = stepCount * cmdsPerStep + j;
+					writeOutput(idx);
+				}
+
+				for(int j = 0; j < cmdsLeft; j++) {
+					int idx = stepCount * cmdsPerStep + j;
+					readInput(idx);
+				}
+			}
+		}
+
+		protected abstract void writeOutput(int index) throws IOException;
+
+		protected abstract void readInput(int index) throws IOException, LscpException, LSException;
+	}
 	
 	/**
 	 * Gets a list with numerical IDs of all created sampler channels.
@@ -3215,11 +3406,7 @@ public class Client {
 	 */
 	public synchronized Integer[]
 	getSamplerChannelIDs() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("LIST CHANNELS");
-		if(getPrintOnlyMode()) return null;
-		
-		return parseIntList(getSingleLineResultSet().getResult());
+		return getIntegerList("LIST CHANNELS");
 	}
 	
 	/**
@@ -3234,13 +3421,7 @@ public class Client {
 	 */
 	public synchronized int
 	addSamplerChannel() throws IOException, LSException, LscpException {
-		verifyConnection();
-		out.writeLine("ADD CHANNEL");
-		if(getPrintOnlyMode()) return -1;
-		
-		ResultSet rs = getEmptyResultSet();
-		
-		return rs.getIndex();
+		return retrieveIndex("ADD CHANNEL");
 	}
 	
 	/**
@@ -3256,28 +3437,19 @@ public class Client {
 	 */
 	public synchronized void
 	removeSamplerChannel(int samplerChn) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("REMOVE CHANNEL " + samplerChn);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("REMOVE CHANNEL " + samplerChn);
 	}
 	
 	/**
 	 * Gets the number of all available engines.
-	 * @return The number of all available engines.
+	 * @return The number of all available engines or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getEngineCount() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET AVAILABLE_ENGINES");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET AVAILABLE_ENGINES");
 	}
 	
 	/**
@@ -3331,13 +3503,10 @@ public class Client {
 	 */
 	private synchronized SamplerEngine
 	getEngineInfo(String engineName) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET ENGINE INFO " + engineName);
-		if(getPrintOnlyMode()) return null;
-		
-		ResultSet rs = getMultiLineResultSet();
-		SamplerEngine se = new SamplerEngine(rs.getMultiLineResult());
+		SamplerEngine se = new SamplerEngine();
+		if(!retrieveInfo("GET ENGINE INFO " + engineName, se)) return null;
 		se.setName(engineName);
+
 		return se;
 	}
 	
@@ -3355,12 +3524,8 @@ public class Client {
 	 */
 	public synchronized SamplerChannel
 	getSamplerChannelInfo(int samplerChn) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET CHANNEL INFO " + samplerChn);
-		if(getPrintOnlyMode()) return null;
-		
-		ResultSet rs = getMultiLineResultSet();
-		SamplerChannel sc = new SamplerChannel(rs.getMultiLineResult());
+		SamplerChannel sc = new SamplerChannel();
+		if(!retrieveInfo("GET CHANNEL INFO " + samplerChn, sc)) return null;
 		sc.setChannelId(samplerChn);
 		if(sc.getEngine() != null) sc.setEngine(getEngineInfo(sc.getEngine().getName()));
 		
@@ -3371,7 +3536,8 @@ public class Client {
 	 * Gets the current number of active voices on the specified sampler channel.
 	 *
 	 * @param samplerChn The sampler channel number.
-	 * @return The current number of active voices on the specified sampler channel.
+	 * @return The current number of active voices on the
+	 * specified sampler channel or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If there is no sampler channel with number <code>samplerChn</code>.
@@ -3379,13 +3545,7 @@ public class Client {
 	 */
 	public synchronized int
 	getChannelVoiceCount(int samplerChn) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET CHANNEL VOICE_COUNT " + samplerChn);
-		if(getPrintOnlyMode()) return -1;
-		
-		ResultSet rs = getSingleLineResultSet();
-		
-		return parseInt(rs.getResult());
+		return retrieveInt("GET CHANNEL VOICE_COUNT " + samplerChn);
 	}
 	
 	/**
@@ -3525,14 +3685,8 @@ public class Client {
 	 */
 	public synchronized void
 	setChannelAudioOutputDevice(int samplerChn, int devId)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
-		out.writeLine("SET CHANNEL AUDIO_OUTPUT_DEVICE " + samplerChn + ' ' + devId);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+				throws IOException, LscpException, LSException
+	{ retrieveIndex("SET CHANNEL AUDIO_OUTPUT_DEVICE " + samplerChn + ' ' + devId); }
 	
 	/**
 	 * Sets the audio output channel on the specified sampler channel.
@@ -3555,14 +3709,10 @@ public class Client {
 	 */
 	public synchronized void
 	setChannelAudioOutputChannel(int samplerChn, int audioOut, int audioIn)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+				throws IOException, LscpException, LSException
+	{
 		String args = " " + samplerChn + ' ' + audioOut + ' ' + audioIn;
-		out.writeLine("SET CHANNEL AUDIO_OUTPUT_CHANNEL" + args);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET CHANNEL AUDIO_OUTPUT_CHANNEL" + args);
 	}
 	
 	/**
@@ -3584,14 +3734,8 @@ public class Client {
 	 */
 	public synchronized void
 	setChannelMidiInputDevice(int samplerChn, int devId)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
-		out.writeLine("SET CHANNEL MIDI_INPUT_DEVICE " + samplerChn + ' ' + devId);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+				throws IOException, LscpException, LSException
+	{ retrieveIndex("SET CHANNEL MIDI_INPUT_DEVICE " + samplerChn + ' ' + devId); }
 	
 	/**
 	 * Sets the MIDI input port on the specified sampler channel.
@@ -3607,14 +3751,8 @@ public class Client {
 	 */
 	public synchronized void
 	setChannelMidiInputPort(int samplerChn, int port)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
-		out.writeLine("SET CHANNEL MIDI_INPUT_PORT " + samplerChn + ' ' + port);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+				throws IOException, LscpException, LSException
+	{ retrieveIndex("SET CHANNEL MIDI_INPUT_PORT " + samplerChn + ' ' + port); }
 	
 	/**
 	 * Sets the MIDI input channel the specified sampler channel should listen to.
@@ -3630,15 +3768,11 @@ public class Client {
 	 */
 	public synchronized void
 	setChannelMidiInputChannel(int samplerChn, int midiChn)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+				throws IOException, LscpException, LSException
+	{
 		String args = String.valueOf(samplerChn) + ' ';
 		args += (midiChn == -1 ? "ALL" : String.valueOf(midiChn));
-		out.writeLine("SET CHANNEL MIDI_INPUT_CHANNEL " + args);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET CHANNEL MIDI_INPUT_CHANNEL " + args);
 	}
 	
 	/**
@@ -3662,9 +3796,8 @@ public class Client {
 	 */
 	public synchronized void
 	setChannelMidiInstrumentMap(int samplerChn, int mapId)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+				throws IOException, LscpException, LSException
+	{
 		String s;
 		if(mapId == -1) {
 			s = " NONE";
@@ -3673,10 +3806,8 @@ public class Client {
 		} else {
 			s = " " + String.valueOf(mapId);
 		}
-		out.writeLine("SET CHANNEL MIDI_INSTRUMENT_MAP " + samplerChn + s);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+
+		retrieveIndex("SET CHANNEL MIDI_INSTRUMENT_MAP " + samplerChn + s);
 	}
 	
 	/**
@@ -3693,14 +3824,8 @@ public class Client {
 	 */
 	public synchronized void
 	setChannelVolume(int samplerChn, float volume)
-				throws IOException, LscpException, LSException {
-	
-		verifyConnection();
-		out.writeLine("SET CHANNEL VOLUME " + samplerChn + ' ' + volume);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+				throws IOException, LscpException, LSException
+	{ retrieveIndex("SET CHANNEL VOLUME " + samplerChn + ' ' + volume); }
 	
 	/**
 	 * Mute/unmute the specified sampler channel.
@@ -3717,14 +3842,8 @@ public class Client {
 	 */
 	public synchronized void
 	setChannelMute(int samplerChn, boolean mute)
-				throws IOException, LscpException, LSException {
-	
-		verifyConnection();
-		out.writeLine("SET CHANNEL MUTE " + samplerChn + ' ' + (mute ? 1 : 0));
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+				throws IOException, LscpException, LSException
+	{ retrieveIndex("SET CHANNEL MUTE " + samplerChn + ' ' + (mute ? 1 : 0)); }
 	
 	/**
 	 * Solo/unsolo the specified sampler channel.
@@ -3741,14 +3860,8 @@ public class Client {
 	 */
 	public synchronized void
 	setChannelSolo(int samplerChn, boolean solo)
-				throws IOException, LscpException, LSException {
-	
-		verifyConnection();
-		out.writeLine("SET CHANNEL SOLO " + samplerChn + ' ' + (solo ? 1 : 0));
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+				throws IOException, LscpException, LSException
+	{ retrieveIndex("SET CHANNEL SOLO " + samplerChn + ' ' + (solo ? 1 : 0)); }
 	
 	/**
 	 * Creates an additional effect send on the specified sampler channel.
@@ -3781,17 +3894,12 @@ public class Client {
 	 */
 	public synchronized int
 	createFxSend(int channel, int midiCtrl, String name)
-			throws IOException, LSException, LscpException {
-		
-		verifyConnection();
+			throws IOException, LSException, LscpException
+	{
 		String s = String.valueOf(channel) + " " + String.valueOf(midiCtrl);
 		if(name != null) s += " '" + toEscapedText(name) + "'";
-		out.writeLine("CREATE FX_SEND " + s);
-		if(getPrintOnlyMode()) return -1;
-		
-		ResultSet rs = getEmptyResultSet();
-		
-		return rs.getIndex();
+
+		return retrieveIndex("CREATE FX_SEND " + s);
 	}
 	
 	/**
@@ -3805,14 +3913,10 @@ public class Client {
 	 */
 	public synchronized void
 	destroyFxSend(int channel, int fxSend)
-			throws IOException, LSException, LscpException {
-		
-		verifyConnection();
+			throws IOException, LSException, LscpException
+	{
 		String s = String.valueOf(channel) + " " + String.valueOf(fxSend);
-		out.writeLine("DESTROY FX_SEND " + s);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("DESTROY FX_SEND " + s);
 	}
 	
 	/**
@@ -3824,13 +3928,8 @@ public class Client {
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
-	getFxSoundCount(int channel) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET FX_SENDS " + String.valueOf(channel));
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+	getFxSendCount(int channel) throws IOException, LscpException, LSException {
+		return retrieveInt("GET FX_SENDS " + String.valueOf(channel));
 	}
 	
 	/**
@@ -3870,11 +3969,7 @@ public class Client {
 	 */
 	public synchronized Integer[]
 	getFxSendIDs(int channel) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("LIST FX_SENDS " + channel);
-		if(getPrintOnlyMode()) return null;
-		
-		return parseIntList(getSingleLineResultSet().getResult());
+		return getIntegerList("LIST FX_SENDS " + channel);
 	}
 	
 	/**
@@ -3889,13 +3984,9 @@ public class Client {
 	 */
 	public synchronized FxSend
 	getFxSendInfo(int channel, int fxSend) throws IOException, LscpException, LSException {
-		verifyConnection();
+		FxSend fxs = new FxSend();
 		String s = String.valueOf(channel) + " " + String.valueOf(fxSend);
-		out.writeLine("GET FX_SEND INFO " + s);
-		if(getPrintOnlyMode()) return null;
-		
-		ResultSet rs = getMultiLineResultSet();
-		FxSend fxs = new FxSend(rs.getMultiLineResult());
+		if(!retrieveInfo("GET FX_SEND INFO " + s, fxs)) return null;
 		fxs.setFxSendId(fxSend);
 		
 		return fxs;
@@ -3913,14 +4004,10 @@ public class Client {
 	 */
 	public synchronized void
 	setFxSendName(int channel, int fxSend, String name)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+				throws IOException, LscpException, LSException
+	{
 		String args = " " + channel + " " + fxSend + " '" + toEscapedText(name) + "'";
-		out.writeLine("SET FX_SEND NAME" + args);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET FX_SEND NAME" + args);
 	}
 	
 	/**
@@ -3943,14 +4030,51 @@ public class Client {
 	 */
 	public synchronized void
 	setFxSendAudioOutputChannel(int channel, int fxSend, int audioSrc, int audioDst)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+				throws IOException, LscpException, LSException
+	{
 		String args = " " + channel + " " + fxSend + " " + audioSrc + " " + audioDst;
-		out.writeLine("SET FX_SEND AUDIO_OUTPUT_CHANNEL" + args);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET FX_SEND AUDIO_OUTPUT_CHANNEL" + args);
+	}
+
+	/**
+	 * Assign a destination effect to an effect send.
+	 * @param channel The sampler channel number.
+	 * @param fxSend The numerical ID of the effect send entity.
+	 * @param fxChainId The numerical ID of the destination effect chain.
+	 * @param chainPos The exact effect chain position in the effect
+	 * chain which hosts the actual destination effect.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If
+	 * <ul>
+	 * <li><code>channel</code> is not a valid channel number;
+	 * <li><code>fxSend</code> is not a valid effect send ID;
+	 * <li><code>fxChainId</code> is not a valid effect chain ID;
+	 * <li><code>chainPos</code> is out of bounds;
+	 * <li>There is no engine assigned yet to the specified sampler channel;
+	 * <li>There is no audio output device connected to the specified sampler channel.
+	 * </ul>
+	 */
+	public synchronized void
+	setFxSendEffect(int channel, int fxSend, int fxChainId, int chainPos)
+				throws IOException, LscpException, LSException
+	{
+		String args = " " + channel + " " + fxSend + " " + fxChainId + " " + chainPos;
+		retrieveIndex("SET FX_SEND EFFECT" + args);
+	}
+
+	/**
+	 * Removes destination effect from an effect send.
+	 * @param channel The sampler channel number.
+	 * @param fxSend The numerical ID of the effect send entity.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If other error occurs.
+	 */
+	public synchronized void
+	removeFxSendEffect(int channel, int fxSend) throws IOException, LscpException, LSException {
+		String args = " " + channel + " " + fxSend;
+		retrieveIndex("REMOVE FX_SEND EFFECT" + args);
 	}
 	
 	/**
@@ -3971,14 +4095,10 @@ public class Client {
 	 */
 	public synchronized void
 	setFxSendMidiController(int channel, int fxSend, int midiCtrl)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+				throws IOException, LscpException, LSException
+	{
 		String args = " " + channel + " " + fxSend + " " + midiCtrl;
-		out.writeLine("SET FX_SEND MIDI_CONTROLLER" + args);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET FX_SEND MIDI_CONTROLLER" + args);
 	}
 	
 	/**
@@ -3994,14 +4114,410 @@ public class Client {
 	 */
 	public synchronized void
 	setFxSendLevel(int channel, int fxSend, float volume)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+				throws IOException, LscpException, LSException
+	{
 		String args = " " + channel + " " + fxSend + " " + String.valueOf(volume);
-		out.writeLine("SET FX_SEND LEVEL" + args);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET FX_SEND LEVEL" + args);
+	}
+
+
+	/**
+	 * Gets the current amount of internal effects available to the sampler.
+	 * @return The current amount of internal effects available to the sampler.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getEffectCount() throws IOException, LscpException, LSException
+	{ return retrieveInt("GET AVAILABLE_EFFECTS"); }
+
+	/**
+	 * Gets the list of internal effects available to the sampler.
+	 * Note that the set of available internal effects can change at runtime.
+	 * @return An <code>Effect</code> array providing the current list of internal effects.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized Effect[]
+	getEffects() throws IOException, LscpException, LSException {
+		Integer[] idS = getEffectIDs();
+		if(getPrintOnlyMode()) return null;
+
+		Effect[] effects = new Effect[idS.length];
+
+		for(int i = 0; i < effects.length; i++)
+			effects[i] = getEffectInfo(idS[i]);
+
+		return effects;
+	}
+
+	/**
+	 * Retrieves the list of available internal effects.
+	 * Note that the set of available internal effects can change at runtime.
+	 * @return An <code>Integer</code> array providing
+	 * the numerical IDs of all available internal effects.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized Integer[]
+	getEffectIDs() throws IOException, LscpException, LSException
+	{ return getIntegerList("LIST AVAILABLE_EFFECTS"); }
+
+	/**
+	 * Gets general informations about the specified effect.
+	 * @param effect The numerical ID of the effect entity.
+	 * @return <code>Effect</code> instance containing
+	 * general informations about the specified effect.
+	 * @throws IOException If an I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the effect ID is invalid.
+	 */
+	public synchronized Effect
+	getEffectInfo(int effect) throws IOException, LscpException, LSException {
+		Effect e = new Effect();
+		if(!retrieveInfo("GET EFFECT INFO " + effect, e)) return null;
+		e.setEffectId(effect);
+
+		return e;
+	}
+
+	/**
+	 * Creates an instance of the desired effect.
+	 * @param id The unique ID of the effect.
+	 * @return The unique ID of the newly created effect instance.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the creation of the effect instance failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @see #getEffectIDs
+	 * @see #getEffectInfo
+	 * @see #destroyEffectInstance
+	 */
+	public synchronized int
+	createEffectInstanceById(int id) throws IOException, LSException, LscpException
+	{ return retrieveIndex("CREATE EFFECT_INSTANCE " + String.valueOf(id)); }
+
+	/**
+	 * Creates an instance of the desired effect.
+	 * @return The unique ID of the newly created effect instance.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the creation of the effect instance failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @see #getEffectInfo
+	 * @see #destroyEffectInstance
+	 */
+	public synchronized int
+	createEffectInstance(Effect effect) throws IOException, LSException, LscpException
+	{ return createEffectInstanceById(effect.getEffectId()); }
+
+	/**
+	 * Creates an instance of the desired effect.
+	 * @return The unique ID of the newly created effect instance.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the creation of the effect instance failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @see #getEffectInfo
+	 * @see #destroyEffectInstance
+	 */
+	public synchronized int
+	createEffectInstance(String system, String module, String name)
+			throws IOException, LSException, LscpException
+	{
+		String s = system + " '" + toEscapedText(module) + "' '" + toEscapedText(name) + "'";
+		return retrieveIndex("CREATE EFFECT_INSTANCE " + s);
+	}
+
+	/**
+	 * Destroys the specified unused effect instance.
+	 * @param instanceId The numerical ID of the effect instance.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 * @see #createEffectInstance
+	 */
+	public synchronized void
+	destroyEffectInstance(int instanceId) throws IOException, LSException, LscpException
+	{ retrieveIndex("DESTROY EFFECT_INSTANCE " + String.valueOf(instanceId)); }
+	/**
+	 * Gets the current amount of effect instances available to the sampler.
+	 * @return The current amount of effect instances available to the sampler.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getEffectInstanceCount() throws IOException, LscpException, LSException
+	{ return retrieveInt("GET EFFECT_INSTANCES"); }
+
+	/**
+	 * Gets the current list of effect instances.
+	 * @return An <code>EffectInstance</code> array
+	 * providing the current list of effect instances.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized EffectInstance[]
+	getEffectInstances() throws IOException, LscpException, LSException {
+		Integer[] idS = getEffectInscanceIDs();
+		if(getPrintOnlyMode()) return null;
+
+		EffectInstance[] eis = new EffectInstance[idS.length];
+
+		for(int i = 0; i < eis.length; i++)
+			eis[i] = getEffectInstanceInfo(idS[i]);
+
+		return eis;
+	}
+
+	/**
+	 * Retrieves the current list of effect instances.
+	 * @return An <code>Integer</code> array providing
+	 * the numerical IDs of all available effect instances.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized Integer[]
+	getEffectInscanceIDs() throws IOException, LscpException, LSException
+	{ return getIntegerList("LIST EFFECT_INSTANCES"); }
+
+	/**
+	 * Gets the current informations about the specified effect instance.
+	 * @param id The numerical ID of the effect instance.
+	 * @return <code>EffectInstance</code> object containing
+	 * the current informations about the specified effect instance.
+	 * @throws IOException If an I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the effect instance ID is invalid.
+	 */
+	public synchronized EffectInstance
+	getEffectInstanceInfo(int id) throws IOException, LscpException, LSException {
+		EffectInstance ei = new EffectInstance();
+		if(!retrieveInfo("GET EFFECT_INSTANCE INFO " + id, ei)) return null;
+		ei.setInstanceId(id);
+
+		for(int i = 0; i < ei.getParameterCount(); i++) {
+			ei.addParameter(getEffectInstanceParameterInfo(id, i));
+		}
+
+		return ei;
+	}
+
+	/**
+	 * Gets information about the specified effect parameter.
+	 * @param id The numerical ID of the effect instance.
+	 * @param parameter The parameter index.
+	 * @return <code>EffectParameter</code> object containing
+	 * information about the specified effect parameter.
+	 * Note that only the following fields are used - description,
+	 * value, rangeMin, rangeMax, possibilities and default.
+	 * @throws IOException If an I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the effect instance ID or the parameter index is invalid.
+	 */
+	public synchronized EffectParameter
+	getEffectInstanceParameterInfo(int instanceId, int parameter)
+				throws IOException, LscpException, LSException
+	{
+		EffectParameter prm = new EffectParameter();
+		String s = String.valueOf(instanceId) + " " + String.valueOf(parameter);
+		if(!retrieveInfo("GET EFFECT_INSTANCE_INPUT_CONTROL INFO " + s, prm)) return null;
+
+		return prm;
+	}
+
+	/**
+	 * Alters the current value of an effect parameter.
+	 * @param instanceId The numerical ID of the effect instance.
+	 * @param prmIndex The index of the parameter to alter.
+	 * @param value The new value for this parameter.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If
+	 * <ul>
+	 * <li>There is no effect instance with numerical ID <code>instanceId</code>;
+	 * <li>There parameter index is invalid;
+	 * <li>The new value is out of range;
+	 * </ul>
+	 *
+	 * @see #getEffectInstanceInfo
+	 * @see #getEffectInstanceParameterInfo
+	 */
+	public synchronized void
+	setEffectInstanceParameter(int instanceId, int prmIndex, float value)
+					throws IOException, LscpException, LSException
+	{
+		String s = " " + instanceId + " " + prmIndex + " " + value;
+		retrieveIndex("SET EFFECT_INSTANCE_INPUT_CONTROL VALUE" + s);
+	}
+	/**
+	 * Gets the current amount of send effect chains on the specified audio output device.
+	 * @param audioDeviceId numerical ID of the audio output device.
+	 * @return The current amount of send effect chains or -1 if in "print only" mode.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getSendEffectChainCount(int audioDeviceId) throws IOException, LscpException, LSException
+	{ return retrieveInt("GET SEND_EFFECT_CHAINS " + audioDeviceId); }
+
+	/**
+	 * Gets the current list of send effect chains on the specified audio output device.
+	 * @param audioDeviceId The numerical ID of the audio output device.
+	 * @return An <code>EffectInstance</code> array
+	 * providing the current list of effect instances.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized EffectChain[]
+	getSendEffectChains(int audioDeviceId) throws IOException, LscpException, LSException {
+		Integer[] idS = getSendEffectChainIDs(audioDeviceId);
+		if(getPrintOnlyMode()) return null;
+
+		EffectChain[] ecs = new EffectChain[idS.length];
+
+		for(int i = 0; i < ecs.length; i++) {
+			ecs[i] = getSendEffectChainInfo(audioDeviceId, idS[i]);
+			ecs[i].setChainId(idS[i]);
+		}
+
+		return ecs;
+	}
+
+	/**
+	 * Retrieves the current list of send effect
+	 * chains on the specified audio output device.
+	 * @param audioDeviceId The numerical ID of the audio output device.
+	 * @return An <code>Integer</code> array providing the numerical
+	 * IDs of all send effect chains on the specified audio output device.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized Integer[]
+	getSendEffectChainIDs(int audioDeviceId) throws IOException, LscpException, LSException
+	{ return getIntegerList("LIST SEND_EFFECT_CHAINS " + audioDeviceId); }
+
+	/**
+	 * Adds a send effect chain to the specified audio output device.
+	 * @param audioDeviceId The numerical ID of the audio output device.
+	 * @return The numerical ID of the new send effect chain.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the creation of the effect chain failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @see #removeSendEffectChain
+	 * @see #getSendEffectChainInfo
+	 */
+	public synchronized int
+	addSendEffectChain(int audioDeviceId) throws IOException, LSException, LscpException
+	{ return retrieveIndex("ADD SEND_EFFECT_CHAIN " + audioDeviceId); }
+
+	/**
+	 * Removes a send effect chain from an audio output device.
+	 * @param audioDeviceId The numerical ID of the audio output device.
+	 * @param chainId The numerical ID of the send effect chain to remove.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 * @see #addSendEffectChain
+	 */
+	public synchronized void
+	removeSendEffectChain(int audioDeviceId, int chainId) throws IOException, LSException, LscpException
+	{ retrieveIndex("REMOVE SEND_EFFECT_CHAIN " + audioDeviceId + " " + chainId); }
+
+	/**
+	 * Gets the current information of a send effect chain.
+	 * @param audioDeviceId The numerical ID of the audio output device.
+	 * @param chainId The numerical ID of the send effect chain.
+	 * @return <code>EffectChain</code> object containing
+	 * the current informations about the specified effect chain.
+	 * @throws IOException If an I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the audio device ID or the effect chain ID is invalid.
+	 */
+	public synchronized EffectChain
+	getSendEffectChainInfo(int audioDeviceId, int chainId)
+				throws IOException, LscpException, LSException
+	{
+		verifyConnection();
+		String str = " " + audioDeviceId + " " + chainId;
+		out.writeLine("GET SEND_EFFECT_CHAIN INFO" + str);
+		if(getPrintOnlyMode()) return null;
+
+		ResultSet rs = getMultiLineResultSet();
+		EffectChain chain = null;
+
+		for(String s : rs.getMultiLineResult()) {
+			if(s.startsWith("EFFECT_SEQUENCE: ")) {
+				s = s.substring("EFFECT_SEQUENCE: ".length());
+				Integer[] eis = parseIntList(s);
+				EffectInstance[] instances = new EffectInstance[eis.length];
+				for(int i = 0; i < eis.length; i++) {
+					instances[i] = getEffectInstanceInfo(eis[i]);
+				}
+				chain = new EffectChain(instances);
+				chain.setChainId(chainId);
+			}
+		}
+
+		return chain;
+	}
+
+	/**
+	 * Adds an unused effect instance to the end of a send effect chain.
+	 * @param audioDeviceId The numerical ID of the audio output device.
+	 * @param chainId The numerical ID of the send effect chain.
+	 * @param fxInstanceId The numerical ID of the effect instance to add.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If invalid index is specified.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @see #addSendEffectChain
+	 * @see #createEffectInstance
+	 */
+	public synchronized void
+	appendEffectInstance(int audioDeviceId, int chainId, int fxInstanceId)
+			throws IOException, LSException, LscpException
+	{
+		String s = " " + audioDeviceId + " " + chainId + " " + fxInstanceId;
+		retrieveIndex("APPEND SEND_EFFECT_CHAIN EFFECT" + s);
+	}
+
+	/**
+	 * Adds an unused effect instance at a certain position of a send effect chain.
+	 * @param audioDeviceId The numerical ID of the audio output device.
+	 * @param chainId The numerical ID of the send effect chain.
+	 * @param pos The exact position in the effect chain where
+	 * the supplied effect shall be inserted to.
+	 * @param fxInstanceId The numerical ID of the effect instance to insert.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If invalid index is specified.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @see #addSendEffectChain
+	 * @see #createEffectInstance
+	 */
+	public synchronized void
+	insertEffectInstance(int audioDeviceId, int chainId, int pos, int fxInstanceId)
+			throws IOException, LSException, LscpException
+	{
+		String s = " " + audioDeviceId + " " + chainId + " " + pos + " " + fxInstanceId;
+		retrieveIndex("INSERT SEND_EFFECT_CHAIN EFFECT" + s);
+	}
+
+	/**
+	 * Removes an effect instance from a certain position of a send effect chain.
+	 * @param audioDeviceId The numerical ID of the audio output device.
+	 * @param chainId The numerical ID of the send effect chain.
+	 * @param pos The exact position of the effect
+	 * instance to be removed from the effect chain.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If invalid index is specified.
+	 * @see #appendEffectInstance
+	 * @see #insertEffectInstance
+	 */
+	public synchronized void
+	removeEffectInstanceFromChain(int audioDeviceId, int chainId, int pos)
+			throws IOException, LSException, LscpException
+	{
+		String s = " " + audioDeviceId + " " + chainId + " " + pos;
+		retrieveIndex("REMOVE SEND_EFFECT_CHAIN EFFECT" + s);
 	}
 	
 	/**
@@ -4015,13 +4531,8 @@ public class Client {
 	 * @see #getSamplerChannels
 	 */
 	public synchronized void
-	editChannelInstrument(int samplerChn) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("EDIT CHANNEL INSTRUMENT " + samplerChn);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	editChannelInstrument(int samplerChn) throws IOException, LscpException, LSException
+	{ retrieveIndex("EDIT CHANNEL INSTRUMENT " + samplerChn); }
 	
 	/**
 	 * Sends a MIDI event to this sampler channel.
@@ -4035,18 +4546,14 @@ public class Client {
 	 */
 	public synchronized void
 	sendChannelMidiData(int samplerChn, MidiDataEvent.Type type, int arg1, int arg2)
-						throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+						throws IOException, LscpException, LSException
+	{
 		StringBuffer sb = new StringBuffer();
 		sb.append("SEND CHANNEL MIDI_DATA ");
 		sb.append(type).append(" ").append(samplerChn).append(" ");
 		sb.append(arg1).append(" ").append(arg2);
-		
-		out.writeLine(sb.toString());
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+
+		retrieveIndex(sb.toString());
 	}
 	
 	/**
@@ -4061,13 +4568,8 @@ public class Client {
 	 * @see #getSamplerChannels
 	 */
 	public synchronized void
-	resetChannel(int samplerChn) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("RESET CHANNEL " + samplerChn);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	resetChannel(int samplerChn) throws IOException, LscpException, LSException
+	{ retrieveIndex("RESET CHANNEL " + samplerChn); }
 	
 	
 	
@@ -4079,13 +4581,8 @@ public class Client {
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 */
 	public synchronized void
-	addDbDirectory(String dir) throws IOException, LSException, LscpException {
-		verifyConnection();
-		out.writeLine("ADD DB_INSTRUMENT_DIRECTORY '" + conv(dir) + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	addDbDirectory(String dir) throws IOException, LSException, LscpException
+	{ retrieveIndex("ADD DB_INSTRUMENT_DIRECTORY '" + conv(dir) + "'"); }
 	
 	/**
 	 * Removes the specified directory from the instruments database.
@@ -4096,9 +4593,8 @@ public class Client {
 	 * empty or if the removal of the directory failed.
 	 */
 	public synchronized void
-	removeDbDirectory(String dir) throws IOException, LscpException, LSException {
-		removeDbDirectory(dir, false);
-	}
+	removeDbDirectory(String dir) throws IOException, LscpException, LSException
+	{ removeDbDirectory(dir, false); }
 	
 	/**
 	 * Removes the specified directory from the instruments database.
@@ -4111,15 +4607,11 @@ public class Client {
 	 */
 	public synchronized void
 	removeDbDirectory(String dir, boolean force)
-				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
+				throws IOException, LscpException, LSException
+	{
 		String s = "REMOVE DB_INSTRUMENT_DIRECTORY ";
 		if(force) s += "FORCE ";
-		out.writeLine(s + "'" + conv(dir) + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex(s + "'" + conv(dir) + "'");
 	}
 	
 	/**
@@ -4217,12 +4709,9 @@ public class Client {
 	 */
 	public synchronized DbDirectoryInfo
 	getDbDirectoryInfo(String dir) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET DB_INSTRUMENT_DIRECTORY INFO '" + conv(dir) + "'");
-		if(getPrintOnlyMode()) return null;
-		
-		ResultSet rs = getMultiLineResultSet();
-		DbDirectoryInfo info = new DbDirectoryInfo(rs.getMultiLineResult());
+		DbDirectoryInfo info = new DbDirectoryInfo();
+		if(!retrieveInfo("GET DB_INSTRUMENT_DIRECTORY INFO '" + conv(dir) + "'", info)) return null;
+
 		if(dir.equals("/")) {
 			info.setName("/");
 		} else {
@@ -4316,12 +4805,8 @@ public class Client {
 	 */
 	public synchronized void
 	renameDbDirectory(String dir, String name) throws IOException, LSException, LscpException {
-		verifyConnection();
 		name = toEscapedText(name);
-		out.writeLine("SET DB_INSTRUMENT_DIRECTORY NAME '" + conv(dir) + "' '" + conv(name) + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET DB_INSTRUMENT_DIRECTORY NAME '" + conv(dir) + "' '" + conv(name) + "'");
 	}
 	
 	/**
@@ -4333,13 +4818,8 @@ public class Client {
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 */
 	public synchronized void
-	moveDbDirectory(String dir, String dst) throws IOException, LSException, LscpException {
-		verifyConnection();
-		out.writeLine("MOVE DB_INSTRUMENT_DIRECTORY '" + conv(dir) + "' '" + conv(dst) + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	moveDbDirectory(String dir, String dst) throws IOException, LSException, LscpException
+	{ retrieveIndex("MOVE DB_INSTRUMENT_DIRECTORY '" + conv(dir) + "' '" + conv(dst) + "'"); }
 	
 	/**
 	 * Moves the specified directories into the specified location.
@@ -4369,13 +4849,8 @@ public class Client {
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 */
 	public synchronized void
-	copyDbDirectory(String dir, String dst) throws IOException, LSException, LscpException {
-		verifyConnection();
-		out.writeLine("COPY DB_INSTRUMENT_DIRECTORY '" + conv(dir) + "' '" + conv(dst) + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	copyDbDirectory(String dir, String dst) throws IOException, LSException, LscpException
+	{ retrieveIndex("COPY DB_INSTRUMENT_DIRECTORY '" + conv(dir) + "' '" + conv(dst) + "'"); }
 	
 	/**
 	 * Copies the specified directories into the specified location.
@@ -4406,14 +4881,10 @@ public class Client {
 	 */
 	public synchronized void
 	setDbDirectoryDescription(String dir, String desc)
-				throws IOException, LSException, LscpException {
-		
-		verifyConnection();
+				throws IOException, LSException, LscpException
+	{
 		String s = "SET DB_INSTRUMENT_DIRECTORY DESCRIPTION '";
-		out.writeLine(s + conv(dir) + "' '" + toEscapedText(desc) + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex(s + conv(dir) + "' '" + toEscapedText(desc) + "'");
 	}
 	
 	public static enum ScanMode {
@@ -4454,17 +4925,12 @@ public class Client {
 	 */
 	public synchronized int
 	addDbInstrument(String dbDir, String filePath, int instrIndex, boolean background)
-					throws IOException, LSException, LscpException {
-		
-		verifyConnection();
+					throws IOException, LSException, LscpException
+	{
 		String s = "ADD DB_INSTRUMENTS";
 		if(background) s += " NON_MODAL";
 		s += " '" + conv(dbDir) + "' '" + conv(filePath) + "' ";
-		out.writeLine(s + String.valueOf(instrIndex));
-		if(getPrintOnlyMode()) return -1;
-		
-		ResultSet rs = getEmptyResultSet();
-		return rs.getIndex();
+		return retrieveIndex(s + String.valueOf(instrIndex));
 	}
 	
 	/**
@@ -4501,16 +4967,11 @@ public class Client {
 	 */
 	public synchronized int
 	addDbInstruments(String dbDir, String filePath, boolean background)
-					throws IOException, LSException, LscpException {
-		
-		verifyConnection();
+					throws IOException, LSException, LscpException
+	{
 		String s = "ADD DB_INSTRUMENTS";
 		if(background) s += " NON_MODAL";
-		out.writeLine(s + " '" + conv(dbDir) + "' '" + conv(filePath) + "'");
-		if(getPrintOnlyMode()) return -1;
-		
-		ResultSet rs = getEmptyResultSet();
-		return rs.getIndex();
+		return retrieveIndex(s + " '" + conv(dbDir) + "' '" + conv(filePath) + "'");
 	}
 	
 	/**
@@ -4607,9 +5068,8 @@ public class Client {
 	 */
 	public synchronized int
 	addDbInstruments(ScanMode mode, String dbDir, String fsDir, boolean background, boolean insDir)
-					throws IOException, LSException, LscpException {
-		
-		verifyConnection();
+					throws IOException, LSException, LscpException
+	{
 		StringBuffer sb = new StringBuffer("ADD DB_INSTRUMENTS");
 		if(background) sb.append(" NON_MODAL");
 		
@@ -4629,11 +5089,7 @@ public class Client {
 		
 		sb.append(" '").append(conv(dbDir)).append("' '");
 		sb.append(conv(fsDir)).append("'");
-		out.writeLine(sb.toString());
-		if(getPrintOnlyMode()) return -1;
-		
-		ResultSet rs = getEmptyResultSet();
-		return rs.getIndex();
+		return retrieveIndex(sb.toString());
 	}
 
 	/**
@@ -4644,14 +5100,8 @@ public class Client {
 	 * @throws LSException If the removing of the instrument failed.
 	 */
 	public synchronized void
-	removeDbInstrument(String instr) throws IOException, LscpException, LSException {
-		
-		verifyConnection();
-		out.writeLine("REMOVE DB_INSTRUMENT '" + conv(instr) + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	removeDbInstrument(String instr) throws IOException, LscpException, LSException
+	{ retrieveIndex("REMOVE DB_INSTRUMENT '" + conv(instr) + "'"); }
 	
 	/**
 	 * Removes the specified instruments from the instruments database.
@@ -4742,12 +5192,9 @@ public class Client {
 	 */
 	public synchronized DbInstrumentInfo
 	getDbInstrumentInfo(String instr) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET DB_INSTRUMENT INFO '" + conv(instr) + "'");
-		if(getPrintOnlyMode()) return null;
-		
-		ResultSet rs = getMultiLineResultSet();
-		DbInstrumentInfo info = new DbInstrumentInfo(rs.getMultiLineResult());
+		DbInstrumentInfo info = new DbInstrumentInfo();
+		if(!retrieveInfo("GET DB_INSTRUMENT INFO '" + conv(instr) + "'", info)) return null;
+
 		String s = getParentDirectory(instr);
 		if(s != null) info.setDirectoryPath(s);
 		s = getFileName(instr);
@@ -4837,14 +5284,10 @@ public class Client {
 	 */
 	public synchronized void
 	renameDbInstrument(String instr, String name)
-				throws IOException, LSException, LscpException {
-		
-		verifyConnection();
+				throws IOException, LSException, LscpException
+	{
 		name = toEscapedText(name);
-		out.writeLine("SET DB_INSTRUMENT NAME '" + conv(instr) + "' '" + conv(name) + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET DB_INSTRUMENT NAME '" + conv(instr) + "' '" + conv(name) + "'");
 	}
 	
 	/**
@@ -4856,13 +5299,8 @@ public class Client {
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 */
 	public synchronized void
-	moveDbInstrument(String instr, String dst) throws IOException, LSException, LscpException {
-		verifyConnection();
-		out.writeLine("MOVE DB_INSTRUMENT '" + conv(instr) + "' '" + conv(dst) + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	moveDbInstrument(String instr, String dst) throws IOException, LSException, LscpException
+	{ retrieveIndex("MOVE DB_INSTRUMENT '" + conv(instr) + "' '" + conv(dst) + "'"); }
 	
 	/**
 	 * Moves the specified instruments into the specified location.
@@ -4892,13 +5330,8 @@ public class Client {
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 */
 	public synchronized void
-	copyDbInstrument(String instr, String dst) throws IOException, LSException, LscpException {
-		verifyConnection();
-		out.writeLine("COPY DB_INSTRUMENT '" + conv(instr) + "' '" + conv(dst) + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	copyDbInstrument(String instr, String dst) throws IOException, LSException, LscpException
+	{ retrieveIndex("COPY DB_INSTRUMENT '" + conv(instr) + "' '" + conv(dst) + "'"); }
 	
 	/**
 	 * Copies the specified instruments into the specified location.
@@ -4929,14 +5362,10 @@ public class Client {
 	 */
 	public synchronized void
 	setDbInstrumentDescription(String instr, String desc)
-				throws IOException, LSException, LscpException {
-		
-		verifyConnection();
+				throws IOException, LSException, LscpException
+	{
 		desc = toEscapedText(desc);
-		out.writeLine("SET DB_INSTRUMENT DESCRIPTION '" + conv(instr) + "' '" + desc + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
+		retrieveIndex("SET DB_INSTRUMENT DESCRIPTION '" + conv(instr) + "' '" + desc + "'");
 	}
 	
 	/**
@@ -4950,14 +5379,8 @@ public class Client {
 	 */
 	public synchronized void
 	setDbInstrumentFilePath(String oldPath, String newPath)
-				throws IOException, LSException, LscpException {
-		
-		verifyConnection();
-		out.writeLine("SET DB_INSTRUMENT FILE_PATH '" + conv(oldPath) + "' '" + conv(newPath) + "'");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+				throws IOException, LSException, LscpException
+	{ retrieveIndex("SET DB_INSTRUMENT FILE_PATH '" + conv(oldPath) + "' '" + conv(newPath) + "'"); }
 	
 	/**
 	 * Finds all directories in the specified directory
@@ -5187,12 +5610,8 @@ public class Client {
 	 */
 	public synchronized ScanJobInfo
 	getDbInstrumentsJobInfo(int jobId) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET DB_INSTRUMENTS_JOB INFO " + String.valueOf(jobId));
-		if(getPrintOnlyMode()) return null;
-		
-		ResultSet rs = getMultiLineResultSet();
-		ScanJobInfo info = new ScanJobInfo(rs.getMultiLineResult());
+		ScanJobInfo info = new ScanJobInfo();
+		if(!retrieveInfo("GET DB_INSTRUMENTS_JOB INFO " + String.valueOf(jobId), info)) return null;
 		
 		return info;
 	}
@@ -5205,13 +5624,8 @@ public class Client {
 	 * @throws LSException If the formatting of the instruments database failed.
 	 */
 	public synchronized void
-	formatInstrumentsDb() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("FORMAT INSTRUMENTS_DB");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	formatInstrumentsDb() throws IOException, LscpException, LSException
+	{ retrieveIndex("FORMAT INSTRUMENTS_DB"); }
 	
 	/**
 	 * Resets the whole sampler.
@@ -5231,53 +5645,38 @@ public class Client {
 	
 	/**
 	 * Gets the current number of all active streams.
-	 * @return The current number of all active streams.
+	 * @return The current number of all active streams or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getTotalStreamCount() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET TOTAL_STREAM_COUNT");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET TOTAL_STREAM_COUNT");
 	}
 	
 	/**
 	 * Gets the current number of all active voices.
-	 * @return The current number of all active voices.
+	 * @return The current number of all active voices or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getTotalVoiceCount() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET TOTAL_VOICE_COUNT");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET TOTAL_VOICE_COUNT");
 	}
 	
 	/**
 	 * Gets the maximum number of active voices.
-	 * @return The maximum number of active voices.
+	 * @return The maximum number of active voices or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getTotalVoiceCountMax() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET TOTAL_VOICE_COUNT_MAX");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET TOTAL_VOICE_COUNT_MAX");
 	}
 	
 	/**
@@ -5292,12 +5691,10 @@ public class Client {
 	 */
 	public synchronized ServerInfo
 	getServerInfo() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET SERVER INFO");
-		if(getPrintOnlyMode()) return null;
+		ServerInfo info = new ServerInfo();
+		if(!retrieveInfo("GET SERVER INFO", info)) return null;
 		
-		ResultSet rs = getMultiLineResultSet();
-		return new ServerInfo(rs.getMultiLineResult());
+		return info;
 	}
 	
 	/**
@@ -5326,30 +5723,19 @@ public class Client {
 	 * @see #getVolume
 	 */
 	public synchronized void
-	setVolume(float volume) throws IOException, LscpException, LSException {
-	
-		verifyConnection();
-		out.writeLine("SET VOLUME " + volume);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	setVolume(float volume) throws IOException, LscpException, LSException
+	{ retrieveIndex("SET VOLUME " + volume); }
 	
 	/**
 	 * Gets the global sampler-wide limit of maximum voices.
-	 * @return The global sampler-wide limit of maximum voices.
+	 * @return The global sampler-wide limit of maximum voices or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getGlobalVoiceLimit() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET VOICES");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET VOICES");
 	}
 	
 	/**
@@ -5361,29 +5747,20 @@ public class Client {
 	 * @see #getVolume
 	 */
 	public synchronized void
-	setGlobalVoiceLimit(int maxVoices) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("SET VOICES " + maxVoices);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	setGlobalVoiceLimit(int maxVoices) throws IOException, LscpException, LSException
+	{ retrieveIndex("SET VOICES " + maxVoices); }
 	
 	/**
 	 * Gets the global sampler-wide limit of maximum disk streams.
-	 * @return The global sampler-wide limit of maximum disk streams.
+	 * @return The global sampler-wide limit of maximum disk streams
+	 *  or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized int
 	getGlobalStreamLimit() throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET STREAMS");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET STREAMS");
 	}
 	
 	/**
@@ -5395,30 +5772,21 @@ public class Client {
 	 * @see #getVolume
 	 */
 	public synchronized void
-	setGlobalStreamLimit(int maxStreams) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("SET STREAMS " + maxStreams);
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
+	setGlobalStreamLimit(int maxStreams) throws IOException, LscpException, LSException
+	{ retrieveIndex("SET STREAMS " + maxStreams); }
 	
 	/**
 	 * Gets the number of instruments in the specified instrument file.
 	 * @param filename The absolute path name of the instrument file.
-	 * @return The number of instruments in the specified instrument file.
+	 * @return The number of instruments in the specified instrument file
+	 *  or -1 if in "print only" mode.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If the file is not found, or other error occur.
 	 */
 	public synchronized int
 	getFileInstrumentCount(String filename) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("GET FILE INSTRUMENTS '" + conv(filename) +"'");
-		if(getPrintOnlyMode()) return -1;
-		
-		String s = getSingleLineResultSet().getResult();
-		return parseInt(s);
+		return retrieveInt("GET FILE INSTRUMENTS '" + conv(filename) +"'");
 	}
 	
 	/**
@@ -5433,13 +5801,10 @@ public class Client {
 	public synchronized Instrument
 	getFileInstrumentInfo(String filename, int instrIdx)
 				throws IOException, LscpException, LSException {
-		
-		verifyConnection();
-		out.writeLine("GET FILE INSTRUMENT INFO '" + conv(filename) + "' " + String.valueOf(instrIdx));
-		if(getPrintOnlyMode()) return null;
-		
-		ResultSet rs = getMultiLineResultSet();
-		Instrument instr = new FileInstrument(rs.getMultiLineResult()) { };
+
+		FileInstrument instr = new FileInstrument();
+		String cmd = "GET FILE INSTRUMENT INFO '" + conv(filename) + "' " + String.valueOf(instrIdx);
+		if(!retrieveInfo(cmd, instr)) return null;
 		
 		return instr;
 	}
@@ -5466,9 +5831,7 @@ public class Client {
 	}
 	
 	private static class FileInstrument extends AbstractInstrument {
-		FileInstrument(String[] resultSet) throws LscpException {
-			super(resultSet);
-		}
+		FileInstrument() { }
 		
 		public String
 		getEngine() {
@@ -5504,6 +5867,54 @@ public class Client {
 			String s = LscpI18n.getLogMsg(err);
 			throw new LSException(0, s, details);
 		}
+	}
+
+	/**
+	 * Retrieves a list of integers.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	private Integer[]
+	getIntegerList(String lscpCmd) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine(lscpCmd);
+		if(getPrintOnlyMode()) return null;
+
+		return parseIntList(getSingleLineResultSet().getResult());
+	}
+
+	private boolean
+	retrieveInfo(String lscpCmd, Parseable p) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine(lscpCmd);
+		if(getPrintOnlyMode()) return false;
+
+		ResultSet rs = getMultiLineResultSet();
+
+		for(String s : rs.getMultiLineResult()) {
+			if(!p.parse(s)) Client.getLogger().info(LscpI18n.getLogMsg("unknownLine", s));
+		}
+
+		return true;
+	}
+
+	private int
+	retrieveInt(String lscpCmd) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine(lscpCmd);
+		if(getPrintOnlyMode()) return -1;
+
+		String s = getSingleLineResultSet().getResult();
+		return parseInt(s);
+	}
+
+	private int
+	retrieveIndex(String lscpCmd) throws IOException, LSException, LscpException {
+		verifyConnection();
+		out.writeLine(lscpCmd);
+		if(getPrintOnlyMode()) return -1;
+
+		return getEmptyResultSet().getIndex();
 	}
 	
 	/**

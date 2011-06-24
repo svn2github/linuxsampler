@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2007 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2011 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -31,6 +31,10 @@ public class ScanJobInfo implements Parseable {
 	public int filesScanned;
 	public String scanning;
 	public int status;
+
+	/** Creates a new instance of <code>ScanJobInfo</code>. */
+	public
+	ScanJobInfo() { }
 	
 	/**
 	 * Creates a new instance of <code>ScanJobInfo</code>.

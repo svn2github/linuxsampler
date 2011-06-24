@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2007 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2010 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -34,7 +34,7 @@ import static org.linuxsampler.lscp.Parser.*;
  * Provides information about a database instrument directory.
  * @author Grigor Iliev
  */
-public class DbDirectoryInfo {
+public class DbDirectoryInfo implements Parseable {
 	private String name = "";
 	private String description = "";
 	private final Date dateCreated = new EnhancedDate();
@@ -44,6 +44,10 @@ public class DbDirectoryInfo {
 	
 	private static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private static DateFormat dateFormat2 = DateFormat.getInstance();
+
+	/** Creates a new instance of <code>DbDirectoryInfo</code>. */
+	public
+	DbDirectoryInfo() { }
 	
 	/**
 	 * Creates a new instance of <code>DbDirectoryInfo</code>.
