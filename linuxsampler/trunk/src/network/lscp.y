@@ -227,6 +227,10 @@ subscribe_event       :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER
                       |  TOTAL_STREAM_COUNT                    { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_total_stream_count);   }
                       |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_total_voice_count);    }
                       |  GLOBAL_INFO                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_global_info);          }
+                      |  EFFECT_INSTANCE_COUNT                 { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_fx_instance_count);    }
+                      |  EFFECT_INSTANCE_INFO                  { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_fx_instance_info);     }
+                      |  SEND_EFFECT_CHAIN_COUNT               { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_send_fx_chain_count);  }
+                      |  SEND_EFFECT_CHAIN_INFO                { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_send_fx_chain_info);   }
                       ;
 
 unsubscribe_event     :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_audio_device_count);   }
@@ -255,6 +259,10 @@ unsubscribe_event     :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER
                       |  TOTAL_STREAM_COUNT                    { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_total_stream_count);   }
                       |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_total_voice_count);    }
                       |  GLOBAL_INFO                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_global_info);          }
+                      |  EFFECT_INSTANCE_COUNT                 { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_fx_instance_count);    }
+                      |  EFFECT_INSTANCE_INFO                  { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_fx_instance_info);     }
+                      |  SEND_EFFECT_CHAIN_COUNT               { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_send_fx_chain_count);  }
+                      |  SEND_EFFECT_CHAIN_INFO                { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_send_fx_chain_info);   }
                       ;
 
 map_instruction       :  MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($4,$6,$8,$10,$12,$14,$16,MidiInstrumentMapper::DONTCARE,"",$3); }
@@ -949,6 +957,18 @@ TOTAL_VOICE_COUNT_MAX:  'T''O''T''A''L''_''V''O''I''C''E''_''C''O''U''N''T''_''M
 
 GLOBAL_INFO          :  'G''L''O''B''A''L''_''I''N''F''O'
                      ;
+
+EFFECT_INSTANCE_COUNT   :  'E''F''F''E''C''T''_''I''N''S''T''A''N''C''E''_''C''O''U''N''T'
+                        ;
+
+EFFECT_INSTANCE_INFO    :  'E''F''F''E''C''T''_''I''N''S''T''A''N''C''E''_''I''N''F''O'
+                        ;
+
+SEND_EFFECT_CHAIN_COUNT :  'S''E''N''D''_''E''F''F''E''C''T''_''C''H''A''I''N''_''C''O''U''N''T'
+                        ;
+
+SEND_EFFECT_CHAIN_INFO  :  'S''E''N''D''_''E''F''F''E''C''T''_''C''H''A''I''N''_''I''N''F''O'
+                        ;
 
 INSTRUMENT           :  'I''N''S''T''R''U''M''E''N''T'
                      ;

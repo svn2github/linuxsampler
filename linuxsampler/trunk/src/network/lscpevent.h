@@ -67,7 +67,11 @@ class LSCPEvent {
 		    event_total_voice_count,
 		    event_global_info,
 		    event_channel_midi,
-		    event_device_midi
+		    event_device_midi,
+                    event_fx_instance_count,
+                    event_fx_instance_info,
+                    event_send_fx_chain_count,
+                    event_send_fx_chain_info
 	    };
 
 	    /* This constructor will do type lookup based on name

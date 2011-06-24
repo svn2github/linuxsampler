@@ -138,6 +138,10 @@ LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Threa
     LSCPEvent::RegisterEvent(LSCPEvent::event_global_info, "GLOBAL_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_channel_midi, "CHANNEL_MIDI");
     LSCPEvent::RegisterEvent(LSCPEvent::event_device_midi, "DEVICE_MIDI");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_fx_instance_count, "EFFECT_INSTANCE_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_fx_instance_info, "EFFECT_INSTANCE_INFO");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_send_fx_chain_count, "SEND_EFFECT_CHAIN_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_send_fx_chain_info, "SEND_EFFECT_CHAIN_INFO");
     hSocket = -1;
 }
 
@@ -2610,6 +2614,7 @@ String LSCPServer::SetEffectInstanceInputControlValue(int iEffectInstance, int i
             );
 
         pEffectControl->SetValue(dValue);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_instance_info, iEffectInstance));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2625,6 +2630,7 @@ String LSCPServer::CreateEffectInstance(int iEffectIndex) {
             throw Exception("There is no effect with index " + ToString(iEffectIndex));
         Effect* pEffect = EffectFactory::Create(pEffectInfo);
         result = pEffect->ID(); // success
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_instance_count, EffectFactory::EffectInstancesCount()));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2671,6 +2677,7 @@ String LSCPServer::CreateEffectInstance(String effectSystem, String module, Stri
 
         Effect* pEffect = EffectFactory::Create(pEffectInfo);
         result = LSCPResultSet(pEffect->ID());
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_instance_count, EffectFactory::EffectInstancesCount()));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2685,6 +2692,7 @@ String LSCPServer::DestroyEffectInstance(int iEffectInstance) {
         if (!pEffect)
             throw Exception("There is no effect instance with ID " + ToString(iEffectInstance));
         EffectFactory::Destroy(pEffect);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_instance_count, EffectFactory::EffectInstancesCount()));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2769,6 +2777,7 @@ String LSCPServer::AddSendEffectChain(int iAudioOutputDevice) {
         AudioOutputDevice* pDevice = devices[iAudioOutputDevice];
         EffectChain* pEffectChain = pDevice->AddSendEffectChain();
         result = pEffectChain->ID();
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_send_fx_chain_count, iAudioOutputDevice, pDevice->SendEffectChainCount()));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2787,6 +2796,7 @@ String LSCPServer::RemoveSendEffectChain(int iAudioOutputDevice, int iSendEffect
             EffectChain* pEffectChain = pDevice->SendEffectChain(i);
             if (pEffectChain->ID() == iSendEffectChain) {
                 pDevice->RemoveSendEffectChain(i);
+                LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_send_fx_chain_count, iAudioOutputDevice, pDevice->SendEffectChainCount()));
                 return result.Produce();
             }
         }
@@ -2851,6 +2861,7 @@ String LSCPServer::AppendSendEffectChainEffect(int iAudioOutputDevice, int iSend
         if (!pEffect)
             throw Exception("There is no effect instance with ID " + ToString(iEffectInstance));
         pEffectChain->AppendEffect(pEffect);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_send_fx_chain_info, iAudioOutputDevice, iSendEffectChain, pEffectChain->EffectCount()));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2867,6 +2878,7 @@ String LSCPServer::InsertSendEffectChainEffect(int iAudioOutputDevice, int iSend
         if (!pEffect)
             throw Exception("There is no effect instance with index " + ToString(iEffectInstance));
         pEffectChain->InsertEffect(pEffect, iEffectChainPosition);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_send_fx_chain_info, iAudioOutputDevice, iSendEffectChain, pEffectChain->EffectCount()));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2880,6 +2892,7 @@ String LSCPServer::RemoveSendEffectChainEffect(int iAudioOutputDevice, int iSend
         EffectChain* pEffectChain =
             _getSendEffectChain(pSampler, iAudioOutputDevice, iSendEffectChain);
         pEffectChain->RemoveEffect(iEffectChainPosition);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_send_fx_chain_info, iAudioOutputDevice, iSendEffectChain, pEffectChain->EffectCount()));
     } catch (Exception e) {
         result.Error(e);
     }

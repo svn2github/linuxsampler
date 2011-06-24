@@ -151,6 +151,9 @@ Version CVS HEAD (?)
     - added LSCP command "SET FX_SEND EFFECT <sampler_channel>
       <fx_send_id> <effect_chain> <chain_pos>"
     - added LSCP command "REMOVE FX_SEND EFFECT <sampler_channel> <fx_send_id>"
+    - added LSCP commands "SUBSCRIBE EFFECT_INSTANCE_COUNT",
+      "SUBSCRIBE EFFECT_INSTANCE_INFO", "SUBSCRIBE SEND_EFFECT_CHAIN_COUNT",
+      "SUBSCRIBE SEND_EFFECT_CHAIN_INFO"
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

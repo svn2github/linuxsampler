@@ -34,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="October" year="2010"/>
+        <date month="June" year="2011"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -7876,6 +7876,14 @@ Schoenebeck'>
 		</t>
 		<t>/ GLOBAL_INFO
 		</t>
+		<t>/ EFFECT_INSTANCE_COUNT
+		</t>
+		<t>/ EFFECT_INSTANCE_INFO
+		</t>
+		<t>/ SEND_EFFECT_CHAIN_COUNT
+		</t>
+		<t>/ SEND_EFFECT_CHAIN_INFO
+		</t>
 	</list>
 </t>
 <t>unsubscribe_event =
@@ -7931,6 +7939,14 @@ Schoenebeck'>
 		<t>/ TOTAL_VOICE_COUNT
 		</t>
 		<t>/ GLOBAL_INFO
+		</t>
+		<t>/ EFFECT_INSTANCE_COUNT
+		</t>
+		<t>/ EFFECT_INSTANCE_INFO
+		</t>
+		<t>/ SEND_EFFECT_CHAIN_COUNT
+		</t>
+		<t>/ SEND_EFFECT_CHAIN_INFO
 		</t>
 	</list>
 </t>
@@ -9259,6 +9275,83 @@ Schoenebeck'>
                 will be triggered by LSCP commands issued by other clients rather than real
                 time events happening on the server, it is believed that an empty notification
                 message is sufficient here.</t>
+            </section>
+
+            <section title="Number of effect instances changed" anchor="SUBSCRIBE EFFECT_INSTANCE_COUNT">
+                <t>Client may want to be notified when the number of effect instances
+                is changed by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE EFFECT_INSTANCE_COUNT</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"EFFECT_INSTANCE_COUNT:&lt;instances&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;instances&gt; will be replaced by the new number
+                of effect instances.</t>
+            </section>
+
+            <section title="Effect instance information changed" anchor="SUBSCRIBE EFFECT_INSTANCE_INFO">
+                <t>Client may want to be notified when changes were made to effect instances
+                on the back-end by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE EFFECT_INSTANCE_INFO</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                   <list>
+                        <t>"EFFECT_INSTANCE_INFO:&lt;instance-id&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;instance-id&gt; will be replaced by the numerical ID
+                of the effect instance.</t>
+            </section>
+
+            <section title="Number of send effect chains changed" anchor="SUBSCRIBE SEND_EFFECT_CHAIN_COUNT">
+                <t>Client may want to be notified when the number of send effect chains
+                is changed by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE SEND_EFFECT_CHAIN_COUNT</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:SEND_EFFECT_CHAIN_COUNT:&lt;device-id&gt; &lt;chains&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;device-id&gt; will be replaced by the numerical ID of the audio
+                output device, in which the number of send effect chains is changed and
+                &lt;chains&gt; will be replaced by the new number of send effect chains.</t>
+            </section>
+
+            <section title="Send effect chain information changed" anchor="SUBSCRIBE SEND_EFFECT_CHAIN_INFO">
+                <t>Client may want to be notified when changes were made to send effect chains
+                on the back-end by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE SEND_EFFECT_CHAIN_INFO</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                   <list>
+                        <t>"SEND_EFFECT_CHAIN_INFO:&lt;device-id&gt; &lt;chain-id&gt; &lt;instances&gt;" -
+                        Notifies that the number of effect instances in a particular send effect chain
+                        is changed, where &lt;device-id&gt; will be replaced by the numerical ID of the audio
+                        output device the send effect chain belongs to, &lt;chain-id&gt; will be replaced
+                        by the numerical ID of the send effect chain in which the number of effect instances
+                        has changed and &lt;instances&gt; will be replaced by the new number
+                        of effect instances in the specified send effect chain.</t>
+                    </list>
+                </t>
             </section>
 
             <section title="Miscellaneous and debugging events" anchor="SUBSCRIBE MISCELLANEOUS">
