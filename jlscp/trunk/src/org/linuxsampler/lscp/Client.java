@@ -702,6 +702,7 @@ public class Client {
 	parseMidiDataType(String s) {
 		if("NOTE_ON".equals(s)) return MidiDataEvent.Type.NOTE_ON;
 		if("NOTE_OFF".equals(s)) return MidiDataEvent.Type.NOTE_OFF;
+		if("CC".equals(s)) return MidiDataEvent.Type.CC;
 		
 		getLogger().warning("Unknown MIDI data type: " + s);
 		return null;
@@ -4316,7 +4317,7 @@ public class Client {
 	getEffectInstanceParameterInfo(int instanceId, int parameter)
 				throws IOException, LscpException, LSException
 	{
-		EffectParameter prm = new EffectParameter();
+		EffectParameter prm = new EffectParameter(instanceId, parameter);
 		String s = String.valueOf(instanceId) + " " + String.valueOf(parameter);
 		if(!retrieveInfo("GET EFFECT_INSTANCE_INPUT_CONTROL INFO " + s, prm)) return null;
 

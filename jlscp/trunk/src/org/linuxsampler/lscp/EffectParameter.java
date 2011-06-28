@@ -26,7 +26,21 @@ package org.linuxsampler.lscp;
  * @author Grigor Iliev
  */
 public class EffectParameter extends FloatParameter {
+	private final int instanceId;
+	private final int index;
 	
+	public EffectParameter(int instanceId, int index) {
+		this.instanceId = instanceId;
+		this.index = index;
+	}
+	
+	/** Gets the numerical ID of the effect instance to which this parameter belongs. */
+	public int
+	getEffectInstanceId() { return instanceId; }
+	
+	/** Gets the position of the parameter in the effect instance's parameter list. */
+	public int
+	getIndex() { return index; }
 	
 	/**
 	 * Parses a line of text.
@@ -52,4 +66,8 @@ public class EffectParameter extends FloatParameter {
 		
 		return false;
 	}
+	
+	@Override
+	public String
+	toString() { return getDescription() != null ? getDescription() : super.toString(); }
 }

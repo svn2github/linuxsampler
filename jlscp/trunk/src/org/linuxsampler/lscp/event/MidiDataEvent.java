@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2008 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2009 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -29,7 +29,8 @@ package org.linuxsampler.lscp.event;
 public class MidiDataEvent extends java.util.EventObject {
 	public static enum Type {
 		NOTE_ON  ("NOTE_ON"),
-		NOTE_OFF ("NOTE_OFF");
+		NOTE_OFF ("NOTE_OFF"),
+		CC       ("CC");
 		
 		private final String name;
 		
@@ -37,6 +38,7 @@ public class MidiDataEvent extends java.util.EventObject {
 			this.name = name;
 		}
 		
+		@Override
 		public String
 		toString() { return name; }
 	}
