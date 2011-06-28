@@ -28,24 +28,24 @@ import java.util.Vector;
  *
  * @author Grigor Iliev
  */
-public class EffectInstance extends Effect {
+public class EffectInstanceInfo extends Effect {
 	private int instanceId = -1;
 	private int parameterCount = -1;
 
 	private final Vector<EffectParameter> prmList = new Vector<EffectParameter>();
 
-	/** Creates a new instance of <code>EffectInstance</code> */
+	/** Creates a new instance of <code>EffectInstanceInfo</code> */
 	public
-	EffectInstance() { }
+	EffectInstanceInfo() { }
 
 	/**
-	 * Creates a new instance of <code>EffectInstance</code> and parses the information
+	 * Creates a new instance of <code>EffectInstanceInfo</code> and parses the information
 	 * about a specific effect instance described by <code>resultSet</code>.
 	 * @param resultSet An array with information categories about an effect entity.
 	 * @throws LscpException If the parse fail.
 	 */
 	public
-	EffectInstance(String[] resultSet) throws LscpException {
+	EffectInstanceInfo(String[] resultSet) throws LscpException {
 		for(String s : resultSet)
 			if(!parse(s)) Client.getLogger().info(LscpI18n.getLogMsg("unknownLine", s));
 	}
@@ -72,6 +72,10 @@ public class EffectInstance extends Effect {
 	 */
 	public int
 	getParameterCount() { return parameterCount; }
+	
+	/** Gets the effect parameter at the specified position. */
+	public EffectParameter
+	getParameter(int index) { return prmList.get(index); }
 
 	/**
 	 * Adds effect parameter.

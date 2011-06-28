@@ -4249,17 +4249,17 @@ public class Client {
 
 	/**
 	 * Gets the current list of effect instances.
-	 * @return An <code>EffectInstance</code> array
+	 * @return An <code>EffectInstanceInfo</code> array
 	 * providing the current list of effect instances.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 */
-	public synchronized EffectInstance[]
+	public synchronized EffectInstanceInfo[]
 	getEffectInstances() throws IOException, LscpException, LSException {
 		Integer[] idS = getEffectInscanceIDs();
 		if(getPrintOnlyMode()) return null;
 
-		EffectInstance[] eis = new EffectInstance[idS.length];
+		EffectInstanceInfo[] eis = new EffectInstanceInfo[idS.length];
 
 		for(int i = 0; i < eis.length; i++)
 			eis[i] = getEffectInstanceInfo(idS[i]);
@@ -4281,15 +4281,15 @@ public class Client {
 	/**
 	 * Gets the current informations about the specified effect instance.
 	 * @param id The numerical ID of the effect instance.
-	 * @return <code>EffectInstance</code> object containing
+	 * @return <code>EffectInstanceInfo</code> object containing
 	 * the current informations about the specified effect instance.
 	 * @throws IOException If an I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If the effect instance ID is invalid.
 	 */
-	public synchronized EffectInstance
+	public synchronized EffectInstanceInfo
 	getEffectInstanceInfo(int id) throws IOException, LscpException, LSException {
-		EffectInstance ei = new EffectInstance();
+		EffectInstanceInfo ei = new EffectInstanceInfo();
 		if(!retrieveInfo("GET EFFECT_INSTANCE INFO " + id, ei)) return null;
 		ei.setInstanceId(id);
 
@@ -4362,17 +4362,17 @@ public class Client {
 	/**
 	 * Gets the current list of send effect chains on the specified audio output device.
 	 * @param audioDeviceId The numerical ID of the audio output device.
-	 * @return An <code>EffectInstance</code> array
+	 * @return An <code>EffectInstanceInfo</code> array
 	 * providing the current list of effect instances.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 */
-	public synchronized EffectChain[]
+	public synchronized EffectChainInfo[]
 	getSendEffectChains(int audioDeviceId) throws IOException, LscpException, LSException {
 		Integer[] idS = getSendEffectChainIDs(audioDeviceId);
 		if(getPrintOnlyMode()) return null;
 
-		EffectChain[] ecs = new EffectChain[idS.length];
+		EffectChainInfo[] ecs = new EffectChainInfo[idS.length];
 
 		for(int i = 0; i < ecs.length; i++) {
 			ecs[i] = getSendEffectChainInfo(audioDeviceId, idS[i]);
@@ -4425,13 +4425,13 @@ public class Client {
 	 * Gets the current information of a send effect chain.
 	 * @param audioDeviceId The numerical ID of the audio output device.
 	 * @param chainId The numerical ID of the send effect chain.
-	 * @return <code>EffectChain</code> object containing
+	 * @return <code>EffectChainInfo</code> object containing
 	 * the current informations about the specified effect chain.
 	 * @throws IOException If an I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If the audio device ID or the effect chain ID is invalid.
 	 */
-	public synchronized EffectChain
+	public synchronized EffectChainInfo
 	getSendEffectChainInfo(int audioDeviceId, int chainId)
 				throws IOException, LscpException, LSException
 	{
@@ -4441,17 +4441,17 @@ public class Client {
 		if(getPrintOnlyMode()) return null;
 
 		ResultSet rs = getMultiLineResultSet();
-		EffectChain chain = null;
+		EffectChainInfo chain = null;
 
 		for(String s : rs.getMultiLineResult()) {
 			if(s.startsWith("EFFECT_SEQUENCE: ")) {
 				s = s.substring("EFFECT_SEQUENCE: ".length());
 				Integer[] eis = parseIntList(s);
-				EffectInstance[] instances = new EffectInstance[eis.length];
+				EffectInstanceInfo[] instances = new EffectInstanceInfo[eis.length];
 				for(int i = 0; i < eis.length; i++) {
 					instances[i] = getEffectInstanceInfo(eis[i]);
 				}
-				chain = new EffectChain(instances);
+				chain = new EffectChainInfo(instances);
 				chain.setChainId(chainId);
 			}
 		}

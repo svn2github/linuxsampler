@@ -37,6 +37,12 @@ public class EffectParameter extends FloatParameter {
 	@Override
 	public boolean
 	parse(String s) throws LscpException {
+		if(s.startsWith("DESCRIPTION: ")) {
+			s = s.substring("DESCRIPTION: ".length(), s.length());
+			setDescription(Parser.toNonEscapedString(s));
+			return true;
+		}
+		
 		if(super.parse(s)) return true;
 		else if(s.startsWith("VALUE: ")) {
 			s = s.substring("VALUE: ".length(), s.length());

@@ -26,15 +26,15 @@ package org.linuxsampler.lscp;
  *
  * @author Grigor Iliev
  */
-public class EffectChain {
+public class EffectChainInfo {
 	private int chainId = -1;
-	protected EffectInstance[] effectInstances;
+	protected EffectInstanceInfo[] effectInstances;
 	
 	public
-	EffectChain() { this(null); }
+	EffectChainInfo() { this(null); }
 
 	public
-	EffectChain(EffectInstance[] instances) {
+	EffectChainInfo(EffectInstanceInfo[] instances) {
 		effectInstances = instances;
 	}
 	
@@ -52,6 +52,6 @@ public class EffectChain {
 	public int
 	getEffectInstanceCount() { return effectInstances.length; }
 	
-	public EffectInstance
+	public EffectInstanceInfo
 	getEffectInstance(int idx) { return effectInstances[idx]; }
 }
