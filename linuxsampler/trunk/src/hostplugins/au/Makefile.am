@@ -1,20 +1,18 @@
 if HAVE_AU
 
 plugindir = $(libdir)/au
-examples_dir = @DEVELOPER_EXTRAS_DIR@
+examples_dir = $(DEVELOPER_EXTRAS_DIR)
 au_public_dir = $(examples_dir)/CoreAudio/AudioUnits/AUPublic
 ca_public_dir = $(examples_dir)/CoreAudio/PublicUtility
 INCLUDES = -I$(au_public_dir)/AUBase -I$(au_public_dir)/OtherBases \
     -I$(au_public_dir)/Utility -I$(ca_public_dir) $(GIG_CFLAGS) $(SQLITE3_CFLAGS) $(SNDFILE_CFLAGS)
 
-noinst_LIBRARIES = libpluginau.a
+bin_PROGRAMS = LinuxSamplerAU
 
 # Uncomment for debug messages.
 #debug_messages = -DAU_DEBUG_DISPATCHER=1
 
-libpluginau_a_CXXFLAGS = $(debug_messages)
-
-nodist_libpluginau_a_SOURCES = $(ca_public_dir)/CAHostTimeBase.cpp \
+nodist_LinuxSamplerAU_SOURCES = $(ca_public_dir)/CAHostTimeBase.cpp \
     $(ca_public_dir)/CAHostTimeBase.h \
     $(ca_public_dir)/CAAUMIDIMap.cpp \
     $(ca_public_dir)/CAAUMIDIMap.h \
@@ -55,37 +53,40 @@ nodist_libpluginau_a_SOURCES = $(ca_public_dir)/CAHostTimeBase.cpp \
     $(au_public_dir)/OtherBases/MusicDeviceBase.cpp \
     $(au_public_dir)/OtherBases/MusicDeviceBase.h
 
-bin_PROGRAMS = LinuxSamplerAU
 LinuxSamplerAU_SOURCES = PluginAU.cpp PluginAU.h PluginAUVersion.h
 
-LinuxSamplerAU_LDADD = $(top_builddir)/src/.libs/liblinuxsampler.a libpluginau.a
+LinuxSamplerAU_LDADD = $(top_builddir)/src/liblinuxsampler.la
 
 if HAVE_AUFLAGS
 else
 AUFLAGS = $(GIG_LIBS) $(JACK_LIBS) $(SQLITE3_LIBS) $(SNDFILE_LIBS)
 endif
 
-LinuxSamplerAU_CXXFLAGS = -bundle $(debug_messages)
-LinuxSamplerAU_LDFLAGS = -static $(AUFLAGS) \
+LinuxSamplerAU_CPPFLAGS = $(debug_messages)
+LinuxSamplerAU_LDFLAGS = -bundle $(AUFLAGS) \
     -exported_symbols_list $(srcdir)/PluginAU.exp \
     -framework CoreServices -framework CoreMIDI -framework CoreAudio \
     -framework CoreFoundation -framework AudioToolbox -framework AudioUnit
 
 COMPONENT_DIR = LinuxSamplerAU.component
 
-all-local:
+all-local: $(COMPONENT_DIR)
+
+LinuxSamplerAU.rsrc: $(srcdir)/PluginAU.r $(srcdir)/PluginAUVersion.h
 	Rez $(srcdir)/PluginAU.r -d SystemSevenOrLater=1 -useDF -script Roman -d ppc_YES -d i386_YES -d x86_64_YES \
 	    -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/Current/Headers \
 	    -I $(au_public_dir)/AUBase/ -arch i386 -arch x86_64 -arch ppc -o LinuxSamplerAU.rsrc
 
-	if test ! -d "$(COMPONENT_DIR)/Contents/Frameworks"; then mkdir -p "$(COMPONENT_DIR)/Contents/Frameworks"; fi
-	if test ! -d "$(COMPONENT_DIR)/Contents/MacOS"; then mkdir -p "$(COMPONENT_DIR)/Contents/MacOS"; fi
-	if test ! -d "$(COMPONENT_DIR)/Contents/Resources"; then mkdir -p "$(COMPONENT_DIR)/Contents/Resources"; fi
+$(COMPONENT_DIR): $(srcdir)/PkgInfo $(srcdir)/Info.plist LinuxSamplerAU LinuxSamplerAU.rsrc
+	mkdir -p "$(COMPONENT_DIR)/Contents/Frameworks"
+	mkdir -p "$(COMPONENT_DIR)/Contents/MacOS"
+	mkdir -p "$(COMPONENT_DIR)/Contents/Resources"
 
 	cp $(srcdir)/PkgInfo "$(COMPONENT_DIR)/Contents"
 	cp $(srcdir)/Info.plist "$(COMPONENT_DIR)/Contents"
-	cp LinuxSamplerAU "$(COMPONENT_DIR)/Contents/MacOS"
+	$(LIBTOOL) --mode=install cp LinuxSamplerAU "$(PWD)/$(COMPONENT_DIR)/Contents/MacOS"
 	cp LinuxSamplerAU.rsrc "$(COMPONENT_DIR)/Contents/Resources"
+	@touch $@
 
 #	    cp "`pkg-config --variable=libdir gig`/libgig.6.dylib" "$(COMPONENT_DIR)/Contents/Frameworks/"; \
 #	    install_name_tool -id @executable_path/../Frameworks/libgig.6.dylib \
@@ -117,7 +118,7 @@ clean-local:
 	rm -rf $(COMPONENT_DIR)
 
 install-exec-hook:
-	cp -r $(COMPONENT_DIR) /Library/Audio/Plug-Ins/Components/
+	if test -w /Library/Audio/Plugin-Ins/Components ; then cp -r $(COMPONENT_DIR) /Library/Audio/Plug-Ins/Components/ ; fi
 uninstall-hook:
 	rm -rf /Library/Audio/Plug-Ins/Components/$(COMPONENT_DIR)
 endif

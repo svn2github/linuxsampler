@@ -2,26 +2,47 @@ if HAVE_VST
 
 plugindir = $(libdir)/vst
 plugin_LTLIBRARIES = LinuxSampler.la
-INCLUDES = -I@VSTSDK_DIR@ -I@VSTSDK_DIR@/public.sdk/source/vst2.x \
+INCLUDES = -I$(VSTSDK_DIR) -I$(VSTSDK_DIR)/public.sdk/source/vst2.x \
 	$(GIG_CFLAGS) $(SQLITE3_CFLAGS)
 
 LinuxSampler_la_SOURCES = PluginVst.cpp PluginVst.h
 nodist_LinuxSampler_la_SOURCES = \
-	@VSTSDK_DIR@/public.sdk/source/vst2.x/audioeffectx.cpp \
-	@VSTSDK_DIR@/public.sdk/source/vst2.x/audioeffect.cpp \
-	@VSTSDK_DIR@/public.sdk/source/vst2.x/vstplugmain.cpp
+	$(VSTSDK_DIR)/public.sdk/source/vst2.x/audioeffectx.cpp \
+	$(VSTSDK_DIR)/public.sdk/source/vst2.x/audioeffect.cpp \
+	$(VSTSDK_DIR)/public.sdk/source/vst2.x/vstplugmain.cpp
 
-LinuxSampler_la_LDFLAGS = -module -avoid-version -no-undefined -Wl,-s
+LinuxSampler_la_LDFLAGS = -module -avoid-version -no-undefined
 LinuxSampler_la_LIBADD = $(top_builddir)/src/liblinuxsampler.la
 
 if HAVE_WINDOWS
-LinuxSampler_la_LDFLAGS += -Wl,$(srcdir)/PluginVst.def
+LinuxSampler_la_LDFLAGS += -Wl,$(srcdir)/PluginVst.def -Wl,-s
 LinuxSampler_la_LIBADD += -lws2_32
 else
 LinuxSampler_la_CPPFLAGS = -D__cdecl=
-LinuxSampler_la_LDFLAGS += -Wl,--defsym -Wl,main=VSTPluginMain
+if LINUX
+LinuxSampler_la_LDFLAGS += -Wl,--defsym -Wl,main=VSTPluginMain -Wl,-s
+endif
+endif
+
+if MAC
+all-local: LinuxSampler.vst
+
+LinuxSampler.vst: LinuxSampler.la $(srcdir)/Info.plist $(srcdir)/PkgInfo
+	mkdir -p LinuxSampler.vst/Contents/MacOS
+	cp $(srcdir)/Info.plist LinuxSampler.vst/Contents
+	cp $(srcdir)/PkgInfo LinuxSampler.vst/Contents
+	if test -f .libs/LinuxSampler.so ; then cp .libs/LinuxSampler.so LinuxSampler.vst/Contents/MacOS/LinuxSampler ; fi
+	@touch $@
+
+clean-local:
+	rm -rf LinuxSampler.vst
+
+install-exec-hook:
+	if test -w /Library/Audio/Plugin-Ins/VST ; then cp -r LinuxSampler.vst /Library/Audio/Plug-Ins/VST/ ; fi
+uninstall-hook:
+	rm -rf /Library/Audio/Plug-Ins/VST/LinuxSampler.vst
 endif
 
 endif
 
-EXTRA_DIST = PluginVst.def
+EXTRA_DIST = PluginVst.def PkgInfo Info.plist

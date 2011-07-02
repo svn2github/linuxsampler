@@ -13,6 +13,8 @@ Version CVS HEAD (?)
     - fixed compilation with gcc 4.6.1
     - another "make dist" fix, for LV2 plugin
     - made --enable-pthread-testcancel default on Mac OS X
+    - minor Makefile fix for building lscpparser when build and source
+      directories are separate
 
   * general changes:
     - Refactoring: moved the independent code from
@@ -108,7 +110,12 @@ Version CVS HEAD (?)
     - save engine type (gig, sfz or sf2) in plugin state
     - VST: when opening Fantasia, look for both 32 and 64 bit Java on
       64 bit Windows
-
+    - AU: changed number of output channels from one stereo to 16
+      stereo
+    - VST: made it possible to build the VST plugin for Mac
+    - AU: link AU plugin dynamically if --disable-shared isn't
+      specified
+	
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding
       the ALSA sequencer client name

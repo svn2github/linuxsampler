@@ -2,7 +2,7 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009 - 2011 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -45,8 +45,7 @@ COMPONENT_ENTRY(PluginAU)
     };
 
     PluginAU::PluginAU(ComponentInstance inComponentInstance)
-        : MusicDeviceBase(inComponentInstance, 0, 1), Plugin(false) {
-
+        : MusicDeviceBase(inComponentInstance, 0, 16), Plugin(false) {
     #if AU_DEBUG_DISPATCHER
         mDebugDispatcher = new AUDebugDispatcher(this);
     #endif
@@ -170,15 +169,24 @@ COMPONENT_ENTRY(PluginAU)
     }
 
     UInt32 PluginAU::SupportedNumChannels(const AUChannelInfo** outInfo) {
-        static AUChannelInfo plugChannelInfo = { 0, -1 };
+        static AUChannelInfo plugChannelInfo = { 0, 2 };
         if (outInfo != NULL) *outInfo = &plugChannelInfo;
         return 1;
     }
 
     ComponentResult PluginAU::Initialize() {
+        // format validation: current LS engines only support stereo
+        // buses
+        int busCount = Outputs().GetNumberOfElements();
+        for (int i = 0 ; i < busCount ; i++) {
+            if (GetOutput(i)->GetStreamFormat().mChannelsPerFrame != 2) {
+                return kAudioUnitErr_FormatNotSupported;
+            }
+        }
+
         MusicDeviceBase::Initialize();
 
-        // The timeconsuming tasks delayed until the pluging is to be used
+        // The timeconsuming tasks delayed until the plugin is to be used
         PreInit();
 
         if(pAudioDevice) {
@@ -193,7 +201,10 @@ COMPONENT_ENTRY(PluginAU)
         }
 
         int srate = (int)GetStreamFormat(kAudioUnitScope_Output, 0).mSampleRate;
-        int chnNum = GetStreamFormat(kAudioUnitScope_Output, 0).NumberChannels();
+        int chnNum = 0;
+        for (int i = 0 ; i < busCount ; i++) {
+            chnNum += GetOutput(i)->GetStreamFormat().mChannelsPerFrame;
+        }
 
         Init(srate, GetMaxFramesPerSlice(), chnNum);
 
@@ -294,11 +305,16 @@ COMPONENT_ENTRY(PluginAU)
         const AudioTimeStamp&        inTimeStamp,
         UInt32                       inNumberFrames
     ) {
-        float* buf;
-        int chnCount = GetOutput(0)->GetBufferList().mNumberBuffers;
-        for(int i = 0; i < chnCount; i++) {
-            buf = (float*)GetOutput(0)->GetBufferList().mBuffers[i].mData;
-            pAudioDevice->Channel(i)->SetBuffer(buf);
+        int i = 0;
+        int busCount = Outputs().GetNumberOfElements();
+        for (int bus = 0 ; bus < busCount ; bus++) {
+            AudioBufferList& list = GetOutput(bus)->PrepareBuffer(inNumberFrames);
+            int chnCount = list.mNumberBuffers;
+            for (int chn = 0; chn < chnCount; chn++) {
+                float* buf = static_cast<float*>(list.mBuffers[chn].mData);
+                pAudioDevice->Channel(i)->SetBuffer(buf);
+                i++;
+            }
         }
 
         pAudioDevice->Render(inNumberFrames);
