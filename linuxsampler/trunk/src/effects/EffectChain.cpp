@@ -33,6 +33,7 @@ void EffectChain::AppendEffect(Effect* pEffect) {
     pEffect->InitEffect(pDevice);
     _ChainEntry entry = { pEffect, true };
     vEntries.push_back(entry);
+    pEffect->SetParent(this);
 }
 
 void EffectChain::InsertEffect(Effect* pEffect, int iChainPos) throw (Exception) {

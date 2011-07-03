@@ -2791,6 +2791,22 @@ String LSCPServer::RemoveSendEffectChain(int iAudioOutputDevice, int iSendEffect
         std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
         if (!devices.count(iAudioOutputDevice))
             throw Exception("There is no audio output device with index " + ToString(iAudioOutputDevice) + ".");
+
+        std::set<EngineChannel*> engineChannels = EngineChannelFactory::EngineChannelInstances();
+        std::set<EngineChannel*>::iterator itEngineChannel = engineChannels.begin();
+        std::set<EngineChannel*>::iterator itEnd           = engineChannels.end();
+        for (; itEngineChannel != itEnd; ++itEngineChannel) {
+            AudioOutputDevice* pDev = (*itEngineChannel)->GetAudioOutputDevice();
+            if (pDev != NULL && pDev->deviceId() == iAudioOutputDevice) {
+                for (int i = 0; i < (*itEngineChannel)->GetFxSendCount(); i++) {
+                    FxSend* fxs = (*itEngineChannel)->GetFxSend(i);
+                    if(fxs != NULL && fxs->DestinationEffectChain() == iSendEffectChain) {
+                        throw Exception("The effect chain is still in use by channel " + ToString((*itEngineChannel)->GetSamplerChannel()->Index()));
+                    }
+                }
+            }
+        }
+
         AudioOutputDevice* pDevice = devices[iAudioOutputDevice];
         for (int i = 0; i < pDevice->SendEffectChainCount(); i++) {
             EffectChain* pEffectChain = pDevice->SendEffectChain(i);
@@ -2819,12 +2835,8 @@ static EffectChain* _getSendEffectChain(Sampler* pSampler, int iAudioOutputDevic
             ToString(iAudioOutputDevice) + "."
         );
     AudioOutputDevice* pDevice = devices[iAudioOutputDevice];
-    for (int i = 0; i < pDevice->SendEffectChainCount(); i++) {
-        EffectChain* pEffectChain = pDevice->SendEffectChain(i);
-        if (pEffectChain->ID() == iSendEffectChain) {
-            return pEffectChain;
-        }
-    }
+    EffectChain* pEffectChain = pDevice->SendEffectChainByID(iSendEffectChain);
+    if(pEffectChain != NULL) return pEffectChain;
     throw Exception(
         "There is no send effect chain with ID " +
         ToString(iSendEffectChain) + " for audio output device " +
@@ -2891,6 +2903,22 @@ String LSCPServer::RemoveSendEffectChainEffect(int iAudioOutputDevice, int iSend
     try {
         EffectChain* pEffectChain =
             _getSendEffectChain(pSampler, iAudioOutputDevice, iSendEffectChain);
+
+        std::set<EngineChannel*> engineChannels = EngineChannelFactory::EngineChannelInstances();
+        std::set<EngineChannel*>::iterator itEngineChannel = engineChannels.begin();
+        std::set<EngineChannel*>::iterator itEnd           = engineChannels.end();
+        for (; itEngineChannel != itEnd; ++itEngineChannel) {
+            AudioOutputDevice* pDev = (*itEngineChannel)->GetAudioOutputDevice();
+            if (pDev != NULL && pDev->deviceId() == iAudioOutputDevice) {
+                for (int i = 0; i < (*itEngineChannel)->GetFxSendCount(); i++) {
+                    FxSend* fxs = (*itEngineChannel)->GetFxSend(i);
+                    if(fxs != NULL && fxs->DestinationEffectChain() == iSendEffectChain && fxs->DestinationEffectChainPosition() == iEffectChainPosition) {
+                        throw Exception("The effect instance is still in use by channel " + ToString((*itEngineChannel)->GetSamplerChannel()->Index()));
+                    }
+                }
+            }
+        }
+
         pEffectChain->RemoveEffect(iEffectChainPosition);
         LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_send_fx_chain_info, iAudioOutputDevice, iSendEffectChain, pEffectChain->EffectCount()));
     } catch (Exception e) {

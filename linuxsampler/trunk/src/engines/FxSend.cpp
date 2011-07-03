@@ -88,19 +88,22 @@ namespace LinuxSampler {
 
     void FxSend::SetDestinationEffect(int iChain, int iChainPos) throw (Exception) {
         AudioOutputDevice* pDevice = pEngineChannel->GetAudioOutputDevice();
-        if (iChain < 0 || iChain >= pDevice->SendEffectChainCount())
-            throw Exception(
+        bool chainFound = false;
+        if (iChain != -1) {
+            if (pDevice->SendEffectChainByID(iChain) != NULL)  chainFound = true;
+            if (!chainFound) throw Exception(
                 "Could not assign FX Send to send effect chain " +
                 ToString(iChain) + ": effect chain doesn't exist."
             );
-        if (iChainPos < 0 || iChainPos >= pDevice->SendEffectChain(iChain)->EffectCount())
+        }
+        if (chainFound && (iChainPos < 0 || iChainPos >= pDevice->SendEffectChainByID(iChain)->EffectCount()))
             throw Exception(
                 "Could not assign FX Send to send effect chain position " +
                 ToString(iChainPos) + " of send effect chain " + ToString(iChain) +
                 ": effect chain position out of bounds."
             );
         iDestinationEffectChain    = iChain;
-        iDestinationEffectChainPos = iChainPos;
+        iDestinationEffectChainPos = (iChain == -1 ? -1 : iChainPos);
     }
 
     // TODO: to be removed

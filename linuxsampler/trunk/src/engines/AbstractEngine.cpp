@@ -307,7 +307,7 @@ namespace LinuxSampler {
             AudioChannel* pDstChan = NULL;
             if (pFxSend->DestinationEffectChain() >= 0) { // fx send routed to an internal send effect
                 EffectChain* pEffectChain =
-                    pAudioOutputDevice->SendEffectChain(
+                    pAudioOutputDevice->SendEffectChainByID(
                         pFxSend->DestinationEffectChain()
                     );
                 if (!pEffectChain) {

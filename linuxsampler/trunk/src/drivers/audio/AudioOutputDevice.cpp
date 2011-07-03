@@ -270,7 +270,7 @@ namespace LinuxSampler {
     void AudioOutputDevice::RemoveSendEffectChain(uint iChain) throw (Exception) {
         if (iChain >= vEffectChains.size())
             throw Exception(
-                "Could not remove master effect chain " + ToString(iChain) +
+                "Could not remove send effect chain " + ToString(iChain) +
                 ", index out of bounds"
             );
         std::vector<EffectChain*>::iterator iter = vEffectChains.begin();
@@ -282,6 +282,14 @@ namespace LinuxSampler {
     EffectChain* AudioOutputDevice::SendEffectChain(uint iChain) const {
         if (iChain >= vEffectChains.size()) return NULL;
         return vEffectChains[iChain];
+    }
+
+    EffectChain* AudioOutputDevice::SendEffectChainByID(uint iChainID) const {
+        for (int i = 0; i < SendEffectChainCount(); i++) {
+            if (SendEffectChain(i)->ID() == iChainID) return SendEffectChain(i);
+        }
+
+        return NULL;
     }
 
     uint AudioOutputDevice::SendEffectChainCount() const {

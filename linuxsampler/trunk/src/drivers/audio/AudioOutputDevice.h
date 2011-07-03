@@ -264,6 +264,12 @@ namespace LinuxSampler {
             EffectChain* SendEffectChain(uint iChain) const;
 
             /**
+             * Returns send effect chain with ID @a iChainID or @c NULL if
+             * there's no such effect chain.
+             */
+            EffectChain* SendEffectChainByID(uint iChainID) const;
+
+            /**
              * Returns amount of send effect chains this AudioOutputDevice
              * currently provides.
              */
