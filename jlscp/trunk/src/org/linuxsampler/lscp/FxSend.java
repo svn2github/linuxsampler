@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2007 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2011 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -34,6 +34,8 @@ public class FxSend implements Parseable {
 	private int midiController = -1;
 	private float level = 0;
 	private Integer[] aor = null;
+	private int destChainId = -1;
+	private int destChainPos = -1;
 	
 	
 	/** Creates a new instance of <code>FxSend</code> */
@@ -109,6 +111,14 @@ public class FxSend implements Parseable {
 	public Integer[]
 	getAudioOutputRouting() { return aor; }
 	
+	/** Gets the destination send effect chain ID. */
+	public int
+	getDestChainId() { return destChainId; }
+	
+	/** Gets the destination send effect chain position. */
+	public int
+	getDestChainPos() { return destChainPos; }
+	
 	/**
 	 * Parses a line of text.
 	 * @param s The string to be parsed.
@@ -128,6 +138,21 @@ public class FxSend implements Parseable {
 		} else if(s.startsWith("AUDIO_OUTPUT_ROUTING: ")) {
 			s = s.substring("AUDIO_OUTPUT_ROUTING: ".length());
 			aor = Parser.parseIntList(s);
+		} else if(s.startsWith("EFFECT: ")) {
+			s = s.substring("EFFECT: ".length());
+			if("NONE".equals(s)) {
+				destChainId  = destChainPos = -1;
+			} else {
+				Integer[] list = Parser.parseIntList(s);
+				if(list.length != 2) {
+					Client.getLogger().info("FxSend: EFFECT field format unknown");
+				} else {
+					destChainId  = list[0];
+					destChainPos = list[1];
+				}
+				
+			}
+			
 		} else return false;
 	
 		return true;
