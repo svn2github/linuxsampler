@@ -140,6 +140,7 @@ namespace LinuxSampler {
         for (int i = 0; i >= 0; i++) { // seek for a free place starting from the beginning
             if (!mMidiInputDevices[i]) {
                 iDeviceId = i;
+                mMidiInputDevices.erase(i);
                 break;
             }
         }
@@ -149,7 +150,7 @@ namespace LinuxSampler {
         // now create the device using those parameters
         MidiInputDevice* pDevice = InnerFactories[DriverName]->Create(thisDeviceParams, pSampler);
         pDevice->setDeviceId(iDeviceId);
-        // now attach all parameters to the newely created device.
+        // now attach all parameters to the newly created device.
         for (std::map<String,DeviceCreationParameter*>::iterator iter = thisDeviceParams.begin(); iter != thisDeviceParams.end(); iter++) {
             iter->second->Attach(pDevice);
         }

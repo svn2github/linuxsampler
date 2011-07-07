@@ -154,6 +154,7 @@ namespace LinuxSampler {
         for (int i = 0; i >= 0; i++) { // seek for a free place starting from the beginning
             if (!mAudioOutputDevices[i]) {
                 iDeviceId = i;
+                mAudioOutputDevices.erase(i);
                 break;
             }
         }
