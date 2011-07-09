@@ -42,8 +42,7 @@ namespace sf2 {
     double ToPermilles(int Centibels) {
         if (Centibels == NONE) return NONE;
         if (Centibels == 0) return 1000.0;
-        if (Centibels < 0) return 0.0;
-        return pow(_200TH_ROOT_OF_10, Centibels);
+        return pow(_200TH_ROOT_OF_10, Centibels) * 1000.0;
     }
 
     double ToHz(int cents) {
@@ -548,8 +547,11 @@ namespace sf2 {
     }
 
     double Region::GetEG1Sustain(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG1Sustain == NONE) return ToPermilles(EG1Sustain);
-        return ToPermilles(pPresetRegion->EG1Sustain + EG1Sustain);
+        int sustain = EG1Sustain;
+        if (pPresetRegion != NULL && pPresetRegion->EG1Sustain != NONE) sustain += EG1Sustain;
+        if (sustain == NONE) return NONE;
+        sustain = std::min(0, std::max(sustain, 1000));
+        return ToPermilles(-sustain);
     }
 
     double Region::GetEG1Release(Region* pPresetRegion) {
