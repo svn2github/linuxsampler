@@ -43,14 +43,14 @@ class EGADSR : public ::LinuxSampler::EG {
          * @param PreAttack       - Preattack value for the envelope
          *                          (0 - 1000 permille)
          * @param AttackTime      - Attack time for the envelope
-         * @param HoldAttack      - TODO
+         * @param HoldTime        - Hold time for the envelope
          * @param DecayTime       - Decay1 time of the sample amplitude EG
          * @param SustainLevel    - Sustain level of the sample amplitude EG
          *                          (0 - 1000 permille)
          * @param ReleaseTIme     - Release time for the envelope
          * @param SampleRate      - sample rate of used audio output driver
          */
-        void trigger(uint PreAttack, float AttackTime, bool HoldAttack, float DecayTime, uint SustainLevel, float ReleaseTime, uint SampleRate); //FIXME: we should better use 'float' for SampleRate
+        void trigger(uint PreAttack, float AttackTime, float HoldTime, float DecayTime, uint SustainLevel, float ReleaseTime, uint SampleRate); //FIXME: we should better use 'float' for SampleRate
 
         /**
          * Should be called to inform the EG about an external event and
@@ -75,7 +75,7 @@ class EGADSR : public ::LinuxSampler::EG {
         };
 
         stage_t   Stage;
-        bool      HoldAttack;
+        int       HoldSteps;
         float     DecayTime;
         float     SustainLevel;
         float     ReleaseSlope;

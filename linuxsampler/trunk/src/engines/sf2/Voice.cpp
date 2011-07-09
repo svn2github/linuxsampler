@@ -72,26 +72,17 @@ namespace LinuxSampler { namespace sf2 {
         ::sf2::Preset* preset = GetSf2EngineChannel()->pInstrument;
         for (int i = 0; i < preset->GetRegionCount(); i++) { // TODO: some optimization?
             if (preset->GetRegion(i)->pInstrument == pRegion->GetParentInstrument()) {
-                reg = preset->GetRegion(i); // TODO: Can the instrument belongs to more than one preset regions?
+                reg = preset->GetRegion(i); // TODO: Can the instrument belong to more than one preset region?
                 break;
             }
         }
-        
+        pPresetRegion = reg;
+
         RegionInfo ri;
         ri.UnityNote = pRegion->GetUnityNote();
         ri.FineTune  = pRegion->GetFineTune(reg) + (pRegion->GetCoarseTune(reg) * 100);
         ri.Pan       = pRegion->GetPan(reg);
         ri.SampleStartOffset = pRegion->startAddrsOffset + pRegion->startAddrsCoarseOffset;
-
-        // sample amplitude
-        ri.EG1PreAttack        = 1000;
-        ri.EG1Attack           = pRegion->GetEG1Attack(reg);
-        ri.EG1Hold             = pRegion->GetEG1Hold(reg);
-        ri.EG1Decay1           = pRegion->GetEG1Decay(reg);
-        ri.EG1Decay2           = pRegion->GetEG1Decay(reg);
-        ri.EG1Sustain          = pRegion->GetEG1Sustain(reg);
-        ri.EG1InfiniteSustain  = true;
-        ri.EG1Release          = pRegion->GetEG1Release(reg);
 
         // filter cutoff frequency
         ri.EG2PreAttack        = 1000;
@@ -218,15 +209,12 @@ namespace LinuxSampler { namespace sf2 {
     }
 
     void Voice::TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) {
-        EG1.trigger(uint(RgnInfo.EG1PreAttack),
-                    RgnInfo.EG1Attack * egInfo.Attack,
-                    RgnInfo.EG1Hold,
-                    RgnInfo.EG1Decay1 * egInfo.Decay * velrelease,
-                    RgnInfo.EG1Decay2 * egInfo.Decay * velrelease,
-                    RgnInfo.EG1InfiniteSustain,
-                    uint(RgnInfo.EG1Sustain),
-                    RgnInfo.EG1Release * egInfo.Release * velrelease,
-                    velocityAttenuation,
+        EG1.trigger(0,
+                    pRegion->GetEG1Attack(pPresetRegion),
+                    pRegion->GetEG1Hold(pPresetRegion),
+                    pRegion->GetEG1Decay(pPresetRegion),
+                    uint(pRegion->GetEG1Sustain(pPresetRegion)),
+                    pRegion->GetEG1Release(pPresetRegion),
                     sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
     }
 

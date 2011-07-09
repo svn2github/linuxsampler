@@ -36,6 +36,7 @@
 #include "../gig/Filter.h"
 #include "../common/VoiceBase.h"
 #include "../gig/SynthesisParam.h"
+#include "../sfz/EGADSR.h"
 
 namespace LinuxSampler { namespace sf2 {
     class Engine;
@@ -79,8 +80,9 @@ namespace LinuxSampler { namespace sf2 {
             virtual void             ProcessGroupEvent(RTList<Event>::Iterator& itEvent);
 
         private:
-            ::LinuxSampler::gig::EGADSR EG1; // TODO: add a fine-tuned version for SF2, or maybe use sfz v1 instead of gig
-            ::LinuxSampler::gig::EGADSR EG2; // TODO: add a fine-tuned version for SF2, or maybe use sfz v1 instead of gig
+            ::LinuxSampler::sfz::EGADSR EG1;
+            ::LinuxSampler::gig::EGADSR EG2; // TODO: use sfz v1 instead of gig
+            ::sf2::Region* pPresetRegion;
 
         public: // FIXME: just made public for debugging (sanity check in Engine::RenderAudio()), should be changed to private before the final release
             // Attributes

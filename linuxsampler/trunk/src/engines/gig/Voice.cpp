@@ -76,15 +76,6 @@ namespace LinuxSampler { namespace gig {
         ri.Pan       = pRegion->Pan;
         ri.SampleStartOffset = pRegion->SampleStartOffset;
 
-        ri.EG1PreAttack        = pRegion->EG1PreAttack;
-        ri.EG1Attack           = pRegion->EG1Attack;
-        ri.EG1Hold             = pRegion->EG1Hold;
-        ri.EG1Decay1           = pRegion->EG1Decay1;
-        ri.EG1Decay2           = pRegion->EG1Decay2;
-        ri.EG1Sustain          = pRegion->EG1Sustain;
-        ri.EG1InfiniteSustain  = pRegion->EG1InfiniteSustain;
-        ri.EG1Release          = pRegion->EG1Release;
-
         ri.EG2PreAttack        = pRegion->EG2PreAttack;
         ri.EG2Attack           = pRegion->EG2Attack;
         ri.EG2Decay1           = pRegion->EG2Decay1;
@@ -452,14 +443,14 @@ namespace LinuxSampler { namespace gig {
     }
 
     void Voice::TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) {
-        EG1.trigger(uint(RgnInfo.EG1PreAttack),
-                    RgnInfo.EG1Attack * egInfo.Attack,
-                    RgnInfo.EG1Hold,
-                    RgnInfo.EG1Decay1 * egInfo.Decay * velrelease,
-                    RgnInfo.EG1Decay2 * egInfo.Decay * velrelease,
-                    RgnInfo.EG1InfiniteSustain,
-                    uint(RgnInfo.EG1Sustain),
-                    RgnInfo.EG1Release * egInfo.Release * velrelease,
+        EG1.trigger(pRegion->EG1PreAttack,
+                    pRegion->EG1Attack * egInfo.Attack,
+                    pRegion->EG1Hold,
+                    pRegion->EG1Decay1 * egInfo.Decay * velrelease,
+                    pRegion->EG1Decay2 * egInfo.Decay * velrelease,
+                    pRegion->EG1InfiniteSustain,
+                    pRegion->EG1Sustain,
+                    pRegion->EG1Release * egInfo.Release * velrelease,
                     velocityAttenuation,
                     sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
     }

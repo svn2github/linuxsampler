@@ -38,9 +38,12 @@ clean-local:
 	rm -rf LinuxSampler.vst
 
 install-exec-hook:
-	if test -w /Library/Audio/Plugin-Ins/VST ; then cp -r LinuxSampler.vst /Library/Audio/Plug-Ins/VST/ ; fi
+	if mkdir -p $(MAC_PLUGIN_INSTALL_DIR)/VST && \
+	test -w $(MAC_PLUGIN_INSTALL_DIR)/VST ; then \
+	cp -r LinuxSampler.vst $(MAC_PLUGIN_INSTALL_DIR)/VST/ ; fi
+
 uninstall-hook:
-	rm -rf /Library/Audio/Plug-Ins/VST/LinuxSampler.vst
+	rm -rf $(MAC_PLUGIN_INSTALL_DIR)/VST/LinuxSampler.vst
 endif
 
 endif

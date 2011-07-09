@@ -73,15 +73,6 @@ namespace LinuxSampler { namespace sfz {
         ri.Pan       = int(pRegion->pan * 0.63); // convert from -100..100 to -64..63
         ri.SampleStartOffset = 0; // TODO: 
 
-        ri.EG1PreAttack        = pRegion->ampeg_start * 10;
-        ri.EG1Attack           = pRegion->ampeg_attack;
-        ri.EG1Hold             = pRegion->ampeg_hold;
-        ri.EG1Decay1           = pRegion->ampeg_decay;
-        ri.EG1Decay2           = pRegion->ampeg_decay;
-        ri.EG1Sustain          = pRegion->ampeg_sustain * 10;
-        ri.EG1InfiniteSustain  = true;
-        ri.EG1Release          = pRegion->ampeg_release;
-
         ri.EG2PreAttack        = pRegion->fileg_start * 10;
         ri.EG2Attack           = pRegion->fileg_attack;
         //ri.EG2Hold             = pRegion->fileg_hold; // TODO: 
@@ -261,12 +252,12 @@ namespace LinuxSampler { namespace sfz {
 
         // otherwise use the v1 EGADSR
         pEG1 = &EGADSR1;
-        EGADSR1.trigger(uint(RgnInfo.EG1PreAttack),
-                        std::max(0.0, RgnInfo.EG1Attack + pRegion->ampeg_vel2attack * velrelease),
-                        std::max(0.0, RgnInfo.EG1Hold + pRegion->ampeg_vel2hold * velrelease),
-                        std::max(0.0, RgnInfo.EG1Decay1 + pRegion->ampeg_vel2decay * velrelease),
-                        uint(std::min(std::max(0.0, RgnInfo.EG1Sustain + 10 * pRegion->ampeg_vel2sustain * velrelease), 1000.0)),
-                        std::max(0.0, RgnInfo.EG1Release + pRegion->ampeg_vel2release * velrelease),
+        EGADSR1.trigger(uint(pRegion->ampeg_start * 10),
+                        std::max(0.0, pRegion->ampeg_attack + pRegion->ampeg_vel2attack * velrelease),
+                        std::max(0.0, pRegion->ampeg_hold + pRegion->ampeg_vel2hold * velrelease),
+                        std::max(0.0, pRegion->ampeg_decay + pRegion->ampeg_vel2decay * velrelease),
+                        uint(std::min(std::max(0.0, 10 * (pRegion->ampeg_sustain + pRegion->ampeg_vel2sustain * velrelease)), 1000.0)),
+                        std::max(0.0, pRegion->ampeg_release + pRegion->ampeg_vel2release * velrelease),
                         sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
     }
 

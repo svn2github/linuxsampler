@@ -552,6 +552,11 @@ if test $config_have_au = "yes" ; then
     AC_SUBST(DEVELOPER_EXTRAS_DIR)
 fi
 
+if test "x$MAC_PLUGIN_INSTALL_DIR" = "x" ; then
+    MAC_PLUGIN_INSTALL_DIR=/Library/Audio/Plug-Ins
+fi
+AC_SUBST(MAC_PLUGIN_INSTALL_DIR)
+
 # have we found at least one MIDI input and one audio output driver ?
 if test "$have_midi_input_driver" = "false"; then
     echo "No supported MIDI input system found!"

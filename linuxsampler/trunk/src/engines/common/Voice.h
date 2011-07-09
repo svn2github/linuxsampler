@@ -81,15 +81,6 @@ namespace LinuxSampler {
                 int     Pan; ///< Panorama / Balance (-64..0..63 <-> left..middle..right)
                 uint    SampleStartOffset; ///< Number of samples the sample start should be moved
 
-                double  EG1PreAttack; ///< Preattack value of the sample amplitude EG (in permilles)
-                double  EG1Attack; ///< Attack time of the sample amplitude EG (in seconds)
-                double  EG1Hold;  ///< If true, Decay1 stage should be postponed until the sample reached the sample loop start
-                double  EG1Decay1;  ///< Decay time of the sample amplitude EG (in seconds)
-                double  EG1Decay2;  ///< Only if (EG1InfiniteSustain == false): 2nd decay stage time of the sample amplitude EG (in seconds)
-                double  EG1Sustain; ///< Sustain value of the sample amplitude EG (in permilles)
-                bool    EG1InfiniteSustain; ///< If true, instead of going into Decay2 phase, Decay1 level will be hold until note will be released.
-                double  EG1Release; ///< Release time of the sample amplitude EG (in seconds)
-
                 double  EG2PreAttack; ///< Preattack value of the filter cutoff EG (in permilles)
                 double  EG2Attack; ///< Attack time of the filter cutoff EG (in seconds)
                 double  EG2Decay1;  ///< Decay time of the filter cutoff EG (in seconds)

@@ -29,8 +29,6 @@ namespace LinuxSampler { namespace sfz {
 
     // Modeled after output from SFZ Player 1.97 / Rapture Demo 1.0.
 
-    // TODO: implement hold stage correctly
-
     void EGADSR::update(event_t Event, uint SampleRate) {
         if (atEnd(Event)) return;
 
@@ -41,7 +39,7 @@ namespace LinuxSampler { namespace sfz {
                         enterReleaseStage();
                         break;
                     case event_stage_end:
-                        if (HoldAttack)
+                        if (HoldSteps)
                             enterAttackHoldStage();
                         else
                             enterDecayStage(SampleRate);
@@ -96,11 +94,9 @@ namespace LinuxSampler { namespace sfz {
         }
     }
 
-    // TODO: HoldAttack should be HoldTime and float
-
-    void EGADSR::trigger(uint PreAttack, float AttackTime, bool HoldAttack, float DecayTime, uint SustainLevel, float ReleaseTime, uint SampleRate) {
+    void EGADSR::trigger(uint PreAttack, float AttackTime, float HoldTime, float DecayTime, uint SustainLevel, float ReleaseTime, uint SampleRate) {
         this->SustainLevel = SustainLevel / 1000.0;
-        this->HoldAttack   = HoldAttack;
+        this->HoldSteps    = int(HoldTime * SampleRate);
         this->DecayTime    = DecayTime;
 
         if (ReleaseTime < CONFIG_EG_MIN_RELEASE_TIME) ReleaseTime = CONFIG_EG_MIN_RELEASE_TIME;  // to avoid click sounds at the end of the sample playback
@@ -120,8 +116,8 @@ namespace LinuxSampler { namespace sfz {
             Coeff = (1.0f - Level) / StepsLeft;
         } else { // attack is zero - immediately jump to the next stage
             Level = 1.0f;
-            if (HoldAttack) enterAttackHoldStage();
-            else            enterDecayStage(SampleRate);
+            if (HoldSteps) enterAttackHoldStage();
+            else           enterDecayStage(SampleRate);
         }
     }
 
@@ -129,8 +125,7 @@ namespace LinuxSampler { namespace sfz {
         Stage     = stage_attack_hold;
         Segment   = segment_lin;
         Coeff     = 0.0f; // don't rise anymore
-        const int intMax = (unsigned int) -1 >> 1;
-        StepsLeft = intMax; // we use the highest value possible (we refresh StepsLeft in update() in case)
+        StepsLeft = HoldSteps;
     }
 
     void EGADSR::enterDecayStage(const uint SampleRate) {
@@ -142,11 +137,9 @@ namespace LinuxSampler { namespace sfz {
             Coeff  = exp(slope);
             StepsLeft = int(log(std::max(SustainLevel, float(CONFIG_EG_BOTTOM)) / Level) / slope);
             if (StepsLeft > 0) return;
-
-            enterSustainStage();
-        } else {
-            enterSustainStage();
         }
+        Level = SustainLevel;
+        enterSustainStage();
     }
 
     void EGADSR::enterSustainStage() {

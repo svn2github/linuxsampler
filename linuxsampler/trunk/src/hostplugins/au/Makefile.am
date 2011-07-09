@@ -118,9 +118,12 @@ clean-local:
 	rm -rf $(COMPONENT_DIR)
 
 install-exec-hook:
-	if test -w /Library/Audio/Plugin-Ins/Components ; then cp -r $(COMPONENT_DIR) /Library/Audio/Plug-Ins/Components/ ; fi
+	if mkdir -p $(MAC_PLUGIN_INSTALL_DIR)/Components && \
+	test -w $(MAC_PLUGIN_INSTALL_DIR)/Components ; then \
+	cp -r $(COMPONENT_DIR) $(MAC_PLUGIN_INSTALL_DIR)/Components/ ; fi
+
 uninstall-hook:
-	rm -rf /Library/Audio/Plug-Ins/Components/$(COMPONENT_DIR)
+	rm -rf $(MAC_PLUGIN_INSTALL_DIR)/Components/$(COMPONENT_DIR)
 endif
 
 EXTRA_DIST = PluginAU.exp PluginAU.r PkgInfo Info.plist
