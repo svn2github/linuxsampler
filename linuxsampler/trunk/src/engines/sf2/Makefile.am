@@ -11,6 +11,7 @@ liblinuxsamplersf2engine_la_SOURCES = \
 	EngineChannel.cpp EngineChannel.h \
 	Engine.cpp Engine.h \
 	Voice.cpp Voice.h \
+	SF2SignalUnitRack.cpp SF2SignalUnitRack.h \
 	Stream.cpp Stream.h
 liblinuxsamplersf2engine_la_LIBADD = $(GIG_LIBS)
 liblinuxsamplersf2engine_la_LDFLAGS = $(GIG_CFLAGS)

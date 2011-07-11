@@ -37,6 +37,7 @@
 #include "../gig/SmoothVolume.h"
 #include "../gig/Synthesizer.h"
 #include "../gig/Profiler.h"
+#include "SignalUnitRack.h"
 
 // include the appropriate (unsigned) triangle LFO implementation
 #if CONFIG_UNSIGNED_TRIANG_ALGO == INT_MATH_SOLUTION
@@ -100,6 +101,10 @@ namespace LinuxSampler {
             );
 
             virtual void Synthesize(uint Samples, sample_t* pSrc, uint Skip);
+            
+            uint GetSampleRate() { return GetEngine()->SampleRate; }
+            
+            virtual SignalUnitRack* GetSignalUnitRack() { return NULL; }
 
             void processCCEvents(RTList<Event>::Iterator& itEvent, uint End);
             void processPitchEvent(RTList<Event>::Iterator& itEvent);
@@ -158,6 +163,19 @@ namespace LinuxSampler {
             virtual SampleInfo      GetSampleInfo() = 0;
             virtual RegionInfo      GetRegionInfo() = 0;
             virtual InstrumentInfo  GetInstrumentInfo() = 0;
+
+            /**
+             * Most of the important members of the voice are set when the voice
+             * is triggered (like pEngineChannel, pRegion, pSample, etc).
+             * This method is called after these members are set and before
+             * the voice is actually triggered.
+             * Override this method if you need to do some additional
+             * initialization which depends on these members before the voice
+             * is triggered.
+             */
+            virtual void AboutToTrigger() { }
+
+            virtual bool EG1Finished(); 
 
             /**
              * Gets the sample cache size in bytes.

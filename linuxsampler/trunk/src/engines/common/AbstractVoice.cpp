@@ -110,6 +110,8 @@ namespace LinuxSampler {
         SmplInfo   = GetSampleInfo();
         RgnInfo    = GetRegionInfo();
         InstrInfo  = GetInstrumentInfo();
+        
+        AboutToTrigger();
 
         // calculate volume
         const double velocityAttenuation = GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity);
@@ -176,8 +178,7 @@ namespace LinuxSampler {
         // the length of the decay and release curves are dependent on the velocity
         const double velrelease = 1 / GetVelocityRelease(itNoteOnEvent->Param.Note.Velocity);
 
-        // setup EG 1 (VCA EG)
-        {
+        if (GetSignalUnitRack() == NULL) { // setup EG 1 (VCA EG)
             // get current value of EG1 controller
             double eg1controllervalue = GetEG1ControllerValue(itNoteOnEvent->Param.Note.Velocity);
 
@@ -185,6 +186,8 @@ namespace LinuxSampler {
             EGInfo egInfo = CalculateEG1ControllerInfluence(eg1controllervalue);
 
             TriggerEG1(egInfo, velrelease, velocityAttenuation, GetEngine()->SampleRate, itNoteOnEvent->Param.Note.Velocity);
+        } else {
+            GetSignalUnitRack()->Trigger();
         }
 
 #ifdef CONFIG_INTERPOLATE_VOLUME
@@ -197,7 +200,12 @@ namespace LinuxSampler {
         else
     #else
         {
-            float finalVolume = pEngineChannel->MidiVolume * crossfadeVolume * pEG1->getLevel();
+            float finalVolume;
+            if (GetSignalUnitRack() == NULL) {
+                finalVolume = pEngineChannel->MidiVolume * crossfadeVolume * pEG1->getLevel();
+            } else {
+                finalVolume = pEngineChannel->MidiVolume * crossfadeVolume * GetSignalUnitRack()->GetEndpointUnit()->GetVolume();
+            }
 
             finalSynthesisParameters.fFinalVolumeLeft  = finalVolume * VolumeLeft  * pEngineChannel->GlobalPanLeft;
             finalSynthesisParameters.fFinalVolumeRight = finalVolume * VolumeRight * pEngineChannel->GlobalPanRight;
@@ -205,39 +213,41 @@ namespace LinuxSampler {
     #endif
 #endif
 
-        // setup EG 2 (VCF Cutoff EG)
-        {
-            // get current value of EG2 controller
-            double eg2controllervalue = GetEG2ControllerValue(itNoteOnEvent->Param.Note.Velocity);
+        if (GetSignalUnitRack() == NULL) {
+            // setup EG 2 (VCF Cutoff EG)
+            {
+                // get current value of EG2 controller
+                double eg2controllervalue = GetEG2ControllerValue(itNoteOnEvent->Param.Note.Velocity);
 
-            // calculate influence of EG2 controller on EG2's parameters
-            EGInfo egInfo = CalculateEG2ControllerInfluence(eg2controllervalue);
+                // calculate influence of EG2 controller on EG2's parameters
+                EGInfo egInfo = CalculateEG2ControllerInfluence(eg2controllervalue);
 
-            TriggerEG2(egInfo, velrelease, velocityAttenuation, GetEngine()->SampleRate, itNoteOnEvent->Param.Note.Velocity);
+                TriggerEG2(egInfo, velrelease, velocityAttenuation, GetEngine()->SampleRate, itNoteOnEvent->Param.Note.Velocity);
+            }
+
+
+            // setup EG 3 (VCO EG)
+            {
+                // if portamento mode is on, we dedicate EG3 purely for portamento, otherwise if portamento is off we do as told by the patch
+                bool  bPortamento = pEngineChannel->PortamentoMode && pEngineChannel->PortamentoPos >= 0.0f;
+                float eg3depth = (bPortamento)
+                             ? RTMath::CentsToFreqRatio((pEngineChannel->PortamentoPos - (float) MIDIKey) * 100)
+                             : RTMath::CentsToFreqRatio(RgnInfo.EG3Depth);
+                float eg3time = (bPortamento)
+                            ? pEngineChannel->PortamentoTime
+                            : RgnInfo.EG3Attack;
+                EG3.trigger(eg3depth, eg3time, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                dmsg(5,("PortamentoPos=%f, depth=%f, time=%f\n", pEngineChannel->PortamentoPos, eg3depth, eg3time));
+            }
+
+
+            // setup LFO 1 (VCA LFO)
+            InitLFO1();
+            // setup LFO 2 (VCF Cutoff LFO)
+            InitLFO2();
+            // setup LFO 3 (VCO LFO)
+            InitLFO3();
         }
-
-
-        // setup EG 3 (VCO EG)
-        {
-            // if portamento mode is on, we dedicate EG3 purely for portamento, otherwise if portamento is off we do as told by the patch
-            bool  bPortamento = pEngineChannel->PortamentoMode && pEngineChannel->PortamentoPos >= 0.0f;
-            float eg3depth = (bPortamento)
-                         ? RTMath::CentsToFreqRatio((pEngineChannel->PortamentoPos - (float) MIDIKey) * 100)
-                         : RTMath::CentsToFreqRatio(RgnInfo.EG3Depth);
-            float eg3time = (bPortamento)
-                        ? pEngineChannel->PortamentoTime
-                        : RgnInfo.EG3Attack;
-            EG3.trigger(eg3depth, eg3time, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-            dmsg(5,("PortamentoPos=%f, depth=%f, time=%f\n", pEngineChannel->PortamentoPos, eg3depth, eg3time));
-        }
-
-
-        // setup LFO 1 (VCA LFO)
-        InitLFO1();
-        // setup LFO 2 (VCF Cutoff LFO)
-        InitLFO2();
-        // setup LFO 3 (VCO LFO)
-        InitLFO3();
 
 
         #if CONFIG_FORCE_FILTER
@@ -342,7 +352,11 @@ namespace LinuxSampler {
                 // drivers that use Samples < MaxSamplesPerCycle).
                 // End the EG1 here, at pos 0, with a shorter max fade
                 // out time.
-                pEG1->enterFadeOutStage(Samples / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                if (GetSignalUnitRack() == NULL) {
+                    pEG1->enterFadeOutStage(Samples / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                } else {
+                    // TODO: 
+                }
                 itKillEvent = Pool<Event>::Iterator();
             } else {
                 killPos = RTMath::Min(itKillEvent->FragmentPos(), maxFadeOutPos);
@@ -370,51 +384,71 @@ namespace LinuxSampler {
             processTransitionEvents(itNoteEvent, iSubFragmentEnd);
             processGroupEvents(itGroupEvent, iSubFragmentEnd);
 
-            // if the voice was killed in this subfragment, or if the
-            // filter EG is finished, switch EG1 to fade out stage
-            if ((itKillEvent && killPos <= iSubFragmentEnd) ||
-                (SYNTHESIS_MODE_GET_FILTER(SynthesisMode) &&
-                 pEG2->getSegmentType() == EG::segment_end)) {
-                pEG1->enterFadeOutStage();
-                itKillEvent = Pool<Event>::Iterator();
-            }
+            if (GetSignalUnitRack() == NULL) {
+                // if the voice was killed in this subfragment, or if the
+                // filter EG is finished, switch EG1 to fade out stage
+                if ((itKillEvent && killPos <= iSubFragmentEnd) ||
+                    (SYNTHESIS_MODE_GET_FILTER(SynthesisMode) &&
+                    pEG2->getSegmentType() == EG::segment_end)) {
+                    pEG1->enterFadeOutStage();
+                    itKillEvent = Pool<Event>::Iterator();
+                }
 
-            // process envelope generators
-            switch (pEG1->getSegmentType()) {
-                case EG::segment_lin:
-                    fFinalVolume *= pEG1->processLin();
-                    break;
-                case EG::segment_exp:
-                    fFinalVolume *= pEG1->processExp();
-                    break;
-                case EG::segment_end:
-                    fFinalVolume *= pEG1->getLevel();
-                    break; // noop
-                case EG::segment_pow:
-                    fFinalVolume *= pEG1->processPow();
-                    break;
-            }
-            switch (pEG2->getSegmentType()) {
-                case EG::segment_lin:
-                    fFinalCutoff *= pEG2->processLin();
-                    break;
-                case EG::segment_exp:
-                    fFinalCutoff *= pEG2->processExp();
-                    break;
-                case EG::segment_end:
-                    fFinalCutoff *= pEG2->getLevel();
-                    break; // noop
-                case EG::segment_pow:
-                    fFinalCutoff *= pEG2->processPow();
-                    break;
-            }
-            if (EG3.active()) finalSynthesisParameters.fFinalPitch *= EG3.render();
+                // process envelope generators
+                switch (pEG1->getSegmentType()) {
+                    case EG::segment_lin:
+                        fFinalVolume *= pEG1->processLin();
+                        break;
+                    case EG::segment_exp:
+                        fFinalVolume *= pEG1->processExp();
+                        break;
+                    case EG::segment_end:
+                        fFinalVolume *= pEG1->getLevel();
+                        break; // noop
+                    case EG::segment_pow:
+                        fFinalVolume *= pEG1->processPow();
+                        break;
+                }
+                switch (pEG2->getSegmentType()) {
+                    case EG::segment_lin:
+                        fFinalCutoff *= pEG2->processLin();
+                        break;
+                    case EG::segment_exp:
+                        fFinalCutoff *= pEG2->processExp();
+                        break;
+                    case EG::segment_end:
+                        fFinalCutoff *= pEG2->getLevel();
+                        break; // noop
+                    case EG::segment_pow:
+                        fFinalCutoff *= pEG2->processPow();
+                        break;
+                }
+                if (EG3.active()) finalSynthesisParameters.fFinalPitch *= EG3.render();
 
-            // process low frequency oscillators
-            if (bLFO1Enabled) fFinalVolume *= (1.0f - pLFO1->render());
-            if (bLFO2Enabled) fFinalCutoff *= pLFO2->render();
-            if (bLFO3Enabled) finalSynthesisParameters.fFinalPitch *= RTMath::CentsToFreqRatio(pLFO3->render());
+                // process low frequency oscillators
+                if (bLFO1Enabled) fFinalVolume *= (1.0f - pLFO1->render());
+                if (bLFO2Enabled) fFinalCutoff *= pLFO2->render();
+                if (bLFO3Enabled) finalSynthesisParameters.fFinalPitch *= RTMath::CentsToFreqRatio(pLFO3->render());
+            } else {
+                // if the voice was killed in this subfragment, or if the
+                // filter EG is finished, switch EG1 to fade out stage
+                /*if ((itKillEvent && killPos <= iSubFragmentEnd) ||
+                    (SYNTHESIS_MODE_GET_FILTER(SynthesisMode) &&
+                    pEG2->getSegmentType() == EG::segment_end)) {
+                    pEG1->enterFadeOutStage();
+                    itKillEvent = Pool<Event>::Iterator();
+                }*/
+                // TODO: ^^^
 
+                fFinalVolume   *= GetSignalUnitRack()->GetEndpointUnit()->GetVolume();
+                fFinalCutoff    = GetSignalUnitRack()->GetEndpointUnit()->CalculateFilterCutoff(fFinalCutoff);
+                fFinalResonance = GetSignalUnitRack()->GetEndpointUnit()->CalculateResonance(fFinalResonance);
+                
+                finalSynthesisParameters.fFinalPitch =
+                    GetSignalUnitRack()->GetEndpointUnit()->CalculatePitch(finalSynthesisParameters.fFinalPitch);
+                    
+            }
+            
             // limit the pitch so we don't read outside the buffer
             finalSynthesisParameters.fFinalPitch = RTMath::Min(finalSynthesisParameters.fFinalPitch, float(1 << CONFIG_MAX_PITCH));
 
@@ -449,28 +483,43 @@ namespace LinuxSampler {
             // render audio for one subfragment
             RunSynthesisFunction(SynthesisMode, &finalSynthesisParameters, &loop);
 
-            // stop the rendering if volume EG is finished
-            if (pEG1->getSegmentType() == EG::segment_end) break;
+            if (GetSignalUnitRack() == NULL) {
+                // stop the rendering if volume EG is finished
+                if (pEG1->getSegmentType() == EG::segment_end) break;
+            } else {
+                // stop the rendering if the endpoint unit is not active
+                if (!GetSignalUnitRack()->GetEndpointUnit()->Active()) break;
+            }
 
             const double newPos = Pos + (iSubFragmentEnd - i) * finalSynthesisParameters.fFinalPitch;
 
-            // increment envelopes' positions
-            if (pEG1->active()) {
+            if (GetSignalUnitRack() == NULL) {
+                // increment envelopes' positions
+                if (pEG1->active()) {
 
-                // if sample has a loop and loop start has been reached in this subfragment, send a special event to EG1 to let it finish the attack hold stage
-                if (SmplInfo.HasLoops && Pos <= SmplInfo.LoopStart && SmplInfo.LoopStart < newPos) {
-                    pEG1->update(EG::event_hold_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                    // if sample has a loop and loop start has been reached in this subfragment, send a special event to EG1 to let it finish the attack hold stage
+                    if (SmplInfo.HasLoops && Pos <= SmplInfo.LoopStart && SmplInfo.LoopStart < newPos) {
+                        pEG1->update(EG::event_hold_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                    }
+
+                    pEG1->increment(1);
+                    if (!pEG1->toStageEndLeft()) pEG1->update(EG::event_stage_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                 }
-
-                pEG1->increment(1);
-                if (!pEG1->toStageEndLeft()) pEG1->update(EG::event_stage_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                if (pEG2->active()) {
+                    pEG2->increment(1);
+                    if (!pEG2->toStageEndLeft()) pEG2->update(EG::event_stage_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                }
+                EG3.increment(1);
+                if (!EG3.toEndLeft()) EG3.update(); // neutralize envelope coefficient if end reached
+            } else {
+                    // if sample has a loop and loop start has been reached in this subfragment, send a special event to EG1 to let it finish the attack hold stage
+                    /*if (SmplInfo.HasLoops && Pos <= SmplInfo.LoopStart && SmplInfo.LoopStart < newPos) {
+                        pEG1->update(EG::event_hold_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                    }*/
+                // TODO: ^^^
+                
+                GetSignalUnitRack()->Increment();
             }
-            if (pEG2->active()) {
-                pEG2->increment(1);
-                if (!pEG2->toStageEndLeft()) pEG2->update(EG::event_stage_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-            }
-            EG3.increment(1);
-            if (!EG3.toEndLeft()) EG3.update(); // neutralize envelope coefficient if end reached
 
             Pos = newPos;
             i = iSubFragmentEnd;
@@ -501,14 +550,16 @@ namespace LinuxSampler {
                 if (itEvent->Param.CC.Controller == VCFResonanceCtrl.controller) {
                     processResonanceEvent(itEvent);
                 }
-                if (itEvent->Param.CC.Controller == pLFO1->ExtController) {
-                    pLFO1->update(itEvent->Param.CC.Value);
-                }
-                if (itEvent->Param.CC.Controller == pLFO2->ExtController) {
-                    pLFO2->update(itEvent->Param.CC.Value);
-                }
-                if (itEvent->Param.CC.Controller == pLFO3->ExtController) {
-                    pLFO3->update(itEvent->Param.CC.Value);
+                if (GetSignalUnitRack() == NULL) {
+                    if (itEvent->Param.CC.Controller == pLFO1->ExtController) {
+                        pLFO1->update(itEvent->Param.CC.Value);
+                    }
+                    if (itEvent->Param.CC.Controller == pLFO2->ExtController) {
+                        pLFO2->update(itEvent->Param.CC.Value);
+                    }
+                    if (itEvent->Param.CC.Controller == pLFO3->ExtController) {
+                        pLFO3->update(itEvent->Param.CC.Value);
+                    }
                 }
                 if (itEvent->Param.CC.Controller == 7) { // volume
                     VolumeSmoother.update(AbstractEngine::VolumeCurve[itEvent->Param.CC.Value]);
@@ -521,6 +572,9 @@ namespace LinuxSampler {
             }
 
             ProcessCCEvent(itEvent);
+            if (GetSignalUnitRack() != NULL) {
+                GetSignalUnitRack()->ProcessCCEvent(itEvent);
+            }
         }
     }
 
@@ -552,8 +606,12 @@ namespace LinuxSampler {
                 if (itEvent->Type == Event::type_release) {
                     EnterReleaseStage();
                 } else if (itEvent->Type == Event::type_cancel_release) {
-                    pEG1->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-                    pEG2->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                    if (GetSignalUnitRack() == NULL) {
+                        pEG1->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                        pEG2->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                    } else {
+                        GetSignalUnitRack()->CancelRelease();
+                    }
                 }
             }
         }
@@ -580,8 +638,12 @@ namespace LinuxSampler {
      * @param itNoteOffEvent - event which causes this voice to die soon
      */
     void AbstractVoice::UpdatePortamentoPos(Pool<Event>::Iterator& itNoteOffEvent) {
-        const float fFinalEG3Level = EG3.level(itNoteOffEvent->FragmentPos());
-        pEngineChannel->PortamentoPos = (float) MIDIKey + RTMath::FreqRatioToCents(fFinalEG3Level) * 0.01f;
+        if (GetSignalUnitRack() == NULL) {
+            const float fFinalEG3Level = EG3.level(itNoteOffEvent->FragmentPos());
+            pEngineChannel->PortamentoPos = (float) MIDIKey + RTMath::FreqRatioToCents(fFinalEG3Level) * 0.01f;
+        } else {
+            // TODO: 
+        }
     }
 
     /**
@@ -643,8 +705,20 @@ namespace LinuxSampler {
     }
 
     void AbstractVoice::EnterReleaseStage() {
-        pEG1->update(EG::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-        pEG2->update(EG::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+        if (GetSignalUnitRack() == NULL) {
+            pEG1->update(EG::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            pEG2->update(EG::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+        } else {
+            GetSignalUnitRack()->EnterReleaseStage();
+        }
+    }
+
+    bool AbstractVoice::EG1Finished() {
+        if (GetSignalUnitRack() == NULL) {
+            return pEG1->getSegmentType() == EG::segment_end;
+        } else {
+            return !GetSignalUnitRack()->GetEndpointUnit()->Active();
+        }
     }
 
 } // namespace LinuxSampler

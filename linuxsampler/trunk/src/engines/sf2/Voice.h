@@ -37,6 +37,7 @@
 #include "../common/VoiceBase.h"
 #include "../gig/SynthesisParam.h"
 #include "../sfz/EGADSR.h"
+#include "SF2SignalUnitRack.h"
 
 namespace LinuxSampler { namespace sf2 {
     class Engine;
@@ -52,6 +53,7 @@ namespace LinuxSampler { namespace sf2 {
             virtual ~Voice();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
             void SetEngine(LinuxSampler::Engine* pEngine);
+            virtual SignalUnitRack* GetSignalUnitRack();
 
         protected:
             virtual SampleInfo       GetSampleInfo();
@@ -78,11 +80,13 @@ namespace LinuxSampler { namespace sf2 {
             virtual double           GetVelocityRelease(uint8_t MIDIKeyVelocity);
             virtual double           GetSampleAttenuation();
             virtual void             ProcessGroupEvent(RTList<Event>::Iterator& itEvent);
+            virtual void             AboutToTrigger();
 
         private:
             ::LinuxSampler::sfz::EGADSR EG1;
             ::LinuxSampler::gig::EGADSR EG2; // TODO: use sfz v1 instead of gig
             ::sf2::Region* pPresetRegion;
+            SF2SignalUnitRack SignalRack;
 
         public: // FIXME: just made public for debugging (sanity check in Engine::RenderAudio()), should be changed to private before the final release
             // Attributes
@@ -97,6 +101,13 @@ namespace LinuxSampler { namespace sf2 {
             void processCrossFadeEvent(RTList<Event>::Iterator& itEvent);
 
             EngineChannel* GetSf2EngineChannel();
+
+            friend class EGUnit;
+            friend class VolEGUnit;
+            friend class ModEGUnit;
+            friend class VibLfoUnit;
+            friend class EndpointUnit;
+            friend class SF2SignalUnitRack;
 
         protected:
             virtual uint8_t CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {

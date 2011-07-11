@@ -98,6 +98,7 @@ Version CVS HEAD (?)
     - RT-safeness: avoid malloc in audio thread
     - fixed a bug that could cause voice stealing to fail
     - fine-tuned amplitude EG (by switching from gig to sfz EG)
+    - initial implementation of Vibrato LFO
 
   * Gigasampler format engine:
     - bugfix: pitch LFO controller "internal+aftertouch" was broken

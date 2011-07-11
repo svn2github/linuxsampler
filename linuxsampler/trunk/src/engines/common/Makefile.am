@@ -11,6 +11,7 @@ liblinuxsamplercommonengine_la_SOURCES = \
 	Stream.h StreamBase.cpp StreamBase.h \
 	DiskThreadBase.cpp DiskThreadBase.h \
 	Voice.h AbstractVoice.cpp AbstractVoice.h VoiceBase.h \
+	SignalUnit.h SignalUnitRack.h \
 	MidiKeyboardManager.h \
 	LFOBase.h \
 	LFOTriangleDiHarmonic.h \

@@ -29,7 +29,7 @@
 
 namespace LinuxSampler { namespace sf2 {
 
-    Voice::Voice() {
+    Voice::Voice(): SignalRack(this) {
         pEngine = NULL;
         pEG1 = &EG1;
         pEG2 = &EG2;
@@ -37,6 +37,10 @@ namespace LinuxSampler { namespace sf2 {
 
     Voice::~Voice() {
 
+    }
+
+    void Voice::AboutToTrigger() {
+        
     }
 
     EngineChannel* Voice::GetSf2EngineChannel() {
@@ -400,6 +404,10 @@ namespace LinuxSampler { namespace sf2 {
             pLFO3->update(pLFO3->ExtController ? GetSf2EngineChannel()->ControllerTable[pLFO3->ExtController] : 0);
         }*/ // TODO: ^^^
          bLFO3Enabled = false;
+    }
+    
+    SignalUnitRack* Voice::GetSignalUnitRack() {
+        return static_cast<SignalUnitRack*> (&SignalRack);
     }
 
     float Voice::CalculateCutoffBase(uint8_t MIDIKeyVelocity) {

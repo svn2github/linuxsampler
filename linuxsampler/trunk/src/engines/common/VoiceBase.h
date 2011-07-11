@@ -185,8 +185,7 @@ namespace LinuxSampler {
                 itTriggerEvent = Pool<Event>::Iterator();
 
                 // If sample stream or release stage finished, kill the voice
-                if (PlaybackState == Voice::playback_state_end ||
-                    pEG1->getSegmentType() == EG::segment_end) {
+                if (PlaybackState == Voice::playback_state_end || EG1Finished()) {
                     KillImmediately();
                 }
             }
