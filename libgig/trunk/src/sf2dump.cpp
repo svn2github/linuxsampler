@@ -203,13 +203,13 @@ void PrintRegion(int idx, sf2::Region* reg) {
     cout << GetValue(reg->GetEG2Sustain()) << "permille, EG2Release=";
     cout << GetValue(reg->GetEG2Release()) << "s" << endl;
 
-     cout << "\t\t    Modulation LFO: Delay=" << reg->delayModLfo << "s, Frequency=";
-     cout << reg->freqModLfo << "Hz, LFO to Volume=" << reg->modLfoToVolume;
+     cout << "\t\t    Modulation LFO: Delay=" << ::sf2::ToSeconds(reg->delayModLfo) << "s, Frequency=";
+     cout << ::sf2::ToHz(reg->freqModLfo) << "Hz, LFO to Volume=" << (reg->modLfoToVolume / 10) << "dB";
      cout << ", LFO to Filter Cutoff=" << reg->modLfoToFilterFc;
      cout << ", LFO to Pitch=" << reg->modLfoToPitch << endl;
 
-     cout << "\t\t    Vibrato LFO:    Delay=" << reg->delayVibLfo << "s, Frequency=";
-     cout << reg->freqVibLfo << "Hz, LFO to Pitch=" << reg->vibLfoToPitch << endl;
+     cout << "\t\t    Vibrato LFO:    Delay=" << ::sf2::ToSeconds(reg->delayVibLfo) << "s, Frequency=";
+     cout << ::sf2::ToHz(reg->freqVibLfo) << "Hz, LFO to Pitch=" << reg->vibLfoToPitch << endl;
 
     cout << "\t\t\tModulators (" << reg->modulators.size() << ")" << endl;
 

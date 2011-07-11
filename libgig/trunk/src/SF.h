@@ -63,6 +63,10 @@ namespace sf2 {
 
     static uint NONE = 0x1ffffff;
 
+    double ToSeconds(int Timecents);
+    double ToPermilles(int Centibels);
+    double ToHz(int cents);
+
     typedef struct _PresetBag {
         uint16_t GenNdx;
         uint16_t ModNdx;
@@ -355,10 +359,11 @@ namespace sf2 {
             int startAddrsOffset, startAddrsCoarseOffset, endAddrsOffset, endAddrsCoarseOffset;
             int startloopAddrsOffset, startloopAddrsCoarseOffset, endloopAddrsOffset, endloopAddrsCoarseOffset;
 
-            int modEnvToPitch, modLfoToPitch, modEnvToFilterFc, modLfoToFilterFc, modLfoToVolume, freqModLfo;
-            int delayModLfo;
-            int vibLfoToPitch, freqVibLfo;
-            int delayVibLfo;
+            int modEnvToPitch , modLfoToPitch, modEnvToFilterFc, modLfoToFilterFc; // in cents
+            int modLfoToVolume /* in centibels */, freqModLfo /* in absolute cents*/;
+            int delayModLfo; // in absolute timecents
+            int vibLfoToPitch, freqVibLfo /* in absolute cents*/;
+            int delayVibLfo; // in absolute timecents
 
             uint exclusiveClass; // exclusive group
 
@@ -408,7 +413,7 @@ namespace sf2 {
             double GetModLfoToVolume(Region* pPresetRegion = NULL); // in permilles
             double GetFreqModLfo(Region* pPresetRegion = NULL); // in Hz
             double GetDelayModLfo(Region* pPresetRegion = NULL); // in seconds
-            int    GetVibLfoToPitch(Region* pPresetRegion = NULL);
+            int    GetVibLfoToPitch(Region* pPresetRegion = NULL); // in cents
             double GetFreqVibLfo(Region* pPresetRegion = NULL); // in Hz
             double GetDelayVibLfo(Region* pPresetRegion = NULL); // in seconds
 
