@@ -32,76 +32,21 @@ namespace LinuxSampler {
      * A signal unit consist of internal signal generator (like envelope generator,
      * low frequency oscillator, etc) with a number of generator parameters which
      * influence/modulate/dynamically change the generator's signal in some manner.
-     * The generators' parameters (also called signal unit parameters) can receive
-     * the signal of one or more signal units (through modulators if need)
-     * and use the (modulated) signals of those units to dynamically change the
-     * behavior of the signal generator. In turn, the signal of those unit can be fed
+     * Each generator parameter (also called signal unit parameter) can receive
+     * signal from another signal unit and use this signal to dynamically change the
+     * behavior of the signal generator. In turn, the signal of this unit can be fed
      * to another unit(s) and influence its parameters.
      */
     class SignalUnit {
         public:
 
         /**
-         * Used as an intermediate link between a source signal unit and
-         * a destination unit parameter. Modulates the received signal from the
-         * source unit and feed it to the unit parameter to which it is connected.
-         */
-        class Modulator {
-            public:
-                SignalUnit* pUnit; /* The signal source which will be used for modulation.
-                                    * If pUnit is NULL the level is considered to be 1!
-                                    */
-                float Coeff; // The modulation coefficient
-                
-                Modulator() : pUnit(NULL) { }
-                Modulator(SignalUnit* Unit) { pUnit = Unit; }
-                Modulator(const Modulator& Mod) { Copy(Mod); }
-                void operator=(const Modulator& Mod) { Copy(Mod); }
-            
-                virtual void Copy(const Modulator& Mod) {
-                    if (this == &Mod) return;
-
-                    pUnit = Mod.pUnit;
-                    Coeff = Mod.Coeff;
-                }
-                
-                /**
-                 * Gets the normalized level of the signal source for the current
-                 * time step (sample point). Returns 1 if source unit is NULL or
-                 * if the source unit is inactive.
-                 */
-                virtual float GetLevel() {
-                    if (pUnit == NULL) return 1.0f;
-                    return pUnit->Active() ? pUnit->GetLevel() : 1.0f;
-                }
-                
-                /**
-                 * Gets the modulated level of the source signal
-                 * for the current time step (sample point).
-                 */
-                virtual float GetValue() {
-                    return Transform(GetLevel());
-                }
-                
-                /**
-                 * Calculates the transformation that should be applied
-                 * to the signal of the source unit and multiplies by Coeff.
-                 * This implementation of the method just multiplies by Coeff,
-                 * or returns 1 if the source unit is inactive.
-                 */
-                virtual float Transform(float val) {
-                    if (pUnit != NULL && !pUnit->Active()) return 1;
-                    return val * Coeff;
-                }
-        };
-        
-        /**
          * This class represents a parameter which will influence the signal
          * unit to which it belongs in certain way.
          * For example, let's say the signal unit is a low frequency oscillator
          * with frequency 1Hz. If we want to modulate the LFO to start with 1Hz
          * and increment its frequency to 5Hz in 1 second, we can add
-         * a parameter with one modulator which signal source is an envelope
+         * a parameter which signal source is an envelope
          * generator with attack time of 1 second and coefficient 4. Thus, the
          * normalized level of the EG will move from 0 to 1 in one second.
          * On every time step (sample point) the normalized level
@@ -113,23 +58,16 @@ namespace LinuxSampler {
          */
         class Parameter {
             public:
-                ArrayList<Modulator> Modulators; // A list of signal units which will modulate this parameter
-                
-                SignalUnit* pUnit; /* If pUnit is not NULL, the modulators are ignored and
-                                    * this unit is used as only source.
-                                    * This is done for efficiency reasons.
+                SignalUnit* pUnit; /* The source unit whose output signal 
+                                    * will modulate the parameter.
                                     */
                 
-                float Coeff; // The global modulation coefficient
+                float Coeff; // The modulation coefficient
                 
                 
                 Parameter() : Coeff(1), pUnit(NULL) { }
 
                 /**
-                 * Most often we just need to directly feed the signal of single unit
-                 * to a unit parameter without any additional modulation.
-                 * This constructor creates a parameter with only a single source
-                 * unit without additional modulation, optimized for efficiency.
                  * @param unit The source unit used to influence this parameter.
                  * @param coeff The coefficient by which the normalized signal
                  * received from the source unit should be multiplied when a
@@ -146,14 +84,13 @@ namespace LinuxSampler {
                 virtual void Copy(const Parameter& Prm) {
                     if (this == &Prm) return;
 
-                    Modulators = Prm.Modulators;
                     pUnit = Prm.pUnit;
                     Coeff = Prm.Coeff;
                 }
                 
                 
                 /**
-                 * Calculates the global transformation for this parameter
+                 * Calculates the transformation for this parameter
                  * which should be applied to the parameter's value
                  * and multiplies by Coeff.
                  * This implementation of the method just multiplies by Coeff.
@@ -163,27 +100,14 @@ namespace LinuxSampler {
                 }
                 
                 /**
-                 * Gets the current value of the parameter (without transformation).
-                 * This implementation just sum the modulators values.
-                 * If only a single unit is used without additional modulation
-                 * returns the source unit's level or 1 if the unit is not active.
+                 * Gets the current value of the parameter.
+                 * This implementation returns the current signal level of the
+                 * source unit with applied transformation if the source unit is
+                 * active, otherwise returns 1.
+                 * Note that this method assume that pUnit is not NULL.
                  */
                 virtual float GetValue() {
-                    if (pUnit != NULL) {
-                        return pUnit->Active() ? pUnit->GetLevel() : 1.0f;
-                    }
-
-                    float val = 0;
-                    for(int i = 0; i < Modulators.size(); i++) {
-                        val += Modulators[i].GetValue();
-                    }
-                    
-                    return val;
-                }
-                
-                /** Gets the final value - with applied transformation. */
-                virtual float GetFinalValue() {
-                    return Transform(GetValue());
+                    return pUnit->Active() ? Transform(pUnit->GetLevel()) : 1.0f;
                 }
         };
 
@@ -258,7 +182,12 @@ namespace LinuxSampler {
              */
             virtual void Increment() { bRecalculate = true; }
 
-            /** Initializes and triggers the unit. */
+            /**
+             * Initializes and triggers the unit.
+             * Note that when a voice is the owner of a unit rack, all settings
+             * should be reset when this method is called, because the sampler
+             * is reusing the voice objects.
+             */
             virtual void Trigger() = 0;
             
             /**
@@ -401,7 +330,8 @@ namespace LinuxSampler {
         public:
 
             virtual float CalculateFilterCutoff(float cutoff) {
-                return GetFilterCutoff() * cutoff;
+                cutoff *= GetFilterCutoff();
+                return cutoff > 13500 ? 13500 : cutoff;
             }
             
             virtual float CalculatePitch(float pitch) {

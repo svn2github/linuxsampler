@@ -39,13 +39,16 @@ namespace LinuxSampler { namespace sf2 {
         double d = pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
         uiDelayTrigger = pOwner->pRegion->GetEG1PreAttackDelay(pOwner->pPresetRegion) * d;
         ////////////
-            
+
+        // GetEG1Sustain gets the decrease in level in centibels
+        uint sustain = ::sf2::ToRatio(-1 * pOwner->pRegion->GetEG1Sustain(pOwner->pPresetRegion)) * 1000; // in permille
+        
         trigger (
             0, // should be in permille
             pOwner->pRegion->GetEG1Attack(pOwner->pPresetRegion),
             pOwner->pRegion->GetEG1Hold(pOwner->pPresetRegion),
             pOwner->pRegion->GetEG1Decay(pOwner->pPresetRegion),
-            uint(pOwner->pRegion->GetEG1Sustain(pOwner->pPresetRegion)),
+            sustain,
             pOwner->pRegion->GetEG1Release(pOwner->pPresetRegion),
             pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
         );
@@ -94,7 +97,7 @@ namespace LinuxSampler { namespace sf2 {
             pOwner->pRegion->GetEG2Attack(pOwner->pPresetRegion),
             pOwner->pRegion->GetEG2Hold(pOwner->pPresetRegion),
             pOwner->pRegion->GetEG2Decay(pOwner->pPresetRegion),
-            uint(pOwner->pRegion->GetEG2Sustain(pOwner->pPresetRegion)),
+            uint(1000 - pOwner->pRegion->GetEG2Sustain(pOwner->pPresetRegion)),
             pOwner->pRegion->GetEG2Release(pOwner->pPresetRegion),
             pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
         );
@@ -128,7 +131,36 @@ namespace LinuxSampler { namespace sf2 {
     }
 
 
+    void ModLfoUnit::Trigger() {
+        //reset
+        Level = 0;
+        
+        // set the delay trigger
+        double samplerate = pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
+        uiDelayTrigger = pOwner->pRegion->GetDelayModLfo(pOwner->pPresetRegion) * samplerate;
+        ////////////
+            
+        trigger (
+            pOwner->pRegion->GetFreqModLfo(pOwner->pPresetRegion),
+            start_level_min,
+            1, 0, false, samplerate
+        );
+        update(0);
+    }
+
+    void ModLfoUnit::Increment() {
+        if (DelayStage()) return;
+        
+        SignalUnitBase<Voice>::Increment();
+        
+        Level = render();
+    }
+
+
     void VibLfoUnit::Trigger() {
+        //reset
+        Level = 0;
+
         // set the delay trigger
         double samplerate = pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
         uiDelayTrigger = pOwner->pRegion->GetDelayVibLfo(pOwner->pPresetRegion) * samplerate;
@@ -142,6 +174,7 @@ namespace LinuxSampler { namespace sf2 {
         );
         update(0);
     }
+
     void VibLfoUnit::Increment() {
         if (DelayStage()) return;
         
@@ -149,32 +182,58 @@ namespace LinuxSampler { namespace sf2 {
         
         Level = render();
     }
-    
+
+
+    EndpointUnit::EndpointUnit() {
+        
+    }
 
     void EndpointUnit::Trigger() {
-        
+        prmModEgPitch->Coeff = pOwner->pRegion->GetModEnvToPitch(pOwner->pPresetRegion);
+        if (prmModEgPitch->Coeff == ::sf2::NONE) prmModEgPitch->Coeff = 0;
+
+        prmModEgCutoff->Coeff = pOwner->pRegion->GetModEnvToFilterFc(pOwner->pPresetRegion); // cents
+        if (prmModEgCutoff->Coeff == ::sf2::NONE) prmModEgCutoff->Coeff = 0;
+
+        prmModLfoVol->Coeff = pOwner->pRegion->GetModLfoToVolume(pOwner->pPresetRegion); // centibels
+        if (prmModLfoVol->Coeff == ::sf2::NONE) prmModLfoVol->Coeff = 0;
+
+        prmModLfoCutoff->Coeff = pOwner->pRegion->GetModLfoToFilterFc(pOwner->pPresetRegion);
+        if (prmModLfoCutoff->Coeff == ::sf2::NONE) prmModLfoCutoff->Coeff = 0;
+
+        prmModLfoPitch->Coeff = pOwner->pRegion->GetModLfoToPitch(pOwner->pPresetRegion);
+        if (prmModLfoPitch->Coeff == ::sf2::NONE) prmModLfoPitch->Coeff = 0;
     }
     
     bool EndpointUnit::Active() {
         if (Params.size() < 1) return false;
-        return Params[0].pUnit->Active(); // volEGUnit
+        return prmVolEg->pUnit->Active(); // volEGUnit
     }
     
     float EndpointUnit::GetVolume() {
-        if (Params.size() < 1) return 0;
-        return Params[0].pUnit->Active() ? Params[0].GetFinalValue() : 0;
+        if (!prmVolEg->pUnit->Active()) return 0;
+        return prmVolEg->GetValue() * 
+               ::sf2::ToRatio(prmModLfoVol->GetValue() /*logarithmically modified */);
     }
     
     float EndpointUnit::GetFilterCutoff() {
-        return 1;
+        double modEg, modLfo;
+        modEg = prmModEgCutoff->pUnit->Active() ? prmModEgCutoff->GetValue() : 0;
+        modEg = RTMath::CentsToFreqRatioUnlimited(modEg);
+        
+        modLfo = prmModLfoCutoff->pUnit->Active() ? prmModLfoCutoff->GetValue() : 0;
+        modLfo = RTMath::CentsToFreqRatioUnlimited(modLfo);
+        
+        return modEg * modLfo;
     }
     
     float EndpointUnit::GetPitch() {
-        if (Params.size() < 3) return 0;
-        double eg  = Params[1].pUnit->Active() ? RTMath::CentsToFreqRatio(Params[1].GetFinalValue()) : 1;
-        double lfo = Params[2].pUnit->Active() ? RTMath::CentsToFreqRatio(Params[2].GetFinalValue()) : 1;
+        double modEg, modLfo, vibLfo;
+        modEg  = prmModEgPitch->pUnit->Active() ? RTMath::CentsToFreqRatioUnlimited(prmModEgPitch->GetValue()) : 1;
+        modLfo = prmModLfoPitch->pUnit->Active() ? RTMath::CentsToFreqRatioUnlimited(prmModLfoPitch->GetValue()) : 1;
+        vibLfo = prmVibLfo->pUnit->Active() ? RTMath::CentsToFreqRatioUnlimited(prmVibLfo->GetValue()) : 1;
         
-        return eg * lfo;
+        return modEg * modLfo * vibLfo;
     }
     
     float EndpointUnit::GetResonance() {
@@ -184,24 +243,35 @@ namespace LinuxSampler { namespace sf2 {
     SF2SignalUnitRack::SF2SignalUnitRack(Voice* pVoice): SignalUnitRackBase<Voice>(pVoice) {
         Units.add(&suVolEG);
         Units.add(&suModEG);
+        Units.add(&suModLfo);
         Units.add(&suVibLfo);
         Units.add(&suEndpoint);
         
         // Volume envelope
-        suEndpoint.Params.add(SignalUnit::Parameter(&suVolEG));
+        suEndpoint.Params.add(SignalUnit::Parameter(&suVolEG)); // Volume
         // Modulation envelope
-        suEndpoint.Params.add(SignalUnit::Parameter(&suModEG));
+        suEndpoint.Params.add(SignalUnit::Parameter(&suModEG)); // Pitch
+        suEndpoint.Params.add(SignalUnit::Parameter(&suModEG)); // Filter cutoff
+        // Modulation LFO
+        suEndpoint.Params.add(SignalUnit::Parameter(&suModLfo)); // Volume
+        suEndpoint.Params.add(SignalUnit::Parameter(&suModLfo)); // Pitch
+        suEndpoint.Params.add(SignalUnit::Parameter(&suModLfo)); // Filter cutoff
         // Vibrato LFO
-        suEndpoint.Params.add(SignalUnit::Parameter(&suVibLfo));
+        suEndpoint.Params.add(SignalUnit::Parameter(&suVibLfo)); // Pitch
+
+        /* This should be done at the end because when a parameter is added to
+           ArrayList a new copy is made for all parameters */
+        suEndpoint.prmVolEg = &suEndpoint.Params[0];
+        suEndpoint.prmModEgPitch = &suEndpoint.Params[1];
+        suEndpoint.prmModEgCutoff = &suEndpoint.Params[2];
+        suEndpoint.prmModLfoVol = &suEndpoint.Params[3];
+        suEndpoint.prmModLfoPitch = &suEndpoint.Params[4];
+        suEndpoint.prmModLfoCutoff = &suEndpoint.Params[5];
+        suEndpoint.prmVibLfo = &suEndpoint.Params[6];
     }
     
     void SF2SignalUnitRack::Trigger() {
         // The region settings are available after the voice is triggered
-
-        // Modulation envelope
-        int pitch = pOwner->pRegion->GetModEnvToPitch(pOwner->pPresetRegion);
-        suEndpoint.Params[1].Coeff = pitch;
-        ///////
 
         SignalUnitRackBase<Voice>::Trigger();
     }

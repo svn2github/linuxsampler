@@ -101,7 +101,7 @@ namespace LinuxSampler { namespace sf2 {
         // sample pitch
         ri.EG3Attack     = 0; // TODO:
         ri.EG3Depth      = 0; // TODO:
-        ri.VCFEnabled    = false; // TODO:
+        ri.VCFEnabled    = true; // TODO:
         ri.VCFType       = Filter::vcf_type_2p_lowpass; // TODO:
         ri.VCFResonance  = 0; // TODO:
 
@@ -411,12 +411,14 @@ namespace LinuxSampler { namespace sf2 {
     }
 
     float Voice::CalculateCutoffBase(uint8_t MIDIKeyVelocity) {
-        /*float cutoff = pRegion->GetVelocityCutoff(MIDIKeyVelocity);
-        if (pRegion->VCFKeyboardTracking) {
-            cutoff *= RTMath::CentsToFreqRatioUnlimited((MIDIKey - pRegion->VCFKeyboardTrackingBreakpoint) * 100);
-        }
-        return cutoff;*/ // TODO: ^^^
-        return 1.0f;
+        float cutoff = pRegion->GetInitialFilterFc(pPresetRegion);
+        if (MIDIKeyVelocity == 0) return cutoff;
+
+        cutoff *= RTMath::CentsToFreqRatioUnlimited (
+            ((127 - MIDIKeyVelocity) / 127.0) * -2400 // 8.4.2 MIDI Note-On Velocity to Filter Cutoff
+        );
+
+        return cutoff;
     }
 
     float Voice::CalculateFinalCutoff(float cutoffBase) {
@@ -434,7 +436,7 @@ namespace LinuxSampler { namespace sf2 {
         if (fco > 127.0f) fco = 127.0f;
 
         return fco;*/ // TODO: ^^^
-        return 0.0f;
+        return cutoffBase;
     }
 
     uint8_t Voice::GetVCFCutoffCtrl() {

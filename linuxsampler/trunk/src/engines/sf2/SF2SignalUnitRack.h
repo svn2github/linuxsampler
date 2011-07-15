@@ -51,6 +51,15 @@ namespace LinuxSampler { namespace sf2 {
             virtual void  Increment();
     };
 
+    class ModLfoUnit : public SignalUnitBase<Voice>, public LFOSigned {
+        public:
+            ModLfoUnit(): LFOSigned(1200.0f) { }
+            virtual bool  Active() { return true; }
+            virtual void  Trigger();
+            virtual void  Increment();
+            virtual float GetLevel() { return Level; }
+    };
+
     class VibLfoUnit : public SignalUnitBase<Voice>, public LFOSigned {
         public:
             VibLfoUnit(): LFOSigned(1200.0f) { }
@@ -62,7 +71,10 @@ namespace LinuxSampler { namespace sf2 {
     
     class EndpointUnit : public EndpointSignalUnitBase<Voice> {
         public:
-            EndpointUnit() { }
+            Parameter *prmVolEg, *prmModEgPitch, *prmModEgCutoff, *prmModLfoVol,
+                      *prmModLfoPitch, *prmModLfoCutoff, *prmVibLfo;
+
+            EndpointUnit();
 
             virtual void Trigger();
 
@@ -79,6 +91,7 @@ namespace LinuxSampler { namespace sf2 {
         private:
             VolEGUnit     suVolEG;
             ModEGUnit     suModEG;
+            ModLfoUnit    suModLfo;
             VibLfoUnit    suVibLfo;
             EndpointUnit  suEndpoint;
             

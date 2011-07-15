@@ -105,6 +105,7 @@ namespace LinuxSampler { namespace sf2 {
             friend class EGUnit;
             friend class VolEGUnit;
             friend class ModEGUnit;
+            friend class ModLfoUnit;
             friend class VibLfoUnit;
             friend class EndpointUnit;
             friend class SF2SignalUnitRack;
