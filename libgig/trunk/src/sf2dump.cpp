@@ -182,26 +182,39 @@ void PrintRegion(int idx, sf2::Region* reg) {
     cout << ", Velocity range=";
     if (reg->minVel == ::sf2::NONE && reg->maxVel == ::sf2::NONE) cout << "None";
     else cout << reg->minVel << "-" << reg->maxVel;
+    cout << endl;
+
+    cout << "\t\t    Initial cutoff frequency=";
+    if (reg->initialFilterFc == ::sf2::NONE) cout << "None" << endl;
+    else cout << reg->initialFilterFc << "cents" << endl;
+
+    cout << "\t\t    Initial resonance=";
+    if (reg->initialFilterQ == ::sf2::NONE) cout << "None" << endl;
+    else cout << (reg->initialFilterQ / 10.0) << "dB" << endl;
 
     if (reg->exclusiveClass) cout << ", Exclusive group=" << reg->exclusiveClass;
     cout << endl;
 
     if (reg->pInstrument != NULL) {
-        cout << "\t\t    Instrument: " << reg->pInstrument->Name << endl;
+        cout << "\t\t    Instrument: " << reg->pInstrument->Name << endl << endl;
     }
 
+    cout << "\t\t    Volume Envelope Generator" << endl;
     cout << "\t\t\tEG1PreAttackDelay=" << GetValue(reg->GetEG1PreAttackDelay());
     cout << "s, EG1Attack=" << GetValue(reg->GetEG1Attack());
     cout << "s, EG1Hold=" << GetValue(reg->GetEG1Hold()) << "s, EG1Decay=";
-    cout << GetValue(reg->GetEG1Decay()) << "s,  EG1Sustain=" << GetValue(reg->GetEG1Sustain());
-    cout << "permille, EG1Release=" << GetValue(reg->GetEG1Release()) << "s" << endl;
+    cout << GetValue(reg->GetEG1Decay()) << "s,  EG1Sustain=" << GetValue(reg->GetEG1Sustain() / 10);
+    cout << "dB, EG1Release=" << GetValue(reg->GetEG1Release()) << "s" << endl << endl;
 
+    cout << "\t\t    Modulation Envelope Generator" << endl;
     cout << "\t\t\tEG2PreAttackDelay=" << GetValue(reg->GetEG2PreAttackDelay());
     cout << "s, EG2Attack=" << GetValue(reg->GetEG2Attack());
     cout << "s, EG2Hold=" << GetValue(reg->GetEG2Hold()) << "s, EG2Decay=";
     cout << GetValue(reg->GetEG2Decay()) << "s,  EG2Sustain=";
     cout << GetValue(reg->GetEG2Sustain()) << "permille, EG2Release=";
     cout << GetValue(reg->GetEG2Release()) << "s" << endl;
+    cout << "\t\t\tPitch=" << GetValue(reg->modEnvToPitch) << "cents, Cutoff=";
+    cout << GetValue(reg->modEnvToFilterFc) << "cents" << endl << endl;
 
      cout << "\t\t    Modulation LFO: Delay=" << ::sf2::ToSeconds(reg->delayModLfo) << "s, Frequency=";
      cout << ::sf2::ToHz(reg->freqModLfo) << "Hz, LFO to Volume=" << (reg->modLfoToVolume / 10) << "dB";

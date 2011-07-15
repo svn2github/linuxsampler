@@ -39,10 +39,10 @@ namespace sf2 {
         return pow(_1200TH_ROOT_OF_2, Timecents);
     }
 
-    double ToPermilles(int Centibels) {
+    double ToRatio(int Centibels) {
         if (Centibels == NONE) return NONE;
-        if (Centibels == 0) return 1000.0;
-        return pow(_200TH_ROOT_OF_10, Centibels) * 1000.0;
+        if (Centibels == 0) return 1.0;
+        return pow(_200TH_ROOT_OF_10, Centibels);
     }
 
     double ToHz(int cents) {
@@ -286,10 +286,30 @@ namespace sf2 {
         delayVibLfo = -12000;
 
         exclusiveClass = 0;
+        
+        initialFilterFc = 13500;
+        initialFilterQ = 0;
     }
 
     int Region::GetUnityNote() {
         return overridingRootKey != -1 ? overridingRootKey : pSample->OriginalPitch;
+    }
+    
+    int CheckRange(std::string genName, int min, int max, int& gen) {
+        if (gen == NONE) return gen;
+
+        if (gen < min) {
+            std::cerr << "sf2: " << genName;
+            std::cerr << " is below the minimum allowed value (min=" << min << "): " << gen << std::endl;
+            gen = min;
+        }
+        if (gen > max) {
+            std::cerr << "sf2: " << genName;
+            std::cerr << " is above the maximum allowed value (max=" << max << "): " << gen << std::endl;
+            gen = max;
+        }
+        
+        return gen;
     }
 
     void Region::SetGenerator(sf2::File* pFile, GenList& Gen) {
@@ -317,28 +337,38 @@ namespace sf2 {
                 break;
             case MOD_LFO_TO_PITCH:
                 modLfoToPitch = Gen.GenAmount.shAmount;
+                CheckRange("modLfoToPitch", -12000, 12000, modLfoToPitch);
                 break;
             case VIB_LFO_TO_PITCH:
                 vibLfoToPitch = Gen.GenAmount.shAmount;
+                CheckRange("vibLfoToPitch", -12000, 12000, vibLfoToPitch);
                 break;
             case MOD_ENV_TO_PITCH:
                 modEnvToPitch = Gen.GenAmount.shAmount;
+                CheckRange("modEnvToPitch", -12000, 12000, modEnvToPitch);
                 break;
             case INITIAL_FILTER_FC:
+                initialFilterFc = Gen.GenAmount.wAmount;
+                CheckRange("initialFilterFc", 1500, 13500, initialFilterFc);
                 break;
             case INITIAL_FILTER_Q:
+                initialFilterQ = Gen.GenAmount.wAmount;
+                CheckRange("initialFilterQ", 0, 960, initialFilterQ);
                 break;
             case MOD_LFO_TO_FILTER_FC:
                 modLfoToFilterFc = Gen.GenAmount.shAmount;
+                CheckRange("modLfoToFilterFc", -12000, 12000, modLfoToFilterFc);
                 break;
             case MOD_ENV_TO_FILTER_FC:
                 modEnvToFilterFc = Gen.GenAmount.shAmount;
+                CheckRange("modEnvToFilterFc", -12000, 12000, modEnvToFilterFc);
                 break;
             case END_ADDRS_COARSE_OFFSET:
                 endAddrsCoarseOffset = Gen.GenAmount.wAmount;
                 break;
             case MOD_LFO_TO_VOLUME:
                 modLfoToVolume = Gen.GenAmount.shAmount;
+                CheckRange("modLfoToVolume", -960, 960, modLfoToVolume);
                 break;
             case CHORUS_EFFECTS_SEND:
                 break;
@@ -346,39 +376,50 @@ namespace sf2 {
                 break;
             case PAN:
                 pan = Gen.GenAmount.shAmount;
+                CheckRange("pan", -500, 500, pan);
                 pan * 64; pan /= 500;
                 if (pan < -64) pan = -64;
                 if (pan >  63) pan =  63;
                 break;
             case DELAY_MOD_LFO:
                 delayModLfo = Gen.GenAmount.shAmount;
+                CheckRange("delayModLfo", -12000, 5000, delayModLfo);
                 break;
             case FREQ_MOD_LFO:
                 freqModLfo = Gen.GenAmount.shAmount;
+                CheckRange("freqModLfo", -16000, 4500, freqModLfo);
                 break;
             case DELAY_VIB_LFO:
                 delayVibLfo = Gen.GenAmount.shAmount;
+                CheckRange("delayVibLfo", -12000, 5000, delayVibLfo);
                 break;
             case FREQ_VIB_LFO:
                 freqVibLfo = Gen.GenAmount.shAmount;
+                CheckRange("freqModLfo", -16000, 4500, freqModLfo);
                 break;
             case DELAY_MOD_ENV:
                 EG2PreAttackDelay = Gen.GenAmount.shAmount;
+                CheckRange("delayModEnv", -12000, 5000, EG2PreAttackDelay);
                 break;
             case ATTACK_MOD_ENV:
                 EG2Attack = Gen.GenAmount.shAmount;
+                CheckRange("attackModEnv", -12000, 8000, EG2Attack);
                 break;
             case HOLD_MOD_ENV:
                 EG2Hold = Gen.GenAmount.shAmount;
+                CheckRange("holdModEnv", -12000, 5000, EG2Hold);
                 break;
             case DECAY_MOD_ENV:
                 EG2Decay = Gen.GenAmount.shAmount;
+                CheckRange("decayModEnv", -12000, 8000, EG2Decay);
                 break;
             case SUSTAIN_MOD_ENV:
                 EG2Sustain = Gen.GenAmount.shAmount;
+                CheckRange("sustainModEnv", 0, 1000, EG2Sustain);
                 break;
-            case RELEASEMODENV:
+            case RELEASE_MOD_ENV:
                 EG2Release = Gen.GenAmount.shAmount;
+                CheckRange("releaseModEnv", -12000, 8000, EG2Release);
                 break;
             case KEYNUM_TO_MOD_ENV_HOLD:
                 break;
@@ -386,21 +427,27 @@ namespace sf2 {
                 break;
             case DELAY_VOL_ENV:
                 EG1PreAttackDelay = Gen.GenAmount.shAmount;
+                CheckRange("delayVolEnv", -12000, 5000, EG1PreAttackDelay);
                 break;
             case ATTACK_VOL_ENV:
                 EG1Attack = Gen.GenAmount.shAmount;
+                CheckRange("attackVolEnv", -12000, 8000, EG1Attack);
                 break;
             case HOLD_VOL_ENV:
                 EG1Hold = Gen.GenAmount.shAmount;
+                CheckRange("holdVolEnv", -12000, 5000, EG1Hold);
                 break;
             case DECAY_VOL_ENV:
                 EG1Decay = Gen.GenAmount.shAmount;
+                CheckRange("decayVolEnv", -12000, 8000, EG1Decay);
                 break;
             case SUSTAIN_VOL_ENV:
                 EG1Sustain = Gen.GenAmount.shAmount;
+                CheckRange("sustainVolEnv", 0, 1440, EG1Sustain);
                 break;
             case RELEASE_VOL_ENV:
                 EG1Release = Gen.GenAmount.shAmount;
+                CheckRange("releaseVolEnv", -12000, 8000, EG1Release);
                 break;
             case KEYNUM_TO_VOL_ENV_HOLD:
                 break;
@@ -416,11 +463,15 @@ namespace sf2 {
             }
             case KEY_RANGE:
                 loKey = Gen.GenAmount.ranges.byLo;
+                CheckRange("loKey", 0, 127, loKey);
                 hiKey = Gen.GenAmount.ranges.byHi;
+                CheckRange("hiKey", 0, 127, hiKey);
                 break;
             case VEL_RANGE:
                 minVel = Gen.GenAmount.ranges.byLo;
+                CheckRange("minVel", 0, 127, minVel);
                 maxVel = Gen.GenAmount.ranges.byHi;
+                CheckRange("maxVel", 0, 127, maxVel);
                 break;
             case STARTLOOP_ADDRS_COARSE_OFFSET:
                 startloopAddrsCoarseOffset = Gen.GenAmount.wAmount;
@@ -438,11 +489,11 @@ namespace sf2 {
                 break;
             case COARSE_TUNE:
                 coarseTune = Gen.GenAmount.shAmount;
-                if (coarseTune < -120) coarseTune = -120;
-                if (coarseTune >  120) coarseTune =  120;
+                CheckRange("coarseTune", -120, 120, coarseTune);
                 break;
             case FINE_TUNE:
                 fineTune = Gen.GenAmount.shAmount;
+                CheckRange("fineTune", -99, 99, fineTune);
                 break;
             case SAMPLE_ID: {
                 uint16_t sid = Gen.GenAmount.wAmount;
@@ -475,6 +526,7 @@ namespace sf2 {
                 break;
             case OVERRIDING_ROOT_KEY:
                 overridingRootKey = Gen.GenAmount.shAmount;
+                CheckRange("overridingRootKey", -1, 127, overridingRootKey);
                 break;
         }
     }
@@ -527,112 +579,147 @@ namespace sf2 {
     }
 
     double Region::GetEG1PreAttackDelay(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG1PreAttackDelay == NONE) return ToSeconds(EG1PreAttackDelay);
-        return ToSeconds(pPresetRegion->EG1PreAttackDelay + EG1PreAttackDelay);
+        int val = (pPresetRegion == NULL || pPresetRegion->EG1PreAttackDelay == NONE) ?
+                  EG1PreAttackDelay : pPresetRegion->EG1PreAttackDelay + EG1PreAttackDelay;
+        return ToSeconds(CheckRange("GetEG1PreAttackDelay()", -12000, 5000, val));
     }
 
     double Region::GetEG1Attack(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG1Attack == NONE) return ToSeconds(EG1Attack);
-        return ToSeconds(pPresetRegion->EG1Attack + EG1Attack);
+        int val = (pPresetRegion == NULL || pPresetRegion->EG1Attack == NONE) ?
+                  EG1Attack : pPresetRegion->EG1Attack + EG1Attack;
+        return ToSeconds(CheckRange("GetEG1Attack()", -12000, 8000, val));
     }
 
     double Region::GetEG1Hold(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG1Hold == NONE) return ToSeconds(EG1Hold);
-        return ToSeconds(pPresetRegion->EG1Hold + EG1Hold);
+        int val = (pPresetRegion == NULL || pPresetRegion->EG1Hold == NONE) ?
+                  EG1Hold : pPresetRegion->EG1Hold + EG1Hold;
+        return ToSeconds(CheckRange("GetEG1Hold()", -12000, 5000, val));
     }
 
     double Region::GetEG1Decay(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG1Decay == NONE) return ToSeconds(EG1Decay);
-        return ToSeconds(pPresetRegion->EG1Decay + EG1Decay);
+        int val = (pPresetRegion == NULL || pPresetRegion->EG1Decay == NONE) ?
+                  EG1Decay : pPresetRegion->EG1Decay + EG1Decay;
+        return ToSeconds(CheckRange("GetEG1Decay()", -12000, 8000, val));
     }
 
-    double Region::GetEG1Sustain(Region* pPresetRegion) {
-        int sustain = EG1Sustain;
-        if (pPresetRegion != NULL && pPresetRegion->EG1Sustain != NONE) sustain += EG1Sustain;
-        if (sustain == NONE) return NONE;
-        sustain = std::min(0, std::max(sustain, 1000));
-        return ToPermilles(-sustain);
+    int Region::GetEG1Sustain(Region* pPresetRegion) {
+        int val = (pPresetRegion == NULL || pPresetRegion->EG1Sustain == NONE) ?
+                  EG1Sustain : pPresetRegion->EG1Sustain + EG1Sustain;
+        return CheckRange("GetEG1Sustain()", 0, 1440, val);
     }
 
     double Region::GetEG1Release(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG1Release == NONE) return ToSeconds(EG1Release);
-        return ToSeconds(pPresetRegion->EG1Release + EG1Release);
+        int val = (pPresetRegion == NULL || pPresetRegion->EG1Release == NONE) ?
+                  EG1Release : pPresetRegion->EG1Release + EG1Release;
+        return ToSeconds(CheckRange("GetEG1Release()", -12000, 8000, val));
     }
 
     double Region::GetEG2PreAttackDelay(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG2PreAttackDelay == NONE) return ToSeconds(EG2PreAttackDelay);
-        return ToSeconds(pPresetRegion->EG2PreAttackDelay + EG2PreAttackDelay);
+        int val = (pPresetRegion == NULL || pPresetRegion->EG2PreAttackDelay == NONE) ?
+                  EG2PreAttackDelay : pPresetRegion->EG2PreAttackDelay + EG2PreAttackDelay;
+        return ToSeconds(CheckRange("GetEG2PreAttackDelay()", -12000, 5000, val));
     }
 
     double Region::GetEG2Attack(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG2Attack == NONE) return ToSeconds(EG2Attack);
-        return ToSeconds(pPresetRegion->EG2Attack + EG2Attack);
+        int val = (pPresetRegion == NULL || pPresetRegion->EG2Attack == NONE) ?
+                  EG2Attack : pPresetRegion->EG2Attack + EG2Attack;
+        return ToSeconds(CheckRange("GetEG2Attack()", -12000, 8000, val));
     }
 
     double Region::GetEG2Hold(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG2Hold == NONE) return ToSeconds(EG2Hold);
-        return ToSeconds(pPresetRegion->EG2Hold + EG2Hold);
+        int val = (pPresetRegion == NULL || pPresetRegion->EG2Hold == NONE) ?
+                  EG2Hold : pPresetRegion->EG2Hold + EG2Hold;
+        return ToSeconds(CheckRange("GetEG2Hold()", -12000, 5000, val));
     }
 
     double Region::GetEG2Decay(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG2Decay == NONE) return ToSeconds(EG2Decay);
-        return ToSeconds(pPresetRegion->EG2Decay + EG2Decay);
+        int val = (pPresetRegion == NULL || pPresetRegion->EG2Decay == NONE) ?
+                  EG2Decay : pPresetRegion->EG2Decay + EG2Decay;
+        return ToSeconds(CheckRange("GetEG2Decay()", -12000, 8000, val));
     }
 
-    double Region::GetEG2Sustain(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG2Sustain == NONE) {
-            return EG2Sustain == NONE ? NONE : 1000 - EG2Sustain;
-        }
-        return 1000 - (pPresetRegion->EG2Sustain + EG2Sustain);
+    int Region::GetEG2Sustain(Region* pPresetRegion) {
+        int val = (pPresetRegion == NULL || pPresetRegion->EG2Sustain == NONE) ?
+                  EG2Sustain : pPresetRegion->EG2Sustain + EG2Sustain;
+        return CheckRange("GetEG2Sustain()", 0, 1000, val);
     }
 
     double Region::GetEG2Release(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->EG2Release == NONE) return ToSeconds(EG2Release);
-        return ToSeconds(pPresetRegion->EG2Release + EG2Release);
+        int val = (pPresetRegion == NULL || pPresetRegion->EG2Release == NONE) ?
+                  EG2Release : pPresetRegion->EG2Release + EG2Release;
+        return ToSeconds(CheckRange("GetEG2Release()", -12000, 8000, val));
     }
 
     int Region::GetModEnvToPitch(Region* pPresetRegion) {
-        return modEnvToPitch + (pPresetRegion ? pPresetRegion->modEnvToPitch : 0);
+        int val = (pPresetRegion == NULL || pPresetRegion->modEnvToPitch == NONE) ?
+                   modEnvToPitch : pPresetRegion->modEnvToPitch + modEnvToPitch;
+        return CheckRange("GetModEnvToPitch()", -12000, 12000, val);
     }
 
     int Region::GetModLfoToPitch(Region* pPresetRegion) {
-        return modLfoToPitch + (pPresetRegion ? pPresetRegion->modLfoToPitch : 0);
+        int val = (pPresetRegion == NULL || pPresetRegion->modLfoToPitch == NONE) ?
+                   modLfoToPitch : pPresetRegion->modLfoToPitch + modLfoToPitch;
+        return CheckRange("GetModLfoToPitch()", -12000, 12000, val);
     }
 
     int Region::GetModEnvToFilterFc(Region* pPresetRegion) {
-        return modEnvToFilterFc + (pPresetRegion ? pPresetRegion->modEnvToFilterFc : 0);
+        int val = (pPresetRegion == NULL || pPresetRegion->modEnvToFilterFc == NONE) ?
+                   modEnvToFilterFc : pPresetRegion->modEnvToFilterFc + modEnvToFilterFc;
+        return CheckRange("GetModEnvToFilterFc()", -12000, +12000, val);
     }
 
     int Region::GetModLfoToFilterFc(Region* pPresetRegion) {
-        return modLfoToFilterFc + (pPresetRegion ? pPresetRegion->modLfoToFilterFc : 0);
+        int val = (pPresetRegion == NULL || pPresetRegion->modLfoToFilterFc == NONE) ?
+                   modLfoToFilterFc : pPresetRegion->modLfoToFilterFc + modLfoToFilterFc;
+        return CheckRange("GetModLfoToFilterFc()", -12000, +12000, val);
     }
 
     double Region::GetModLfoToVolume(Region* pPresetRegion) {
-        return ToPermilles(modLfoToVolume + (pPresetRegion ? pPresetRegion->modLfoToVolume : 0));
+        int val = (pPresetRegion == NULL || pPresetRegion->modLfoToVolume == NONE) ?
+                   modLfoToVolume : pPresetRegion->modLfoToVolume + modLfoToVolume;
+        return CheckRange("GetModLfoToVolume()", -960, 960, val);
     }
 
     double Region::GetFreqModLfo(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->freqModLfo == NONE) return ToHz(freqModLfo);
-        return ToHz(pPresetRegion->freqModLfo + freqModLfo);
+        int val = (pPresetRegion == NULL || pPresetRegion->freqModLfo == NONE) ?
+                  freqModLfo : pPresetRegion->freqModLfo + freqModLfo;
+        return ToHz(CheckRange("GetFreqModLfo()", -16000, 4500, val));
     }
 
     double Region::GetDelayModLfo(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->delayModLfo == NONE) return ToSeconds(delayModLfo);
-        return ToSeconds(pPresetRegion->delayModLfo + delayModLfo);
+        int val = (pPresetRegion == NULL || pPresetRegion->delayModLfo == NONE) ?
+                  delayModLfo : pPresetRegion->delayModLfo + delayModLfo;
+        return ToSeconds(CheckRange("GetDelayModLfo()", -12000, 5000, val));
     }
 
     int Region::GetVibLfoToPitch(Region* pPresetRegion) {
-        return vibLfoToPitch + (pPresetRegion ? pPresetRegion->vibLfoToPitch : 0);
+        int val = (pPresetRegion == NULL || pPresetRegion->vibLfoToPitch == NONE) ?
+                   vibLfoToPitch : pPresetRegion->vibLfoToPitch + vibLfoToPitch;
+        return CheckRange("GetVibLfoToPitch()", -12000, 12000, val);
     }
 
     double Region::GetFreqVibLfo(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->freqVibLfo == NONE) return ToHz(freqVibLfo);
-        return ToHz(pPresetRegion->freqVibLfo + freqVibLfo);
+        int val = (pPresetRegion == NULL || pPresetRegion->freqVibLfo == NONE) ?
+                  freqVibLfo : pPresetRegion->freqVibLfo + freqVibLfo;
+        return ToHz(CheckRange("GetFreqVibLfo()", -16000, 4500, val));
     }
 
     double Region::GetDelayVibLfo(Region* pPresetRegion) {
-        if (pPresetRegion == NULL || pPresetRegion->delayVibLfo == NONE) return ToSeconds(delayVibLfo);
-        return ToSeconds(pPresetRegion->delayVibLfo + delayVibLfo);
+        int val = (pPresetRegion == NULL || pPresetRegion->delayVibLfo == NONE) ?
+                  delayVibLfo : pPresetRegion->delayVibLfo + delayVibLfo;
+        return ToSeconds(CheckRange("GetDelayVibLfo()", -12000, 5000, val));
+    }
+
+    int Region::GetInitialFilterFc(Region* pPresetRegion) {
+        if (pPresetRegion == NULL || pPresetRegion->initialFilterFc == NONE) return initialFilterFc;
+        int val = pPresetRegion->initialFilterFc + initialFilterFc;
+        return CheckRange("GetInitialFilterFc()", 1500, 13500, val);
+    }
+
+    int Region::GetInitialFilterQ(Region* pPresetRegion) {
+        int val = (pPresetRegion == NULL || pPresetRegion->initialFilterQ == NONE) ?
+                   initialFilterQ : pPresetRegion->initialFilterQ + initialFilterQ;
+        return CheckRange("GetInitialFilterQ()", 0, 960, val);
     }
 
     InstrumentBase::InstrumentBase(sf2::File* pFile) {
@@ -729,6 +816,8 @@ namespace sf2 {
             r->vibLfoToPitch     = pGlobalRegion->vibLfoToPitch;
             r->freqVibLfo        = pGlobalRegion->freqVibLfo;
             r->delayVibLfo       = pGlobalRegion->delayVibLfo;
+            r->initialFilterFc   = pGlobalRegion->initialFilterFc;
+            r->initialFilterQ    = pGlobalRegion->initialFilterQ;
 
             r->HasLoop    = pGlobalRegion->HasLoop;
             r->LoopStart  = pGlobalRegion->LoopStart;
@@ -812,6 +901,7 @@ namespace sf2 {
         r->EG1PreAttackDelay = r->EG1Attack = r->EG1Hold = r->EG1Decay = r->EG1Sustain = r->EG1Release = NONE;
         r->EG2PreAttackDelay = r->EG2Attack = r->EG2Hold = r->EG2Decay = r->EG2Sustain = r->EG2Release = NONE;
         r->freqModLfo = r->delayModLfo = r->freqVibLfo = r->delayVibLfo = NONE;
+        r->initialFilterFc = r->initialFilterQ = NONE;
 
         if (pGlobalRegion != NULL) {
             r->pan         = pGlobalRegion->pan;
@@ -842,6 +932,8 @@ namespace sf2 {
             r->vibLfoToPitch     = pGlobalRegion->vibLfoToPitch;
             r->freqVibLfo        = pGlobalRegion->freqVibLfo;
             r->delayVibLfo       = pGlobalRegion->delayVibLfo;
+            r->initialFilterFc   = pGlobalRegion->initialFilterFc;
+            r->initialFilterQ    = pGlobalRegion->initialFilterQ;
         }
 
         return r;

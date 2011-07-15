@@ -64,7 +64,7 @@ namespace sf2 {
     static uint NONE = 0x1ffffff;
 
     double ToSeconds(int Timecents);
-    double ToPermilles(int Centibels);
+    double ToRatio(int Centibels);
     double ToHz(int cents);
 
     typedef struct _PresetBag {
@@ -141,7 +141,7 @@ namespace sf2 {
         HOLD_MOD_ENV,
         DECAY_MOD_ENV,
         SUSTAIN_MOD_ENV,
-        RELEASEMODENV, // 30
+        RELEASE_MOD_ENV, // 30
         KEYNUM_TO_MOD_ENV_HOLD,
         KEYNUM_TO_MOD_ENV_DECAY,
         DELAY_VOL_ENV,
@@ -360,10 +360,11 @@ namespace sf2 {
             int startloopAddrsOffset, startloopAddrsCoarseOffset, endloopAddrsOffset, endloopAddrsCoarseOffset;
 
             int modEnvToPitch , modLfoToPitch, modEnvToFilterFc, modLfoToFilterFc; // in cents
-            int modLfoToVolume /* in centibels */, freqModLfo /* in absolute cents*/;
+            int modLfoToVolume /* in centibels */, freqModLfo /* in absolute cents */;
             int delayModLfo; // in absolute timecents
-            int vibLfoToPitch, freqVibLfo /* in absolute cents*/;
+            int vibLfoToPitch, freqVibLfo /* in absolute cents */;
             int delayVibLfo; // in absolute timecents
+            int initialFilterFc  /* in absolute cents */, initialFilterQ /* in centibels */;
 
             uint exclusiveClass; // exclusive group
 
@@ -396,26 +397,28 @@ namespace sf2 {
             double GetEG1Attack(Region* pPresetRegion = NULL); // in seconds
             double GetEG1Hold(Region* pPresetRegion = NULL); // in seconds
             double GetEG1Decay(Region* pPresetRegion = NULL); // in seconds
-            double GetEG1Sustain(Region* pPresetRegion = NULL); // Sustain value of the sample amplitude EG (in permilles)
+            int    GetEG1Sustain(Region* pPresetRegion = NULL); // Sustain value of the sample amplitude EG (the decrease in level, expressed in centibels)
             double GetEG1Release(Region* pPresetRegion = NULL); // in seconds
 
             double GetEG2PreAttackDelay(Region* pPresetRegion = NULL); // in seconds
             double GetEG2Attack(Region* pPresetRegion = NULL); // in seconds
             double GetEG2Hold(Region* pPresetRegion = NULL); // in seconds
             double GetEG2Decay(Region* pPresetRegion = NULL); // in seconds
-            double GetEG2Sustain(Region* pPresetRegion = NULL); // Sustain value of the filter cutoff EG (in permilles)
+            int    GetEG2Sustain(Region* pPresetRegion = NULL); // Sustain value of the filter cutoff EG (in permilles)
             double GetEG2Release(Region* pPresetRegion = NULL); // in seconds
 
-            int    GetModEnvToPitch(Region* pPresetRegion = NULL);
-            int    GetModLfoToPitch(Region* pPresetRegion = NULL);
-            int    GetModEnvToFilterFc(Region* pPresetRegion = NULL);
-            int    GetModLfoToFilterFc(Region* pPresetRegion = NULL);
-            double GetModLfoToVolume(Region* pPresetRegion = NULL); // in permilles
+            int    GetModEnvToPitch(Region* pPresetRegion = NULL); // in cents
+            int    GetModLfoToPitch(Region* pPresetRegion = NULL); // in cents
+            int    GetModEnvToFilterFc(Region* pPresetRegion = NULL); // in cents
+            int    GetModLfoToFilterFc(Region* pPresetRegion = NULL); // in cents
+            double GetModLfoToVolume(Region* pPresetRegion = NULL); // in centibels
             double GetFreqModLfo(Region* pPresetRegion = NULL); // in Hz
             double GetDelayModLfo(Region* pPresetRegion = NULL); // in seconds
             int    GetVibLfoToPitch(Region* pPresetRegion = NULL); // in cents
             double GetFreqVibLfo(Region* pPresetRegion = NULL); // in Hz
             double GetDelayVibLfo(Region* pPresetRegion = NULL); // in seconds
+            int    GetInitialFilterFc(Region* pPresetRegion); // in absolute cents
+            int    GetInitialFilterQ(Region* pPresetRegion); // in centibels
 
             friend class Instrument;
             friend class Preset;
@@ -425,7 +428,7 @@ namespace sf2 {
             int EG1Attack; // in timecents
             int EG1Hold; // in timecents
             int EG1Decay; // in timecents
-            int EG1Sustain; // Sustain value of the sample amplitude EG (in permilles)
+            int EG1Sustain; // Sustain value (the decrease in level, expressed in centibels)
             int EG1Release; // in timecents
 
             int EG2PreAttackDelay; // in timecents
