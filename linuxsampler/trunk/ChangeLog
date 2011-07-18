@@ -17,6 +17,7 @@ Version CVS HEAD (?)
       directories are separate
     - Mac OS X: made it possible to specify plugin installation dir to
       configure
+    - Mac OS X: Makefile fix for the install-strip target
 
   * general changes:
     - Refactoring: moved the independent code from

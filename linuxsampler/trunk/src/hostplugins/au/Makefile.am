@@ -7,7 +7,7 @@ ca_public_dir = $(examples_dir)/CoreAudio/PublicUtility
 INCLUDES = -I$(au_public_dir)/AUBase -I$(au_public_dir)/OtherBases \
     -I$(au_public_dir)/Utility -I$(ca_public_dir) $(GIG_CFLAGS) $(SQLITE3_CFLAGS) $(SNDFILE_CFLAGS)
 
-bin_PROGRAMS = LinuxSamplerAU
+noinst_PROGRAMS = LinuxSamplerAU
 
 # Uncomment for debug messages.
 #debug_messages = -DAU_DEBUG_DISPATCHER=1
@@ -120,7 +120,8 @@ clean-local:
 install-exec-hook:
 	if mkdir -p $(MAC_PLUGIN_INSTALL_DIR)/Components && \
 	test -w $(MAC_PLUGIN_INSTALL_DIR)/Components ; then \
-	cp -r $(COMPONENT_DIR) $(MAC_PLUGIN_INSTALL_DIR)/Components/ ; fi
+	cp -r $(COMPONENT_DIR) $(MAC_PLUGIN_INSTALL_DIR)/Components/ ; \
+	if test -n "$(INSTALL_STRIP_FLAG)" ; then $(STRIP) -x $(MAC_PLUGIN_INSTALL_DIR)/Components/$(COMPONENT_DIR)/Contents/MacOS/LinuxSamplerAU ; fi ; fi
 
 uninstall-hook:
 	rm -rf $(MAC_PLUGIN_INSTALL_DIR)/Components/$(COMPONENT_DIR)

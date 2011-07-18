@@ -40,7 +40,8 @@ clean-local:
 install-exec-hook:
 	if mkdir -p $(MAC_PLUGIN_INSTALL_DIR)/VST && \
 	test -w $(MAC_PLUGIN_INSTALL_DIR)/VST ; then \
-	cp -r LinuxSampler.vst $(MAC_PLUGIN_INSTALL_DIR)/VST/ ; fi
+	cp -r LinuxSampler.vst $(MAC_PLUGIN_INSTALL_DIR)/VST/ ; \
+	if test -n "$(INSTALL_STRIP_FLAG)" ; then $(STRIP) -x $(MAC_PLUGIN_INSTALL_DIR)/VST/LinuxSampler.vst/Contents/MacOS/LinuxSampler ; fi ; fi
 
 uninstall-hook:
 	rm -rf $(MAC_PLUGIN_INSTALL_DIR)/VST/LinuxSampler.vst
