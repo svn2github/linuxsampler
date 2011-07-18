@@ -1,0 +1,17 @@
+This package contains snapshot builds of the LinuxSampler standalone
+application, the LinuxSampler VST and AU plugins and the Fantasia and
+QSampler GUI front-end applications.
+
+Installation instructions
+=========================
+
+Copy the files in the lib folder to /usr/local/lib, or drag and drop
+the lib folder to your home folder. This step is required.
+
+Drag and drop the LinuxSampler folder to /Applications.
+
+If you want to use the AU plugin, drag and drop
+LinuxSamplerAU.component to /Library/Audio/Plug-Ins/Components.
+
+If you want to use the VST plugin, drag and drop LinuxSampler.vst to
+/Library/Audio/Plug-Ins/VST.
