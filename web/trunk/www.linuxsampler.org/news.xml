@@ -1,5 +1,20 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2011-07-18">
+    <link ref="http://download.linuxsampler.org/packages/osx/snapshots/" img="gfx/logos/apple.png"></link>
+    <link ref="http://download.linuxsampler.org/packages/osx/snapshots/">Download the latest OS X snapshot of the sampler!</link>
+    Along to our angoing sympathy for automatic snapshots, we finally provide
+    automatic builts also for Apple OS X! As soon as some developer commits
+    something new to our Subversion server, a new binary snapshot for OS X will
+    automatically be available for download from our webserver within minutes.
+    The snapshot tbz2 archive file contains universal binaries
+    (PPC 32 &amp; 64 bit, Intel 32 &amp; 64 bit) of the stand-alone version of the
+    sampler, VST and AU plugin version, and the graphical frontend applications
+    QSampler and Fantasia. Only our graphical instrument editor gigedit is not
+    yet part of the snapshots, it might follow at a later point. Please read
+    the README file in the tbz2 archive file for instructions how to install
+    everything on your Mac.
+  </entry>
   <entry date="2011-06-05">
     <link ref="http://svn.linuxsampler.org" img="gfx/logos/subversion.png"></link>
     From now on, our source code is managed by a Subversion server. We
