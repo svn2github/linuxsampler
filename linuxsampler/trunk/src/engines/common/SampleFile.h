@@ -29,7 +29,6 @@
 #include <sndfile.h>
 #include "../../common/global.h"
 
-
 namespace LinuxSampler {
     class SampleFile : public Sample {
         public:
@@ -130,6 +129,7 @@ namespace LinuxSampler {
                 SetPos(pPlaybackState->position);
                 if (pRegion->HasLoop()) {
                     do {
+                        if (GetPos() > pRegion->GetLoopEnd()) SetPos(pRegion->GetLoopStart());
                         samplestoloopend  = pRegion->GetLoopEnd() - GetPos();
                         readsamples       = Read(&pDst[totalreadsamples * GetFrameSize()], Min(samplestoread, samplestoloopend));
                         samplestoread    -= readsamples;

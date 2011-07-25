@@ -71,7 +71,7 @@ namespace LinuxSampler { namespace sfz {
         ri.UnityNote = pRegion->pitch_keycenter;
         ri.FineTune  = pRegion->tune + pRegion->transpose * 100;
         ri.Pan       = int(pRegion->pan * 0.63); // convert from -100..100 to -64..63
-        ri.SampleStartOffset = 0; // TODO: 
+        ri.SampleStartOffset = pRegion->offset ? *(pRegion->offset) : 0;
 
         ri.EG2PreAttack        = pRegion->fileg_start * 10;
         ri.EG2Attack           = pRegion->fileg_attack;
@@ -519,6 +519,17 @@ namespace LinuxSampler { namespace sfz {
                 // kill the voice fast
                 pEG1->enterFadeOutStage();
             }
+        }
+    }
+    
+    void Voice::SetSampleStartOffset() {
+        if (DiskVoice && RgnInfo.SampleStartOffset > pSample->MaxOffset) {
+            // The offset is applied to the RAM buffer
+            finalSynthesisParameters.dPos = 0;
+            Pos = 0;
+        } else {
+            finalSynthesisParameters.dPos = RgnInfo.SampleStartOffset; // offset where we should start playback of sample
+            Pos = RgnInfo.SampleStartOffset;
         }
     }
 

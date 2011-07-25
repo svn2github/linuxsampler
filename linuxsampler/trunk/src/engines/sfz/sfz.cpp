@@ -37,10 +37,19 @@
 namespace sfz
 {
 
-    Sample* SampleManager::FindSample(std::string samplePath) {
+    Sample* SampleManager::FindSample(std::string samplePath, int offset) {
         std::map<Sample*, std::set<Region*> >::iterator it = sampleMap.begin();
         for (; it != sampleMap.end(); it++) {
-            if (it->first->GetFile() == samplePath) return it->first;
+            if (it->first->GetFile() == samplePath) {
+                /* Because the start of the sample is cached in RAM we treat
+                 * same sample with different offset as different samples
+                 * // TODO: Ignore offset when the whole sample is cached in RAM?
+                 */
+                int maxOffset = it->first->MaxOffset;
+                if(it->first->Offset == offset || (it->first->Offset < maxOffset && offset < maxOffset)) {
+                    return it->first;
+                }
+            }
         }
 
         return NULL;
@@ -90,9 +99,10 @@ namespace sfz
     Sample* Region::GetSample(bool create)
     {
         if(pSample == NULL && create) {
-            Sample* sf = GetInstrument()->GetSampleManager()->FindSample(sample);
+            int i = offset ? *offset : 0;
+            Sample* sf = GetInstrument()->GetSampleManager()->FindSample(sample, i);
             if (sf != NULL) pSample = sf; // Reuse already created sample
-            else pSample = new Sample(sample);
+            else pSample = new Sample(sample, false, i);
             GetInstrument()->GetSampleManager()->AddSampleConsumer(pSample, this);
         }
         return pSample;
@@ -1035,6 +1045,7 @@ namespace sfz
         else if ("loopstart" == key) pCurDef->loop_start = ToInt(value); // nonstandard
         else if ("loop_end" == key) pCurDef->loop_end = ToInt(value);
         else if ("loopend" == key) pCurDef->loop_end = ToInt(value); // nonstandard
+        else if ("offset" == key) pCurDef->offset = ToInt(value);
         else if ("sync_beats" == key) pCurDef->sync_beats = ToInt(value);
         else if ("sync_offset" == key) pCurDef->sync_offset = ToInt(value);
 

@@ -51,7 +51,9 @@ namespace sfz
 
     class Sample : public LinuxSampler::SampleFileBase<Region> {
         public:
-            Sample(String File, bool DontClose = false) : LinuxSampler::SampleFileBase<Region>(File, DontClose) { }
+            Sample(String File, bool DontClose = false, uint offset = 0): LinuxSampler::SampleFileBase<Region>(File, DontClose) {
+                Offset = offset;
+            }
             virtual ~Sample() { }
     };
 
@@ -70,7 +72,7 @@ namespace sfz
 
     class SampleManager : public LinuxSampler::SampleManager<Sample, Region> {
     public:
-        Sample* FindSample(std::string samplePath);
+        Sample* FindSample(std::string samplePath, int offset);
 
     protected:
         virtual void OnSampleInUse(Sample* pSample) {

@@ -93,6 +93,7 @@ Version CVS HEAD (?)
       (ampeg_vel2attack, ampeg_vel2decay, ampeg_vel2sustain and
       ampeg_vel2release)
     - added support for EG hold (ampeg_hold)
+    - added support for sample offset (offset)
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

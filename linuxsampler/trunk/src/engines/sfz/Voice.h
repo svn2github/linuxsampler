@@ -78,6 +78,8 @@ namespace LinuxSampler { namespace sfz {
             virtual double           GetVelocityRelease(uint8_t MIDIKeyVelocity);
             virtual double           GetSampleAttenuation();
             virtual void             ProcessGroupEvent(RTList<Event>::Iterator& itEvent);
+            virtual void             SetSampleStartOffset();
+            virtual int              GetRAMCacheOffset() { return pRegion->pSample->RAMCacheOffset; }
 
         private:
             EG EG1;

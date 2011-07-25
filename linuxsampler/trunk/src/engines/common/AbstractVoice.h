@@ -181,6 +181,19 @@ namespace LinuxSampler {
              * Gets the sample cache size in bytes.
              */
             virtual unsigned long GetSampleCacheSize() = 0;
+            
+            /**
+             * Because in most cases we cache part of the sample in RAM, if the
+             * offset is too big (will extend beyond the RAM cache if the cache contains
+             * the beginning of the sample) we should cache in the RAM buffer not the
+             * beginning of the sample but a part that starts from the sample offset point.
+             * In that case the current sample position should start from zero (Pos).
+             * When the offset fits into RAM buffer or the whole sample is cached
+             * in RAM, Pos should contain the actual offset.
+             * We don't trim the sample because it might have a defined
+             * loop start point before the start point of the playback.
+             */
+            virtual void SetSampleStartOffset();
 
             /**
              * Returns the correct amplitude factor for the given \a MIDIKeyVelocity.

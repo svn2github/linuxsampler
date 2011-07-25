@@ -55,7 +55,17 @@ namespace LinuxSampler {
                     unsigned long loop_cycles_left;  ///< How many times the loop has still to be passed, this value will be decremented with each loop cycle.
             };
 
-            Sample() { }
+            uint Offset; // The offset used to play the sample (in sample units)
+
+            uint RAMCacheOffset; // The offset of the RAM cache from the sample start (in sample units)
+
+             /*
+              * Specifies the maximum offset (in frames) that can be set without
+              * the need to offset the RAM cache.
+              */
+            uint MaxOffset;
+
+            Sample(): MaxOffset(2000), Offset(0), RAMCacheOffset(0) { }
             virtual ~Sample() { }
 
             virtual String  GetName() = 0;

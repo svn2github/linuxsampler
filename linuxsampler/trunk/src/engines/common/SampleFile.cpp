@@ -146,9 +146,15 @@ namespace LinuxSampler {
     Sample::buffer_t SampleFile::LoadSampleDataWithNullSamplesExtension(unsigned long FrameCount, uint NullFramesCount) {
         Open();
         if (FrameCount > this->TotalFrameCount) FrameCount = this->TotalFrameCount;
+        
+        if (Offset > MaxOffset && FrameCount < TotalFrameCount) {
+            FrameCount = FrameCount + Offset > TotalFrameCount ? TotalFrameCount - Offset : FrameCount;
+            // Offset the RAM cache
+            RAMCacheOffset = Offset;
+        }
         if (RAMCache.pStart) delete[] (int8_t*) RAMCache.pStart;
         unsigned long allocationsize = (FrameCount + NullFramesCount) * this->FrameSize;
-        SetPos(0, SEEK_SET); // reset read position to begin of sample
+        SetPos(RAMCacheOffset, SEEK_SET); // reset read position to playback start point
         RAMCache.pStart            = new int8_t[allocationsize];
 
         RAMCache.Size = Read(RAMCache.pStart, FrameCount) * this->FrameSize;

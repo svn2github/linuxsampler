@@ -135,12 +135,11 @@ namespace LinuxSampler {
         PanLeftSmoother.trigger(pEngineChannel->GlobalPanLeft, subfragmentRate);
         PanRightSmoother.trigger(pEngineChannel->GlobalPanRight, subfragmentRate);
 
-        finalSynthesisParameters.dPos = RgnInfo.SampleStartOffset; // offset where we should start playback of sample (0 - 2000 sample points)
-        Pos = RgnInfo.SampleStartOffset;
-
         // Check if the sample needs disk streaming or is too short for that
         long cachedsamples = GetSampleCacheSize() / SmplInfo.FrameSize;
         DiskVoice          = cachedsamples < SmplInfo.TotalFrameCount;
+
+        SetSampleStartOffset();
 
         if (DiskVoice) { // voice to be streamed from disk
             if (cachedsamples > (GetEngine()->MaxSamplesPerCycle << CONFIG_MAX_PITCH)) {
@@ -294,6 +293,11 @@ namespace LinuxSampler {
         }
 
         return 0; // success
+    }
+    
+    void AbstractVoice::SetSampleStartOffset() {
+        finalSynthesisParameters.dPos = RgnInfo.SampleStartOffset; // offset where we should start playback of sample (0 - 2000 sample points)
+        Pos = RgnInfo.SampleStartOffset;
     }
 
     /**

@@ -79,7 +79,7 @@ namespace LinuxSampler {
 
             virtual int OrderNewStream() {
                 int res = pDiskThread->OrderNewStream (
-                    &DiskStreamRef, pRegion, MaxRAMPos, !RAMLoop
+                    &DiskStreamRef, pRegion, MaxRAMPos + GetRAMCacheOffset(), !RAMLoop
                 );
 
                 if (res < 0) {
@@ -90,6 +90,9 @@ namespace LinuxSampler {
 
                 return 0;
             }
+            
+            /** The offset of the RAM cache from the sample start (in sample units). */
+            virtual int GetRAMCacheOffset() { return 0; }
 
             /**
              *  Renders the audio data for this voice for the current audio fragment.
