@@ -34,46 +34,12 @@ namespace LinuxSampler {
             uint CurrentStep; // The current time step
 
         public:
+            ArrayList<SignalUnit*> Units; // A list of all signal units in this rack
+
             SignalUnitRack(): CurrentStep(0) { }
             uint GetCurrentStep() { return CurrentStep; }
 
-            /**
-             * Will be called to increment the time with one sample point.
-             * Each unit should recalculate its current level on every call of this function.
-             */
-            virtual void Increment() = 0;
-            
-            virtual void ProcessCCEvent(RTList<Event>::Iterator& itEvent) = 0;
-            
-            /** Initializes and triggers the rack. */
-            virtual void Trigger() = 0;
-            
-            /**
-             * When the rack belongs to a voice, this method is
-             * called when the voice enter the release stage.
-             */
-            virtual void EnterReleaseStage() = 0;
-            
-            /**
-             * When the rack belongs to a voice, this method is
-             * called when the voice is of type which ignore note off.
-             */
-            virtual void CancelRelease() = 0;
-            
             virtual EndpointSignalUnit* GetEndpointUnit() = 0;
-    };
-    
-    template <class O /* The signal unit rack's owner */>
-    class SignalUnitRackBase: public SignalUnitRack {
-        protected:
-            O* pOwner; // The owner to which this rack belongs.
-
-        public:
-            ArrayList<SignalUnitBase<O>*> Units; // A list of all signal units in this rack
-            
-            SignalUnitRackBase(O* Owner) {
-                pOwner = Owner;
-            }
             
             /**
              * Will be called to increment the time with one sample point.
@@ -98,17 +64,24 @@ namespace LinuxSampler {
             virtual void Trigger() {
                 CurrentStep = 0;
                 for (int i = 0; i < Units.size(); i++) {
-                    Units[i]->SetOwner(pOwner);
                     Units[i]->Trigger();
                 }
             }
             
+            /**
+             * When the rack belongs to a voice, this method is
+             * called when the voice enter the release stage.
+             */
             virtual void EnterReleaseStage() {
                 for (int i = 0; i < Units.size(); i++) {
                     Units[i]->EnterReleaseStage();
                 }
             }
             
+            /**
+             * When the rack belongs to a voice, this method is
+             * called when the voice is of type which ignore note off.
+             */
             virtual void CancelRelease() {
                 for (int i = 0; i < Units.size(); i++) {
                     Units[i]->CancelRelease();

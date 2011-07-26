@@ -35,7 +35,7 @@ namespace LinuxSampler {
             D*   pDiskThread;  ///< Pointer to the disk thread, to be able to order a disk stream and later to delete the stream again
             int  RealSampleWordsLeftToRead; ///< Number of samples left to read, not including the silence added for the interpolator
 
-            VoiceBase() {
+            VoiceBase(SignalUnitRack* pRack = NULL): AbstractVoice(pRack) {
                 pRegion      = NULL;
                 pDiskThread  = NULL;
             }

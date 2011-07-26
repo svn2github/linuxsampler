@@ -29,10 +29,11 @@
 
 namespace LinuxSampler { namespace sf2 {
 
-    Voice::Voice(): SignalRack(this) {
+    typedef LinuxSampler::VoiceBase<EngineChannel, ::sf2::Region, ::sf2::Sample, DiskThread> SF2Voice;
+    Voice::Voice(): SignalRack(this), SF2Voice(&SignalRack) {
         pEngine = NULL;
-        pEG1 = &EG1;
-        pEG2 = &EG2;
+        pEG1 = NULL;
+        pEG2 = NULL;
     }
 
     Voice::~Voice() {
@@ -88,19 +89,7 @@ namespace LinuxSampler { namespace sf2 {
         ri.Pan       = pRegion->GetPan(reg);
         ri.SampleStartOffset = pRegion->startAddrsOffset + pRegion->startAddrsCoarseOffset;
 
-        // filter cutoff frequency
-        ri.EG2PreAttack        = 1000;
-        ri.EG2Attack           = pRegion->GetEG2Attack(reg);
-        //ri.EG2Hold             = pRegion->EG2Hold; // TODO:
-        ri.EG2Decay1           = pRegion->GetEG2Decay(reg);
-        ri.EG2Decay2           = pRegion->GetEG2Decay(reg);
-        ri.EG2Sustain          = pRegion->GetEG2Sustain(reg);
-        ri.EG2InfiniteSustain  = true;
-        ri.EG2Release          = pRegion->GetEG2Release(reg);
-
         // sample pitch
-        ri.EG3Attack     = 0; // TODO:
-        ri.EG3Depth      = 0; // TODO:
         ri.VCFEnabled    = true; // TODO:
         ri.VCFType       = Filter::vcf_type_2p_lowpass; // TODO:
         ri.VCFResonance  = 0; // TODO:
@@ -212,16 +201,6 @@ namespace LinuxSampler { namespace sf2 {
         return eg;
     }
 
-    void Voice::TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) {
-        EG1.trigger(0,
-                    pRegion->GetEG1Attack(pPresetRegion),
-                    pRegion->GetEG1Hold(pPresetRegion),
-                    pRegion->GetEG1Decay(pPresetRegion),
-                    uint(pRegion->GetEG1Sustain(pPresetRegion)),
-                    pRegion->GetEG1Release(pPresetRegion),
-                    sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-    }
-
     double Voice::GetEG2ControllerValue(uint8_t MIDIKeyVelocity) {
         /*double eg2controllervalue = 0;
         switch (pRegion->EG2Controller.type) {
@@ -256,158 +235,6 @@ namespace LinuxSampler { namespace sf2 {
         eg.Decay = 1.0;
         eg.Release = 1.0;
         return eg;
-    }
-
-    void Voice::TriggerEG2(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) {
-        EG2.trigger(uint(RgnInfo.EG2PreAttack),
-                    RgnInfo.EG2Attack * egInfo.Attack,
-                    false,
-                    RgnInfo.EG2Decay1 * egInfo.Decay * velrelease,
-                    RgnInfo.EG2Decay2 * egInfo.Decay * velrelease,
-                    RgnInfo.EG2InfiniteSustain,
-                    uint(RgnInfo.EG2Sustain),
-                    RgnInfo.EG2Release * egInfo.Release * velrelease,
-                    velocityAttenuation,
-                    sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-    }
-
-    void Voice::InitLFO1() {
-        /*uint16_t lfo1_internal_depth;
-        switch (pRegion->LFO1Controller) {
-            case ::gig::lfo1_ctrl_internal:
-                lfo1_internal_depth  = pRegion->LFO1InternalDepth;
-                pLFO1->ExtController = 0; // no external controller
-                bLFO1Enabled         = (lfo1_internal_depth > 0);
-                break;
-            case ::gig::lfo1_ctrl_modwheel:
-                lfo1_internal_depth  = 0;
-                pLFO1->ExtController = 1; // MIDI controller 1
-                bLFO1Enabled         = (pRegion->LFO1ControlDepth > 0);
-                break;
-            case ::gig::lfo1_ctrl_breath:
-                lfo1_internal_depth  = 0;
-                pLFO1->ExtController = 2; // MIDI controller 2
-                bLFO1Enabled         = (pRegion->LFO1ControlDepth > 0);
-                break;
-            case ::gig::lfo1_ctrl_internal_modwheel:
-                lfo1_internal_depth  = pRegion->LFO1InternalDepth;
-                pLFO1->ExtController = 1; // MIDI controller 1
-                bLFO1Enabled         = (lfo1_internal_depth > 0 || pRegion->LFO1ControlDepth > 0);
-                break;
-            case ::gig::lfo1_ctrl_internal_breath:
-                lfo1_internal_depth  = pRegion->LFO1InternalDepth;
-                pLFO1->ExtController = 2; // MIDI controller 2
-                bLFO1Enabled         = (lfo1_internal_depth > 0 || pRegion->LFO1ControlDepth > 0);
-                break;
-            default:
-                lfo1_internal_depth  = 0;
-                pLFO1->ExtController = 0; // no external controller
-                bLFO1Enabled         = false;
-        }
-        if (bLFO1Enabled) {
-            pLFO1->trigger(pRegion->LFO1Frequency,
-                           start_level_min,
-                           lfo1_internal_depth,
-                           pRegion->LFO1ControlDepth,
-                           pRegion->LFO1FlipPhase,
-                           pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-            pLFO1->update(pLFO1->ExtController ? GetSf2EngineChannel()->ControllerTable[pLFO1->ExtController] : 0);
-        }*/ // TODO: ^^^
-        bLFO1Enabled = false;
-    }
-
-    void Voice::InitLFO2() {
-        /*uint16_t lfo2_internal_depth;
-        switch (pRegion->LFO2Controller) {
-            case ::gig::lfo2_ctrl_internal:
-                lfo2_internal_depth  = pRegion->LFO2InternalDepth;
-                pLFO2->ExtController = 0; // no external controller
-                bLFO2Enabled         = (lfo2_internal_depth > 0);
-                break;
-            case ::gig::lfo2_ctrl_modwheel:
-                lfo2_internal_depth  = 0;
-                pLFO2->ExtController = 1; // MIDI controller 1
-                bLFO2Enabled         = (pRegion->LFO2ControlDepth > 0);
-                break;
-            case ::gig::lfo2_ctrl_foot:
-                lfo2_internal_depth  = 0;
-                pLFO2->ExtController = 4; // MIDI controller 4
-                bLFO2Enabled         = (pRegion->LFO2ControlDepth > 0);
-                break;
-            case ::gig::lfo2_ctrl_internal_modwheel:
-                lfo2_internal_depth  = pRegion->LFO2InternalDepth;
-                pLFO2->ExtController = 1; // MIDI controller 1
-                bLFO2Enabled         = (lfo2_internal_depth > 0 || pRegion->LFO2ControlDepth > 0);
-                break;
-            case ::gig::lfo2_ctrl_internal_foot:
-                lfo2_internal_depth  = pRegion->LFO2InternalDepth;
-                pLFO2->ExtController = 4; // MIDI controller 4
-                bLFO2Enabled         = (lfo2_internal_depth > 0 || pRegion->LFO2ControlDepth > 0);
-                break;
-            default:
-                lfo2_internal_depth  = 0;
-                pLFO2->ExtController = 0; // no external controller
-                bLFO2Enabled         = false;
-        }
-        if (bLFO2Enabled) {
-            pLFO2->trigger(pRegion->LFO2Frequency,
-                           start_level_max,
-                           lfo2_internal_depth,
-                           pRegion->LFO2ControlDepth,
-                           pRegion->LFO2FlipPhase,
-                           pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-            pLFO2->update(pLFO2->ExtController ? GetSf2EngineChannel()->ControllerTable[pLFO2->ExtController] : 0);
-        }*/ // TODO: ^^^
-         bLFO2Enabled = false;
-    }
-
-    void Voice::InitLFO3() {
-        /*uint16_t lfo3_internal_depth;
-        switch (pRegion->LFO3Controller) {
-            case ::gig::lfo3_ctrl_internal:
-                lfo3_internal_depth  = pRegion->LFO3InternalDepth;
-                pLFO3->ExtController = 0; // no external controller
-                bLFO3Enabled         = (lfo3_internal_depth > 0);
-                break;
-            case ::gig::lfo3_ctrl_modwheel:
-                lfo3_internal_depth  = 0;
-                pLFO3->ExtController = 1; // MIDI controller 1
-                bLFO3Enabled         = (pRegion->LFO3ControlDepth > 0);
-                break;
-            case ::gig::lfo3_ctrl_aftertouch:
-                lfo3_internal_depth  = 0;
-                pLFO3->ExtController = 128;
-                bLFO3Enabled         = true;
-                break;
-            case ::gig::lfo3_ctrl_internal_modwheel:
-                lfo3_internal_depth  = pRegion->LFO3InternalDepth;
-                pLFO3->ExtController = 1; // MIDI controller 1
-                bLFO3Enabled         = (lfo3_internal_depth > 0 || pRegion->LFO3ControlDepth > 0);
-                break;
-            case ::gig::lfo3_ctrl_internal_aftertouch:
-                lfo3_internal_depth  = pRegion->LFO3InternalDepth;
-                pLFO1->ExtController = 128;
-                bLFO3Enabled         = (lfo3_internal_depth > 0 || pRegion->LFO3ControlDepth > 0);
-                break;
-            default:
-                lfo3_internal_depth  = 0;
-                pLFO3->ExtController = 0; // no external controller
-                bLFO3Enabled         = false;
-        }
-        if (bLFO3Enabled) {
-            pLFO3->trigger(pRegion->LFO3Frequency,
-                           start_level_mid,
-                           lfo3_internal_depth,
-                           pRegion->LFO3ControlDepth,
-                           false,
-                           pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-            pLFO3->update(pLFO3->ExtController ? GetSf2EngineChannel()->ControllerTable[pLFO3->ExtController] : 0);
-        }*/ // TODO: ^^^
-         bLFO3Enabled = false;
-    }
-    
-    SignalUnitRack* Voice::GetSignalUnitRack() {
-        return static_cast<SignalUnitRack*> (&SignalRack);
     }
 
     float Voice::CalculateCutoffBase(uint8_t MIDIKeyVelocity) {

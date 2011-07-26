@@ -28,6 +28,8 @@
 
 namespace LinuxSampler {
 
+    class SignalUnitRack;
+
     /**
      * A signal unit consist of internal signal generator (like envelope generator,
      * low frequency oscillator, etc) with a number of generator parameters which
@@ -115,8 +117,8 @@ namespace LinuxSampler {
         public:
             ArrayList<SignalUnit::Parameter> Params; // The list of parameters which are modulating the signal unit
             
-            SignalUnit() : bActive(false), Level(0.0f), bCalculating(false), uiDelayTrigger(0) { }
-            SignalUnit(const SignalUnit& Unit) { Copy(Unit); }
+            SignalUnit(SignalUnitRack* rack): pRack(rack), bActive(false), Level(0.0f), bCalculating(false), uiDelayTrigger(0) { }
+            SignalUnit(const SignalUnit& Unit): pRack(Unit.pRack) { Copy(Unit); }
             void operator=(const SignalUnit& Unit) { Copy(Unit); }
             
             virtual void Copy(const SignalUnit& Unit) {
@@ -200,7 +202,15 @@ namespace LinuxSampler {
              */
             virtual uint DelayTrigger() { return uiDelayTrigger; }
             
+            /**
+             * A helper method which checks whether the delay
+             * stage is finished.
+             */
+            bool DelayStage();
+            
         protected:
+            SignalUnitRack* const pRack;
+
             bool   bActive; /* Don't use it to check the active state of the unit!!!
                              * Use Active() instead! */
             float  Level;
@@ -213,8 +223,10 @@ namespace LinuxSampler {
         
     };
     
-    class EndpointSignalUnit: virtual public SignalUnit {
+    class EndpointSignalUnit: public SignalUnit {
         public:
+            EndpointSignalUnit(SignalUnitRack* rack): SignalUnit(rack) { }
+
             /**
              * Gets the volume modulation value
              * for the current time step (sample point).
@@ -239,96 +251,6 @@ namespace LinuxSampler {
              */
             virtual float GetResonance() = 0;
             
-            virtual float CalculateFilterCutoff(float cutoff) = 0;
-            
-            virtual float CalculatePitch(float pitch) = 0;
-            
-            virtual float CalculateResonance(float res) = 0;
-    };
-    
-
-    class SignalUnitRack;
-
-    template <class O /* The signal unit's owner */>
-    class SignalUnitBase: virtual public SignalUnit {
-        public:
-            SignalUnitBase() : pOwner(NULL) { }
-            SignalUnitBase(const SignalUnitBase& Unit) { Copy(Unit); }
-            void operator=(const SignalUnitBase& Unit) { Copy(Unit); }
-            
-            virtual void Copy(const SignalUnitBase& Unit) {
-                if (this == &Unit) return;
-
-                pOwner = Unit.pOwner;
-                SignalUnit::Copy(Unit);
-            }
-
-        protected:
-            O* pOwner; // The owner to which this rack belongs.
-            
-            SignalUnitRack* GetSignalUnitRack() { return pOwner->GetSignalUnitRack(); }
-        
-        public:
-            
-            
-            /**
-             * The owner of the unit is set by the rack
-             * just before the call to the unit's trigger method.
-             */
-            void SetOwner(O* Owner) { pOwner = Owner; }
-            
-            /**
-             * A helper method which checks whether the delay
-             * stage is finished.
-             */
-            bool DelayStage() {
-                return (DelayTrigger() >= GetSignalUnitRack()->GetCurrentStep());
-            }
-    };
-    
-    /**
-     * Continuous controller signal unit.
-     * The level of this unit corresponds to the controller changes
-     * and is normalized to be in the range from -1 to +1.
-     */
-    template<class O>
-    class CCSignalUnit: public SignalUnitBase<O> {
-        private:
-            uint8_t Ctrl; // The number of the MIDI controller which modulates this signal unit.
-
-        public:
-            CCSignalUnit(uint8_t Controller) {
-                Ctrl = Controller;
-            }
-            
-            CCSignalUnit(const CCSignalUnit& Unit) { Copy(Unit); }
-            void operator=(const CCSignalUnit& Unit) { Copy(Unit); }
-            
-            virtual void Copy(const CCSignalUnit& Unit) {
-                SignalUnitBase<O>::Copy(Unit);
-                Ctrl = Unit.Ctrl;
-            }
-            
-            virtual void Increment() { }
-            
-            virtual void ProcessCCEvent(uint8_t Controller, uint8_t Value) {
-                if (Controller != Ctrl) return;
-                
-                // Normalize the value so it belongs to the interval [-1, +1]
-                SignalUnitBase<O>::Level = 2 * Value;
-                SignalUnitBase<O>::Level = SignalUnitBase<O>::Level/127.0f - 1.0f;
-                
-                if (!SignalUnitBase<O>::bActive) SignalUnitBase<O>::bActive = true;
-            }
-    };
-
-    /**
-     * Endpoint signal unit.
-     */
-    template<class O>
-    class EndpointSignalUnitBase : public SignalUnitBase<O>, public EndpointSignalUnit {
-        public:
-
             virtual float CalculateFilterCutoff(float cutoff) {
                 cutoff *= GetFilterCutoff();
                 return cutoff > 13500 ? 13500 : cutoff;
@@ -340,6 +262,40 @@ namespace LinuxSampler {
             
             virtual float CalculateResonance(float res) {
                 return GetResonance() * res;
+            }
+    };
+    
+    /**
+     * Continuous controller signal unit.
+     * The level of this unit corresponds to the controller changes
+     * and is normalized to be in the range from -1 to +1.
+     */
+    class CCSignalUnit: public SignalUnit {
+        private:
+            uint8_t Ctrl; // The number of the MIDI controller which modulates this signal unit.
+
+        public:
+            CCSignalUnit(SignalUnitRack* rack, uint8_t Controller): SignalUnit(rack) {
+                Ctrl = Controller;
+            }
+            
+            CCSignalUnit(const CCSignalUnit& Unit): SignalUnit(Unit) { Copy(Unit); }
+            void operator=(const CCSignalUnit& Unit) { SignalUnit::Copy(Unit); Copy(Unit); }
+            
+            virtual void Copy(const CCSignalUnit& Unit) {
+                Ctrl = Unit.Ctrl;
+            }
+            
+            virtual void Increment() { }
+            
+            virtual void ProcessCCEvent(uint8_t Controller, uint8_t Value) {
+                if (Controller != Ctrl) return;
+                
+                // Normalize the value so it belongs to the interval [-1, +1]
+                Level = 2 * Value;
+                Level = Level/127.0f - 1.0f;
+                
+                if (!bActive) bActive = true;
             }
     };
     

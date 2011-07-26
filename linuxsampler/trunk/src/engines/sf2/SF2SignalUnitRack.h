@@ -30,9 +30,19 @@
 namespace LinuxSampler { namespace sf2 {
     
     class Voice;
+    class SF2SignalUnitRack;
     
-    class EGUnit : public SignalUnitBase<Voice>, public ::LinuxSampler::sfz::EGADSR {
+    class SFSignalUnit: public SignalUnit {
         public:
+            Voice* pVoice;
+
+            SFSignalUnit(SF2SignalUnitRack* rack);
+    };
+    
+    class EGUnit : public SFSignalUnit, public ::LinuxSampler::sfz::EGADSR {
+        public:
+            EGUnit(SF2SignalUnitRack* rack): SFSignalUnit(rack) { }
+
             virtual bool  Active() { return active(); }
             virtual float GetLevel() { return getLevel(); }
             virtual void  EnterReleaseStage();
@@ -41,40 +51,46 @@ namespace LinuxSampler { namespace sf2 {
 
     class VolEGUnit : public EGUnit {
         public:
+            VolEGUnit(SF2SignalUnitRack* rack): EGUnit(rack) { }
+
             virtual void  Trigger();
             virtual void  Increment();
     };
 
     class ModEGUnit : public EGUnit {
         public:
+            ModEGUnit(SF2SignalUnitRack* rack): EGUnit(rack) { }
+
             virtual void  Trigger();
             virtual void  Increment();
     };
 
-    class ModLfoUnit : public SignalUnitBase<Voice>, public LFOSigned {
+    class ModLfoUnit : public SFSignalUnit, public LFOSigned {
         public:
-            ModLfoUnit(): LFOSigned(1200.0f) { }
+            ModLfoUnit(SF2SignalUnitRack* rack): SFSignalUnit(rack), LFOSigned(1200.0f) { }
             virtual bool  Active() { return true; }
             virtual void  Trigger();
             virtual void  Increment();
             virtual float GetLevel() { return Level; }
     };
 
-    class VibLfoUnit : public SignalUnitBase<Voice>, public LFOSigned {
+    class VibLfoUnit : public SFSignalUnit, public LFOSigned {
         public:
-            VibLfoUnit(): LFOSigned(1200.0f) { }
+            VibLfoUnit(SF2SignalUnitRack* rack): SFSignalUnit(rack), LFOSigned(1200.0f) { }
             virtual bool  Active() { return true; }
             virtual void  Trigger();
             virtual void  Increment();
             virtual float GetLevel() { return Level; }
     };
     
-    class EndpointUnit : public EndpointSignalUnitBase<Voice> {
+    class EndpointUnit : public EndpointSignalUnit {
         public:
+            Voice* pVoice;
+
             Parameter *prmVolEg, *prmModEgPitch, *prmModEgCutoff, *prmModLfoVol,
                       *prmModLfoPitch, *prmModLfoCutoff, *prmVibLfo;
 
-            EndpointUnit();
+            EndpointUnit(SF2SignalUnitRack* rack);
 
             virtual void Trigger();
 
@@ -87,7 +103,7 @@ namespace LinuxSampler { namespace sf2 {
             virtual float GetResonance();
     };
     
-    class SF2SignalUnitRack : public SignalUnitRackBase<Voice> {
+    class SF2SignalUnitRack : public SignalUnitRack {
         private:
             VolEGUnit     suVolEG;
             ModEGUnit     suModEG;
@@ -97,17 +113,16 @@ namespace LinuxSampler { namespace sf2 {
             
 
         public:
+            Voice* const pVoice;
         
             /**
              * @param Voice The voice to which this rack belongs.
              */
             SF2SignalUnitRack(Voice* Voice);
 
-            virtual void                 Trigger();
             virtual EndpointSignalUnit*  GetEndpointUnit();
     };
     
 }} // namespace LinuxSampler::sf2
 
 #endif	/* __LS_SF2SIGNALUNITRACK_H__ */
-

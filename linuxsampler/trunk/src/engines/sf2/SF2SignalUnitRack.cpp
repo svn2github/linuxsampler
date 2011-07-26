@@ -25,32 +25,36 @@
 
 namespace LinuxSampler { namespace sf2 {
     
+    SFSignalUnit::SFSignalUnit(SF2SignalUnitRack* rack): SignalUnit(rack), pVoice(NULL) {
+        
+    }
+    
     void EGUnit::EnterReleaseStage() {
-        update(EG::event_release, pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+        update(EG::event_release, pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
     }
     
     void EGUnit::CancelRelease() {
-        update(EG::event_cancel_release, pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+        update(EG::event_cancel_release, pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
     }
 
     
     void VolEGUnit::Trigger() {
         // set the delay trigger
-        double d = pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
-        uiDelayTrigger = pOwner->pRegion->GetEG1PreAttackDelay(pOwner->pPresetRegion) * d;
+        double d = pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
+        uiDelayTrigger = pVoice->pRegion->GetEG1PreAttackDelay(pVoice->pPresetRegion) * d;
         ////////////
 
         // GetEG1Sustain gets the decrease in level in centibels
-        uint sustain = ::sf2::ToRatio(-1 * pOwner->pRegion->GetEG1Sustain(pOwner->pPresetRegion)) * 1000; // in permille
+        uint sustain = ::sf2::ToRatio(-1 * pVoice->pRegion->GetEG1Sustain(pVoice->pPresetRegion)) * 1000; // in permille
         
         trigger (
             0, // should be in permille
-            pOwner->pRegion->GetEG1Attack(pOwner->pPresetRegion),
-            pOwner->pRegion->GetEG1Hold(pOwner->pPresetRegion),
-            pOwner->pRegion->GetEG1Decay(pOwner->pPresetRegion),
+            pVoice->pRegion->GetEG1Attack(pVoice->pPresetRegion),
+            pVoice->pRegion->GetEG1Hold(pVoice->pPresetRegion),
+            pVoice->pRegion->GetEG1Decay(pVoice->pPresetRegion),
             sustain,
-            pOwner->pRegion->GetEG1Release(pOwner->pPresetRegion),
-            pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
+            pVoice->pRegion->GetEG1Release(pVoice->pPresetRegion),
+            pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
         );
     }
     
@@ -78,28 +82,28 @@ namespace LinuxSampler { namespace sf2 {
         if (active()) {
 
             // if sample has a loop and loop start has been reached in this subfragment, send a special event to EG1 to let it finish the attack hold stage
-            /*if (pOwner->SmplInfo.HasLoops && pOwner->Pos <= pOwner->SmplInfo.LoopStart && pOwner->SmplInfo.LoopStart < newPos) {
-                update(EG::event_hold_end, pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            /*if (pVoice->SmplInfo.HasLoops && pVoice->Pos <= pVoice->SmplInfo.LoopStart && pVoice->SmplInfo.LoopStart < newPos) {
+                update(EG::event_hold_end, pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }*/
             // TODO: ^^^
 
             increment(1);
-            if (!toStageEndLeft()) update(EG::event_stage_end, pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            if (!toStageEndLeft()) update(EG::event_stage_end, pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
          }
     }
     
     void ModEGUnit::Trigger() {
-        double d = pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
-        uiDelayTrigger = pOwner->pRegion->GetEG2PreAttackDelay(pOwner->pPresetRegion) * d;
+        double d = pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
+        uiDelayTrigger = pVoice->pRegion->GetEG2PreAttackDelay(pVoice->pPresetRegion) * d;
 
         trigger (
             0, // should be in permille
-            pOwner->pRegion->GetEG2Attack(pOwner->pPresetRegion),
-            pOwner->pRegion->GetEG2Hold(pOwner->pPresetRegion),
-            pOwner->pRegion->GetEG2Decay(pOwner->pPresetRegion),
-            uint(1000 - pOwner->pRegion->GetEG2Sustain(pOwner->pPresetRegion)),
-            pOwner->pRegion->GetEG2Release(pOwner->pPresetRegion),
-            pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
+            pVoice->pRegion->GetEG2Attack(pVoice->pPresetRegion),
+            pVoice->pRegion->GetEG2Hold(pVoice->pPresetRegion),
+            pVoice->pRegion->GetEG2Decay(pVoice->pPresetRegion),
+            uint(1000 - pVoice->pRegion->GetEG2Sustain(pVoice->pPresetRegion)),
+            pVoice->pRegion->GetEG2Release(pVoice->pPresetRegion),
+            pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
         );
     }
     
@@ -126,7 +130,7 @@ namespace LinuxSampler { namespace sf2 {
         
         if (active()) {
             increment(1);
-            if (!toStageEndLeft()) update(EG::event_stage_end, pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            if (!toStageEndLeft()) update(EG::event_stage_end, pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
          }
     }
 
@@ -136,12 +140,12 @@ namespace LinuxSampler { namespace sf2 {
         Level = 0;
         
         // set the delay trigger
-        double samplerate = pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
-        uiDelayTrigger = pOwner->pRegion->GetDelayModLfo(pOwner->pPresetRegion) * samplerate;
+        double samplerate = pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
+        uiDelayTrigger = pVoice->pRegion->GetDelayModLfo(pVoice->pPresetRegion) * samplerate;
         ////////////
             
         trigger (
-            pOwner->pRegion->GetFreqModLfo(pOwner->pPresetRegion),
+            pVoice->pRegion->GetFreqModLfo(pVoice->pPresetRegion),
             start_level_min,
             1, 0, false, samplerate
         );
@@ -151,7 +155,7 @@ namespace LinuxSampler { namespace sf2 {
     void ModLfoUnit::Increment() {
         if (DelayStage()) return;
         
-        SignalUnitBase<Voice>::Increment();
+        SignalUnit::Increment();
         
         Level = render();
     }
@@ -162,14 +166,14 @@ namespace LinuxSampler { namespace sf2 {
         Level = 0;
 
         // set the delay trigger
-        double samplerate = pOwner->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
-        uiDelayTrigger = pOwner->pRegion->GetDelayVibLfo(pOwner->pPresetRegion) * samplerate;
+        double samplerate = pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
+        uiDelayTrigger = pVoice->pRegion->GetDelayVibLfo(pVoice->pPresetRegion) * samplerate;
         ////////////
             
         trigger (
-            pOwner->pRegion->GetFreqVibLfo(pOwner->pPresetRegion),
+            pVoice->pRegion->GetFreqVibLfo(pVoice->pPresetRegion),
             start_level_min,
-            pOwner->pRegion->GetVibLfoToPitch(pOwner->pPresetRegion),
+            pVoice->pRegion->GetVibLfoToPitch(pVoice->pPresetRegion),
             0, false, samplerate
         );
         update(0);
@@ -178,30 +182,30 @@ namespace LinuxSampler { namespace sf2 {
     void VibLfoUnit::Increment() {
         if (DelayStage()) return;
         
-        SignalUnitBase<Voice>::Increment();
+        SignalUnit::Increment();
         
         Level = render();
     }
 
 
-    EndpointUnit::EndpointUnit() {
+    EndpointUnit::EndpointUnit(SF2SignalUnitRack* rack): EndpointSignalUnit(rack), pVoice(rack->pVoice) {
         
     }
 
     void EndpointUnit::Trigger() {
-        prmModEgPitch->Coeff = pOwner->pRegion->GetModEnvToPitch(pOwner->pPresetRegion);
+        prmModEgPitch->Coeff = pVoice->pRegion->GetModEnvToPitch(pVoice->pPresetRegion);
         if (prmModEgPitch->Coeff == ::sf2::NONE) prmModEgPitch->Coeff = 0;
 
-        prmModEgCutoff->Coeff = pOwner->pRegion->GetModEnvToFilterFc(pOwner->pPresetRegion); // cents
+        prmModEgCutoff->Coeff = pVoice->pRegion->GetModEnvToFilterFc(pVoice->pPresetRegion); // cents
         if (prmModEgCutoff->Coeff == ::sf2::NONE) prmModEgCutoff->Coeff = 0;
 
-        prmModLfoVol->Coeff = pOwner->pRegion->GetModLfoToVolume(pOwner->pPresetRegion); // centibels
+        prmModLfoVol->Coeff = pVoice->pRegion->GetModLfoToVolume(pVoice->pPresetRegion); // centibels
         if (prmModLfoVol->Coeff == ::sf2::NONE) prmModLfoVol->Coeff = 0;
 
-        prmModLfoCutoff->Coeff = pOwner->pRegion->GetModLfoToFilterFc(pOwner->pPresetRegion);
+        prmModLfoCutoff->Coeff = pVoice->pRegion->GetModLfoToFilterFc(pVoice->pPresetRegion);
         if (prmModLfoCutoff->Coeff == ::sf2::NONE) prmModLfoCutoff->Coeff = 0;
 
-        prmModLfoPitch->Coeff = pOwner->pRegion->GetModLfoToPitch(pOwner->pPresetRegion);
+        prmModLfoPitch->Coeff = pVoice->pRegion->GetModLfoToPitch(pVoice->pPresetRegion);
         if (prmModLfoPitch->Coeff == ::sf2::NONE) prmModLfoPitch->Coeff = 0;
     }
     
@@ -240,7 +244,10 @@ namespace LinuxSampler { namespace sf2 {
         return 1;
     }
     
-    SF2SignalUnitRack::SF2SignalUnitRack(Voice* pVoice): SignalUnitRackBase<Voice>(pVoice) {
+    SF2SignalUnitRack::SF2SignalUnitRack(Voice* voice)
+        : pVoice(voice), suVolEG(this), suModEG(this), suModLfo(this), suVibLfo(this), suEndpoint(this) {
+
+        suVolEG.pVoice = suModEG.pVoice = suModLfo.pVoice = suVibLfo.pVoice = suEndpoint.pVoice = voice;
         Units.add(&suVolEG);
         Units.add(&suModEG);
         Units.add(&suModLfo);
@@ -268,12 +275,6 @@ namespace LinuxSampler { namespace sf2 {
         suEndpoint.prmModLfoPitch = &suEndpoint.Params[4];
         suEndpoint.prmModLfoCutoff = &suEndpoint.Params[5];
         suEndpoint.prmVibLfo = &suEndpoint.Params[6];
-    }
-    
-    void SF2SignalUnitRack::Trigger() {
-        // The region settings are available after the voice is triggered
-
-        SignalUnitRackBase<Voice>::Trigger();
     }
     
     EndpointSignalUnit* SF2SignalUnitRack::GetEndpointUnit() {

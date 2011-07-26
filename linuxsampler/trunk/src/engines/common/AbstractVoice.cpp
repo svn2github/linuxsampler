@@ -26,7 +26,7 @@
 
 namespace LinuxSampler {
 
-    AbstractVoice::AbstractVoice() {
+    AbstractVoice::AbstractVoice(SignalUnitRack* pRack): pSignalUnitRack(pRack) {
         pEngineChannel = NULL;
         pLFO1 = new LFOUnsigned(1.0f);  // amplitude LFO (0..1 range)
         pLFO2 = new LFOUnsigned(1.0f);  // filter LFO (0..1 range)
@@ -177,7 +177,7 @@ namespace LinuxSampler {
         // the length of the decay and release curves are dependent on the velocity
         const double velrelease = 1 / GetVelocityRelease(itNoteOnEvent->Param.Note.Velocity);
 
-        if (GetSignalUnitRack() == NULL) { // setup EG 1 (VCA EG)
+        if (pSignalUnitRack == NULL) { // setup EG 1 (VCA EG)
             // get current value of EG1 controller
             double eg1controllervalue = GetEG1ControllerValue(itNoteOnEvent->Param.Note.Velocity);
 
@@ -186,7 +186,7 @@ namespace LinuxSampler {
 
             TriggerEG1(egInfo, velrelease, velocityAttenuation, GetEngine()->SampleRate, itNoteOnEvent->Param.Note.Velocity);
         } else {
-            GetSignalUnitRack()->Trigger();
+            pSignalUnitRack->Trigger();
         }
 
 #ifdef CONFIG_INTERPOLATE_VOLUME
@@ -200,10 +200,10 @@ namespace LinuxSampler {
     #else
         {
             float finalVolume;
-            if (GetSignalUnitRack() == NULL) {
+            if (pSignalUnitRack == NULL) {
                 finalVolume = pEngineChannel->MidiVolume * crossfadeVolume * pEG1->getLevel();
             } else {
-                finalVolume = pEngineChannel->MidiVolume * crossfadeVolume * GetSignalUnitRack()->GetEndpointUnit()->GetVolume();
+                finalVolume = pEngineChannel->MidiVolume * crossfadeVolume * pSignalUnitRack->GetEndpointUnit()->GetVolume();
             }
 
             finalSynthesisParameters.fFinalVolumeLeft  = finalVolume * VolumeLeft  * pEngineChannel->GlobalPanLeft;
@@ -212,7 +212,7 @@ namespace LinuxSampler {
     #endif
 #endif
 
-        if (GetSignalUnitRack() == NULL) {
+        if (pSignalUnitRack == NULL) {
             // setup EG 2 (VCF Cutoff EG)
             {
                 // get current value of EG2 controller
@@ -356,7 +356,7 @@ namespace LinuxSampler {
                 // drivers that use Samples < MaxSamplesPerCycle).
                 // End the EG1 here, at pos 0, with a shorter max fade
                 // out time.
-                if (GetSignalUnitRack() == NULL) {
+                if (pSignalUnitRack == NULL) {
                     pEG1->enterFadeOutStage(Samples / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                 } else {
                     // TODO: 
@@ -388,7 +388,7 @@ namespace LinuxSampler {
             processTransitionEvents(itNoteEvent, iSubFragmentEnd);
             processGroupEvents(itGroupEvent, iSubFragmentEnd);
 
-            if (GetSignalUnitRack() == NULL) {
+            if (pSignalUnitRack == NULL) {
                 // if the voice was killed in this subfragment, or if the
                 // filter EG is finished, switch EG1 to fade out stage
                 if ((itKillEvent && killPos <= iSubFragmentEnd) ||
@@ -444,12 +444,12 @@ namespace LinuxSampler {
                 }*/
                 // TODO: ^^^
 
-                fFinalVolume   *= GetSignalUnitRack()->GetEndpointUnit()->GetVolume();
-                fFinalCutoff    = GetSignalUnitRack()->GetEndpointUnit()->CalculateFilterCutoff(fFinalCutoff);
-                fFinalResonance = GetSignalUnitRack()->GetEndpointUnit()->CalculateResonance(fFinalResonance);
+                fFinalVolume   *= pSignalUnitRack->GetEndpointUnit()->GetVolume();
+                fFinalCutoff    = pSignalUnitRack->GetEndpointUnit()->CalculateFilterCutoff(fFinalCutoff);
+                fFinalResonance = pSignalUnitRack->GetEndpointUnit()->CalculateResonance(fFinalResonance);
                 
                 finalSynthesisParameters.fFinalPitch =
-                    GetSignalUnitRack()->GetEndpointUnit()->CalculatePitch(finalSynthesisParameters.fFinalPitch);
+                    pSignalUnitRack->GetEndpointUnit()->CalculatePitch(finalSynthesisParameters.fFinalPitch);
                     
             }
             
@@ -487,17 +487,17 @@ namespace LinuxSampler {
             // render audio for one subfragment
             RunSynthesisFunction(SynthesisMode, &finalSynthesisParameters, &loop);
 
-            if (GetSignalUnitRack() == NULL) {
+            if (pSignalUnitRack == NULL) {
                 // stop the rendering if volume EG is finished
                 if (pEG1->getSegmentType() == EG::segment_end) break;
             } else {
                 // stop the rendering if the endpoint unit is not active
-                if (!GetSignalUnitRack()->GetEndpointUnit()->Active()) break;
+                if (!pSignalUnitRack->GetEndpointUnit()->Active()) break;
             }
 
             const double newPos = Pos + (iSubFragmentEnd - i) * finalSynthesisParameters.fFinalPitch;
 
-            if (GetSignalUnitRack() == NULL) {
+            if (pSignalUnitRack == NULL) {
                 // increment envelopes' positions
                 if (pEG1->active()) {
 
@@ -522,7 +522,7 @@ namespace LinuxSampler {
                     }*/
                 // TODO: ^^^
                 
-                GetSignalUnitRack()->Increment();
+                pSignalUnitRack->Increment();
             }
 
             Pos = newPos;
@@ -554,7 +554,7 @@ namespace LinuxSampler {
                 if (itEvent->Param.CC.Controller == VCFResonanceCtrl.controller) {
                     processResonanceEvent(itEvent);
                 }
-                if (GetSignalUnitRack() == NULL) {
+                if (pSignalUnitRack == NULL) {
                     if (itEvent->Param.CC.Controller == pLFO1->ExtController) {
                         pLFO1->update(itEvent->Param.CC.Value);
                     }
@@ -576,8 +576,8 @@ namespace LinuxSampler {
             }
 
             ProcessCCEvent(itEvent);
-            if (GetSignalUnitRack() != NULL) {
-                GetSignalUnitRack()->ProcessCCEvent(itEvent);
+            if (pSignalUnitRack != NULL) {
+                pSignalUnitRack->ProcessCCEvent(itEvent);
             }
         }
     }
@@ -610,11 +610,11 @@ namespace LinuxSampler {
                 if (itEvent->Type == Event::type_release) {
                     EnterReleaseStage();
                 } else if (itEvent->Type == Event::type_cancel_release) {
-                    if (GetSignalUnitRack() == NULL) {
+                    if (pSignalUnitRack == NULL) {
                         pEG1->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                         pEG2->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                     } else {
-                        GetSignalUnitRack()->CancelRelease();
+                        pSignalUnitRack->CancelRelease();
                     }
                 }
             }
@@ -642,7 +642,7 @@ namespace LinuxSampler {
      * @param itNoteOffEvent - event which causes this voice to die soon
      */
     void AbstractVoice::UpdatePortamentoPos(Pool<Event>::Iterator& itNoteOffEvent) {
-        if (GetSignalUnitRack() == NULL) {
+        if (pSignalUnitRack == NULL) {
             const float fFinalEG3Level = EG3.level(itNoteOffEvent->FragmentPos());
             pEngineChannel->PortamentoPos = (float) MIDIKey + RTMath::FreqRatioToCents(fFinalEG3Level) * 0.01f;
         } else {
@@ -709,19 +709,19 @@ namespace LinuxSampler {
     }
 
     void AbstractVoice::EnterReleaseStage() {
-        if (GetSignalUnitRack() == NULL) {
+        if (pSignalUnitRack == NULL) {
             pEG1->update(EG::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             pEG2->update(EG::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
         } else {
-            GetSignalUnitRack()->EnterReleaseStage();
+            pSignalUnitRack->EnterReleaseStage();
         }
     }
 
     bool AbstractVoice::EG1Finished() {
-        if (GetSignalUnitRack() == NULL) {
+        if (pSignalUnitRack == NULL) {
             return pEG1->getSegmentType() == EG::segment_end;
         } else {
-            return !GetSignalUnitRack()->GetEndpointUnit()->Active();
+            return !pSignalUnitRack->GetEndpointUnit()->Active();
         }
     }
 

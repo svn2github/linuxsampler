@@ -83,8 +83,10 @@ namespace LinuxSampler {
         public:
             type_t       Type;         ///< Voice Type (bit field, a voice may have several types)
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
+            
+            SignalUnitRack* const pSignalUnitRack;
 
-            AbstractVoice();
+            AbstractVoice(SignalUnitRack* pRack);
             virtual ~AbstractVoice();
 
             inline bool IsActive() { return PlaybackState; }
@@ -103,8 +105,6 @@ namespace LinuxSampler {
             virtual void Synthesize(uint Samples, sample_t* pSrc, uint Skip);
             
             uint GetSampleRate() { return GetEngine()->SampleRate; }
-            
-            virtual SignalUnitRack* GetSignalUnitRack() { return NULL; }
 
             void processCCEvents(RTList<Event>::Iterator& itEvent, uint End);
             void processPitchEvent(RTList<Event>::Iterator& itEvent);
