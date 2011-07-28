@@ -69,7 +69,7 @@ namespace LinuxSampler { namespace sfz {
             }
 
             virtual bool  Active() { return EG.active(); }
-            virtual float GetLevel() { return EG.getLevel(); }
+            virtual float GetLevel() { return DelayStage() ? 0 : EG.getLevel(); }
             
             virtual void EnterReleaseStage() { EG.update(EG::event_release, GetSampleRate()); }
             virtual void CancelRelease() { EG.update(EG::event_cancel_release, GetSampleRate()); }
@@ -104,13 +104,20 @@ namespace LinuxSampler { namespace sfz {
     
     class EGv1Unit: public EGUnit<EGADSR> {
         public:
-            EGv1Unit(SfzSignalUnitRack* rack): EGUnit<EGADSR>(rack) { }
+            int depth;
+            EGv1Unit(SfzSignalUnitRack* rack): EGUnit<EGADSR>(rack), depth(0) { }
             virtual void Trigger();
     };
     
     class EGv2Unit: public EGUnit< ::LinuxSampler::sfz::EG> {
         public:
             EGv2Unit(SfzSignalUnitRack* rack): EGUnit< ::LinuxSampler::sfz::EG>(rack) { }
+            virtual void Trigger();
+    };
+    
+    class PitchEGUnit: public EGv1Unit {
+        public:
+            PitchEGUnit(SfzSignalUnitRack* rack): EGv1Unit(rack) { }
             virtual void Trigger();
     };
     
@@ -173,6 +180,7 @@ namespace LinuxSampler { namespace sfz {
         private:
             EndpointUnit  suEndpoint;
             EGv1Unit      suVolEG;
+            PitchEGUnit   suPitchEG;
             
             FixedArray<EGv2Unit*> EGs;
             

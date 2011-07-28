@@ -471,6 +471,14 @@ namespace sfz
         pitcheg_decay    = 0;
         pitcheg_sustain  = 100; // in percentage
         pitcheg_release  = 0;
+        pitcheg_depth    = 0;
+
+        pitcheg_vel2delay   = 0;
+        pitcheg_vel2attack  = 0;
+        pitcheg_vel2hold    = 0;
+        pitcheg_vel2decay   = 0;
+        pitcheg_vel2sustain = 0;
+        pitcheg_vel2release = 0;
 
         amplfo_delay     = 0;
         amplfo_fade      = 0;
@@ -700,6 +708,14 @@ namespace sfz
         region->pitcheg_decay    = pitcheg_decay;
         region->pitcheg_sustain  = pitcheg_sustain;
         region->pitcheg_release  = pitcheg_release;
+        region->pitcheg_depth    = pitcheg_depth;
+
+        region->pitcheg_vel2delay   = pitcheg_vel2delay;
+        region->pitcheg_vel2attack  = pitcheg_vel2attack;
+        region->pitcheg_vel2hold    = pitcheg_vel2hold;
+        region->pitcheg_vel2decay   = pitcheg_vel2decay;
+        region->pitcheg_vel2sustain = pitcheg_vel2sustain;
+        region->pitcheg_vel2release = pitcheg_vel2release;
 
         region->amplfo_delay     = amplfo_delay;
         region->amplfo_fade      = amplfo_fade;
@@ -1280,11 +1296,19 @@ namespace sfz
         else if ("fileg_release"   == key) pCurDef->fileg_release = ToFloat(value);
         else if ("pitcheg_delay"   == key) pCurDef->pitcheg_delay = ToFloat(value);
         else if ("pitcheg_start"   == key) pCurDef->pitcheg_start = ToFloat(value);
-        else if ("pitcheg_attack"   == key) pCurDef->pitcheg_attack = ToFloat(value);
-        else if ("pitcheg_hold"   == key) pCurDef->pitcheg_hold = ToFloat(value);
+        else if ("pitcheg_attack"  == key) pCurDef->pitcheg_attack = ToFloat(value);
+        else if ("pitcheg_hold"    == key) pCurDef->pitcheg_hold = ToFloat(value);
         else if ("pitcheg_decay"   == key) pCurDef->pitcheg_decay = ToFloat(value);
-        else if ("pitcheg_sustain"   == key) pCurDef->pitcheg_sustain = ToFloat(value);
-        else if ("pitcheg_release"   == key) pCurDef->pitcheg_release = ToFloat(value);
+        else if ("pitcheg_sustain" == key) pCurDef->pitcheg_sustain = ToFloat(value);
+        else if ("pitcheg_release" == key) pCurDef->pitcheg_release = ToFloat(value);
+        else if ("pitcheg_depth"   == key) pCurDef->pitcheg_depth = check(key, -12000, 12000, ToInt(value));
+        else if ("pitcheg_vel2delay"   == key) pCurDef->pitcheg_vel2delay = check(key, -100.0f, 100.0f, ToFloat(value));
+        else if ("pitcheg_vel2attack"  == key) pCurDef->pitcheg_vel2attack = ToFloat(value);
+        else if ("pitcheg_vel2hold"    == key) pCurDef->pitcheg_vel2hold = ToFloat(value);
+        else if ("pitcheg_vel2decay"   == key) pCurDef->pitcheg_vel2decay = ToFloat(value);
+        else if ("pitcheg_vel2sustain" == key) pCurDef->pitcheg_vel2sustain = ToFloat(value);
+        else if ("pitcheg_vel2release" == key) pCurDef->pitcheg_vel2release = ToFloat(value);
+        
 
         // v1 LFO
         else if ("amplfo_delay" == key) pCurDef->amplfo_delay = ToFloat(value);

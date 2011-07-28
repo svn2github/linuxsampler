@@ -36,9 +36,13 @@ namespace LinuxSampler { namespace sfz {
     
     void EGv1Unit::Trigger() {
         ::sfz::Region* const pRegion = pVoice->pRegion;
+        
         // the length of the decay and release curves are dependent on the velocity
         const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity);
 
+        // set the delay trigger
+        uiDelayTrigger = (pRegion->ampeg_delay + pRegion->ampeg_vel2delay * velrelease) * GetSampleRate();
+        
         EG.trigger(uint(pRegion->ampeg_start * 10),
                    std::max(0.0, pRegion->ampeg_attack + pRegion->ampeg_vel2attack * velrelease),
                    std::max(0.0, pRegion->ampeg_hold + pRegion->ampeg_vel2hold * velrelease),
@@ -48,8 +52,29 @@ namespace LinuxSampler { namespace sfz {
                    GetSampleRate());
     }
     
+    
     void EGv2Unit::Trigger() {
         EG.trigger(*pEGInfo, GetSampleRate(), pVoice->MIDIVelocity);
+    }
+    
+    
+    void PitchEGUnit::Trigger() {
+        ::sfz::Region* const pRegion = pVoice->pRegion;
+        depth = pRegion->pitcheg_depth;
+        
+        // the length of the decay and release curves are dependent on the velocity
+        const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity);
+
+        // set the delay trigger
+        uiDelayTrigger = (pRegion->pitcheg_delay + pRegion->pitcheg_vel2delay * velrelease) * GetSampleRate();
+        
+        EG.trigger(uint(pRegion->pitcheg_start * 10),
+                   std::max(0.0, pRegion->pitcheg_attack + pRegion->pitcheg_vel2attack * velrelease),
+                   std::max(0.0, pRegion->pitcheg_hold + pRegion->pitcheg_vel2hold * velrelease),
+                   std::max(0.0, pRegion->pitcheg_decay + pRegion->pitcheg_vel2decay * velrelease),
+                   uint(std::min(std::max(0.0, 10 * (pRegion->pitcheg_sustain + pRegion->pitcheg_vel2sustain * velrelease)), 1000.0)),
+                   std::max(0.0, pRegion->pitcheg_release + pRegion->pitcheg_vel2release * velrelease),
+                   GetSampleRate());
     }
     
 
@@ -66,7 +91,7 @@ namespace LinuxSampler { namespace sfz {
         Level = 0;
         
         // set the delay trigger
-         uiDelayTrigger = pLfoInfo->delay * GetSampleRate();
+        uiDelayTrigger = pLfoInfo->delay * GetSampleRate();
     }
     
     void LFOv2Unit::Trigger() {
@@ -131,7 +156,9 @@ namespace LinuxSampler { namespace sfz {
     }
     
     float EndpointUnit::GetPitch() {
-        return 1;
+        EGv1Unit* u = &(GetRack()->suPitchEG);
+        double pitchEg = u->Active() ? RTMath::CentsToFreqRatioUnlimited(u->GetLevel() * u->depth) : 1;
+        return pitchEg;
     }
     
     float EndpointUnit::GetResonance() {
@@ -165,11 +192,11 @@ namespace LinuxSampler { namespace sfz {
     
     
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
-        : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this),
+        : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suPitchEG(this),
         EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount),
         LFOs(maxLfoCount), filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
     {
-        suEndpoint.pVoice = suVolEG.pVoice = voice;
+        suEndpoint.pVoice = suVolEG.pVoice = suPitchEG.pVoice = voice;
         
         for (int i = 0; i < EGs.capacity(); i++) {
             EGs[i] = new EGv2Unit(this);
@@ -253,6 +280,7 @@ namespace LinuxSampler { namespace sfz {
         Units.clear();
         
         Units.add(&suVolEG);
+        Units.add(&suPitchEG);
         
         for (int i = 0; i < EGs.size(); i++) {
             Units.add(EGs[i]);

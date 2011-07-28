@@ -97,6 +97,11 @@ Version CVS HEAD (?)
     - use the newly introduced signal units model
     - implemented opcodes lfoN_delay,
       lfoN_freq, lfoN_pan, lfoN_cutoff, lfoN_resonance
+    - implemented opcodes ampeg_delay, ampeg_vel2delay
+      pitcheg_delay, pitcheg_start, pitcheg_attack, pitcheg_hold,
+      pitcheg_decay, pitcheg_sustain, pitcheg_release, pitcheg_vel2delay,
+      pitcheg_vel2attack, pitcheg_vel2hold, pitcheg_vel2decay,
+      pitcheg_vel2sustain, pitcheg_vel2release, pitcheg_depth
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

@@ -104,6 +104,7 @@ namespace LinuxSampler { namespace sfz {
             EngineChannel* GetSfzEngineChannel();
             
             friend class EGv1Unit;
+            friend class PitchEGUnit;
             friend class SfzSignalUnitRack;
 
         protected:
