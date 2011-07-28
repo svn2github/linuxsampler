@@ -29,17 +29,64 @@
 
 
 namespace LinuxSampler {
+    
+    template<typename T>
+    class FixedArray {
+        public:
+            FixedArray(int capacity) {
+                iSize = 0;
+                iCapacity = capacity;
+                pData = new T[iCapacity];
+            }
+            
+            ~FixedArray() {
+                delete pData;
+                pData = NULL;
+            }
+            
+            inline int size() { return iSize; }
+            inline int capacity() { return iCapacity; }
+            
+            void add(T element) {
+                if (iSize >= iCapacity) throw Exception("Array out of bounds");
+                pData[iSize++] = element;
+            }
+            
+            
+            T increment() {
+                if (iSize >= iCapacity) throw Exception("Array out of bounds");
+                return pData[iSize++];
+            }
+            
+            void clear() { iSize = 0; }
+            
+            inline T& operator[](int idx) {
+                return pData[idx];
+            }
+            
+        private:
+            T*   pData;
+            int  iSize;
+            int  iCapacity;
+    };
+    
     class SignalUnitRack {
         protected:
             uint CurrentStep; // The current time step
 
         public:
-            ArrayList<SignalUnit*> Units; // A list of all signal units in this rack
+            FixedArray<SignalUnit*> Units; // A list of all signal units in this rack
 
-            SignalUnitRack(): CurrentStep(0) { }
+            /**
+             * @param maxUnitCount We are using fixed size array because of the real-time safe requirements.
+             */
+            SignalUnitRack(int maxUnitCount): CurrentStep(0), Units(maxUnitCount) { }
+            
             uint GetCurrentStep() { return CurrentStep; }
 
             virtual EndpointSignalUnit* GetEndpointUnit() = 0;
+            
+            virtual void EnterFadeOutStage() = 0;
             
             /**
              * Will be called to increment the time with one sample point.

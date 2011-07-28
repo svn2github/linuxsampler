@@ -14,4 +14,5 @@ liblinuxsamplersfzengine_la_SOURCES = \
 	Stream.cpp Stream.h \
 	EGADSR.cpp EGADSR.h \
 	EG.cpp EG.h \
+	SfzSignalUnitRack.cpp SfzSignalUnitRack.h \
 	LookupTable.cpp LookupTable.h

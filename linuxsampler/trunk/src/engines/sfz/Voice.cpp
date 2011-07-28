@@ -31,7 +31,8 @@
 
 namespace LinuxSampler { namespace sfz {
 
-    Voice::Voice() {
+    typedef LinuxSampler::VoiceBase<EngineChannel, ::sfz::Region, Sample, DiskThread> SfzVoice;
+    Voice::Voice(): SignalRack(this), SfzVoice(&SignalRack) {
         pEngine     = NULL;
     }
 
@@ -517,7 +518,7 @@ namespace LinuxSampler { namespace sfz {
                 EnterReleaseStage();
             } else {
                 // kill the voice fast
-                pEG1->enterFadeOutStage();
+                SignalRack.EnterFadeOutStage();
             }
         }
     }

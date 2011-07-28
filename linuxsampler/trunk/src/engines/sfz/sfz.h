@@ -240,6 +240,19 @@ namespace sfz
         EG();
     };
 
+    class LFO
+    {
+    public:
+        float freq; // 0 to 20 Hz
+        uint  wave; // 0 to 4294967296
+        float delay; // 0 to 100 seconds
+        int   pitch; // -9600 to 9600 cents
+        int   cutoff; // -9600 to 9600 cents
+        float resonance; // 0 to 40 dB
+        float pan; // -100 to 100 %
+        LFO();
+    };
+
     // Fixed size array with copy-on-write semantics
     template<class T>
     class Array
@@ -408,6 +421,9 @@ namespace sfz
 
         // envelope generators
         LinuxSampler::ArrayList<EG> eg;
+
+        // low frequency oscillators
+        LinuxSampler::ArrayList<LFO> lfos;
     };
 
     class Query {
@@ -549,6 +565,7 @@ namespace sfz
         int parseKey(const std::string& value);
         EG& eg(int x);
         EGNode& egnode(int x, int y);
+        LFO& lfo(int x);
 
         std::string currentDir;
         /// Pointer to the Instrument belonging to this file

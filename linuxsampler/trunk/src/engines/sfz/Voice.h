@@ -36,6 +36,7 @@
 #include "../gig/SynthesisParam.h"
 #include "EG.h"
 #include "EGADSR.h"
+#include "SfzSignalUnitRack.h"
 
 namespace LinuxSampler { namespace sfz {
     class Engine;
@@ -86,6 +87,7 @@ namespace LinuxSampler { namespace sfz {
             EGADSR EGADSR1;
             EG EG2;
             EGADSR EGADSR2;
+            SfzSignalUnitRack SignalRack;
 
         public: // FIXME: just made public for debugging (sanity check in Engine::RenderAudio()), should be changed to private before the final release
             // Attributes
@@ -100,6 +102,9 @@ namespace LinuxSampler { namespace sfz {
             void processCrossFadeEvent(RTList<Event>::Iterator& itEvent);
 
             EngineChannel* GetSfzEngineChannel();
+            
+            friend class EGv1Unit;
+            friend class SfzSignalUnitRack;
 
         protected:
             virtual uint8_t CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {

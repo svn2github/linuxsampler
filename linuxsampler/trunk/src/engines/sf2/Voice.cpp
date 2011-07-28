@@ -336,7 +336,7 @@ namespace LinuxSampler { namespace sf2 {
     void Voice::ProcessGroupEvent(RTList<Event>::Iterator& itEvent) {
         if (itEvent->Param.Note.Key != MIDIKey) {
             // kill the voice fast
-            pEG1->enterFadeOutStage();
+            SignalRack.EnterFadeOutStage();
         }
     }
 

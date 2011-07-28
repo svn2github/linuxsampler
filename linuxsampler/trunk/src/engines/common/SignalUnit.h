@@ -83,7 +83,7 @@ namespace LinuxSampler {
                 Parameter(const Parameter& Prm) { Copy(Prm); }
                 void operator=(const Parameter& Prm) { Copy(Prm); }
             
-                virtual void Copy(const Parameter& Prm) {
+                void Copy(const Parameter& Prm) {
                     if (this == &Prm) return;
 
                     pUnit = Prm.pUnit;
@@ -121,7 +121,7 @@ namespace LinuxSampler {
             SignalUnit(const SignalUnit& Unit): pRack(Unit.pRack) { Copy(Unit); }
             void operator=(const SignalUnit& Unit) { Copy(Unit); }
             
-            virtual void Copy(const SignalUnit& Unit) {
+            void Copy(const SignalUnit& Unit) {
                 if (this == &Unit) return;
 
                 bActive = Unit.bActive;
@@ -279,11 +279,12 @@ namespace LinuxSampler {
                 Ctrl = Controller;
             }
             
-            CCSignalUnit(const CCSignalUnit& Unit): SignalUnit(Unit) { Copy(Unit); }
-            void operator=(const CCSignalUnit& Unit) { SignalUnit::Copy(Unit); Copy(Unit); }
+            CCSignalUnit(const CCSignalUnit& Unit): SignalUnit(Unit.pRack) { Copy(Unit); }
+            void operator=(const CCSignalUnit& Unit) { Copy(Unit); }
             
-            virtual void Copy(const CCSignalUnit& Unit) {
+            void Copy(const CCSignalUnit& Unit) {
                 Ctrl = Unit.Ctrl;
+                SignalUnit::Copy(Unit);
             }
             
             virtual void Increment() { }

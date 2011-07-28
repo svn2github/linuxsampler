@@ -28,6 +28,7 @@
 #include "../common/AbstractVoice.h"
 
 namespace LinuxSampler { namespace sf2 {
+    const int MaxUnitCount = 5;
     
     class Voice;
     class SF2SignalUnitRack;
@@ -120,7 +121,8 @@ namespace LinuxSampler { namespace sf2 {
              */
             SF2SignalUnitRack(Voice* Voice);
 
-            virtual EndpointSignalUnit*  GetEndpointUnit();
+            virtual EndpointSignalUnit* GetEndpointUnit();
+            virtual void EnterFadeOutStage();
     };
     
 }} // namespace LinuxSampler::sf2

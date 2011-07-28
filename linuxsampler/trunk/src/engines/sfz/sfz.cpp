@@ -36,6 +36,20 @@
 
 namespace sfz
 {
+    template <typename T> T check(std::string name, T min, T max, T val) {
+        if (val < min) {
+            std::cerr << "sfz: The value of opcode '" << name;
+            std::cerr << "' is below the minimum allowed value (min=" << min << "): " << val << std::endl;
+            val = min;
+        }
+        if (val > max) {
+            std::cerr << "sfz: The value of opcode '" << name;
+            std::cerr << "' is above the maximum allowed value (max=" << max << "): " << val << std::endl;
+            val = max;
+        }
+        
+        return val;
+    }
 
     Sample* SampleManager::FindSample(std::string samplePath, int offset) {
         std::map<Sample*, std::set<Region*> >::iterator it = sampleMap.begin();
@@ -432,7 +446,7 @@ namespace sfz
         ampeg_attack   = 0;
         ampeg_hold     = 0;
         ampeg_decay    = 0;
-        ampeg_sustain  = 100; // in percentage
+        ampeg_sustain  = -1; // in percentage
         ampeg_release  = 0;
 
         ampeg_vel2delay   = 0;
@@ -1285,6 +1299,19 @@ namespace sfz
         else if ("pitchlfo_fade" == key) pCurDef->pitchlfo_fade = ToFloat(value);
         else if ("pitchlfo_freq" == key) pCurDef->pitchlfo_freq = ToFloat(value);
         else if ("pitchlfo_depth" == key) pCurDef->pitchlfo_depth = ToInt(value);
+        
+        // v2 LFO
+        else if (sscanf(key.c_str(), "lfo%d%n", &x, &y)) {
+            const char* s = key.c_str() + y;
+            if (strcmp(s, "_freq") == 0) lfo(x).freq = check(key, 0.0f, 20.0f, ToFloat(value));
+            else if (strcmp(s, "_wave") == 0) lfo(x).wave = ToInt(value);
+            else if (strcmp(s, "_delay") == 0) lfo(x).delay = check(key, 0.0f, 100.0f, ToFloat(value));
+            else if (strcmp(s, "_pitch") == 0) lfo(x).pitch = check(key, -9600, 9600, ToInt(value));
+            else if (strcmp(s, "_cutoff") == 0) lfo(x).cutoff = check(key, -9600, 9600, ToInt(value));
+            else if (strcmp(s, "_resonance") == 0) lfo(x).resonance = check(key, 0.0f, 40.0f, ToFloat(value));
+            else if (strcmp(s, "_pan") == 0) lfo(x).pan = check(key, -100.0f, 100.0f, ToFloat(value));
+            else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
+        }
 
         else {
             std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
@@ -1348,6 +1375,18 @@ namespace sfz
             e.node.add(EGNode());
         }
         return e.node[y];
+    }
+    
+    LFO::LFO(): freq (-1),/* -1 is used to determine whether the LFO was initialized */
+                wave(0), delay(0), pitch(0), cutoff(0), resonance(0), pan(0) {
+        
+    }
+
+    LFO& File::lfo(int x) {
+        while (pCurDef->lfos.size() <= x) {
+            pCurDef->lfos.add(LFO());
+        }
+        return pCurDef->lfos[x];
     }
 
 } // !namespace sfz

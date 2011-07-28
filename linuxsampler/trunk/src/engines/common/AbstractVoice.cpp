@@ -99,6 +99,7 @@ namespace LinuxSampler {
 
         Type            = VoiceType;
         MIDIKey         = itNoteOnEvent->Param.Note.Key;
+        MIDIVelocity    = itNoteOnEvent->Param.Note.Velocity;
         PlaybackState   = playback_state_init; // mark voice as triggered, but no audio rendered yet
         Delay           = itNoteOnEvent->FragmentPos();
         itTriggerEvent  = itNoteOnEvent;

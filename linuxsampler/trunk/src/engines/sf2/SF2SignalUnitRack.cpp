@@ -131,7 +131,7 @@ namespace LinuxSampler { namespace sf2 {
         if (active()) {
             increment(1);
             if (!toStageEndLeft()) update(EG::event_stage_end, pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-         }
+        }
     }
 
 
@@ -188,7 +188,7 @@ namespace LinuxSampler { namespace sf2 {
     }
 
 
-    EndpointUnit::EndpointUnit(SF2SignalUnitRack* rack): EndpointSignalUnit(rack), pVoice(rack->pVoice) {
+    EndpointUnit::EndpointUnit(SF2SignalUnitRack* rack): EndpointSignalUnit(rack) {
         
     }
 
@@ -210,7 +210,6 @@ namespace LinuxSampler { namespace sf2 {
     }
     
     bool EndpointUnit::Active() {
-        if (Params.size() < 1) return false;
         return prmVolEg->pUnit->Active(); // volEGUnit
     }
     
@@ -245,7 +244,7 @@ namespace LinuxSampler { namespace sf2 {
     }
     
     SF2SignalUnitRack::SF2SignalUnitRack(Voice* voice)
-        : pVoice(voice), suVolEG(this), suModEG(this), suModLfo(this), suVibLfo(this), suEndpoint(this) {
+        : SignalUnitRack(MaxUnitCount), pVoice(voice), suVolEG(this), suModEG(this), suModLfo(this), suVibLfo(this), suEndpoint(this) {
 
         suVolEG.pVoice = suModEG.pVoice = suModLfo.pVoice = suVibLfo.pVoice = suEndpoint.pVoice = voice;
         Units.add(&suVolEG);
@@ -279,6 +278,10 @@ namespace LinuxSampler { namespace sf2 {
     
     EndpointSignalUnit* SF2SignalUnitRack::GetEndpointUnit() {
         return static_cast<EndpointSignalUnit*> (&suEndpoint);
+    }
+    
+    void SF2SignalUnitRack::EnterFadeOutStage() {
+        suVolEG.enterFadeOutStage();
     }
     
 }} // namespace LinuxSampler::sf2
