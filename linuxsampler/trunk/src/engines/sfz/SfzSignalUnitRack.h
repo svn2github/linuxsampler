@@ -26,6 +26,7 @@
 #include "../common/SignalUnitRack.h"
 #include "EG.h"
 #include "EGADSR.h"
+#include "../common/AbstractVoice.h"
 
 namespace LinuxSampler { namespace sfz {
     const int MaxUnitCount = 1000;
@@ -52,13 +53,13 @@ namespace LinuxSampler { namespace sfz {
     };
     
     template <class T>
-    class EGUnit : public SfzSignalUnit {
+    class EGUnit: public SfzSignalUnit {
         public:
             ::sfz::EG* pEGInfo;
             T EG;
 
             EGUnit(SfzSignalUnitRack* rack): SfzSignalUnit(rack), pEGInfo(NULL) { }
-            EGUnit(const EGUnit& Unit): SfzSignalUnit(Unit.pRack) { Copy(Unit); }
+            EGUnit(const EGUnit& Unit): SfzSignalUnit(Unit) { Copy(Unit); }
             void operator=(const EGUnit& Unit) { Copy(Unit); }
             
             void Copy(const EGUnit& Unit) {
@@ -113,6 +114,34 @@ namespace LinuxSampler { namespace sfz {
             virtual void Trigger();
     };
     
+    class LFOUnit: public SfzSignalUnit {
+        public:
+            ::sfz::LFO* pLfoInfo;
+            LFOSigned lfo;
+            
+            LFOUnit(SfzSignalUnitRack* rack): SfzSignalUnit(rack), pLfoInfo(NULL), lfo(1200.0f) { }
+            LFOUnit(const LFOUnit& Unit): SfzSignalUnit(Unit), lfo(1200.0f) { Copy(Unit); }
+            void operator=(const LFOUnit& Unit) { Copy(Unit); }
+            
+            void Copy(const LFOUnit& Unit) {
+                pLfoInfo = Unit.pLfoInfo;
+                
+                SfzSignalUnit::Copy(Unit);
+            }
+            
+            virtual bool  Active() { return true; }
+            virtual void  Trigger();
+            virtual void  Increment();
+            virtual float GetLevel() { return Level; }
+    };
+    
+    class LFOv2Unit: public LFOUnit {
+        public:
+            LFOv2Unit(SfzSignalUnitRack* rack): LFOUnit(rack) { }
+            
+            virtual void Trigger();
+    };
+    
     
     
     class EndpointUnit : public EndpointSignalUnit {
@@ -130,8 +159,13 @@ namespace LinuxSampler { namespace sfz {
             virtual float GetFilterCutoff();
             virtual float GetPitch();
             virtual float GetResonance();
+            virtual float GetPan();
             
             SfzSignalUnitRack* const GetRack();
+            
+            virtual float CalculateResonance(float res) {
+                return GetResonance() + res;
+            }
     };
     
     
@@ -147,6 +181,18 @@ namespace LinuxSampler { namespace sfz {
             
             // used for optimization - contains only the ones that are modulating pitch
             FixedArray<EGv2Unit*> pitchEGs;
+            
+            
+            FixedArray<LFOv2Unit*> LFOs;
+            
+            // used for optimization - contains only the ones that are modulating filter cutoff
+            FixedArray<LFOv2Unit*> filLFOs;
+            
+            // used for optimization - contains only the ones that are modulating resonance
+            FixedArray<LFOv2Unit*> resLFOs;
+            
+            // used for optimization - contains only the ones that are modulating pan
+            FixedArray<LFOv2Unit*> panLFOs;
             
 
         public:

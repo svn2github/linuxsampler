@@ -251,6 +251,9 @@ namespace LinuxSampler {
              */
             virtual float GetResonance() = 0;
             
+            /** Should return value in the range [-100, 100] (L <-> R) */
+            virtual float GetPan() = 0;
+            
             virtual float CalculateFilterCutoff(float cutoff) {
                 cutoff *= GetFilterCutoff();
                 return cutoff > 13500 ? 13500 : cutoff;
@@ -262,6 +265,14 @@ namespace LinuxSampler {
             
             virtual float CalculateResonance(float res) {
                 return GetResonance() * res;
+            }
+            
+            /** Should return value in the range [0, 127] (L <-> R) */
+            virtual uint8_t CaluclatePan(uint8_t pan) {
+                int p = pan + GetPan() * 0.63;
+                if (p < 0) return 0;
+                if (p > 127) return 127;
+                return p;
             }
     };
     

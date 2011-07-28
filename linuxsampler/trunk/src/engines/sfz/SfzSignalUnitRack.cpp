@@ -51,6 +51,34 @@ namespace LinuxSampler { namespace sfz {
     void EGv2Unit::Trigger() {
         EG.trigger(*pEGInfo, GetSampleRate(), pVoice->MIDIVelocity);
     }
+    
+
+    void LFOUnit::Increment() {
+        if (DelayStage()) return;
+        
+        SignalUnit::Increment();
+        
+        Level = lfo.render();
+    }
+    
+    void LFOUnit::Trigger() {
+        //reset
+        Level = 0;
+        
+        // set the delay trigger
+         uiDelayTrigger = pLfoInfo->delay * GetSampleRate();
+    }
+    
+    void LFOv2Unit::Trigger() {
+        LFOUnit::Trigger();
+        
+        lfo.trigger (
+            pLfoInfo->freq,
+            start_level_mid,
+            1, 0, false, GetSampleRate()
+        );
+        lfo.update(0);
+    }
 
 
     EndpointUnit::EndpointUnit(SfzSignalUnitRack* rack): EndpointSignalUnit(rack) {
@@ -89,7 +117,17 @@ namespace LinuxSampler { namespace sfz {
     }
     
     float EndpointUnit::GetFilterCutoff() {
-        return 1;
+        float val = 1;
+        
+        for (int i = 0; i < GetRack()->filLFOs.size(); i++) {
+            LFOv2Unit* lfo = GetRack()->filLFOs[i];
+            if (!lfo->Active()) continue;
+            
+            float f = lfo->GetLevel() * lfo->pLfoInfo->cutoff;
+            val *= RTMath::CentsToFreqRatioUnlimited(f);
+        }
+        
+        return val;
     }
     
     float EndpointUnit::GetPitch() {
@@ -97,13 +135,39 @@ namespace LinuxSampler { namespace sfz {
     }
     
     float EndpointUnit::GetResonance() {
-        return 1;
+         float val = 0;
+        
+        for (int i = 0; i < GetRack()->resLFOs.size(); i++) {
+            LFOv2Unit* lfo = GetRack()->resLFOs[i];
+            if (!lfo->Active()) continue;
+            
+            val += lfo->GetLevel() * lfo->pLfoInfo->resonance;
+        }
+        
+        return val;
+    }
+    
+    float EndpointUnit::GetPan() {
+        float pan = 0;
+        
+        for (int i = 0; i < GetRack()->panLFOs.size(); i++) {
+            LFOv2Unit* lfo = GetRack()->panLFOs[i];
+            if (!lfo->Active()) continue;
+            
+            pan += lfo->GetLevel() * lfo->pLfoInfo->pan;
+        }
+        
+        if(pan < -100) return -100;
+        if(pan >  100) return  100;
+        
+        return pan;
     }
     
     
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
         : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this),
-        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount)
+        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount),
+        LFOs(maxLfoCount), filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
     {
         suEndpoint.pVoice = suVolEG.pVoice = voice;
         
@@ -111,11 +175,20 @@ namespace LinuxSampler { namespace sfz {
             EGs[i] = new EGv2Unit(this);
             EGs[i]->pVoice = voice;
         }
+        
+        for (int i = 0; i < LFOs.capacity(); i++) {
+            LFOs[i] = new LFOv2Unit(this);
+            LFOs[i]->pVoice = voice;
+        }
     }
     
     SfzSignalUnitRack::~SfzSignalUnitRack() {
-        for (int i = 0; i < maxEgCount; i++) {
+        for (int i = 0; i < EGs.capacity(); i++) {
             delete EGs[i]; EGs[i] = NULL;
+        }
+        
+        for (int i = 0; i < LFOs.capacity(); i++) {
+            delete LFOs[i]; LFOs[i] = NULL;
         }
     }
     
@@ -124,9 +197,14 @@ namespace LinuxSampler { namespace sfz {
         volEGs.clear();
         pitchEGs.clear();
         
+        LFOs.clear();
+        filLFOs.clear();
+        resLFOs.clear();
+        panLFOs.clear();
+        
         ::sfz::Region* const pRegion = pVoice->pRegion;
         
-        for (int i = 0 ; i < pRegion->eg.size() ; i++) {
+        for (int i = 0; i < pRegion->eg.size(); i++) {
             if (pRegion->eg[i].node.size() == 0) continue;
             
             if(EGs.size() < EGs.capacity()) {
@@ -134,8 +212,6 @@ namespace LinuxSampler { namespace sfz {
                 eg.pEGInfo = &(pRegion->eg[i]);
                 EGs.increment()->Copy(eg);
             } else { std::cerr << "Maximum number of EGs reached!" << std::endl; break; }
-            
-            
             
             if (pRegion->eg[i].amplitude > 0) {
                 if(volEGs.size() < volEGs.capacity()) volEGs.add(EGs[EGs.size() - 1]);
@@ -148,12 +224,42 @@ namespace LinuxSampler { namespace sfz {
             else pRegion->ampeg_sustain = 100;
         }
         
+        // LFO
+        for (int i = 0; i < pRegion->lfos.size(); i++) {
+            if (pRegion->lfos[i].freq == -1) continue; // Not initialized
+            
+            if(LFOs.size() < LFOs.capacity()) {
+                LFOv2Unit lfo(this);
+                lfo.pLfoInfo = &(pRegion->lfos[i]);
+                LFOs.increment()->Copy(lfo);
+            } else { std::cerr << "Maximum number of LFOs reached!" << std::endl; break; }
+            
+            if (pRegion->lfos[i].cutoff != 0) {
+                if(filLFOs.size() < filLFOs.capacity()) filLFOs.add(LFOs[LFOs.size() - 1]);
+                else std::cerr << "Maximum number of LFOs reached!" << std::endl;
+            }
+            
+            if (pRegion->lfos[i].resonance != 0) {
+                if(resLFOs.size() < resLFOs.capacity()) resLFOs.add(LFOs[LFOs.size() - 1]);
+                else std::cerr << "Maximum number of LFOs reached!" << std::endl;
+            }
+            
+            if (pRegion->lfos[i].pan != 0) {
+                if(panLFOs.size() < panLFOs.capacity()) panLFOs.add(LFOs[LFOs.size() - 1]);
+                else std::cerr << "Maximum number of LFOs reached!" << std::endl;
+            }
+        }
+        
         Units.clear();
         
         Units.add(&suVolEG);
         
-        for (int i = 0 ; i < EGs.size() ; i++) {
+        for (int i = 0; i < EGs.size(); i++) {
             Units.add(EGs[i]);
+        }
+        
+        for (int i = 0; i < LFOs.size(); i++) {
+            Units.add(LFOs[i]);
         }
         
         Units.add(&suEndpoint);

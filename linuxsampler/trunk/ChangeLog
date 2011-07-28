@@ -95,6 +95,8 @@ Version CVS HEAD (?)
     - added support for EG hold (ampeg_hold)
     - added support for sample offset (offset)
     - use the newly introduced signal units model
+    - implemented opcodes lfoN_delay,
+      lfoN_freq, lfoN_pan, lfoN_cutoff, lfoN_resonance
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

@@ -100,6 +100,8 @@ namespace LinuxSampler {
         Type            = VoiceType;
         MIDIKey         = itNoteOnEvent->Param.Note.Key;
         MIDIVelocity    = itNoteOnEvent->Param.Note.Velocity;
+        MIDIPan         = pEngineChannel->ControllerTable[10];
+        if (MIDIPan == 0 && pEngineChannel->GlobalPanRight == 1) MIDIPan = 64; // workaround used to determine whether the MIDI pan has not been set
         PlaybackState   = playback_state_init; // mark voice as triggered, but no audio rendered yet
         Delay           = itNoteOnEvent->FragmentPos();
         itTriggerEvent  = itNoteOnEvent;
@@ -378,6 +380,11 @@ namespace LinuxSampler {
 
             // process MIDI control change and pitchbend events for this subfragment
             processCCEvents(itCCEvent, iSubFragmentEnd);
+            uint8_t pan = MIDIPan;
+            if (pSignalUnitRack != NULL) pan = pSignalUnitRack->GetEndpointUnit()->CaluclatePan(pan);
+            
+            PanLeftSmoother.update(AbstractEngine::PanCurve[128 - pan]);
+            PanRightSmoother.update(AbstractEngine::PanCurve[pan]);
 
             finalSynthesisParameters.fFinalPitch = Pitch.PitchBase * Pitch.PitchBend;
             float fFinalVolume = VolumeSmoother.render() * CrossfadeSmoother.render();
@@ -569,8 +576,7 @@ namespace LinuxSampler {
                 if (itEvent->Param.CC.Controller == 7) { // volume
                     VolumeSmoother.update(AbstractEngine::VolumeCurve[itEvent->Param.CC.Value]);
                 } else if (itEvent->Param.CC.Controller == 10) { // panpot
-                    PanLeftSmoother.update(AbstractEngine::PanCurve[128 - itEvent->Param.CC.Value]);
-                    PanRightSmoother.update(AbstractEngine::PanCurve[itEvent->Param.CC.Value]);
+                    MIDIPan = itEvent->Param.CC.Value;
                 }
             } else if (itEvent->Type == Event::type_pitchbend) { // if pitch bend event
                 processPitchEvent(itEvent);

@@ -84,6 +84,7 @@ namespace LinuxSampler {
             type_t       Type;         ///< Voice Type (bit field, a voice may have several types)
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
             uint8_t      MIDIVelocity; ///< MIDI velocity of the key that triggered the voice
+            uint8_t      MIDIPan;      ///< the current MIDI pan value
             
             SignalUnitRack* const pSignalUnitRack;
 
