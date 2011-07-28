@@ -464,6 +464,14 @@ namespace sfz
         fileg_sustain  = 100; // in percentage
         fileg_release  = 0;
 
+        fileg_vel2delay   = 0;
+        fileg_vel2attack  = 0;
+        fileg_vel2hold    = 0;
+        fileg_vel2decay   = 0;
+        fileg_vel2sustain = 0;
+        fileg_vel2release = 0;
+        fileg_depth       = 0;
+
         pitcheg_delay    = 0;
         pitcheg_start    = 0; //in percentage
         pitcheg_attack   = 0;
@@ -700,6 +708,14 @@ namespace sfz
         region->fileg_decay    = fileg_decay;
         region->fileg_sustain  = fileg_sustain;
         region->fileg_release  = fileg_release;
+        region->fileg_depth    = fileg_depth;
+
+        region->fileg_vel2delay   = fileg_vel2delay;
+        region->fileg_vel2attack  = fileg_vel2attack;
+        region->fileg_vel2hold    = fileg_vel2hold;
+        region->fileg_vel2decay   = fileg_vel2decay;
+        region->fileg_vel2sustain = fileg_vel2sustain;
+        region->fileg_vel2release = fileg_vel2release;
 
         region->pitcheg_delay    = pitcheg_delay;
         region->pitcheg_start    = pitcheg_start;
@@ -1294,6 +1310,13 @@ namespace sfz
         else if ("fileg_decay"   == key) pCurDef->fileg_decay = ToFloat(value);
         else if ("fileg_sustain"   == key) pCurDef->fileg_sustain = ToFloat(value);
         else if ("fileg_release"   == key) pCurDef->fileg_release = ToFloat(value);
+        else if ("fileg_depth"   == key) pCurDef->fileg_depth = check(key, -12000, 12000, ToInt(value));
+        else if ("fileg_vel2delay"   == key) pCurDef->fileg_vel2delay = check(key, -100.0f, 100.0f, ToFloat(value));
+        else if ("fileg_vel2attack"  == key) pCurDef->fileg_vel2attack = ToFloat(value);
+        else if ("fileg_vel2hold"    == key) pCurDef->fileg_vel2hold = ToFloat(value);
+        else if ("fileg_vel2decay"   == key) pCurDef->fileg_vel2decay = ToFloat(value);
+        else if ("fileg_vel2sustain" == key) pCurDef->fileg_vel2sustain = ToFloat(value);
+        else if ("fileg_vel2release" == key) pCurDef->fileg_vel2release = ToFloat(value);
         else if ("pitcheg_delay"   == key) pCurDef->pitcheg_delay = ToFloat(value);
         else if ("pitcheg_start"   == key) pCurDef->pitcheg_start = ToFloat(value);
         else if ("pitcheg_attack"  == key) pCurDef->pitcheg_attack = ToFloat(value);

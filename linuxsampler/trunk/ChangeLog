@@ -105,6 +105,10 @@ Version CVS HEAD (?)
     - implemented opcodes pitchlfo_delay, pitchlfo_freq,
       pitchlfo_depth, fillfo_delay, fillfo_freq, fillfo_depth,
       amplfo_delay, amplfo_freq, amplfo_depth
+    - implemented opcodes fileg_delay, fileg_start, fileg_attack,
+      fileg_hold, fileg_decay, fileg_sustain, fileg_release, fileg_vel2delay,
+      fileg_vel2attack, fileg_vel2hold, fileg_vel2decay, fileg_vel2sustain,
+      fileg_vel2release
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

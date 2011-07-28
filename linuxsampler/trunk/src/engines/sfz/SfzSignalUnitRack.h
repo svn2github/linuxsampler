@@ -121,6 +121,12 @@ namespace LinuxSampler { namespace sfz {
             virtual void Trigger();
     };
     
+    class FilEGUnit: public EGv1Unit {
+        public:
+            FilEGUnit(SfzSignalUnitRack* rack): EGv1Unit(rack) { }
+            virtual void Trigger();
+    };
+    
     class LFOUnit: public SfzSignalUnit {
         public:
             ::sfz::LFO* pLfoInfo;
@@ -210,6 +216,7 @@ namespace LinuxSampler { namespace sfz {
         private:
             EndpointUnit  suEndpoint;
             EGv1Unit      suVolEG;
+            FilEGUnit     suFilEG;
             PitchEGUnit   suPitchEG;
             
             AmpLFOUnit   suAmpLFO;

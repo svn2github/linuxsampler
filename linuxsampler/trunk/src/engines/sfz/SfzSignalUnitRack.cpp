@@ -78,6 +78,26 @@ namespace LinuxSampler { namespace sfz {
                    GetSampleRate());
     }
     
+    
+    void FilEGUnit::Trigger() {
+        ::sfz::Region* const pRegion = pVoice->pRegion;
+        depth = pRegion->fileg_depth;
+        
+        // the length of the decay and release curves are dependent on the velocity
+        const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity);
+
+        // set the delay trigger
+        uiDelayTrigger = (pRegion->fileg_delay + pRegion->fileg_vel2delay * velrelease) * GetSampleRate();
+        
+        EG.trigger(uint(pRegion->fileg_start * 10),
+                   std::max(0.0, pRegion->fileg_attack + pRegion->fileg_vel2attack * velrelease),
+                   std::max(0.0, pRegion->fileg_hold + pRegion->fileg_vel2hold * velrelease),
+                   std::max(0.0, pRegion->fileg_decay + pRegion->fileg_vel2decay * velrelease),
+                   uint(std::min(std::max(0.0, 10 * (pRegion->fileg_sustain + pRegion->fileg_vel2sustain * velrelease)), 1000.0)),
+                   std::max(0.0, pRegion->fileg_release + pRegion->fileg_vel2release * velrelease),
+                   GetSampleRate());
+    }
+    
 
     void LFOUnit::Increment() {
         if (DelayStage()) return;
@@ -189,6 +209,9 @@ namespace LinuxSampler { namespace sfz {
         FilLFOUnit* u = &(GetRack()->suFilLFO);
         val = u->Active() ? RTMath::CentsToFreqRatioUnlimited(u->GetLevel() * u->pLfoInfo->cutoff) : 1;
         
+        FilEGUnit* u2 = &(GetRack()->suFilEG);
+        val *= u2->Active() ? RTMath::CentsToFreqRatioUnlimited(u2->GetLevel() * u2->depth) : 1;
+        
         for (int i = 0; i < GetRack()->filLFOs.size(); i++) {
             LFOv2Unit* lfo = GetRack()->filLFOs[i];
             if (!lfo->Active()) continue;
@@ -242,12 +265,12 @@ namespace LinuxSampler { namespace sfz {
     
     
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
-        : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suPitchEG(this),
+        : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suFilEG(this), suPitchEG(this),
         EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount),
         suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
         LFOs(maxLfoCount), filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
     {
-        suEndpoint.pVoice = suVolEG.pVoice = suPitchEG.pVoice = voice;
+        suEndpoint.pVoice = suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
         suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = voice;
         
         for (int i = 0; i < EGs.capacity(); i++) {
@@ -332,6 +355,7 @@ namespace LinuxSampler { namespace sfz {
         Units.clear();
         
         Units.add(&suVolEG);
+        Units.add(&suFilEG);
         Units.add(&suPitchEG);
         Units.add(&suPitchLFO);
         Units.add(&suAmpLFO);

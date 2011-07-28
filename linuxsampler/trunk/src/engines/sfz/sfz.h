@@ -414,9 +414,10 @@ namespace sfz
         float ampeg_delay, ampeg_start, ampeg_attack, ampeg_hold, ampeg_decay, ampeg_sustain, ampeg_release;
         float ampeg_vel2delay, ampeg_vel2attack, ampeg_vel2hold, ampeg_vel2decay, ampeg_vel2sustain, ampeg_vel2release;
         float fileg_delay, fileg_start, fileg_attack, fileg_hold, fileg_decay, fileg_sustain, fileg_release;
+        float fileg_vel2delay, fileg_vel2attack, fileg_vel2hold, fileg_vel2decay, fileg_vel2sustain, fileg_vel2release;
         float pitcheg_delay, pitcheg_start, pitcheg_attack, pitcheg_hold, pitcheg_decay, pitcheg_sustain, pitcheg_release;
         float pitcheg_vel2delay, pitcheg_vel2attack, pitcheg_vel2hold, pitcheg_vel2decay, pitcheg_vel2sustain, pitcheg_vel2release;
-        int   pitcheg_depth;
+        int   fileg_depth, pitcheg_depth;
         float amplfo_delay, amplfo_fade, amplfo_freq, amplfo_depth;
         float fillfo_delay, fillfo_fade, fillfo_freq, fillfo_depth;
         float pitchlfo_delay, pitchlfo_fade, pitchlfo_freq;
