@@ -22,6 +22,7 @@
 
 #include "SfzSignalUnitRack.h"
 #include "Voice.h"
+#include <SF.h>
 
 namespace LinuxSampler { namespace sfz {
     
@@ -94,6 +95,17 @@ namespace LinuxSampler { namespace sfz {
         uiDelayTrigger = pLfoInfo->delay * GetSampleRate();
     }
     
+    void LFOv1Unit::Trigger() {
+        LFOUnit::Trigger();
+        
+        lfo.trigger (
+            pLfoInfo->freq,
+            start_level_mid,
+            1, 0, false, GetSampleRate()
+        );
+        lfo.update(0);
+    }
+    
     void LFOv2Unit::Trigger() {
         LFOUnit::Trigger();
         
@@ -103,6 +115,33 @@ namespace LinuxSampler { namespace sfz {
             1, 0, false, GetSampleRate()
         );
         lfo.update(0);
+    }
+    
+    void AmpLFOUnit::Trigger() {
+        ::sfz::Region* const pRegion = pVoice->pRegion;
+        pLfoInfo->delay = pRegion->amplfo_delay;
+        pLfoInfo->freq = pRegion->amplfo_freq;
+        pLfoInfo->volume = pRegion->amplfo_depth;
+        
+        LFOv1Unit::Trigger();
+    }
+    
+    void PitchLFOUnit::Trigger() {
+        ::sfz::Region* const pRegion = pVoice->pRegion;
+        pLfoInfo->delay = pRegion->pitchlfo_delay;
+        pLfoInfo->freq = pRegion->pitchlfo_freq;
+        pLfoInfo->pitch = pRegion->pitchlfo_depth;
+        
+        LFOv1Unit::Trigger();
+    }
+    
+    void FilLFOUnit::Trigger() {
+        ::sfz::Region* const pRegion = pVoice->pRegion;
+        pLfoInfo->delay = pRegion->fillfo_delay;
+        pLfoInfo->freq = pRegion->fillfo_freq;
+        pLfoInfo->cutoff = pRegion->fillfo_depth;
+        
+        LFOv1Unit::Trigger();
     }
 
 
@@ -138,11 +177,17 @@ namespace LinuxSampler { namespace sfz {
             vol += eg->GetLevel() * (eg->pEGInfo->amplitude / 100.0f);
         }
         
+        AmpLFOUnit* u = &(GetRack()->suAmpLFO);
+        vol *= u->Active() ? ::sf2::ToRatio((u->GetLevel() * u->pLfoInfo->volume) * 10.0) : 1;
+        
         return vol;
     }
     
     float EndpointUnit::GetFilterCutoff() {
-        float val = 1;
+        float val;
+        
+        FilLFOUnit* u = &(GetRack()->suFilLFO);
+        val = u->Active() ? RTMath::CentsToFreqRatioUnlimited(u->GetLevel() * u->pLfoInfo->cutoff) : 1;
         
         for (int i = 0; i < GetRack()->filLFOs.size(); i++) {
             LFOv2Unit* lfo = GetRack()->filLFOs[i];
@@ -156,9 +201,14 @@ namespace LinuxSampler { namespace sfz {
     }
     
     float EndpointUnit::GetPitch() {
+        double p;
         EGv1Unit* u = &(GetRack()->suPitchEG);
-        double pitchEg = u->Active() ? RTMath::CentsToFreqRatioUnlimited(u->GetLevel() * u->depth) : 1;
-        return pitchEg;
+        p = u->Active() ? RTMath::CentsToFreqRatioUnlimited(u->GetLevel() * u->depth) : 1;
+        
+        PitchLFOUnit* u2 = &(GetRack()->suPitchLFO);
+        p *= u2->Active() ? RTMath::CentsToFreqRatioUnlimited(u2->GetLevel() * u2->pLfoInfo->pitch) : 1;
+        
+        return p;
     }
     
     float EndpointUnit::GetResonance() {
@@ -194,9 +244,11 @@ namespace LinuxSampler { namespace sfz {
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
         : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suPitchEG(this),
         EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount),
+        suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
         LFOs(maxLfoCount), filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
     {
         suEndpoint.pVoice = suVolEG.pVoice = suPitchEG.pVoice = voice;
+        suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = voice;
         
         for (int i = 0; i < EGs.capacity(); i++) {
             EGs[i] = new EGv2Unit(this);
@@ -281,6 +333,9 @@ namespace LinuxSampler { namespace sfz {
         
         Units.add(&suVolEG);
         Units.add(&suPitchEG);
+        Units.add(&suPitchLFO);
+        Units.add(&suAmpLFO);
+        Units.add(&suFilLFO);
         
         for (int i = 0; i < EGs.size(); i++) {
             Units.add(EGs[i]);

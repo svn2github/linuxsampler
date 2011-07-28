@@ -142,9 +142,39 @@ namespace LinuxSampler { namespace sfz {
             virtual float GetLevel() { return Level; }
     };
     
+    class LFOv1Unit: public LFOUnit {
+        public:
+            ::sfz::LFO lfoInfo;
+            
+            LFOv1Unit(SfzSignalUnitRack* rack): LFOUnit(rack) { pLfoInfo = &lfoInfo; }
+            
+            virtual void Trigger();
+    };
+    
     class LFOv2Unit: public LFOUnit {
         public:
             LFOv2Unit(SfzSignalUnitRack* rack): LFOUnit(rack) { }
+            
+            virtual void Trigger();
+    };
+    
+    class AmpLFOUnit: public LFOv1Unit {
+        public:
+            AmpLFOUnit(SfzSignalUnitRack* rack): LFOv1Unit(rack) { }
+            
+            virtual void Trigger();
+    };
+    
+    class PitchLFOUnit: public LFOv1Unit {
+        public:
+            PitchLFOUnit(SfzSignalUnitRack* rack): LFOv1Unit(rack) { }
+            
+            virtual void Trigger();
+    };
+    
+    class FilLFOUnit: public LFOv1Unit {
+        public:
+            FilLFOUnit(SfzSignalUnitRack* rack): LFOv1Unit(rack) { }
             
             virtual void Trigger();
     };
@@ -181,6 +211,10 @@ namespace LinuxSampler { namespace sfz {
             EndpointUnit  suEndpoint;
             EGv1Unit      suVolEG;
             PitchEGUnit   suPitchEG;
+            
+            AmpLFOUnit   suAmpLFO;
+            PitchLFOUnit suPitchLFO;
+            FilLFOUnit   suFilLFO;
             
             FixedArray<EGv2Unit*> EGs;
             

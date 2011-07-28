@@ -246,6 +246,7 @@ namespace sfz
         float freq; // 0 to 20 Hz
         uint  wave; // 0 to 4294967296
         float delay; // 0 to 100 seconds
+        float volume; // -144 to 6 dB
         int   pitch; // -9600 to 9600 cents
         int   cutoff; // -9600 to 9600 cents
         float resonance; // 0 to 40 dB

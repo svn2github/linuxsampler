@@ -102,6 +102,9 @@ Version CVS HEAD (?)
       pitcheg_decay, pitcheg_sustain, pitcheg_release, pitcheg_vel2delay,
       pitcheg_vel2attack, pitcheg_vel2hold, pitcheg_vel2decay,
       pitcheg_vel2sustain, pitcheg_vel2release, pitcheg_depth
+    - implemented opcodes pitchlfo_delay, pitchlfo_freq,
+      pitchlfo_depth, fillfo_delay, fillfo_freq, fillfo_depth,
+      amplfo_delay, amplfo_freq, amplfo_depth
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

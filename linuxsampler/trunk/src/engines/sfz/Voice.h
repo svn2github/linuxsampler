@@ -105,6 +105,9 @@ namespace LinuxSampler { namespace sfz {
             
             friend class EGv1Unit;
             friend class PitchEGUnit;
+            friend class PitchLFOUnit;
+            friend class AmpLFOUnit;
+            friend class FilLFOUnit;
             friend class SfzSignalUnitRack;
 
         protected:

@@ -1330,6 +1330,7 @@ namespace sfz
             if (strcmp(s, "_freq") == 0) lfo(x).freq = check(key, 0.0f, 20.0f, ToFloat(value));
             else if (strcmp(s, "_wave") == 0) lfo(x).wave = ToInt(value);
             else if (strcmp(s, "_delay") == 0) lfo(x).delay = check(key, 0.0f, 100.0f, ToFloat(value));
+            else if (strcmp(s, "_volume") == 0) lfo(x).volume = check(key, -144.0f, 6.0f, ToFloat(value));
             else if (strcmp(s, "_pitch") == 0) lfo(x).pitch = check(key, -9600, 9600, ToInt(value));
             else if (strcmp(s, "_cutoff") == 0) lfo(x).cutoff = check(key, -9600, 9600, ToInt(value));
             else if (strcmp(s, "_resonance") == 0) lfo(x).resonance = check(key, 0.0f, 40.0f, ToFloat(value));
