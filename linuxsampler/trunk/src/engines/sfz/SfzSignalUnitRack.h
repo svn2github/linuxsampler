@@ -27,6 +27,9 @@
 #include "EG.h"
 #include "EGADSR.h"
 #include "../common/AbstractVoice.h"
+#include "../common/PulseLFO.h"
+#include "../common/SawLFO.h"
+#include "../common/SineLFO.h"
 
 namespace LinuxSampler { namespace sfz {
     const int MaxUnitCount = 1000;
@@ -127,13 +130,36 @@ namespace LinuxSampler { namespace sfz {
             virtual void Trigger();
     };
     
+    class AbstractLfo {
+        public:
+            virtual float Render() = 0;
+            virtual void Update(const uint16_t& ExtControlValue) = 0;
+            virtual void Trigger(float Frequency, start_level_t StartLevel, uint16_t InternalDepth, uint16_t ExtControlDepth, bool FlipPhase, unsigned int SampleRate) = 0;
+    };
+    
+    template <class T>
+    class LfoBase: public AbstractLfo, public T {
+        public:
+            LfoBase(float Max): T(Max) { }
+            virtual float Render() { return T::render(); }
+            
+            virtual void Update(const uint16_t& ExtControlValue) { T::update(ExtControlValue); }
+            
+            virtual void Trigger (
+                float Frequency, start_level_t StartLevel, uint16_t InternalDepth,
+                uint16_t ExtControlDepth, bool FlipPhase, unsigned int SampleRate
+            ) {
+                T::trigger(Frequency, StartLevel, InternalDepth, ExtControlDepth, FlipPhase, SampleRate);
+            }
+    };
+    
     class LFOUnit: public SfzSignalUnit {
         public:
             ::sfz::LFO* pLfoInfo;
-            LFOSigned lfo;
+            AbstractLfo* pLFO;
             
-            LFOUnit(SfzSignalUnitRack* rack): SfzSignalUnit(rack), pLfoInfo(NULL), lfo(1200.0f) { }
-            LFOUnit(const LFOUnit& Unit): SfzSignalUnit(Unit), lfo(1200.0f) { Copy(Unit); }
+            LFOUnit(SfzSignalUnitRack* rack): SfzSignalUnit(rack), pLfoInfo(NULL), pLFO(NULL) { }
+            LFOUnit(const LFOUnit& Unit): SfzSignalUnit(Unit) { Copy(Unit); }
             void operator=(const LFOUnit& Unit) { Copy(Unit); }
             
             void Copy(const LFOUnit& Unit) {
@@ -151,15 +177,30 @@ namespace LinuxSampler { namespace sfz {
     class LFOv1Unit: public LFOUnit {
         public:
             ::sfz::LFO lfoInfo;
+            LfoBase<LFOSigned> lfo;
             
-            LFOv1Unit(SfzSignalUnitRack* rack): LFOUnit(rack) { pLfoInfo = &lfoInfo; }
+            LFOv1Unit(SfzSignalUnitRack* rack): LFOUnit(rack), lfo(1200.0f) {
+                pLfoInfo = &lfoInfo; pLFO = &lfo;
+            }
             
             virtual void Trigger();
     };
     
     class LFOv2Unit: public LFOUnit {
+        protected:
+            FixedArray<AbstractLfo*> lfos;
+            LfoBase<LFOSigned>                       lfo0; // triangle
+            LfoBase<SineLFO<range_signed> >          lfo1; // sine
+            LfoBase<PulseLFO<range_unsigned, 750> >  lfo2; // pulse 75%
+            LfoBase<SquareLFO<range_signed> >        lfo3; // square
+            LfoBase<PulseLFO<range_unsigned, 250> >  lfo4; // pulse 25%
+            LfoBase<PulseLFO<range_unsigned, 125> >  lfo5; // pulse 12,5%
+            LfoBase<SawLFO<range_unsigned, true> >   lfo6; // saw up
+            LfoBase<SawLFO<range_unsigned, false> >  lfo7; // saw down
+            
+            
         public:
-            LFOv2Unit(SfzSignalUnitRack* rack): LFOUnit(rack) { }
+            LFOv2Unit(SfzSignalUnitRack* rack);
             
             virtual void Trigger();
     };

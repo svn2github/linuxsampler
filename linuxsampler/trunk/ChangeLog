@@ -41,6 +41,7 @@ Version CVS HEAD (?)
     - implemented support for internal LADSPA effects
     - raised limit of program change queue from 100 to 512
       (as suggested by Alex Stone)
+    - implemented sine LFO, pulse LFO and saw LFO
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension
@@ -109,6 +110,7 @@ Version CVS HEAD (?)
       fileg_hold, fileg_decay, fileg_sustain, fileg_release, fileg_vel2delay,
       fileg_vel2attack, fileg_vel2hold, fileg_vel2decay, fileg_vel2sustain,
       fileg_vel2release
+    - implemented opcode lfoN_wave
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

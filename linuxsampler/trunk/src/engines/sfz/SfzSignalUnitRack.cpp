@@ -104,7 +104,7 @@ namespace LinuxSampler { namespace sfz {
         
         SignalUnit::Increment();
         
-        Level = lfo.render();
+        Level = pLFO->Render();
     }
     
     void LFOUnit::Trigger() {
@@ -126,15 +126,33 @@ namespace LinuxSampler { namespace sfz {
         lfo.update(0);
     }
     
+    
+    LFOv2Unit::LFOv2Unit(SfzSignalUnitRack* rack)
+        : LFOUnit(rack), lfos(8), lfo0(1200.0f), lfo1(1200.0f), lfo2(1200.0f),
+          lfo3(1200.0f), lfo4(1200.0f), lfo5(1200.0f), lfo6(1200.0f), lfo7(1200.0f)
+    {
+        lfos.add(&lfo0);
+        lfos.add(&lfo1);
+        lfos.add(&lfo2);
+        lfos.add(&lfo3);
+        lfos.add(&lfo4);
+        lfos.add(&lfo5);
+        lfos.add(&lfo6);
+        lfos.add(&lfo7);
+    }
+    
     void LFOv2Unit::Trigger() {
         LFOUnit::Trigger();
         
-        lfo.trigger (
+        if (pLfoInfo->wave < 0 || pLfoInfo->wave >= lfos.size()) pLFO = &lfo0;
+        else pLFO = lfos[pLfoInfo->wave];
+        
+        pLFO->Trigger (
             pLfoInfo->freq,
             start_level_mid,
             1, 0, false, GetSampleRate()
         );
-        lfo.update(0);
+        pLFO->Update(0);
     }
     
     void AmpLFOUnit::Trigger() {
