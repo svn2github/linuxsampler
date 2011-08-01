@@ -181,6 +181,22 @@ namespace LinuxSampler { namespace sfz {
         
         LFOv1Unit::Trigger();
     }
+    
+    CCUnit::CCUnit(SfzSignalUnitRack* rack): CCSignalUnit(rack) { }
+    
+    void CCUnit::Trigger() {
+        for (int i = 0; i < Ctrls.size(); i++) {
+            Ctrls[i].Value = pVoice->GetControllerValue(Ctrls[i].Controller);
+        }
+        CCSignalUnit::Trigger();
+    }
+    
+     void CCUnit::SetCCs(::sfz::Array<int>& cc) {
+         RemoveAllCCs();
+         for (int i = 0; i < 128; i++) {
+             if (cc[i] != 0) AddCC(i, cc[i]);
+         }
+     }
 
 
     EndpointUnit::EndpointUnit(SfzSignalUnitRack* rack): EndpointSignalUnit(rack) {
@@ -247,8 +263,9 @@ namespace LinuxSampler { namespace sfz {
         p = u->Active() ? RTMath::CentsToFreqRatioUnlimited(u->GetLevel() * u->depth) : 1;
         
         PitchLFOUnit* u2 = &(GetRack()->suPitchLFO);
-        p *= u2->Active() ? RTMath::CentsToFreqRatioUnlimited(u2->GetLevel() * u2->pLfoInfo->pitch) : 1;
-        
+        CCSignalUnit* u3 = &(GetRack()->suPitchLFO.suDepthCC);
+        float f = u3->Active() ? u3->GetLevel() : 0;
+        p *= u2->Active() ? RTMath::CentsToFreqRatioUnlimited(u2->GetLevel() * (u2->pLfoInfo->pitch + f)) : 1;
         return p;
     }
     
@@ -290,6 +307,7 @@ namespace LinuxSampler { namespace sfz {
     {
         suEndpoint.pVoice = suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
         suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = voice;
+        suPitchLFO.suDepthCC.pVoice = voice;
         
         for (int i = 0; i < EGs.capacity(); i++) {
             EGs[i] = new EGv2Unit(this);
@@ -370,12 +388,15 @@ namespace LinuxSampler { namespace sfz {
             }
         }
         
+        suPitchLFO.suDepthCC.SetCCs(pRegion->pitchlfo_depthcc);
+        
         Units.clear();
         
         Units.add(&suVolEG);
         Units.add(&suFilEG);
         Units.add(&suPitchEG);
         Units.add(&suPitchLFO);
+        Units.add(&suPitchLFO.suDepthCC);
         Units.add(&suAmpLFO);
         Units.add(&suFilLFO);
         

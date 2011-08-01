@@ -435,6 +435,8 @@ namespace sfz
             eq1_gain_oncc.set(i, 0);
             eq2_gain_oncc.set(i, 0);
             eq3_gain_oncc.set(i, 0);
+            
+            pitchlfo_depthcc.set(i, 0);
         }
         cutoff_cc = 0;
 
@@ -747,6 +749,8 @@ namespace sfz
         region->pitchlfo_fade    = pitchlfo_fade;
         region->pitchlfo_freq    = pitchlfo_freq;
         region->pitchlfo_depth   = pitchlfo_depth;
+        
+        region->pitchlfo_depthcc = pitchlfo_depthcc;
 
         return region;
     }
@@ -1272,6 +1276,7 @@ namespace sfz
             else if ("eq1_gain_on" == key_cc || "eq1_gain" == key_cc) pCurDef->eq1_gain_oncc.set(num_cc, ToInt(value));
             else if ("eq2_gain_on" == key_cc || "eq2_gain" == key_cc) pCurDef->eq2_gain_oncc.set(num_cc, ToInt(value));
             else if ("eq3_gain_on" == key_cc || "eq3_gain" == key_cc) pCurDef->eq3_gain_oncc.set(num_cc, ToInt(value));
+            else if ("pitchlfo_depth" == key_cc) pCurDef->pitchlfo_depthcc.set(num_cc, ToInt(value));
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
         // v2 envelope generators

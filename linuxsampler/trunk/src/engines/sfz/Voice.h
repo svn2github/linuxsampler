@@ -62,13 +62,13 @@ namespace LinuxSampler { namespace sfz {
             virtual float            GetReleaseTriggerAttenuation(float noteLength);
             virtual double           GetEG1ControllerValue(uint8_t MIDIKeyVelocity);
             virtual EGInfo           CalculateEG1ControllerInfluence(double eg1ControllerValue);
-            virtual void             TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity);
+            virtual void             TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) { }
             virtual double           GetEG2ControllerValue(uint8_t MIDIKeyVelocity);
             virtual EGInfo           CalculateEG2ControllerInfluence(double eg2ControllerValue);
-            virtual void             TriggerEG2(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity);
-            virtual void             InitLFO1();
-            virtual void             InitLFO2();
-            virtual void             InitLFO3();
+            virtual void             TriggerEG2(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) { }
+            virtual void             InitLFO1() { }
+            virtual void             InitLFO2() { }
+            virtual void             InitLFO3() { }
             virtual float            CalculateCutoffBase(uint8_t MIDIKeyVelocity);
             virtual float            CalculateFinalCutoff(float cutoffBase);
             virtual uint8_t          GetVCFCutoffCtrl();

@@ -422,6 +422,7 @@ namespace sfz
         float fillfo_delay, fillfo_fade, fillfo_freq, fillfo_depth;
         float pitchlfo_delay, pitchlfo_fade, pitchlfo_freq;
         int pitchlfo_depth;
+        Array<int> pitchlfo_depthcc;
 
         // envelope generators
         LinuxSampler::ArrayList<EG> eg;

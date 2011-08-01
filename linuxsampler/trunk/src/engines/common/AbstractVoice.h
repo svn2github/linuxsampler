@@ -107,6 +107,10 @@ namespace LinuxSampler {
             virtual void Synthesize(uint Samples, sample_t* pSrc, uint Skip);
             
             uint GetSampleRate() { return GetEngine()->SampleRate; }
+            
+            uint8_t GetControllerValue(uint8_t Controller) {
+                return (Controller > 128) ? 0 : pEngineChannel->ControllerTable[Controller];
+            }
 
             void processCCEvents(RTList<Event>::Iterator& itEvent, uint End);
             void processPitchEvent(RTList<Event>::Iterator& itEvent);

@@ -55,6 +55,19 @@ namespace LinuxSampler { namespace sfz {
             double GetSampleRate();
     };
     
+    
+    class CCUnit: public CCSignalUnit {
+        public:
+            Voice* pVoice;
+
+            CCUnit(SfzSignalUnitRack* rack);
+            
+            virtual void Trigger();
+            
+            void SetCCs(::sfz::Array<int>& pCC);
+    };
+    
+    
     template <class T>
     class EGUnit: public SfzSignalUnit {
         public:
@@ -214,7 +227,9 @@ namespace LinuxSampler { namespace sfz {
     
     class PitchLFOUnit: public LFOv1Unit {
         public:
-            PitchLFOUnit(SfzSignalUnitRack* rack): LFOv1Unit(rack) { }
+            CCUnit suDepthCC;
+            
+            PitchLFOUnit(SfzSignalUnitRack* rack): LFOv1Unit(rack), suDepthCC(rack) { }
             
             virtual void Trigger();
     };
@@ -228,7 +243,7 @@ namespace LinuxSampler { namespace sfz {
     
     
     
-    class EndpointUnit : public EndpointSignalUnit {
+    class EndpointUnit: public EndpointSignalUnit {
         public:
             Voice* pVoice;
 

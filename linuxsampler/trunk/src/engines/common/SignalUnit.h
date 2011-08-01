@@ -28,6 +28,52 @@
 
 namespace LinuxSampler {
 
+    template<typename T>
+    class FixedArray {
+        public:
+            FixedArray(int capacity) {
+                iSize = 0;
+                iCapacity = capacity;
+                pData = new T[iCapacity];
+            }
+            
+            ~FixedArray() {
+                delete pData;
+                pData = NULL;
+            }
+            
+            inline int size() const { return iSize; }
+            inline int capacity() { return iCapacity; }
+            
+            void add(T element) {
+                if (iSize >= iCapacity) throw Exception("Array out of bounds");
+                pData[iSize++] = element;
+            }
+            
+            
+            T increment() {
+                if (iSize >= iCapacity) throw Exception("Array out of bounds");
+                return pData[iSize++];
+            }
+            
+            void clear() { iSize = 0; }
+            
+            void copy(const FixedArray<T>& array) {
+                if(array.size() >= capacity()) throw Exception("Not enough space to copy array");
+                for (int i = 0; i < array.size(); i++) pData[i] = array[i];
+                iSize = array.size();
+            }
+            
+            inline T& operator[](int idx) const {
+                return pData[idx];
+            }
+            
+        private:
+            T*   pData;
+            int  iSize;
+            int  iCapacity;
+    };
+    
     class SignalUnitRack;
 
     /**
@@ -278,36 +324,87 @@ namespace LinuxSampler {
     
     /**
      * Continuous controller signal unit.
-     * The level of this unit corresponds to the controller changes
-     * and is normalized to be in the range from -1 to +1.
+     * The level of this unit corresponds to the controllers changes
+     * and their influences.
      */
     class CCSignalUnit: public SignalUnit {
-        private:
-            uint8_t Ctrl; // The number of the MIDI controller which modulates this signal unit.
+        protected:
+            class CC {
+                public:
+                    uint8_t Controller;  ///< MIDI controller number.
+                    uint8_t Value;       ///< Controller Value.
+                    float   Influence;
+                    
+                    CC() {
+                        CC(0, 0.0f);
+                    }
+                    
+                    CC(uint8_t Controller, float Influence) {
+                        this->Controller = Controller;
+                        this->Value = 0;
+                        this->Influence = Influence;
+                    }
+                    
+                    CC(const CC& cc) { Copy(cc); }
+                    void operator=(const CC& cc) { Copy(cc); }
+                    
+                    void Copy(const CC& cc) {
+                        Controller = cc.Controller;
+                        Value = cc.Value;
+                        Influence = cc.Influence;
+                    }
+            };
+            
+            FixedArray<CC> Ctrls; // The MIDI controllers which modulates this signal unit.
 
         public:
-            CCSignalUnit(SignalUnitRack* rack, uint8_t Controller): SignalUnit(rack) {
-                Ctrl = Controller;
+            CCSignalUnit(SignalUnitRack* rack): SignalUnit(rack), Ctrls(128) {
+                
             }
             
-            CCSignalUnit(const CCSignalUnit& Unit): SignalUnit(Unit.pRack) { Copy(Unit); }
+            CCSignalUnit(const CCSignalUnit& Unit): SignalUnit(Unit.pRack), Ctrls(128) { Copy(Unit); }
             void operator=(const CCSignalUnit& Unit) { Copy(Unit); }
             
             void Copy(const CCSignalUnit& Unit) {
-                Ctrl = Unit.Ctrl;
+                Ctrls.copy(Unit.Ctrls);
                 SignalUnit::Copy(Unit);
+            }
+            
+            void AddCC(uint8_t Controller, float Influence) {
+                Ctrls.add(CC(Controller, Influence));
+            }
+            
+            void RemoveAllCCs() {
+                Ctrls.clear();
             }
             
             virtual void Increment() { }
             
+            virtual void Trigger() {
+                Calculate();
+                bActive = Level != 0;
+            }
+            
             virtual void ProcessCCEvent(uint8_t Controller, uint8_t Value) {
-                if (Controller != Ctrl) return;
+                bool recalculate = false;
                 
-                // Normalize the value so it belongs to the interval [-1, +1]
-                Level = 2 * Value;
-                Level = Level/127.0f - 1.0f;
+                for (int i = 0; i < Ctrls.size(); i++) {
+                    if (Controller != Ctrls[i].Controller) continue;
+                    if (Ctrls[i].Value == Value) continue;
+                    Ctrls[i].Value = Value;
+                    if (!bActive) bActive = true;
+                    recalculate = true;
+                }
                 
-                if (!bActive) bActive = true;
+                if (recalculate) Calculate();
+            }
+            
+            virtual void Calculate() {
+                Level = 0;
+                for (int i = 0; i < Ctrls.size(); i++) {
+                    if (Ctrls[i].Value == 0) continue;
+                    Level += (Ctrls[i].Value / 127.0f) * Ctrls[i].Influence;
+                }
             }
     };
     

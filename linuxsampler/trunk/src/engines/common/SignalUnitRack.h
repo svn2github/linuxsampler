@@ -30,46 +30,6 @@
 
 namespace LinuxSampler {
     
-    template<typename T>
-    class FixedArray {
-        public:
-            FixedArray(int capacity) {
-                iSize = 0;
-                iCapacity = capacity;
-                pData = new T[iCapacity];
-            }
-            
-            ~FixedArray() {
-                delete pData;
-                pData = NULL;
-            }
-            
-            inline int size() { return iSize; }
-            inline int capacity() { return iCapacity; }
-            
-            void add(T element) {
-                if (iSize >= iCapacity) throw Exception("Array out of bounds");
-                pData[iSize++] = element;
-            }
-            
-            
-            T increment() {
-                if (iSize >= iCapacity) throw Exception("Array out of bounds");
-                return pData[iSize++];
-            }
-            
-            void clear() { iSize = 0; }
-            
-            inline T& operator[](int idx) {
-                return pData[idx];
-            }
-            
-        private:
-            T*   pData;
-            int  iSize;
-            int  iCapacity;
-    };
-    
     class SignalUnitRack {
         protected:
             uint CurrentStep; // The current time step
