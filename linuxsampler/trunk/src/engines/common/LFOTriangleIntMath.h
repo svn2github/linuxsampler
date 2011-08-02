@@ -112,6 +112,20 @@ namespace LinuxSampler {
                         break;
                 }
             }
+            
+            /**
+             * Should be invoked after the LFO is triggered.
+             * @param phase From 0 to 360 degrees.
+             */
+            void setPhase(float phase) {
+                if (phase < 0) phase = 0;
+                if (phase > 360) phase = 360;
+                phase /= 360.0f;
+                const unsigned int intLimit = (unsigned int) -1; // all 0xFFFF...
+                unsigned int uiPhase = intLimit * phase + iLevel;
+                if (uiPhase > intLimit / 2) iLevel = uiPhase - intLimit;
+                else iLevel = uiPhase;
+            }
 
         protected:
             int   iLevel;

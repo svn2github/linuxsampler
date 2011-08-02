@@ -1216,69 +1216,7 @@ namespace sfz
         else if (sscanf(key.c_str(), "amp_velcurve_%d", &x)) {
             pCurDef->amp_velcurve.set(x, ToFloat(value));
         }
-
-        // CCs
-        else if (key.find("cc") != std::string::npos)
-        {
-            std::string::size_type delimiter_index = key.find("cc");
-            std::string key_cc = key.substr(0, delimiter_index);
-            int num_cc = ToInt(key.substr(delimiter_index + 2));
-
-            // input controls
-            if ("lo" == key_cc) pCurDef->locc.set(num_cc, ToInt(value));
-            else if ("hi" == key_cc) pCurDef->hicc.set(num_cc, ToInt(value));
-            else if ("start_lo" == key_cc) pCurDef->start_locc.set(num_cc, ToInt(value));
-            else if ("start_hi" == key_cc) pCurDef->start_hicc.set(num_cc, ToInt(value));
-            else if ("stop_lo" == key_cc) pCurDef->stop_locc.set(num_cc, ToInt(value));
-            else if ("stop_hi" == key_cc) pCurDef->stop_hicc.set(num_cc, ToInt(value));
-            else if ("on_lo" == key_cc) pCurDef->on_locc.set(num_cc, ToInt(value));
-            else if ("on_hi" == key_cc) pCurDef->on_hicc.set(num_cc, ToInt(value));
-
-            // sample player
-            else if ("delay_on" == key_cc) pCurDef->delay_oncc.set(num_cc, ToFloat(value));
-            else if ("delay_samples_on" == key_cc) pCurDef->delay_samples_oncc.set(num_cc, ToInt(value));
-            else if ("offset_on" == key_cc) pCurDef->offset_oncc.set(num_cc, ToInt(value));
-
-            // amplifier
-            else if ("gain_on"  == key_cc || "gain_" == key_cc) pCurDef->gain_oncc.set(num_cc, ToFloat(value));
-            else if ("xfin_lo"  == key_cc) pCurDef->xfin_locc.set(num_cc, ToInt(value));
-            else if ("xfin_hi"  == key_cc) pCurDef->xfin_hicc.set(num_cc, ToInt(value));
-            else if ("xfout_lo" == key_cc) pCurDef->xfout_locc.set(num_cc, ToInt(value));
-            else if ("xfout_hi" == key_cc) pCurDef->xfout_hicc.set(num_cc, ToInt(value));
-
-            // filter
-            else if ("cutoff_on"  == key_cc || "cutoff_" == key_cc) {
-                pCurDef->cutoff_oncc.set(num_cc, ToInt(value));
-                pCurDef->cutoff_cc = num_cc;
-            } else if ("cutoff2_on" == key_cc) pCurDef->cutoff2_oncc.set(num_cc, ToInt(value));
-            else if ("cutoff_smooth"  == key_cc) pCurDef->cutoff_smoothcc.set(num_cc, ToInt(value));
-            else if ("cutoff2_smooth" == key_cc) pCurDef->cutoff2_smoothcc.set(num_cc, ToInt(value));
-            else if ("cutoff_step"  == key_cc) pCurDef->cutoff_stepcc.set(num_cc, ToInt(value));
-            else if ("cutoff2_step" == key_cc) pCurDef->cutoff2_stepcc.set(num_cc, ToInt(value));
-            else if ("cutoff_curve" == key_cc) pCurDef->cutoff_curvecc.set(num_cc, ToInt(value));
-            else if ("cutoff2_curve" == key_cc) pCurDef->cutoff2_curvecc.set(num_cc, ToInt(value));
-            else if ("resonance_on" == key_cc) pCurDef->resonance_oncc.set(num_cc, ToInt(value));
-            else if ("resonance2_on" == key_cc) pCurDef->resonance2_oncc.set(num_cc, ToInt(value));
-            else if ("resonance_smooth" == key_cc) pCurDef->resonance_smoothcc.set(num_cc, ToInt(value));
-            else if ("resonance2_smooth" == key_cc) pCurDef->resonance2_smoothcc.set(num_cc, ToInt(value));
-            else if ("resonance_step" == key_cc) pCurDef->resonance_stepcc.set(num_cc, ToInt(value));
-            else if ("resonance2_step" == key_cc) pCurDef->resonance2_stepcc.set(num_cc, ToInt(value));
-            else if ("resonance_curve" == key_cc) pCurDef->resonance_curvecc.set(num_cc, ToInt(value));
-            else if ("resonance2_curve" == key_cc) pCurDef->resonance2_curvecc.set(num_cc, ToInt(value));
-
-            // per voice equalizer
-            else if ("eq1_freq_on" == key_cc || "eq1_freq" == key_cc) pCurDef->eq1_freq_oncc.set(num_cc, ToInt(value));
-            else if ("eq2_freq_on" == key_cc || "eq2_freq" == key_cc) pCurDef->eq2_freq_oncc.set(num_cc, ToInt(value));
-            else if ("eq3_freq_on" == key_cc || "eq3_freq" == key_cc) pCurDef->eq3_freq_oncc.set(num_cc, ToInt(value));
-            else if ("eq1_bw_on" == key_cc || "eq1_bw" == key_cc) pCurDef->eq1_bw_oncc.set(num_cc, ToInt(value));
-            else if ("eq2_bw_on" == key_cc || "eq2_bw" == key_cc) pCurDef->eq2_bw_oncc.set(num_cc, ToInt(value));
-            else if ("eq3_bw_on" == key_cc || "eq3_bw" == key_cc) pCurDef->eq3_bw_oncc.set(num_cc, ToInt(value));
-            else if ("eq1_gain_on" == key_cc || "eq1_gain" == key_cc) pCurDef->eq1_gain_oncc.set(num_cc, ToInt(value));
-            else if ("eq2_gain_on" == key_cc || "eq2_gain" == key_cc) pCurDef->eq2_gain_oncc.set(num_cc, ToInt(value));
-            else if ("eq3_gain_on" == key_cc || "eq3_gain" == key_cc) pCurDef->eq3_gain_oncc.set(num_cc, ToInt(value));
-            else if ("pitchlfo_depth" == key_cc) pCurDef->pitchlfo_depthcc.set(num_cc, ToInt(value));
-            else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
-        }
+        
         // v2 envelope generators
         else if (sscanf(key.c_str(), "eg%d%n", &x, &y)) {
             const char* s = key.c_str() + y;
@@ -1358,11 +1296,77 @@ namespace sfz
             if (strcmp(s, "_freq") == 0) lfo(x).freq = check(key, 0.0f, 20.0f, ToFloat(value));
             else if (strcmp(s, "_wave") == 0) lfo(x).wave = ToInt(value);
             else if (strcmp(s, "_delay") == 0) lfo(x).delay = check(key, 0.0f, 100.0f, ToFloat(value));
+            else if (strcmp(s, "_phase") == 0) lfo(x).phase = check(key, 0.0f, 360.0f, ToFloat(value));
+            else if (sscanf(s, "_phase_oncc%d", &y)) lfo(x).phase_oncc.add( CC(y, check(key, 0.0f, 360.0f, ToFloat(value))) );
             else if (strcmp(s, "_volume") == 0) lfo(x).volume = check(key, -144.0f, 6.0f, ToFloat(value));
             else if (strcmp(s, "_pitch") == 0) lfo(x).pitch = check(key, -9600, 9600, ToInt(value));
+            else if (sscanf(s, "_pitch_oncc%d", &y)) lfo(x).pitch_oncc.add( CC(y, check(key, -9600, 9600, ToInt(value))) );
             else if (strcmp(s, "_cutoff") == 0) lfo(x).cutoff = check(key, -9600, 9600, ToInt(value));
             else if (strcmp(s, "_resonance") == 0) lfo(x).resonance = check(key, 0.0f, 40.0f, ToFloat(value));
             else if (strcmp(s, "_pan") == 0) lfo(x).pan = check(key, -100.0f, 100.0f, ToFloat(value));
+            else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
+        }
+
+        // CCs
+        else if (key.find("cc") != std::string::npos)
+        {
+            std::string::size_type delimiter_index = key.find("cc");
+            std::string key_cc = key.substr(0, delimiter_index);
+            int num_cc = ToInt(key.substr(delimiter_index + 2));
+
+            // input controls
+            if ("lo" == key_cc) pCurDef->locc.set(num_cc, ToInt(value));
+            else if ("hi" == key_cc) pCurDef->hicc.set(num_cc, ToInt(value));
+            else if ("start_lo" == key_cc) pCurDef->start_locc.set(num_cc, ToInt(value));
+            else if ("start_hi" == key_cc) pCurDef->start_hicc.set(num_cc, ToInt(value));
+            else if ("stop_lo" == key_cc) pCurDef->stop_locc.set(num_cc, ToInt(value));
+            else if ("stop_hi" == key_cc) pCurDef->stop_hicc.set(num_cc, ToInt(value));
+            else if ("on_lo" == key_cc) pCurDef->on_locc.set(num_cc, ToInt(value));
+            else if ("on_hi" == key_cc) pCurDef->on_hicc.set(num_cc, ToInt(value));
+
+            // sample player
+            else if ("delay_on" == key_cc) pCurDef->delay_oncc.set(num_cc, ToFloat(value));
+            else if ("delay_samples_on" == key_cc) pCurDef->delay_samples_oncc.set(num_cc, ToInt(value));
+            else if ("offset_on" == key_cc) pCurDef->offset_oncc.set(num_cc, ToInt(value));
+
+            // amplifier
+            else if ("gain_on"  == key_cc || "gain_" == key_cc) pCurDef->gain_oncc.set(num_cc, ToFloat(value));
+            else if ("xfin_lo"  == key_cc) pCurDef->xfin_locc.set(num_cc, ToInt(value));
+            else if ("xfin_hi"  == key_cc) pCurDef->xfin_hicc.set(num_cc, ToInt(value));
+            else if ("xfout_lo" == key_cc) pCurDef->xfout_locc.set(num_cc, ToInt(value));
+            else if ("xfout_hi" == key_cc) pCurDef->xfout_hicc.set(num_cc, ToInt(value));
+
+            // filter
+            else if ("cutoff_on"  == key_cc || "cutoff_" == key_cc) {
+                pCurDef->cutoff_oncc.set(num_cc, ToInt(value));
+                pCurDef->cutoff_cc = num_cc;
+            } else if ("cutoff2_on" == key_cc) pCurDef->cutoff2_oncc.set(num_cc, ToInt(value));
+            else if ("cutoff_smooth"  == key_cc) pCurDef->cutoff_smoothcc.set(num_cc, ToInt(value));
+            else if ("cutoff2_smooth" == key_cc) pCurDef->cutoff2_smoothcc.set(num_cc, ToInt(value));
+            else if ("cutoff_step"  == key_cc) pCurDef->cutoff_stepcc.set(num_cc, ToInt(value));
+            else if ("cutoff2_step" == key_cc) pCurDef->cutoff2_stepcc.set(num_cc, ToInt(value));
+            else if ("cutoff_curve" == key_cc) pCurDef->cutoff_curvecc.set(num_cc, ToInt(value));
+            else if ("cutoff2_curve" == key_cc) pCurDef->cutoff2_curvecc.set(num_cc, ToInt(value));
+            else if ("resonance_on" == key_cc) pCurDef->resonance_oncc.set(num_cc, ToInt(value));
+            else if ("resonance2_on" == key_cc) pCurDef->resonance2_oncc.set(num_cc, ToInt(value));
+            else if ("resonance_smooth" == key_cc) pCurDef->resonance_smoothcc.set(num_cc, ToInt(value));
+            else if ("resonance2_smooth" == key_cc) pCurDef->resonance2_smoothcc.set(num_cc, ToInt(value));
+            else if ("resonance_step" == key_cc) pCurDef->resonance_stepcc.set(num_cc, ToInt(value));
+            else if ("resonance2_step" == key_cc) pCurDef->resonance2_stepcc.set(num_cc, ToInt(value));
+            else if ("resonance_curve" == key_cc) pCurDef->resonance_curvecc.set(num_cc, ToInt(value));
+            else if ("resonance2_curve" == key_cc) pCurDef->resonance2_curvecc.set(num_cc, ToInt(value));
+
+            // per voice equalizer
+            else if ("eq1_freq_on" == key_cc || "eq1_freq" == key_cc) pCurDef->eq1_freq_oncc.set(num_cc, ToInt(value));
+            else if ("eq2_freq_on" == key_cc || "eq2_freq" == key_cc) pCurDef->eq2_freq_oncc.set(num_cc, ToInt(value));
+            else if ("eq3_freq_on" == key_cc || "eq3_freq" == key_cc) pCurDef->eq3_freq_oncc.set(num_cc, ToInt(value));
+            else if ("eq1_bw_on" == key_cc || "eq1_bw" == key_cc) pCurDef->eq1_bw_oncc.set(num_cc, ToInt(value));
+            else if ("eq2_bw_on" == key_cc || "eq2_bw" == key_cc) pCurDef->eq2_bw_oncc.set(num_cc, ToInt(value));
+            else if ("eq3_bw_on" == key_cc || "eq3_bw" == key_cc) pCurDef->eq3_bw_oncc.set(num_cc, ToInt(value));
+            else if ("eq1_gain_on" == key_cc || "eq1_gain" == key_cc) pCurDef->eq1_gain_oncc.set(num_cc, ToInt(value));
+            else if ("eq2_gain_on" == key_cc || "eq2_gain" == key_cc) pCurDef->eq2_gain_oncc.set(num_cc, ToInt(value));
+            else if ("eq3_gain_on" == key_cc || "eq3_gain" == key_cc) pCurDef->eq3_gain_oncc.set(num_cc, ToInt(value));
+            else if ("pitchlfo_depth" == key_cc) pCurDef->pitchlfo_depthcc.set(num_cc, ToInt(value));
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
 
@@ -1431,7 +1435,7 @@ namespace sfz
     }
     
     LFO::LFO(): freq (-1),/* -1 is used to determine whether the LFO was initialized */
-                wave(0), delay(0), pitch(0), cutoff(0), resonance(0), pan(0) {
+                phase(0), wave(0), delay(0), pitch(0), cutoff(0), resonance(0), pan(0) {
         
     }
 

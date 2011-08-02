@@ -83,6 +83,27 @@ namespace sfz
             pSample->Close();
         }
     };
+    
+    class CC {
+        public:
+            uint8_t Controller;  ///< MIDI controller number.
+            float   Influence;   ///< Controller Value.
+            
+            CC() { CC(0, 0.0f); }
+                    
+            CC(uint8_t Controller, float Influence) {
+                this->Controller = Controller;
+                this->Influence = Influence;
+            }
+                    
+            CC(const CC& cc) { Copy(cc); }
+            void operator=(const CC& cc) { Copy(cc); }
+                    
+            void Copy(const CC& cc) {
+                Controller = cc.Controller;
+                Influence = cc.Influence;
+            }
+    };
 
     /////////////////////////////////////////////////////////////
     // class Exception
@@ -243,14 +264,19 @@ namespace sfz
     class LFO
     {
     public:
-        float freq; // 0 to 20 Hz
-        uint  wave; // 0 to 4294967296
         float delay; // 0 to 100 seconds
+        float freq; // 0 to 20 Hz
+        float phase; // 0 to 360 degrees
+        uint  wave; // 0 to 4294967296
         float volume; // -144 to 6 dB
         int   pitch; // -9600 to 9600 cents
         int   cutoff; // -9600 to 9600 cents
         float resonance; // 0 to 40 dB
         float pan; // -100 to 100 %
+        
+        LinuxSampler::ArrayList<CC> phase_oncc; // 0 to 360 degrees
+        LinuxSampler::ArrayList<CC> pitch_oncc;
+        
         LFO();
     };
 

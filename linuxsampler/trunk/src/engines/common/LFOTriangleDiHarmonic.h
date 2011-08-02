@@ -116,6 +116,22 @@ namespace LinuxSampler {
                 real1 = real2 = cos(phi);
                 imag1 = imag2 = sin(phi);
             }
+            
+            /**
+             * Should be invoked after the LFO is triggered with StartLevel
+             * start_level_min.
+             * @param phase From 0 to 360 degrees.
+             */
+            void setPhase(float phase) {
+                if (phase < 0) phase = 0;
+                if (phase > 360) phase = 360;
+                phase /= 360.0f;
+                
+                // FIXME: too heavy?
+                float steps = 1.0f / (c1 / (2.0f * M_PI)); // number of steps for one cycle
+                steps *= phase + 0.25f;
+                for (int i = 0; i < steps; i++) render();
+            }
 
         private:
             float c1;

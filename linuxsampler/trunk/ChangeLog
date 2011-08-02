@@ -112,6 +112,8 @@ Version CVS HEAD (?)
       fileg_vel2release
     - implemented opcode lfoN_wave
     - implemented opcode pitchlfo_depthccN
+    - implemented opcodes lfoN_phase, lfoN_phase_onccX,
+      lfoN_pitch, lfoN_pitch_onccX
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

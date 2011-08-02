@@ -95,6 +95,18 @@ namespace LinuxSampler {
             virtual void trigger(float Frequency, start_level_t StartLevel, uint16_t InternalDepth, uint16_t ExtControlDepth, bool FlipPhase, unsigned int SampleRate) {
                 trigger(Frequency, InternalDepth, ExtControlDepth, WIDTH / 10.0f, SampleRate);
             }
+            
+            /**
+             * Should be invoked after the LFO is triggered.
+             * @param phase From 0 to 360 degrees.
+             */
+            void setPhase(float phase) {
+                if (phase < 0) phase = 0;
+                if (phase > 360) phase = 360;
+                phase /= 360.0f;
+                const unsigned int intLimit = (unsigned int) -1; // all 0xFFFF...
+                uiLevel = intLimit * phase;
+            }
 
         protected:
             unsigned int uiLevel;

@@ -65,6 +65,7 @@ namespace LinuxSampler { namespace sfz {
             virtual void Trigger();
             
             void SetCCs(::sfz::Array<int>& pCC);
+            void SetCCs(ArrayList< ::sfz::CC>& cc);
     };
     
     
@@ -148,6 +149,7 @@ namespace LinuxSampler { namespace sfz {
             virtual float Render() = 0;
             virtual void Update(const uint16_t& ExtControlValue) = 0;
             virtual void Trigger(float Frequency, start_level_t StartLevel, uint16_t InternalDepth, uint16_t ExtControlDepth, bool FlipPhase, unsigned int SampleRate) = 0;
+            virtual void SetPhase(float phase) = 0;
     };
     
     template <class T>
@@ -164,6 +166,8 @@ namespace LinuxSampler { namespace sfz {
             ) {
                 T::trigger(Frequency, StartLevel, InternalDepth, ExtControlDepth, FlipPhase, SampleRate);
             }
+            
+            virtual void SetPhase(float phase) { T::setPhase(phase); }
     };
     
     class LFOUnit: public SfzSignalUnit {
@@ -213,6 +217,8 @@ namespace LinuxSampler { namespace sfz {
             
             
         public:
+            CCUnit suPitchOnCC;
+            
             LFOv2Unit(SfzSignalUnitRack* rack);
             
             virtual void Trigger();
@@ -289,6 +295,9 @@ namespace LinuxSampler { namespace sfz {
             
             
             FixedArray<LFOv2Unit*> LFOs;
+            
+            // used for optimization - contains only the ones that are modulating pitch
+            FixedArray<LFOv2Unit*> pitchLFOs;
             
             // used for optimization - contains only the ones that are modulating filter cutoff
             FixedArray<LFOv2Unit*> filLFOs;

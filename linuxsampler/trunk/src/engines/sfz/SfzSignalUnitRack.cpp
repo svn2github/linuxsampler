@@ -129,7 +129,8 @@ namespace LinuxSampler { namespace sfz {
     
     LFOv2Unit::LFOv2Unit(SfzSignalUnitRack* rack)
         : LFOUnit(rack), lfos(8), lfo0(1200.0f), lfo1(1200.0f), lfo2(1200.0f),
-          lfo3(1200.0f), lfo4(1200.0f), lfo5(1200.0f), lfo6(1200.0f), lfo7(1200.0f)
+          lfo3(1200.0f), lfo4(1200.0f), lfo5(1200.0f), lfo6(1200.0f), lfo7(1200.0f),
+          suPitchOnCC(rack)
     {
         lfos.add(&lfo0);
         lfos.add(&lfo1);
@@ -153,6 +154,13 @@ namespace LinuxSampler { namespace sfz {
             1, 0, false, GetSampleRate()
         );
         pLFO->Update(0);
+        
+        float phase = pLfoInfo->phase;
+        for (int i = 0; i < pLfoInfo->phase_oncc.size(); i++) {
+            int val = pVoice->GetControllerValue(pLfoInfo->phase_oncc[i].Controller);
+            phase += (val / 127.0f) * pLfoInfo->phase_oncc[i].Influence;
+        }
+        if (phase != 0) pLFO->SetPhase(phase);
     }
     
     void AmpLFOUnit::Trigger() {
@@ -195,6 +203,13 @@ namespace LinuxSampler { namespace sfz {
          RemoveAllCCs();
          for (int i = 0; i < 128; i++) {
              if (cc[i] != 0) AddCC(i, cc[i]);
+         }
+     }
+    
+     void CCUnit::SetCCs(ArrayList< ::sfz::CC>& cc) {
+         RemoveAllCCs();
+         for (int i = 0; i < cc.size(); i++) {
+             if (cc[i].Influence != 0) AddCC(cc[i].Controller, cc[i].Influence);
          }
      }
 
@@ -266,6 +281,15 @@ namespace LinuxSampler { namespace sfz {
         CCSignalUnit* u3 = &(GetRack()->suPitchLFO.suDepthCC);
         float f = u3->Active() ? u3->GetLevel() : 0;
         p *= u2->Active() ? RTMath::CentsToFreqRatioUnlimited(u2->GetLevel() * (u2->pLfoInfo->pitch + f)) : 1;
+        
+        for (int i = 0; i < GetRack()->pitchLFOs.size(); i++) {
+            LFOv2Unit* lfo = GetRack()->pitchLFOs[i];
+            if (!lfo->Active()) continue;
+            
+            float f = lfo->suPitchOnCC.Active() ? lfo->suPitchOnCC.GetLevel() : 0;
+            p *= RTMath::CentsToFreqRatioUnlimited(lfo->GetLevel() * (lfo->pLfoInfo->pitch + f));
+        }
+        
         return p;
     }
     
@@ -303,7 +327,7 @@ namespace LinuxSampler { namespace sfz {
         : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suFilEG(this), suPitchEG(this),
         EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount),
         suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
-        LFOs(maxLfoCount), filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
+        LFOs(maxLfoCount), pitchLFOs(maxLfoCount), filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
     {
         suEndpoint.pVoice = suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
         suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = voice;
@@ -317,6 +341,7 @@ namespace LinuxSampler { namespace sfz {
         for (int i = 0; i < LFOs.capacity(); i++) {
             LFOs[i] = new LFOv2Unit(this);
             LFOs[i]->pVoice = voice;
+            LFOs[i]->suPitchOnCC.pVoice = voice;
         }
     }
     
@@ -336,6 +361,7 @@ namespace LinuxSampler { namespace sfz {
         pitchEGs.clear();
         
         LFOs.clear();
+        pitchLFOs.clear();
         filLFOs.clear();
         resLFOs.clear();
         panLFOs.clear();
@@ -370,7 +396,13 @@ namespace LinuxSampler { namespace sfz {
                 LFOv2Unit lfo(this);
                 lfo.pLfoInfo = &(pRegion->lfos[i]);
                 LFOs.increment()->Copy(lfo);
+                LFOs[LFOs.size() - 1]->suPitchOnCC.SetCCs(pRegion->lfos[i].pitch_oncc);
             } else { std::cerr << "Maximum number of LFOs reached!" << std::endl; break; }
+            
+            if (pRegion->lfos[i].pitch != 0 || !pRegion->lfos[i].pitch_oncc.empty()) {
+                if(pitchLFOs.size() < pitchLFOs.capacity()) pitchLFOs.add(LFOs[LFOs.size() - 1]);
+                else std::cerr << "Maximum number of LFOs reached!" << std::endl;
+            }
             
             if (pRegion->lfos[i].cutoff != 0) {
                 if(filLFOs.size() < filLFOs.capacity()) filLFOs.add(LFOs[LFOs.size() - 1]);
@@ -406,6 +438,7 @@ namespace LinuxSampler { namespace sfz {
         
         for (int i = 0; i < LFOs.size(); i++) {
             Units.add(LFOs[i]);
+            Units.add(&(LFOs[i]->suPitchOnCC));
         }
         
         Units.add(&suEndpoint);
