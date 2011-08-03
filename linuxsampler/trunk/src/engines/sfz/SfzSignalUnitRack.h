@@ -60,7 +60,7 @@ namespace LinuxSampler { namespace sfz {
         public:
             Voice* pVoice;
 
-            CCUnit(SfzSignalUnitRack* rack);
+            CCUnit(SfzSignalUnitRack* rack, Listener* l = NULL);
             
             virtual void Trigger();
             
@@ -150,6 +150,7 @@ namespace LinuxSampler { namespace sfz {
             virtual void Update(const uint16_t& ExtControlValue) = 0;
             virtual void Trigger(float Frequency, start_level_t StartLevel, uint16_t InternalDepth, uint16_t ExtControlDepth, bool FlipPhase, unsigned int SampleRate) = 0;
             virtual void SetPhase(float phase) = 0;
+            virtual void SetFrequency(float Frequency, unsigned int SampleRate) = 0;
     };
     
     template <class T>
@@ -168,6 +169,10 @@ namespace LinuxSampler { namespace sfz {
             }
             
             virtual void SetPhase(float phase) { T::setPhase(phase); }
+            
+            virtual void SetFrequency(float Frequency, unsigned int SampleRate) {
+                T::setFrequency(Frequency, SampleRate);
+            }
     };
     
     class LFOUnit;
@@ -182,18 +187,19 @@ namespace LinuxSampler { namespace sfz {
             friend class LFOUnit;
     };
     
-    class LFOUnit: public SfzSignalUnit {
+    class LFOUnit: public SfzSignalUnit, public CCSignalUnit::Listener {
         public:
             ::sfz::LFO*  pLfoInfo;
             AbstractLfo* pLFO;
             FadeEGUnit   suFadeEG;
+            CCUnit       suFreqOnCC;
             
-            LFOUnit(SfzSignalUnitRack* rack): SfzSignalUnit(rack), pLfoInfo(NULL), pLFO(NULL), suFadeEG(rack) { }
+            LFOUnit(SfzSignalUnitRack* rack);
             LFOUnit(const LFOUnit& Unit);
             void operator=(const LFOUnit& Unit) { Copy(Unit); }
             
             void Copy(const LFOUnit& Unit) {
-                pLfoInfo = Unit.pLfoInfo;
+                pLfoInfo   = Unit.pLfoInfo;
                 suFadeEG   = Unit.suFadeEG;
                 
                 SfzSignalUnit::Copy(Unit);
@@ -203,6 +209,7 @@ namespace LinuxSampler { namespace sfz {
             virtual void  Trigger();
             virtual void  Increment();
             virtual float GetLevel() { return Level; }
+            virtual void  ValueChanged(CCSignalUnit* pUnit);
     };
     
     class LFOv1Unit: public LFOUnit {

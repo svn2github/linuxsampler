@@ -132,6 +132,11 @@ namespace LinuxSampler {
                 steps *= phase + 0.25f;
                 for (int i = 0; i < steps; i++) render();
             }
+            
+            void setFrequency(float Frequency, unsigned int SampleRate) {
+                c1 = 2.0f * M_PI * Frequency / (float) SampleRate;
+                c2 = 2.0f * M_PI * Frequency / (float) SampleRate * 3.0f;
+            }
 
         private:
             float c1;

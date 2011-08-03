@@ -126,6 +126,12 @@ namespace LinuxSampler {
                 if (uiPhase > intLimit / 2) iLevel = uiPhase - intLimit;
                 else iLevel = uiPhase;
             }
+            
+            void setFrequency(float Frequency, unsigned int SampleRate) {
+                const unsigned int intLimit = (unsigned int) -1; // all 0xFFFF...
+                float r = Frequency / (float) SampleRate; // frequency alteration quotient
+                c = (int) (intLimit * r);
+            }
 
         protected:
             int   iLevel;

@@ -275,6 +275,7 @@ namespace sfz
         float resonance; // 0 to 40 dB
         float pan; // -100 to 100 %
         
+        LinuxSampler::ArrayList<CC> freq_oncc; // 0 to 20 Hz
         LinuxSampler::ArrayList<CC> fade_oncc; // 0 to 100 seconds
         LinuxSampler::ArrayList<CC> phase_oncc; // 0 to 360 degrees
         LinuxSampler::ArrayList<CC> pitch_oncc;
@@ -451,6 +452,10 @@ namespace sfz
         float pitchlfo_delay, pitchlfo_fade, pitchlfo_freq;
         int pitchlfo_depth;
         Array<int> pitchlfo_depthcc;
+        
+        LinuxSampler::ArrayList<CC> pitchlfo_freqcc; // 0 to 20 Hz
+        LinuxSampler::ArrayList<CC> fillfo_freqcc; // 0 to 20 Hz
+        LinuxSampler::ArrayList<CC> amplfo_freqcc; // 0 to 20 Hz
 
         // envelope generators
         LinuxSampler::ArrayList<EG> eg;

@@ -116,6 +116,8 @@ Version CVS HEAD (?)
       lfoN_pitch, lfoN_pitch_onccX
     - implemented opcodes pitchlfo_fade,
       fillfo_fade, amplfo_fade, lfoN_fade, lfoN_fade_onccX
+    - implemented opcodes fillfo_freqccN,
+      pitchlfo_freqccN, amplfo_freqccN, lfoN_freq_onccX
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

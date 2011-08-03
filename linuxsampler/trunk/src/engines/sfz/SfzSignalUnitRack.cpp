@@ -99,7 +99,15 @@ namespace LinuxSampler { namespace sfz {
     }
     
     
-    LFOUnit::LFOUnit(const LFOUnit& Unit): SfzSignalUnit(Unit), suFadeEG(static_cast<SfzSignalUnitRack*>(Unit.pRack)) {
+    LFOUnit::LFOUnit(SfzSignalUnitRack* rack)
+        : SfzSignalUnit(rack), pLfoInfo(NULL), pLFO(NULL),
+          suFadeEG(rack), suFreqOnCC(rack, this)
+    { }
+    
+    LFOUnit::LFOUnit(const LFOUnit& Unit)
+        : SfzSignalUnit(Unit), suFadeEG(static_cast<SfzSignalUnitRack*>(Unit.pRack)),
+          suFreqOnCC(static_cast<SfzSignalUnitRack*>(Unit.pRack), this)
+    {
         Copy(Unit);
     }
 
@@ -132,11 +140,16 @@ namespace LinuxSampler { namespace sfz {
         }
     }
     
+    void LFOUnit::ValueChanged(CCSignalUnit* pUnit) {
+        pLFO->SetFrequency(suFreqOnCC.GetLevel() + pLfoInfo->freq, GetSampleRate());
+    }
+    
+    
     void LFOv1Unit::Trigger() {
         LFOUnit::Trigger();
         
         lfo.trigger (
-            pLfoInfo->freq,
+            pLfoInfo->freq + suFreqOnCC.GetLevel(),
             start_level_mid,
             1, 0, false, GetSampleRate()
         );
@@ -166,7 +179,7 @@ namespace LinuxSampler { namespace sfz {
         else pLFO = lfos[pLfoInfo->wave];
         
         pLFO->Trigger (
-            pLfoInfo->freq,
+            pLfoInfo->freq + suFreqOnCC.GetLevel(),
             start_level_mid,
             1, 0, false, GetSampleRate()
         );
@@ -210,7 +223,9 @@ namespace LinuxSampler { namespace sfz {
         LFOv1Unit::Trigger();
     }
     
-    CCUnit::CCUnit(SfzSignalUnitRack* rack): CCSignalUnit(rack) { }
+    CCUnit::CCUnit(SfzSignalUnitRack* rack, Listener* l): CCSignalUnit(rack, l) {
+        pVoice = NULL;
+    }
     
     void CCUnit::Trigger() {
         for (int i = 0; i < Ctrls.size(); i++) {
@@ -351,9 +366,9 @@ namespace LinuxSampler { namespace sfz {
     {
         suEndpoint.pVoice = suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
         suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = voice;
-        suPitchLFO.suDepthCC.pVoice = suPitchLFO.suFadeEG.pVoice = voice;
-        suFilLFO.suFadeEG.pVoice = voice;
-        suAmpLFO.suFadeEG.pVoice = voice;
+        suPitchLFO.suDepthCC.pVoice = suPitchLFO.suFadeEG.pVoice = suPitchLFO.suFreqOnCC.pVoice = voice;
+        suFilLFO.suFadeEG.pVoice = suFilLFO.suFreqOnCC.pVoice = voice;
+        suAmpLFO.suFadeEG.pVoice = suAmpLFO.suFreqOnCC.pVoice = voice;
         
         for (int i = 0; i < EGs.capacity(); i++) {
             EGs[i] = new EGv2Unit(this);
@@ -365,6 +380,7 @@ namespace LinuxSampler { namespace sfz {
             LFOs[i]->pVoice = voice;
             LFOs[i]->suFadeEG.pVoice = voice;
             LFOs[i]->suPitchOnCC.pVoice = voice;
+            LFOs[i]->suFreqOnCC.pVoice = voice;
         }
     }
     
@@ -420,6 +436,7 @@ namespace LinuxSampler { namespace sfz {
                 lfo.pLfoInfo = &(pRegion->lfos[i]);
                 LFOs.increment()->Copy(lfo);
                 LFOs[LFOs.size() - 1]->suPitchOnCC.SetCCs(pRegion->lfos[i].pitch_oncc);
+                LFOs[LFOs.size() - 1]->suFreqOnCC.SetCCs(pRegion->lfos[i].freq_oncc);
             } else { std::cerr << "Maximum number of LFOs reached!" << std::endl; break; }
             
             if (pRegion->lfos[i].pitch != 0 || !pRegion->lfos[i].pitch_oncc.empty()) {
@@ -444,17 +461,28 @@ namespace LinuxSampler { namespace sfz {
         }
         
         suPitchLFO.suDepthCC.SetCCs(pRegion->pitchlfo_depthcc);
+        suPitchLFO.suFreqOnCC.SetCCs(pRegion->pitchlfo_freqcc);
+        
+        suFilLFO.suFreqOnCC.SetCCs(pRegion->fillfo_freqcc);
+        
+        suAmpLFO.suFreqOnCC.SetCCs(pRegion->amplfo_freqcc);
         
         Units.clear();
         
         Units.add(&suVolEG);
         Units.add(&suFilEG);
         Units.add(&suPitchEG);
+        
+        Units.add(&suPitchLFO.suFreqOnCC); // Don't change order! (should be triggered before the LFO)
         Units.add(&suPitchLFO);
         Units.add(&suPitchLFO.suDepthCC);
         Units.add(&suPitchLFO.suFadeEG);
+        
+        Units.add(&suAmpLFO.suFreqOnCC); // Don't change order! (should be triggered before the LFO)
         Units.add(&suAmpLFO);
         Units.add(&suAmpLFO.suFadeEG);
+        
+        Units.add(&suFilLFO.suFreqOnCC); // Don't change order! (should be triggered before the LFO)
         Units.add(&suFilLFO);
         Units.add(&suFilLFO.suFadeEG);
         
@@ -463,6 +491,7 @@ namespace LinuxSampler { namespace sfz {
         }
         
         for (int i = 0; i < LFOs.size(); i++) {
+            Units.add(&(LFOs[i]->suFreqOnCC)); // Don't change order! (should be triggered before the LFO)
             Units.add(LFOs[i]);
             Units.add(&(LFOs[i]->suFadeEG));
             Units.add(&(LFOs[i]->suPitchOnCC));

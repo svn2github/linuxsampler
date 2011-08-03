@@ -103,6 +103,12 @@ namespace LinuxSampler {
                 const unsigned int intLimit = (unsigned int) -1; // all 0xFFFF...
                 uiLevel = intLimit * phase;
             }
+            
+            void setFrequency(float Frequency, unsigned int SampleRate) {
+                const unsigned int intLimit = (unsigned int) -1; // all 0xFFFF...
+                float r = Frequency / (float) SampleRate; // frequency alteration quotient
+                c = (int) (intLimit * r);
+            }
 
         protected:
             unsigned int uiLevel;

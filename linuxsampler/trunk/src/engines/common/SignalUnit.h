@@ -328,6 +328,13 @@ namespace LinuxSampler {
      * and their influences.
      */
     class CCSignalUnit: public SignalUnit {
+        public:
+            /** Listener which will be notified when the level of the unit is changed. */
+            class Listener {
+                public:
+                    virtual void ValueChanged(CCSignalUnit* pUnit) = 0;
+            };
+            
         protected:
             class CC {
                 public:
@@ -356,10 +363,12 @@ namespace LinuxSampler {
             };
             
             FixedArray<CC> Ctrls; // The MIDI controllers which modulates this signal unit.
+            Listener* pListener;
 
         public:
-            CCSignalUnit(SignalUnitRack* rack): SignalUnit(rack), Ctrls(128) {
-                
+            
+            CCSignalUnit(SignalUnitRack* rack, Listener* l = NULL): SignalUnit(rack), Ctrls(128) {
+                pListener = l;
             }
             
             CCSignalUnit(const CCSignalUnit& Unit): SignalUnit(Unit.pRack), Ctrls(128) { Copy(Unit); }
@@ -367,6 +376,7 @@ namespace LinuxSampler {
             
             void Copy(const CCSignalUnit& Unit) {
                 Ctrls.copy(Unit.Ctrls);
+                pListener = Unit.pListener;
                 SignalUnit::Copy(Unit);
             }
             
@@ -396,7 +406,10 @@ namespace LinuxSampler {
                     recalculate = true;
                 }
                 
-                if (recalculate) Calculate();
+                if (recalculate) {
+                    Calculate();
+                    if (pListener!= NULL) pListener->ValueChanged(this);
+                }
             }
             
             virtual void Calculate() {

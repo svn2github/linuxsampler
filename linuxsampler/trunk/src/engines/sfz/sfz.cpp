@@ -739,11 +739,15 @@ namespace sfz
         region->amplfo_fade      = amplfo_fade;
         region->amplfo_freq      = amplfo_freq;
         region->amplfo_depth     = amplfo_depth;
+        
+        region->amplfo_freqcc    = amplfo_freqcc;
 
         region->fillfo_delay     = fillfo_delay;
         region->fillfo_fade      = fillfo_fade;
         region->fillfo_freq      = fillfo_freq;
         region->fillfo_depth     = fillfo_depth;
+        
+        region->fillfo_freqcc    = fillfo_freqcc;
 
         region->pitchlfo_delay   = pitchlfo_delay;
         region->pitchlfo_fade    = pitchlfo_fade;
@@ -751,6 +755,7 @@ namespace sfz
         region->pitchlfo_depth   = pitchlfo_depth;
         
         region->pitchlfo_depthcc = pitchlfo_depthcc;
+        region->pitchlfo_freqcc  = pitchlfo_freqcc;
 
         return region;
     }
@@ -1294,6 +1299,7 @@ namespace sfz
         else if (sscanf(key.c_str(), "lfo%d%n", &x, &y)) {
             const char* s = key.c_str() + y;
             if (strcmp(s, "_freq") == 0) lfo(x).freq = check(key, 0.0f, 20.0f, ToFloat(value));
+            else if (sscanf(s, "_freq_oncc%d", &y)) lfo(x).freq_oncc.add( CC(y, check(key, 0.0f, 20.0f, ToFloat(value))) );
             else if (strcmp(s, "_wave") == 0) lfo(x).wave = ToInt(value);
             else if (strcmp(s, "_delay") == 0) lfo(x).delay = check(key, 0.0f, 100.0f, ToFloat(value));
             else if (strcmp(s, "_fade") == 0) lfo(x).fade = check(key, 0.0f, 100.0f, ToFloat(value));
@@ -1369,6 +1375,9 @@ namespace sfz
             else if ("eq2_gain_on" == key_cc || "eq2_gain" == key_cc) pCurDef->eq2_gain_oncc.set(num_cc, ToInt(value));
             else if ("eq3_gain_on" == key_cc || "eq3_gain" == key_cc) pCurDef->eq3_gain_oncc.set(num_cc, ToInt(value));
             else if ("pitchlfo_depth" == key_cc) pCurDef->pitchlfo_depthcc.set(num_cc, ToInt(value));
+            else if ("pitchlfo_freq" == key_cc) pCurDef->pitchlfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
+            else if ("fillfo_freq" == key_cc) pCurDef->fillfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
+            else if ("amplfo_freq" == key_cc) pCurDef->amplfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
 
