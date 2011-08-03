@@ -1296,6 +1296,8 @@ namespace sfz
             if (strcmp(s, "_freq") == 0) lfo(x).freq = check(key, 0.0f, 20.0f, ToFloat(value));
             else if (strcmp(s, "_wave") == 0) lfo(x).wave = ToInt(value);
             else if (strcmp(s, "_delay") == 0) lfo(x).delay = check(key, 0.0f, 100.0f, ToFloat(value));
+            else if (strcmp(s, "_fade") == 0) lfo(x).fade = check(key, 0.0f, 100.0f, ToFloat(value));
+            else if (sscanf(s, "_fade_oncc%d", &y)) lfo(x).fade_oncc.add( CC(y, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if (strcmp(s, "_phase") == 0) lfo(x).phase = check(key, 0.0f, 360.0f, ToFloat(value));
             else if (sscanf(s, "_phase_oncc%d", &y)) lfo(x).phase_oncc.add( CC(y, check(key, 0.0f, 360.0f, ToFloat(value))) );
             else if (strcmp(s, "_volume") == 0) lfo(x).volume = check(key, -144.0f, 6.0f, ToFloat(value));
@@ -1435,7 +1437,7 @@ namespace sfz
     }
     
     LFO::LFO(): freq (-1),/* -1 is used to determine whether the LFO was initialized */
-                phase(0), wave(0), delay(0), pitch(0), cutoff(0), resonance(0), pan(0) {
+                fade(0), phase(0), wave(0), delay(0), pitch(0), cutoff(0), resonance(0), pan(0) {
         
     }
 

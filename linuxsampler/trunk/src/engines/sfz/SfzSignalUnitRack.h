@@ -170,17 +170,31 @@ namespace LinuxSampler { namespace sfz {
             virtual void SetPhase(float phase) { T::setPhase(phase); }
     };
     
+    class LFOUnit;
+    
+    class FadeEGUnit: public EGUnit<EGADSR> {
+        public:
+            FadeEGUnit(SfzSignalUnitRack* rack): EGUnit<EGADSR>(rack) { }
+            virtual void Trigger() { }
+            virtual void EnterReleaseStage() { }
+            virtual void CancelRelease() { }
+            
+            friend class LFOUnit;
+    };
+    
     class LFOUnit: public SfzSignalUnit {
         public:
-            ::sfz::LFO* pLfoInfo;
+            ::sfz::LFO*  pLfoInfo;
             AbstractLfo* pLFO;
+            FadeEGUnit   suFadeEG;
             
-            LFOUnit(SfzSignalUnitRack* rack): SfzSignalUnit(rack), pLfoInfo(NULL), pLFO(NULL) { }
-            LFOUnit(const LFOUnit& Unit): SfzSignalUnit(Unit) { Copy(Unit); }
+            LFOUnit(SfzSignalUnitRack* rack): SfzSignalUnit(rack), pLfoInfo(NULL), pLFO(NULL), suFadeEG(rack) { }
+            LFOUnit(const LFOUnit& Unit);
             void operator=(const LFOUnit& Unit) { Copy(Unit); }
             
             void Copy(const LFOUnit& Unit) {
                 pLfoInfo = Unit.pLfoInfo;
+                suFadeEG   = Unit.suFadeEG;
                 
                 SfzSignalUnit::Copy(Unit);
             }

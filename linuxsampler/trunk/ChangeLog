@@ -114,6 +114,8 @@ Version CVS HEAD (?)
     - implemented opcode pitchlfo_depthccN
     - implemented opcodes lfoN_phase, lfoN_phase_onccX,
       lfoN_pitch, lfoN_pitch_onccX
+    - implemented opcodes pitchlfo_fade,
+      fillfo_fade, amplfo_fade, lfoN_fade, lfoN_fade_onccX
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

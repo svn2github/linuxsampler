@@ -98,6 +98,10 @@ namespace LinuxSampler { namespace sfz {
                    GetSampleRate());
     }
     
+    
+    LFOUnit::LFOUnit(const LFOUnit& Unit): SfzSignalUnit(Unit), suFadeEG(static_cast<SfzSignalUnitRack*>(Unit.pRack)) {
+        Copy(Unit);
+    }
 
     void LFOUnit::Increment() {
         if (DelayStage()) return;
@@ -105,6 +109,7 @@ namespace LinuxSampler { namespace sfz {
         SignalUnit::Increment();
         
         Level = pLFO->Render();
+        if (suFadeEG.Active()) Level *= suFadeEG.GetLevel();
     }
     
     void LFOUnit::Trigger() {
@@ -113,6 +118,18 @@ namespace LinuxSampler { namespace sfz {
         
         // set the delay trigger
         uiDelayTrigger = pLfoInfo->delay * GetSampleRate();
+        if(pLfoInfo->fade != 0 || !pLfoInfo->fade_oncc.empty()) {
+            float f = pLfoInfo->fade;
+            for (int i = 0; i < pLfoInfo->fade_oncc.size(); i++) {
+                int val = pVoice->GetControllerValue(pLfoInfo->fade_oncc[i].Controller);
+                f += (val / 127.0f) * pLfoInfo->fade_oncc[i].Influence;
+            }
+            
+            if (f != 0) {
+                suFadeEG.uiDelayTrigger = pLfoInfo->delay * GetSampleRate();
+                suFadeEG.EG.trigger(0, f, 0, 0, 1000, 0, GetSampleRate());
+            }
+        }
     }
     
     void LFOv1Unit::Trigger() {
@@ -165,8 +182,9 @@ namespace LinuxSampler { namespace sfz {
     
     void AmpLFOUnit::Trigger() {
         ::sfz::Region* const pRegion = pVoice->pRegion;
-        pLfoInfo->delay = pRegion->amplfo_delay;
-        pLfoInfo->freq = pRegion->amplfo_freq;
+        pLfoInfo->delay  = pRegion->amplfo_delay;
+        pLfoInfo->freq   = pRegion->amplfo_freq;
+        pLfoInfo->fade   = pRegion->amplfo_fade;
         pLfoInfo->volume = pRegion->amplfo_depth;
         
         LFOv1Unit::Trigger();
@@ -175,7 +193,8 @@ namespace LinuxSampler { namespace sfz {
     void PitchLFOUnit::Trigger() {
         ::sfz::Region* const pRegion = pVoice->pRegion;
         pLfoInfo->delay = pRegion->pitchlfo_delay;
-        pLfoInfo->freq = pRegion->pitchlfo_freq;
+        pLfoInfo->freq  = pRegion->pitchlfo_freq;
+        pLfoInfo->fade  = pRegion->pitchlfo_fade;
         pLfoInfo->pitch = pRegion->pitchlfo_depth;
         
         LFOv1Unit::Trigger();
@@ -183,8 +202,9 @@ namespace LinuxSampler { namespace sfz {
     
     void FilLFOUnit::Trigger() {
         ::sfz::Region* const pRegion = pVoice->pRegion;
-        pLfoInfo->delay = pRegion->fillfo_delay;
-        pLfoInfo->freq = pRegion->fillfo_freq;
+        pLfoInfo->delay  = pRegion->fillfo_delay;
+        pLfoInfo->freq   = pRegion->fillfo_freq;
+        pLfoInfo->fade   = pRegion->fillfo_fade;
         pLfoInfo->cutoff = pRegion->fillfo_depth;
         
         LFOv1Unit::Trigger();
@@ -331,7 +351,9 @@ namespace LinuxSampler { namespace sfz {
     {
         suEndpoint.pVoice = suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
         suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = voice;
-        suPitchLFO.suDepthCC.pVoice = voice;
+        suPitchLFO.suDepthCC.pVoice = suPitchLFO.suFadeEG.pVoice = voice;
+        suFilLFO.suFadeEG.pVoice = voice;
+        suAmpLFO.suFadeEG.pVoice = voice;
         
         for (int i = 0; i < EGs.capacity(); i++) {
             EGs[i] = new EGv2Unit(this);
@@ -341,6 +363,7 @@ namespace LinuxSampler { namespace sfz {
         for (int i = 0; i < LFOs.capacity(); i++) {
             LFOs[i] = new LFOv2Unit(this);
             LFOs[i]->pVoice = voice;
+            LFOs[i]->suFadeEG.pVoice = voice;
             LFOs[i]->suPitchOnCC.pVoice = voice;
         }
     }
@@ -429,8 +452,11 @@ namespace LinuxSampler { namespace sfz {
         Units.add(&suPitchEG);
         Units.add(&suPitchLFO);
         Units.add(&suPitchLFO.suDepthCC);
+        Units.add(&suPitchLFO.suFadeEG);
         Units.add(&suAmpLFO);
+        Units.add(&suAmpLFO.suFadeEG);
         Units.add(&suFilLFO);
+        Units.add(&suFilLFO.suFadeEG);
         
         for (int i = 0; i < EGs.size(); i++) {
             Units.add(EGs[i]);
@@ -438,6 +464,7 @@ namespace LinuxSampler { namespace sfz {
         
         for (int i = 0; i < LFOs.size(); i++) {
             Units.add(LFOs[i]);
+            Units.add(&(LFOs[i]->suFadeEG));
             Units.add(&(LFOs[i]->suPitchOnCC));
         }
         

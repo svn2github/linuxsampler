@@ -266,6 +266,7 @@ namespace sfz
     public:
         float delay; // 0 to 100 seconds
         float freq; // 0 to 20 Hz
+        float fade; // 0 to 100 seconds
         float phase; // 0 to 360 degrees
         uint  wave; // 0 to 4294967296
         float volume; // -144 to 6 dB
@@ -274,6 +275,7 @@ namespace sfz
         float resonance; // 0 to 40 dB
         float pan; // -100 to 100 %
         
+        LinuxSampler::ArrayList<CC> fade_oncc; // 0 to 100 seconds
         LinuxSampler::ArrayList<CC> phase_oncc; // 0 to 360 degrees
         LinuxSampler::ArrayList<CC> pitch_oncc;
         
