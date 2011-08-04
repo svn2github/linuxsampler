@@ -246,7 +246,13 @@ namespace sfz
         float level;
         float shape;
         float curve;
+        LinuxSampler::ArrayList<CC> time_oncc;
+        LinuxSampler::ArrayList<CC> level_oncc;
+        
         EGNode();
+        EGNode(const EGNode& egNode) { Copy(egNode); }
+        void operator=(const EGNode& egNode) { Copy(egNode); }
+        void Copy(const EGNode& egNode);
     };
 
     class EG
@@ -259,6 +265,9 @@ namespace sfz
         float amplitude;
         float cutoff;
         EG();
+        EG(const EG& eg) { Copy(eg); }
+        void operator=(const EG& eg) { Copy(eg); }
+        void Copy(const EG& eg);
     };
 
     class LFO
@@ -281,6 +290,9 @@ namespace sfz
         LinuxSampler::ArrayList<CC> pitch_oncc;
         
         LFO();
+        LFO(const LFO& lfo) { Copy(lfo); }
+        void operator=(const LFO& lfo) { Copy(lfo); }
+        void Copy(const LFO& lfo);
     };
 
     // Fixed size array with copy-on-write semantics
@@ -442,6 +454,8 @@ namespace sfz
         //Deprecated (from version 1)
         float ampeg_delay, ampeg_start, ampeg_attack, ampeg_hold, ampeg_decay, ampeg_sustain, ampeg_release;
         float ampeg_vel2delay, ampeg_vel2attack, ampeg_vel2hold, ampeg_vel2decay, ampeg_vel2sustain, ampeg_vel2release;
+        LinuxSampler::ArrayList<CC> ampeg_delaycc, ampeg_startcc, ampeg_attackcc, ampeg_holdcc;
+        LinuxSampler::ArrayList<CC> ampeg_decaycc, ampeg_sustaincc, ampeg_releasecc;
         float fileg_delay, fileg_start, fileg_attack, fileg_hold, fileg_decay, fileg_sustain, fileg_release;
         float fileg_vel2delay, fileg_vel2attack, fileg_vel2hold, fileg_vel2decay, fileg_vel2sustain, fileg_vel2release;
         float pitcheg_delay, pitcheg_start, pitcheg_attack, pitcheg_hold, pitcheg_decay, pitcheg_sustain, pitcheg_release;

@@ -118,6 +118,11 @@ Version CVS HEAD (?)
       fillfo_fade, amplfo_fade, lfoN_fade, lfoN_fade_onccX
     - implemented opcodes fillfo_freqccN,
       pitchlfo_freqccN, amplfo_freqccN, lfoN_freq_onccX
+    - implemented opcodes ampeg_delayccN, ampeg_startccN,
+      ampeg_attackccN, ampeg_holdccN, ampeg_decayccN, ampeg_sustainccN,
+      ampeg_releaseccN, egN_timeX_onccY, egN_levelX_onccY
+    - lfoN_* and egN_* opcodes defined in group sections 
+      are now taken into account
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

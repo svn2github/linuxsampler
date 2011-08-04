@@ -53,6 +53,7 @@ namespace LinuxSampler { namespace sfz {
             }
             
             double GetSampleRate();
+            float  GetInfluence(ArrayList< ::sfz::CC>& cc);
     };
     
     
@@ -123,10 +124,11 @@ namespace LinuxSampler { namespace sfz {
         public:
             int depth;
             EGv1Unit(SfzSignalUnitRack* rack): EGUnit<EGADSR>(rack), depth(0) { }
-            virtual void Trigger();
     };
     
     class EGv2Unit: public EGUnit< ::LinuxSampler::sfz::EG> {
+        protected:
+            ::sfz::EG egInfo;
         public:
             EGv2Unit(SfzSignalUnitRack* rack): EGUnit< ::LinuxSampler::sfz::EG>(rack) { }
             virtual void Trigger();
@@ -141,6 +143,12 @@ namespace LinuxSampler { namespace sfz {
     class FilEGUnit: public EGv1Unit {
         public:
             FilEGUnit(SfzSignalUnitRack* rack): EGv1Unit(rack) { }
+            virtual void Trigger();
+    };
+    
+    class AmpEGUnit: public EGv1Unit {
+        public:
+            AmpEGUnit(SfzSignalUnitRack* rack): EGv1Unit(rack) { }
             virtual void Trigger();
     };
     
@@ -205,7 +213,7 @@ namespace LinuxSampler { namespace sfz {
                 SfzSignalUnit::Copy(Unit);
             }
             
-            virtual bool  Active() { return true; }
+            virtual bool  Active() { return pLfoInfo->freq > 0; }
             virtual void  Trigger();
             virtual void  Increment();
             virtual float GetLevel() { return Level; }
@@ -298,7 +306,7 @@ namespace LinuxSampler { namespace sfz {
     class SfzSignalUnitRack : public SignalUnitRack {
         private:
             EndpointUnit  suEndpoint;
-            EGv1Unit      suVolEG;
+            AmpEGUnit     suVolEG;
             FilEGUnit     suFilEG;
             PitchEGUnit   suPitchEG;
             

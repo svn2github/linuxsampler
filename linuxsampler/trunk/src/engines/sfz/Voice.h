@@ -103,7 +103,7 @@ namespace LinuxSampler { namespace sfz {
 
             EngineChannel* GetSfzEngineChannel();
             
-            friend class EGv1Unit;
+            friend class AmpEGUnit;
             friend class FilEGUnit;
             friend class PitchEGUnit;
             friend class PitchLFOUnit;

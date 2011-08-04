@@ -492,17 +492,17 @@ namespace sfz
 
         amplfo_delay     = 0;
         amplfo_fade      = 0;
-        amplfo_freq      = 0;
+        amplfo_freq      = -1; /* -1 is used to determine whether the LFO was initialized */
         amplfo_depth     = 0;
 
         fillfo_delay     = 0;
         fillfo_fade      = 0;
-        fillfo_freq      = 0;
+        fillfo_freq      = -1; /* -1 is used to determine whether the LFO was initialized */
         fillfo_depth     = 0;
 
         pitchlfo_delay   = 0;
         pitchlfo_fade    = 0;
-        pitchlfo_freq    = 0;
+        pitchlfo_freq    = -1; /* -1 is used to determine whether the LFO was initialized */
         pitchlfo_depth   = 0;
     }
 
@@ -702,6 +702,14 @@ namespace sfz
         region->ampeg_vel2decay   = ampeg_vel2decay;
         region->ampeg_vel2sustain = ampeg_vel2sustain;
         region->ampeg_vel2release = ampeg_vel2release;
+        
+        region->ampeg_delaycc   = ampeg_delaycc;
+        region->ampeg_startcc   = ampeg_startcc;
+        region->ampeg_attackcc  = ampeg_attackcc;
+        region->ampeg_holdcc    = ampeg_holdcc;
+        region->ampeg_decaycc   = ampeg_decaycc;
+        region->ampeg_sustaincc = ampeg_sustaincc;
+        region->ampeg_releasecc = ampeg_releasecc;
 
         region->fileg_delay    = fileg_delay;
         region->fileg_start    = fileg_start;
@@ -756,6 +764,9 @@ namespace sfz
         
         region->pitchlfo_depthcc = pitchlfo_depthcc;
         region->pitchlfo_freqcc  = pitchlfo_freqcc;
+        
+        region->eg = eg;
+        region->lfos = lfos;
 
         return region;
     }
@@ -982,7 +993,7 @@ namespace sfz
         std::string::size_type delimiter_index = token.find('=');
         std::string key = token.substr(0, delimiter_index);
         std::string value = token.substr(delimiter_index + 1);
-        int x, y;
+        int x, y, z;
 
         // sample definition
         if ("sample" == key)
@@ -1113,7 +1124,7 @@ namespace sfz
         else if ("amp_keycenter" == key) pCurDef->amp_keycenter = parseKey(value);
         else if ("amp_veltrack"  == key) pCurDef->amp_veltrack = ToFloat(value);
         else if ("amp_random"  == key) pCurDef->amp_random = ToFloat(value);
-        else if ("rt_decay"    == key) pCurDef->rt_decay = ToFloat(value);
+        else if ("rt_decay" == key || "rtdecay" == key) pCurDef->rt_decay = ToFloat(value);
         else if ("xfin_lokey"  == key) pCurDef->xfin_lokey = parseKey(value);
         else if ("xfin_hikey"  == key) pCurDef->xfin_hikey = parseKey(value);
         else if ("xfout_lokey" == key) pCurDef->xfout_lokey = parseKey(value);
@@ -1147,7 +1158,7 @@ namespace sfz
         else if ("pitch_random" == key) pCurDef->pitch_random = ToInt(value);
         else if ("bend_up" == key || "bendup" == key) pCurDef->bend_up = ToInt(value);
         else if ("bend_down" == key || "benddown" == key) pCurDef->bend_down = ToInt(value);
-        else if ("bend_step" == key) pCurDef->bend_step = ToInt(value);
+        else if ("bend_step" == key || "bendstep" == key) pCurDef->bend_step = ToInt(value);
 
         // filter
         else if ("fil_type" == key || "filtype" == key)
@@ -1225,8 +1236,15 @@ namespace sfz
         // v2 envelope generators
         else if (sscanf(key.c_str(), "eg%d%n", &x, &y)) {
             const char* s = key.c_str() + y;
-            if (sscanf(s, "_time%d", &y)) egnode(x, y).time = ToFloat(value);
-            else if (sscanf(s, "_level%d", &y)) egnode(x, y).level = ToFloat(value);
+            if (sscanf(s, "_time%d%n", &y, &z)) {
+                const char* s2 = s + z;
+                if (strcmp(s2, "") == 0) egnode(x, y).time = check(key, 0.0f, 100.0f, ToFloat(value));
+                else if (sscanf(s2, "_oncc%d", &z)) egnode(x, y).time_oncc.add( CC(z, check(key, 0.0f, 100.0f, ToFloat(value))) );
+            } else if (sscanf(s, "_level%d%n", &y, &z)) {
+                const char* s2 = s + z;
+                if (strcmp(s2, "") == 0) egnode(x, y).level = check(key, 0.0f, 1.0f, ToFloat(value));
+                else if (sscanf(s2, "_oncc%d", &z)) egnode(x, y).level_oncc.add( CC(z, check(key, 0.0f, 1.0f, ToFloat(value))) );
+            }
             else if (sscanf(s, "_shape%d", &y)) egnode(x, y).shape = ToFloat(value);
             else if (sscanf(s, "_curve%d", &y)) egnode(x, y).curve = ToFloat(value);
             else if (strcmp(s, "_sustain") == 0) eg(x).sustain = ToInt(value);
@@ -1374,6 +1392,15 @@ namespace sfz
             else if ("eq1_gain_on" == key_cc || "eq1_gain" == key_cc) pCurDef->eq1_gain_oncc.set(num_cc, ToInt(value));
             else if ("eq2_gain_on" == key_cc || "eq2_gain" == key_cc) pCurDef->eq2_gain_oncc.set(num_cc, ToInt(value));
             else if ("eq3_gain_on" == key_cc || "eq3_gain" == key_cc) pCurDef->eq3_gain_oncc.set(num_cc, ToInt(value));
+            
+            else if ("ampeg_delay"   == key_cc) pCurDef->ampeg_delaycc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("ampeg_start"   == key_cc) pCurDef->ampeg_startcc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("ampeg_attack"  == key_cc) pCurDef->ampeg_attackcc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("ampeg_hold"    == key_cc) pCurDef->ampeg_holdcc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("ampeg_decay"   == key_cc) pCurDef->ampeg_decaycc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("ampeg_sustain" == key_cc) pCurDef->ampeg_sustaincc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("ampeg_release" == key_cc) pCurDef->ampeg_releasecc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            
             else if ("pitchlfo_depth" == key_cc) pCurDef->pitchlfo_depthcc.set(num_cc, ToInt(value));
             else if ("pitchlfo_freq" == key_cc) pCurDef->pitchlfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
             else if ("fillfo_freq" == key_cc) pCurDef->fillfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
@@ -1424,10 +1451,29 @@ namespace sfz
 
     EGNode::EGNode() : time(0), level(0), shape(0), curve(0) {
     }
+    
+    void EGNode::Copy(const EGNode& egNode) {
+        time  = egNode.time;
+        level = egNode.level;
+        shape = egNode.shape;
+        curve = egNode.curve;
+        
+        time_oncc = egNode.time_oncc;
+        level_oncc = egNode.level_oncc;
+    }
 
     EG::EG() :
         sustain(0), loop(0), loop_count(0),
         amplitude(0), cutoff(0) {
+    }
+    
+    void EG::Copy(const EG& eg) {
+        sustain    = eg.sustain;
+        loop       = eg.loop;
+        loop_count = eg.loop_count;
+        amplitude  = eg.amplitude;
+        cutoff     = eg.cutoff;
+        node       = eg.node;
     }
 
     EG& File::eg(int x) {
@@ -1448,6 +1494,23 @@ namespace sfz
     LFO::LFO(): freq (-1),/* -1 is used to determine whether the LFO was initialized */
                 fade(0), phase(0), wave(0), delay(0), pitch(0), cutoff(0), resonance(0), pan(0) {
         
+    }
+    
+    void LFO::Copy(const LFO& lfo) {
+        delay      = lfo.delay;
+        freq       = lfo.freq;
+        fade       = lfo.fade;
+        phase      = lfo.phase;
+        wave       = lfo.wave;
+        volume     = lfo.volume;
+        pitch      = lfo.pitch;
+        cutoff     = lfo.cutoff;
+        resonance  = lfo.resonance;
+        pan        = lfo.pan;
+        freq_oncc  = lfo.freq_oncc;
+        fade_oncc  = lfo.fade_oncc;
+        phase_oncc = lfo.phase_oncc;
+        pitch_oncc = lfo.pitch_oncc;
     }
 
     LFO& File::lfo(int x) {

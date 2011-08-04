@@ -34,28 +34,26 @@ namespace LinuxSampler { namespace sfz {
         return pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
     }
     
-    
-    void EGv1Unit::Trigger() {
-        ::sfz::Region* const pRegion = pVoice->pRegion;
-        
-        // the length of the decay and release curves are dependent on the velocity
-        const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity);
-
-        // set the delay trigger
-        uiDelayTrigger = (pRegion->ampeg_delay + pRegion->ampeg_vel2delay * velrelease) * GetSampleRate();
-        
-        EG.trigger(uint(pRegion->ampeg_start * 10),
-                   std::max(0.0, pRegion->ampeg_attack + pRegion->ampeg_vel2attack * velrelease),
-                   std::max(0.0, pRegion->ampeg_hold + pRegion->ampeg_vel2hold * velrelease),
-                   std::max(0.0, pRegion->ampeg_decay + pRegion->ampeg_vel2decay * velrelease),
-                   uint(std::min(std::max(0.0, 10 * (pRegion->ampeg_sustain + pRegion->ampeg_vel2sustain * velrelease)), 1000.0)),
-                   std::max(0.0, pRegion->ampeg_release + pRegion->ampeg_vel2release * velrelease),
-                   GetSampleRate());
+    float SfzSignalUnit::GetInfluence(ArrayList< ::sfz::CC>& cc) {
+        float f = 0;
+        for (int i = 0; i < cc.size(); i++) {
+            int val = pVoice->GetControllerValue(cc[i].Controller);
+            f += (val / 127.0f) * cc[i].Influence;
+        }
+        return f;
     }
     
     
     void EGv2Unit::Trigger() {
-        EG.trigger(*pEGInfo, GetSampleRate(), pVoice->MIDIVelocity);
+        egInfo = *pEGInfo;
+        for (int i = 0; i < egInfo.node.size(); i++) {
+            float f = GetInfluence(egInfo.node[i].level_oncc);
+            egInfo.node[i].level = std::min(egInfo.node[i].level + f, 1.0f);
+            
+            f = GetInfluence(egInfo.node[i].time_oncc);
+            egInfo.node[i].time = std::min(egInfo.node[i].time + f, 100.0f);
+        }
+        EG.trigger(egInfo, GetSampleRate(), pVoice->MIDIVelocity);
     }
     
     
@@ -99,6 +97,41 @@ namespace LinuxSampler { namespace sfz {
     }
     
     
+    void AmpEGUnit::Trigger() {
+        ::sfz::Region* const pRegion = pVoice->pRegion;
+        
+        // the length of the decay and release curves are dependent on the velocity
+        const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity);
+
+        // set the delay trigger
+        float delay = pRegion->ampeg_delay + pRegion->ampeg_vel2delay * velrelease;
+        delay += GetInfluence(pRegion->ampeg_delaycc);
+        uiDelayTrigger = std::max(0.0f, delay) * GetSampleRate();
+        
+        float start = (pRegion->ampeg_start + GetInfluence(pRegion->ampeg_startcc)) * 10;
+        
+        float attack = pRegion->ampeg_attack + pRegion->ampeg_vel2attack * velrelease;
+        attack = std::max(0.0f, attack + GetInfluence(pRegion->ampeg_attackcc));
+        
+        float hold = pRegion->ampeg_hold + pRegion->ampeg_vel2hold * velrelease;
+        hold = std::max(0.0f, hold + GetInfluence(pRegion->ampeg_holdcc));
+        
+        float decay = pRegion->ampeg_decay + pRegion->ampeg_vel2decay * velrelease;
+        decay = std::max(0.0f, decay + GetInfluence(pRegion->ampeg_decaycc));
+        
+        float sustain = pRegion->ampeg_sustain + pRegion->ampeg_vel2sustain * velrelease;
+        sustain = 10 * (sustain + GetInfluence(pRegion->ampeg_sustaincc));
+        
+        float release = pRegion->ampeg_release + pRegion->ampeg_vel2release * velrelease;
+        release = std::max(0.0f, release + GetInfluence(pRegion->ampeg_releasecc));
+        
+        EG.trigger (
+            uint(std::min(std::max(0.0f, start), 1000.0f)), attack, hold, decay,
+            uint(std::min(std::max(0.0f, sustain), 1000.0f)), release, GetSampleRate()
+        );
+    }
+    
+    
     LFOUnit::LFOUnit(SfzSignalUnitRack* rack)
         : SfzSignalUnit(rack), pLfoInfo(NULL), pLFO(NULL),
           suFadeEG(rack), suFreqOnCC(rack, this)
@@ -128,10 +161,7 @@ namespace LinuxSampler { namespace sfz {
         uiDelayTrigger = pLfoInfo->delay * GetSampleRate();
         if(pLfoInfo->fade != 0 || !pLfoInfo->fade_oncc.empty()) {
             float f = pLfoInfo->fade;
-            for (int i = 0; i < pLfoInfo->fade_oncc.size(); i++) {
-                int val = pVoice->GetControllerValue(pLfoInfo->fade_oncc[i].Controller);
-                f += (val / 127.0f) * pLfoInfo->fade_oncc[i].Influence;
-            }
+            f += GetInfluence(pLfoInfo->fade_oncc);
             
             if (f != 0) {
                 suFadeEG.uiDelayTrigger = pLfoInfo->delay * GetSampleRate();
@@ -141,7 +171,7 @@ namespace LinuxSampler { namespace sfz {
     }
     
     void LFOUnit::ValueChanged(CCSignalUnit* pUnit) {
-        pLFO->SetFrequency(suFreqOnCC.GetLevel() + pLfoInfo->freq, GetSampleRate());
+        pLFO->SetFrequency(std::max(0.0f, suFreqOnCC.GetLevel() + pLfoInfo->freq), GetSampleRate());
     }
     
     
@@ -185,11 +215,7 @@ namespace LinuxSampler { namespace sfz {
         );
         pLFO->Update(0);
         
-        float phase = pLfoInfo->phase;
-        for (int i = 0; i < pLfoInfo->phase_oncc.size(); i++) {
-            int val = pVoice->GetControllerValue(pLfoInfo->phase_oncc[i].Controller);
-            phase += (val / 127.0f) * pLfoInfo->phase_oncc[i].Influence;
-        }
+        float phase = pLfoInfo->phase + GetInfluence(pLfoInfo->phase_oncc);
         if (phase != 0) pLFO->SetPhase(phase);
     }
     
@@ -279,6 +305,7 @@ namespace LinuxSampler { namespace sfz {
             EGv2Unit* eg = GetRack()->volEGs[i];
             if (!eg->Active()) continue;
             vol += eg->GetLevel() * (eg->pEGInfo->amplitude / 100.0f);
+            
         }
         
         AmpLFOUnit* u = &(GetRack()->suAmpLFO);
