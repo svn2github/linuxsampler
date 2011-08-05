@@ -123,6 +123,8 @@ Version CVS HEAD (?)
       ampeg_releaseccN, egN_timeX_onccY, egN_levelX_onccY
     - lfoN_* and egN_* opcodes defined in group sections 
       are now taken into account
+    - implemented curves
+    - implemented opcodes volume_onccN, volume_curveccN
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

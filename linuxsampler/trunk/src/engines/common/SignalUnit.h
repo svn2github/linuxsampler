@@ -338,17 +338,15 @@ namespace LinuxSampler {
         protected:
             class CC {
                 public:
-                    uint8_t Controller;  ///< MIDI controller number.
-                    uint8_t Value;       ///< Controller Value.
-                    float   Influence;
+                    uint8_t   Controller;  ///< MIDI controller number.
+                    uint8_t   Value;       ///< Controller Value.
+                    short int Curve;       ///< specifies the curve type
+                    float     Influence;
                     
-                    CC() {
-                        CC(0, 0.0f);
-                    }
-                    
-                    CC(uint8_t Controller, float Influence) {
+                    CC(uint8_t Controller = 0, float Influence = 0.0f, short int Curve = -1) {
                         this->Controller = Controller;
                         this->Value = 0;
+                        this->Curve = Curve;
                         this->Influence = Influence;
                     }
                     
@@ -359,6 +357,7 @@ namespace LinuxSampler {
                         Controller = cc.Controller;
                         Value = cc.Value;
                         Influence = cc.Influence;
+                        Curve = cc.Curve;
                     }
             };
             
@@ -380,8 +379,8 @@ namespace LinuxSampler {
                 SignalUnit::Copy(Unit);
             }
             
-            void AddCC(uint8_t Controller, float Influence) {
-                Ctrls.add(CC(Controller, Influence));
+            void AddCC(uint8_t Controller, float Influence, short int Curve = -1) {
+                Ctrls.add(CC(Controller, Influence, Curve));
             }
             
             void RemoveAllCCs() {

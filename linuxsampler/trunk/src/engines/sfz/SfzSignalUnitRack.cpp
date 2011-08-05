@@ -270,8 +270,20 @@ namespace LinuxSampler { namespace sfz {
      void CCUnit::SetCCs(ArrayList< ::sfz::CC>& cc) {
          RemoveAllCCs();
          for (int i = 0; i < cc.size(); i++) {
-             if (cc[i].Influence != 0) AddCC(cc[i].Controller, cc[i].Influence);
+             if (cc[i].Influence != 0) {
+                 short int curve = cc[i].Curve;
+                 if (curve >= GetCurveCount()) curve = -1;
+                 AddCC(cc[i].Controller, cc[i].Influence, curve);
+             }
          }
+     }
+     
+     int CCUnit::GetCurveCount() {
+         return pVoice->pRegion->GetInstrument()->curves.size();
+     }
+     
+     ::sfz::Curve* CCUnit::GetCurve(int idx) { 
+         return &pVoice->pRegion->GetInstrument()->curves[idx];
      }
 
 
@@ -310,6 +322,8 @@ namespace LinuxSampler { namespace sfz {
         
         AmpLFOUnit* u = &(GetRack()->suAmpLFO);
         vol *= u->Active() ? ::sf2::ToRatio((u->GetLevel() * u->pLfoInfo->volume) * 10.0) : 1;
+        
+        vol *= ::sf2::ToRatio(GetRack()->suVolOnCC.GetLevel() * 10.0);
         
         return vol;
     }
@@ -387,12 +401,12 @@ namespace LinuxSampler { namespace sfz {
     
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
         : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suFilEG(this), suPitchEG(this),
-        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount),
+        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), suVolOnCC(this),
         suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
         LFOs(maxLfoCount), pitchLFOs(maxLfoCount), filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
     {
         suEndpoint.pVoice = suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
-        suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = voice;
+        suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = suVolOnCC.pVoice = voice;
         suPitchLFO.suDepthCC.pVoice = suPitchLFO.suFadeEG.pVoice = suPitchLFO.suFreqOnCC.pVoice = voice;
         suFilLFO.suFadeEG.pVoice = suFilLFO.suFreqOnCC.pVoice = voice;
         suAmpLFO.suFadeEG.pVoice = suAmpLFO.suFreqOnCC.pVoice = voice;
@@ -433,6 +447,8 @@ namespace LinuxSampler { namespace sfz {
         panLFOs.clear();
         
         ::sfz::Region* const pRegion = pVoice->pRegion;
+        
+        suVolOnCC.SetCCs(pRegion->volume_oncc);
         
         for (int i = 0; i < pRegion->eg.size(); i++) {
             if (pRegion->eg[i].node.size() == 0) continue;
@@ -495,6 +511,8 @@ namespace LinuxSampler { namespace sfz {
         suAmpLFO.suFreqOnCC.SetCCs(pRegion->amplfo_freqcc);
         
         Units.clear();
+        
+        Units.add(&suVolOnCC);
         
         Units.add(&suVolEG);
         Units.add(&suFilEG);

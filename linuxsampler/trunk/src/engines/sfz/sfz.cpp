@@ -198,6 +198,13 @@ namespace sfz
         this->name = name;
         this->pSampleManager = pSampleManager ? pSampleManager : this;
         pLookupTable = 0;
+        
+        // The first 6 curves are defined internally (actually 7 with the one at index 0)
+        Curve c;
+        for (int i = 0; i < 128; i++) c.v[i] = i / 127.0f;
+        curves.add(c); curves.add(c); curves.add(c); curves.add(c);
+        curves.add(c); curves.add(c); curves.add(c);
+        ///////
     }
 
     Instrument::~Instrument()
@@ -939,6 +946,14 @@ namespace sfz
         for (int i = 0 ; i < 128 ; i++) {
             _instrument->pLookupTableCC[i] = new LookupTable(_instrument, i);
         }
+        
+        for (int k = 0; k < _instrument->regions.size(); k++) {
+            Region* r = _instrument->regions[k];
+            
+            copyCurves(r->volume_curvecc, r->volume_oncc);
+            
+            r->volume_curvecc.clear();
+        }
     }
 
     File::~File()
@@ -951,6 +966,16 @@ namespace sfz
     File::GetInstrument()
     {
         return _instrument;
+    }
+    
+    void File::copyCurves(LinuxSampler::ArrayList<CC>& curves, LinuxSampler::ArrayList<CC>& dest) {
+        for (int i = 0; i < curves.size(); i++) {
+            for (int j = 0; j < dest.size(); j++) {
+                if (curves[i].Controller == dest[j].Controller) {
+                    dest[j].Curve = curves[i].Curve;
+                }
+            }
+        }
     }
 
     void
@@ -977,6 +1002,12 @@ namespace sfz
             octave_offset = 0;
             note_offset = 0;
         }
+        else if (token == "<curve>")
+        {
+            _current_section = CURVE;
+            _instrument->curves.add(Curve());
+            _current_curve = &_instrument->curves[_instrument->curves.size() - 1];
+        }
         else
         {
             _current_section = UNKNOWN;
@@ -994,6 +1025,19 @@ namespace sfz
         std::string key = token.substr(0, delimiter_index);
         std::string value = token.substr(delimiter_index + 1);
         int x, y, z;
+        
+        if (_current_section == CURVE) {
+            if (sscanf(key.c_str(), "v%d", &x)) {
+                if (x < 0 || x > 127) {
+                    std::cerr << "Invalid curve index: " << x << std::endl;
+                }
+                _current_curve->v[x] = check(key, 0.0f, 1.0f, ToFloat(value));
+            } else {
+                std::cerr << "The opcode '" << key << "' in section <curve> is unsupported by libsfz!" << std::endl;
+            }
+            
+            return;
+        }
 
         // sample definition
         if ("sample" == key)
@@ -1332,7 +1376,7 @@ namespace sfz
             else if (strcmp(s, "_pan") == 0) lfo(x).pan = check(key, -100.0f, 100.0f, ToFloat(value));
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
-
+        
         // CCs
         else if (key.find("cc") != std::string::npos)
         {
@@ -1405,6 +1449,8 @@ namespace sfz
             else if ("pitchlfo_freq" == key_cc) pCurDef->pitchlfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
             else if ("fillfo_freq" == key_cc) pCurDef->fillfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
             else if ("amplfo_freq" == key_cc) pCurDef->amplfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
+            else if ("volume_on" == key_cc) pCurDef->volume_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("volume_curve" == key_cc) pCurDef->volume_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
 
@@ -1475,21 +1521,6 @@ namespace sfz
         cutoff     = eg.cutoff;
         node       = eg.node;
     }
-
-    EG& File::eg(int x) {
-        while (pCurDef->eg.size() <= x) {
-            pCurDef->eg.add(EG());
-        }
-        return pCurDef->eg[x];
-    }
-
-    EGNode& File::egnode(int x, int y) {
-        EG& e = eg(x);
-        while (e.node.size() <= y) {
-            e.node.add(EGNode());
-        }
-        return e.node[y];
-    }
     
     LFO::LFO(): freq (-1),/* -1 is used to determine whether the LFO was initialized */
                 fade(0), phase(0), wave(0), delay(0), pitch(0), cutoff(0), resonance(0), pan(0) {
@@ -1511,6 +1542,21 @@ namespace sfz
         fade_oncc  = lfo.fade_oncc;
         phase_oncc = lfo.phase_oncc;
         pitch_oncc = lfo.pitch_oncc;
+    }
+
+    EG& File::eg(int x) {
+        while (pCurDef->eg.size() <= x) {
+            pCurDef->eg.add(EG());
+        }
+        return pCurDef->eg[x];
+    }
+
+    EGNode& File::egnode(int x, int y) {
+        EG& e = eg(x);
+        while (e.node.size() <= y) {
+            e.node.add(EGNode());
+        }
+        return e.node[y];
     }
 
     LFO& File::lfo(int x) {

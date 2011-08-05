@@ -86,14 +86,14 @@ namespace sfz
     
     class CC {
         public:
-            uint8_t Controller;  ///< MIDI controller number.
-            float   Influence;   ///< Controller Value.
+            uint8_t   Controller;  ///< MIDI controller number.
+            short int Curve;
+            float     Influence;   ///< Controller Value.
             
-            CC() { CC(0, 0.0f); }
-                    
-            CC(uint8_t Controller, float Influence) {
+            CC(uint8_t Controller = 0, float Influence = 0.0f, short int Curve = -1) {
                 this->Controller = Controller;
-                this->Influence = Influence;
+                this->Influence  = Influence;
+                this->Curve      = Curve;
             }
                     
             CC(const CC& cc) { Copy(cc); }
@@ -101,7 +101,8 @@ namespace sfz
                     
             void Copy(const CC& cc) {
                 Controller = cc.Controller;
-                Influence = cc.Influence;
+                Influence  = cc.Influence;
+                Curve      = cc.Curve;
             }
     };
 
@@ -476,6 +477,9 @@ namespace sfz
 
         // low frequency oscillators
         LinuxSampler::ArrayList<LFO> lfos;
+        
+        LinuxSampler::ArrayList<CC> volume_oncc;
+        LinuxSampler::ArrayList<CC> volume_curvecc; // used only as temporary buffer during the parsing - values are then moved to volume_oncc
     };
 
     class Query {
@@ -542,6 +546,15 @@ namespace sfz
         Instrument* pInstrument;
         int seq_counter;
     };
+    
+    class Curve {
+        public:
+            float v[128];
+            Curve() { for (int i = 0; i < 128; i++) v[i] = 0; }
+            Curve(const Curve& curve) { Copy(curve); }
+            void operator=(const Curve& curve) { Copy(curve); }
+            void Copy(const Curve& curve) { for (int i = 0; i < 128; i++) v[i] = curve.v[i]; }
+    };
 
     /////////////////////////////////////////////////////////////
     // class Instrument
@@ -562,6 +575,7 @@ namespace sfz
 
         /// List of Regions belonging to this Instrument
         std::vector<Region*> regions;
+        ::LinuxSampler::ArrayList<Curve> curves;
 
         friend class File;
         friend class Query;
@@ -618,16 +632,18 @@ namespace sfz
         EG& eg(int x);
         EGNode& egnode(int x, int y);
         LFO& lfo(int x);
+        void copyCurves(LinuxSampler::ArrayList<CC>& curves, LinuxSampler::ArrayList<CC>& dest);
 
         std::string currentDir;
         /// Pointer to the Instrument belonging to this file
         Instrument* _instrument;
 
         // state variables
-        enum section_t { UNKNOWN, GROUP, REGION, CONTROL };
+        enum section_t { UNKNOWN, GROUP, REGION, CONTROL, CURVE };
         section_t _current_section;
         Region* _current_region;
         Group* _current_group;
+        Curve* _current_curve;
         Definition* pCurDef;
 
         // control header directives
