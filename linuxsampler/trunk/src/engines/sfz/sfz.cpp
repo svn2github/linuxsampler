@@ -322,6 +322,8 @@ namespace sfz
 
         // amplifier
         volume = 0;
+        volume_oncc.clear();
+        volume_curvecc.clear();
         pan = 0;
         width = 100;
         position = 0;
@@ -448,6 +450,7 @@ namespace sfz
         cutoff_cc = 0;
 
         eg.clear();
+        lfos.clear();
 
         // deprecated
         ampeg_delay    = 0;
@@ -464,6 +467,14 @@ namespace sfz
         ampeg_vel2decay   = 0;
         ampeg_vel2sustain = 0;
         ampeg_vel2release = 0;
+        
+        ampeg_delaycc.clear();
+        ampeg_startcc.clear();
+        ampeg_attackcc.clear();
+        ampeg_holdcc.clear();
+        ampeg_decaycc.clear();
+        ampeg_sustaincc.clear();
+        ampeg_releasecc.clear();
 
         fileg_delay    = 0;
         fileg_start    = 0; //in percentage
@@ -501,16 +512,19 @@ namespace sfz
         amplfo_fade      = 0;
         amplfo_freq      = -1; /* -1 is used to determine whether the LFO was initialized */
         amplfo_depth     = 0;
+        amplfo_freqcc.clear();
 
         fillfo_delay     = 0;
         fillfo_fade      = 0;
         fillfo_freq      = -1; /* -1 is used to determine whether the LFO was initialized */
         fillfo_depth     = 0;
+        fillfo_freqcc.clear();
 
         pitchlfo_delay   = 0;
         pitchlfo_fade    = 0;
         pitchlfo_freq    = -1; /* -1 is used to determine whether the LFO was initialized */
         pitchlfo_depth   = 0;
+        pitchlfo_freqcc.clear();
     }
 
     Region*
@@ -590,6 +604,8 @@ namespace sfz
 
         // amplifier
         region->volume = volume;
+        region->volume_oncc = volume_oncc;
+        region->volume_curvecc = volume_curvecc;
         region->pan = pan;
         region->width = width;
         region->position = position;
