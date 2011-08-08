@@ -513,12 +513,14 @@ namespace sfz
         amplfo_fade      = 0;
         amplfo_freq      = -1; /* -1 is used to determine whether the LFO was initialized */
         amplfo_depth     = 0;
+        amplfo_depthcc.clear();
         amplfo_freqcc.clear();
 
         fillfo_delay     = 0;
         fillfo_fade      = 0;
         fillfo_freq      = -1; /* -1 is used to determine whether the LFO was initialized */
         fillfo_depth     = 0;
+        fillfo_depthcc.clear();
         fillfo_freqcc.clear();
 
         pitchlfo_delay   = 0;
@@ -773,6 +775,7 @@ namespace sfz
         region->amplfo_freq      = amplfo_freq;
         region->amplfo_depth     = amplfo_depth;
         
+        region->amplfo_depthcc   = amplfo_depthcc;
         region->amplfo_freqcc    = amplfo_freqcc;
 
         region->fillfo_delay     = fillfo_delay;
@@ -780,6 +783,7 @@ namespace sfz
         region->fillfo_freq      = fillfo_freq;
         region->fillfo_depth     = fillfo_depth;
         
+        region->fillfo_depthcc   = fillfo_depthcc;
         region->fillfo_freqcc    = fillfo_freqcc;
 
         region->pitchlfo_delay   = pitchlfo_delay;
@@ -965,14 +969,34 @@ namespace sfz
             _instrument->pLookupTableCC[i] = new LookupTable(_instrument, i);
         }
         
-        for (int k = 0; k < _instrument->regions.size(); k++) {
-            Region* r = _instrument->regions[k];
+        for (int i = 0; i < _instrument->regions.size(); i++) {
+            Region* r = _instrument->regions[i];
             
             copyCurves(r->volume_curvecc, r->volume_oncc);
-            copySmoothValues(r->volume_smoothcc, r->volume_oncc);
-            
             r->volume_curvecc.clear();
+            
+            copySmoothValues(r->volume_smoothcc, r->volume_oncc);
             r->volume_smoothcc.clear();
+            
+            for (int j = 0; j < r->lfos.size(); j++) {
+                copySmoothValues(r->lfos[j].volume_smoothcc, r->lfos[j].volume_oncc);
+                r->lfos[j].volume_smoothcc.clear();
+                
+                copySmoothValues(r->lfos[j].freq_smoothcc, r->lfos[j].freq_oncc);
+                r->lfos[j].freq_smoothcc.clear();
+                
+                copySmoothValues(r->lfos[j].pitch_smoothcc, r->lfos[j].pitch_oncc);
+                r->lfos[j].pitch_smoothcc.clear();
+                
+                copySmoothValues(r->lfos[j].pan_smoothcc, r->lfos[j].pan_oncc);
+                r->lfos[j].pan_smoothcc.clear();
+                
+                copySmoothValues(r->lfos[j].cutoff_smoothcc, r->lfos[j].cutoff_oncc);
+                r->lfos[j].cutoff_smoothcc.clear();
+                
+                copySmoothValues(r->lfos[j].resonance_smoothcc, r->lfos[j].resonance_oncc);
+                r->lfos[j].resonance_smoothcc.clear();
+            }
         }
     }
 
@@ -1392,18 +1416,29 @@ namespace sfz
             const char* s = key.c_str() + y;
             if (strcmp(s, "_freq") == 0) lfo(x).freq = check(key, 0.0f, 20.0f, ToFloat(value));
             else if (sscanf(s, "_freq_oncc%d", &y)) lfo(x).freq_oncc.add( CC(y, check(key, 0.0f, 20.0f, ToFloat(value))) );
+            else if (sscanf(s, "_freq_smoothcc%d", &y)) lfo(x).freq_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
             else if (strcmp(s, "_wave") == 0) lfo(x).wave = ToInt(value);
             else if (strcmp(s, "_delay") == 0) lfo(x).delay = check(key, 0.0f, 100.0f, ToFloat(value));
+            else if (sscanf(s, "_delay_oncc%d", &y)) lfo(x).delay_oncc.add( CC(y, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if (strcmp(s, "_fade") == 0) lfo(x).fade = check(key, 0.0f, 100.0f, ToFloat(value));
             else if (sscanf(s, "_fade_oncc%d", &y)) lfo(x).fade_oncc.add( CC(y, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if (strcmp(s, "_phase") == 0) lfo(x).phase = check(key, 0.0f, 360.0f, ToFloat(value));
             else if (sscanf(s, "_phase_oncc%d", &y)) lfo(x).phase_oncc.add( CC(y, check(key, 0.0f, 360.0f, ToFloat(value))) );
             else if (strcmp(s, "_volume") == 0) lfo(x).volume = check(key, -144.0f, 6.0f, ToFloat(value));
+            else if (sscanf(s, "_volume_oncc%d", &y)) lfo(x).volume_oncc.add( CC(y, check(key, -144.0f, 6.0f, ToFloat(value))) );
+            else if (sscanf(s, "_volume_smoothcc%d", &y)) lfo(x).volume_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
             else if (strcmp(s, "_pitch") == 0) lfo(x).pitch = check(key, -9600, 9600, ToInt(value));
             else if (sscanf(s, "_pitch_oncc%d", &y)) lfo(x).pitch_oncc.add( CC(y, check(key, -9600, 9600, ToInt(value))) );
+            else if (sscanf(s, "_pitch_smoothcc%d", &y)) lfo(x).pitch_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
             else if (strcmp(s, "_cutoff") == 0) lfo(x).cutoff = check(key, -9600, 9600, ToInt(value));
+            else if (sscanf(s, "_cutoff_oncc%d", &y)) lfo(x).cutoff_oncc.add( CC(y, check(key, -9600, 9600, ToInt(value))) );
+            else if (sscanf(s, "_cutoff_smoothcc%d", &y)) lfo(x).cutoff_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
             else if (strcmp(s, "_resonance") == 0) lfo(x).resonance = check(key, 0.0f, 40.0f, ToFloat(value));
+            else if (sscanf(s, "_resonance_oncc%d", &y)) lfo(x).resonance_oncc.add( CC(y, check(key, 0.0f, 40.0f, ToFloat(value))) );
+            else if (sscanf(s, "_resonance_smoothcc%d", &y)) lfo(x).resonance_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
             else if (strcmp(s, "_pan") == 0) lfo(x).pan = check(key, -100.0f, 100.0f, ToFloat(value));
+            else if (sscanf(s, "_pan_oncc%d", &y)) lfo(x).pan_oncc.add( CC(y, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if (sscanf(s, "_pan_smoothcc%d", &y)) lfo(x).pan_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
         
@@ -1477,7 +1512,9 @@ namespace sfz
             
             else if ("pitchlfo_depth" == key_cc) pCurDef->pitchlfo_depthcc.set(num_cc, ToInt(value));
             else if ("pitchlfo_freq" == key_cc) pCurDef->pitchlfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
+            else if ("fillfo_depth" == key_cc) pCurDef->fillfo_depthcc.add( CC(num_cc, check(key, -1200, 1200, ToInt(value))) );
             else if ("fillfo_freq" == key_cc) pCurDef->fillfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
+            else if ("amplfo_depth" == key_cc) pCurDef->amplfo_depthcc.add( CC(num_cc, check(key, -10.0f, 10.0f, ToFloat(value))) );
             else if ("amplfo_freq" == key_cc) pCurDef->amplfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
             else if ("volume_on" == key_cc) pCurDef->volume_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if ("volume_curve" == key_cc) pCurDef->volume_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
@@ -1569,10 +1606,22 @@ namespace sfz
         cutoff     = lfo.cutoff;
         resonance  = lfo.resonance;
         pan        = lfo.pan;
-        freq_oncc  = lfo.freq_oncc;
-        fade_oncc  = lfo.fade_oncc;
-        phase_oncc = lfo.phase_oncc;
-        pitch_oncc = lfo.pitch_oncc;
+        
+        delay_oncc      = lfo.delay_oncc;
+        freq_oncc       = lfo.freq_oncc;
+        freq_smoothcc   = lfo.freq_smoothcc;
+        fade_oncc       = lfo.fade_oncc;
+        phase_oncc      = lfo.phase_oncc;
+        pitch_oncc      = lfo.pitch_oncc;
+        pitch_smoothcc  = lfo.pitch_smoothcc;
+        volume_oncc     = lfo.volume_oncc;
+        volume_smoothcc = lfo.volume_smoothcc;
+        pan_oncc        = lfo.pan_oncc;
+        pan_smoothcc    = lfo.pan_smoothcc;
+        cutoff_oncc     = lfo.cutoff_oncc;
+        cutoff_smoothcc = lfo.cutoff_smoothcc;
+        resonance_oncc     = lfo.resonance_oncc;
+        resonance_smoothcc = lfo.resonance_smoothcc;
     }
 
     EG& File::eg(int x) {

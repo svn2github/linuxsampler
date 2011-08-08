@@ -288,10 +288,21 @@ namespace sfz
         float resonance; // 0 to 40 dB
         float pan; // -100 to 100 %
         
+        LinuxSampler::ArrayList<CC> delay_oncc; // 0 to 100 seconds
         LinuxSampler::ArrayList<CC> freq_oncc; // 0 to 20 Hz
+        LinuxSampler::ArrayList<CC> freq_smoothcc; // 0 to ? milliseconds
         LinuxSampler::ArrayList<CC> fade_oncc; // 0 to 100 seconds
         LinuxSampler::ArrayList<CC> phase_oncc; // 0 to 360 degrees
+        LinuxSampler::ArrayList<CC> volume_oncc; // -144 to 6 dB
+        LinuxSampler::ArrayList<CC> volume_smoothcc; // 0 to ? milliseconds
         LinuxSampler::ArrayList<CC> pitch_oncc;
+        LinuxSampler::ArrayList<CC> pitch_smoothcc; // 0 to ? milliseconds
+        LinuxSampler::ArrayList<CC> pan_oncc; // -100 to 100 %
+        LinuxSampler::ArrayList<CC> pan_smoothcc; // 0 to ? milliseconds
+        LinuxSampler::ArrayList<CC> cutoff_oncc; // -9600 to 9600 cents
+        LinuxSampler::ArrayList<CC> cutoff_smoothcc; // 0 to ? milliseconds
+        LinuxSampler::ArrayList<CC> resonance_oncc; // 0 to 40 dB
+        LinuxSampler::ArrayList<CC> resonance_smoothcc; // 0 to ? milliseconds
         
         LFO();
         LFO(const LFO& lfo) { Copy(lfo); }
@@ -472,8 +483,10 @@ namespace sfz
         Array<int> pitchlfo_depthcc;
         
         LinuxSampler::ArrayList<CC> pitchlfo_freqcc; // 0 to 20 Hz
-        LinuxSampler::ArrayList<CC> fillfo_freqcc; // 0 to 20 Hz
-        LinuxSampler::ArrayList<CC> amplfo_freqcc; // 0 to 20 Hz
+        LinuxSampler::ArrayList<CC> fillfo_depthcc;  // -1200 to 1200 cents
+        LinuxSampler::ArrayList<CC> fillfo_freqcc;   // 0 to 20 Hz
+        LinuxSampler::ArrayList<CC> amplfo_depthcc;  // -10 to 10 dB
+        LinuxSampler::ArrayList<CC> amplfo_freqcc;   // 0 to 20 Hz
 
         // envelope generators
         LinuxSampler::ArrayList<EG> eg;

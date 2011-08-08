@@ -228,7 +228,8 @@ namespace LinuxSampler { namespace sfz {
             ::sfz::LFO*  pLfoInfo;
             AbstractLfo* pLFO;
             FadeEGUnit   suFadeEG;
-            CCUnit       suFreqOnCC;
+            SmoothCCUnit suDepthOnCC;
+            SmoothCCUnit suFreqOnCC;
             
             LFOUnit(SfzSignalUnitRack* rack);
             LFOUnit(const LFOUnit& Unit);
@@ -274,7 +275,11 @@ namespace LinuxSampler { namespace sfz {
             
             
         public:
-            CCUnit suPitchOnCC;
+            SmoothCCUnit suVolOnCC;
+            SmoothCCUnit suPitchOnCC;
+            SmoothCCUnit suPanOnCC;
+            SmoothCCUnit suCutoffOnCC;
+            SmoothCCUnit suResOnCC;
             
             LFOv2Unit(SfzSignalUnitRack* rack);
             
@@ -290,9 +295,7 @@ namespace LinuxSampler { namespace sfz {
     
     class PitchLFOUnit: public LFOv1Unit {
         public:
-            CCUnit suDepthCC;
-            
-            PitchLFOUnit(SfzSignalUnitRack* rack): LFOv1Unit(rack), suDepthCC(rack) { }
+            PitchLFOUnit(SfzSignalUnitRack* rack): LFOv1Unit(rack) { }
             
             virtual void Trigger();
     };
@@ -355,6 +358,9 @@ namespace LinuxSampler { namespace sfz {
             
             
             FixedArray<LFOv2Unit*> LFOs;
+            
+            // used for optimization - contains only the ones that are modulating volume
+            FixedArray<LFOv2Unit*> volLFOs;
             
             // used for optimization - contains only the ones that are modulating pitch
             FixedArray<LFOv2Unit*> pitchLFOs;

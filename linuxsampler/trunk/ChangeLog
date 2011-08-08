@@ -126,6 +126,11 @@ Version CVS HEAD (?)
     - implemented curves
     - implemented opcodes volume_onccN, volume_curveccN
     - implemented opcode volume_smoothccN
+    - implemented opcodes fillfo_depthccN, amplfo_depthccN,
+      lfoN_volume, lfoN_volume_onccX, lfoN_volume_smoothccX,
+      lfoN_freq_smoothccX, lfoN_pitch_smoothccX, lfoN_pan_onccX,
+      lfoN_pan_smoothccX, lfoN_cutoff_onccX, lfoN_cutoff_smoothccX,
+      lfoN_resonance_onccX, lfoN_resonance_smoothccX, lfoN_delay_onccX
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
