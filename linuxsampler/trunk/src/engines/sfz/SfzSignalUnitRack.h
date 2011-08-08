@@ -68,25 +68,33 @@ namespace LinuxSampler { namespace sfz {
             void SetCCs(::sfz::Array<int>& pCC);
             void SetCCs(ArrayList< ::sfz::CC>& cc);
             
+            virtual void AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth);
+            
             inline int GetCurveCount();
             inline ::sfz::Curve* GetCurve(int idx);
+            
+            double GetSampleRate();
     };
     
     class CurveCCUnit: public CCUnit {
         public:
             CurveCCUnit(SfzSignalUnitRack* rack, Listener* l = NULL): CCUnit(rack, l) { }
             
-            virtual void Calculate() {
-                Level = 0;
-                for (int i = 0; i < Ctrls.size(); i++) {
-                    if (Ctrls[i].Value == 0) continue;
-                    if (Ctrls[i].Curve == -1) {
-                        Level += (Ctrls[i].Value / 127.0f) * Ctrls[i].Influence;
-                    } else {
-                        Level += GetCurve(Ctrls[i].Curve)->v[Ctrls[i].Value] * Ctrls[i].Influence;
-                    }
-                }
+            virtual float Normalize(uint8_t val, short int curve = -1) {
+                if (curve == -1) return val / 127.0f;
+                return GetCurve(curve)->v[val];
             }
+    };
+    
+    
+    
+    class SmoothCCUnit: public CurveCCUnit {
+        protected:
+            Smoother Smoothers[128];
+        public:
+            SmoothCCUnit(SfzSignalUnitRack* rack, Listener* l = NULL): CurveCCUnit(rack, l) { }
+            
+            virtual void AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth);
     };
     
     
@@ -335,7 +343,7 @@ namespace LinuxSampler { namespace sfz {
             
             // SFZ v2
             
-            CurveCCUnit suVolOnCC;
+            SmoothCCUnit suVolOnCC;
             
             FixedArray<EGv2Unit*> EGs;
             

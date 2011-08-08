@@ -256,6 +256,7 @@ namespace LinuxSampler { namespace sfz {
     void CCUnit::Trigger() {
         for (int i = 0; i < Ctrls.size(); i++) {
             Ctrls[i].Value = pVoice->GetControllerValue(Ctrls[i].Controller);
+            if (Ctrls[i].pSmoother != NULL) Ctrls[i].pSmoother->setValue(Ctrls[i].Value);
         }
         CCSignalUnit::Trigger();
     }
@@ -273,9 +274,13 @@ namespace LinuxSampler { namespace sfz {
              if (cc[i].Influence != 0) {
                  short int curve = cc[i].Curve;
                  if (curve >= GetCurveCount()) curve = -1;
-                 AddCC(cc[i].Controller, cc[i].Influence, curve);
+                 AddSmoothCC(cc[i].Controller, cc[i].Influence, curve, cc[i].Smooth);
              }
          }
+     }
+     
+     void CCUnit::AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth) {
+         AddCC(Controller, Influence, Curve);
      }
      
      int CCUnit::GetCurveCount() {
@@ -284,6 +289,19 @@ namespace LinuxSampler { namespace sfz {
      
      ::sfz::Curve* CCUnit::GetCurve(int idx) { 
          return &pVoice->pRegion->GetInstrument()->curves[idx];
+     }
+     
+     double CCUnit::GetSampleRate() {
+        return pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
+    }
+     
+     void SmoothCCUnit::AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth) {
+         if (Smooth > 0) {
+             Smoothers[Controller].trigger(Smooth / 1000.0f, GetSampleRate());
+             AddCC(Controller, Influence, Curve, &Smoothers[Controller]);
+         } else {
+             AddCC(Controller, Influence, Curve);
+         }
      }
 
 

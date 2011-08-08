@@ -125,6 +125,7 @@ Version CVS HEAD (?)
       are now taken into account
     - implemented curves
     - implemented opcodes volume_onccN, volume_curveccN
+    - implemented opcode volume_smoothccN
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

@@ -89,11 +89,13 @@ namespace sfz
             uint8_t   Controller;  ///< MIDI controller number.
             short int Curve;
             float     Influence;   ///< Controller Value.
+            float     Smooth;      ///< The speed of parameter change in milliseconds
             
-            CC(uint8_t Controller = 0, float Influence = 0.0f, short int Curve = -1) {
+            CC(uint8_t Controller = 0, float Influence = 0.0f, short int Curve = -1, float Smooth = 0) {
                 this->Controller = Controller;
                 this->Influence  = Influence;
                 this->Curve      = Curve;
+                this->Smooth     = Smooth;
             }
                     
             CC(const CC& cc) { Copy(cc); }
@@ -103,6 +105,7 @@ namespace sfz
                 Controller = cc.Controller;
                 Influence  = cc.Influence;
                 Curve      = cc.Curve;
+                Smooth     = cc.Smooth;
             }
     };
 
@@ -480,6 +483,7 @@ namespace sfz
         
         LinuxSampler::ArrayList<CC> volume_oncc;
         LinuxSampler::ArrayList<CC> volume_curvecc; // used only as temporary buffer during the parsing - values are then moved to volume_oncc
+        LinuxSampler::ArrayList<CC> volume_smoothcc; // used only as temporary buffer during the parsing - values are then moved to volume_oncc
     };
 
     class Query {
@@ -633,6 +637,7 @@ namespace sfz
         EGNode& egnode(int x, int y);
         LFO& lfo(int x);
         void copyCurves(LinuxSampler::ArrayList<CC>& curves, LinuxSampler::ArrayList<CC>& dest);
+        void copySmoothValues(LinuxSampler::ArrayList<CC>& smooths, LinuxSampler::ArrayList<CC>& dest);
 
         std::string currentDir;
         /// Pointer to the Instrument belonging to this file

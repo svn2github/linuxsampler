@@ -323,6 +323,57 @@ namespace LinuxSampler {
     };
     
     /**
+     * Used to smooth out the parameter changes.
+     */
+    class Smoother {
+        protected:
+            uint    timeSteps; // The number of time steps to reach the goal
+            uint    currentTimeStep;
+            uint8_t goal; // 0 - 127
+            uint8_t prev; // 0 - 127
+            
+        public:
+            /**
+             * 
+             * @param time The time (in seconds) to reach the goal
+             * @param sampleRate
+             * @param val The initial value
+             */
+            void trigger(float time, float sampleRate, uint8_t val = 0) {
+                currentTimeStep = timeSteps = time * sampleRate;
+                prev = goal = val;
+            }
+            
+            /**
+             * Set the current value, which the smoother will not smooth out.
+             * If you want the value to be smoothen out, use update() instead.
+             */
+            void setValue( uint8_t val) {
+                currentTimeStep = timeSteps;
+                prev = goal = val;
+            }
+            
+            /**
+             * Sets a new value. The render function will return
+             * values gradually approaching this value.
+             */
+            void update(uint8_t val) {
+                if (val == goal) return;
+                
+                prev = prev + (goal - prev) * (currentTimeStep / (float)timeSteps);
+                goal = val;
+                currentTimeStep = 0;
+            }
+            
+            uint8_t render() {
+                if (currentTimeStep >= timeSteps) return goal;
+                return prev + (goal - prev) * (currentTimeStep++ / (float)timeSteps);
+            }
+            
+            bool isSmoothingOut() { return currentTimeStep < timeSteps; }
+    };
+    
+    /**
      * Continuous controller signal unit.
      * The level of this unit corresponds to the controllers changes
      * and their influences.
@@ -343,11 +394,14 @@ namespace LinuxSampler {
                     short int Curve;       ///< specifies the curve type
                     float     Influence;
                     
-                    CC(uint8_t Controller = 0, float Influence = 0.0f, short int Curve = -1) {
+                    Smoother* pSmoother;
+                    
+                    CC(uint8_t Controller = 0, float Influence = 0.0f, short int Curve = -1, Smoother* pSmoother = NULL) {
                         this->Controller = Controller;
                         this->Value = 0;
                         this->Curve = Curve;
                         this->Influence = Influence;
+                        this->pSmoother = pSmoother;
                     }
                     
                     CC(const CC& cc) { Copy(cc); }
@@ -358,16 +412,20 @@ namespace LinuxSampler {
                         Value = cc.Value;
                         Influence = cc.Influence;
                         Curve = cc.Curve;
+                        pSmoother = cc.pSmoother;
                     }
             };
             
             FixedArray<CC> Ctrls; // The MIDI controllers which modulates this signal unit.
             Listener* pListener;
+            bool hasSmoothCtrls; // determines whether there are smooth controllers (used for optimization)
+            bool isSmoothingOut; // determines whether there is a CC which is in process of smoothing out (used for optimization)
 
         public:
             
             CCSignalUnit(SignalUnitRack* rack, Listener* l = NULL): SignalUnit(rack), Ctrls(128) {
                 pListener = l;
+                hasSmoothCtrls = isSmoothingOut = false;
             }
             
             CCSignalUnit(const CCSignalUnit& Unit): SignalUnit(Unit.pRack), Ctrls(128) { Copy(Unit); }
@@ -376,18 +434,23 @@ namespace LinuxSampler {
             void Copy(const CCSignalUnit& Unit) {
                 Ctrls.copy(Unit.Ctrls);
                 pListener = Unit.pListener;
+                hasSmoothCtrls = Unit.hasSmoothCtrls;
+                isSmoothingOut = Unit.isSmoothingOut;
                 SignalUnit::Copy(Unit);
             }
             
-            void AddCC(uint8_t Controller, float Influence, short int Curve = -1) {
-                Ctrls.add(CC(Controller, Influence, Curve));
+            void AddCC(uint8_t Controller, float Influence, short int Curve = -1, Smoother* pSmoother = NULL) {
+                Ctrls.add(CC(Controller, Influence, Curve, pSmoother));
+                if (pSmoother != NULL) hasSmoothCtrls = true;
             }
             
             void RemoveAllCCs() {
                 Ctrls.clear();
             }
             
-            virtual void Increment() { }
+            virtual void Increment() {
+                if (hasSmoothCtrls && isSmoothingOut) Calculate();
+            }
             
             virtual void Trigger() {
                 Calculate();
@@ -401,22 +464,33 @@ namespace LinuxSampler {
                     if (Controller != Ctrls[i].Controller) continue;
                     if (Ctrls[i].Value == Value) continue;
                     Ctrls[i].Value = Value;
+                    if (Ctrls[i].pSmoother != NULL) Ctrls[i].pSmoother->update(Value);
                     if (!bActive) bActive = true;
                     recalculate = true;
                 }
                 
-                if (recalculate) {
-                    Calculate();
-                    if (pListener!= NULL) pListener->ValueChanged(this);
-                }
+                if (!(hasSmoothCtrls && isSmoothingOut) && recalculate) Calculate();
             }
             
             virtual void Calculate() {
-                Level = 0;
+                float l = 0;
+                isSmoothingOut = false;
                 for (int i = 0; i < Ctrls.size(); i++) {
-                    if (Ctrls[i].Value == 0) continue;
-                    Level += (Ctrls[i].Value / 127.0f) * Ctrls[i].Influence;
+                    if (Ctrls[i].pSmoother == NULL) {
+                        l += Normalize(Ctrls[i].Value, Ctrls[i].Curve) * Ctrls[i].Influence;
+                    } else {
+                        if (Ctrls[i].pSmoother->isSmoothingOut()) isSmoothingOut = true;
+                        l += Normalize(Ctrls[i].pSmoother->render(), Ctrls[i].Curve) * Ctrls[i].Influence;
+                    }
                 }
+                if (Level != l) {
+                    Level = l;
+                    if (pListener != NULL) pListener->ValueChanged(this);
+                }
+            }
+            
+            virtual float Normalize(uint8_t val, short int curve = -1) {
+                return val / 127.0f;
             }
     };
     

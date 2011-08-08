@@ -324,6 +324,7 @@ namespace sfz
         volume = 0;
         volume_oncc.clear();
         volume_curvecc.clear();
+        volume_smoothcc.clear();
         pan = 0;
         width = 100;
         position = 0;
@@ -606,6 +607,7 @@ namespace sfz
         region->volume = volume;
         region->volume_oncc = volume_oncc;
         region->volume_curvecc = volume_curvecc;
+        region->volume_smoothcc = volume_smoothcc;
         region->pan = pan;
         region->width = width;
         region->position = position;
@@ -967,8 +969,10 @@ namespace sfz
             Region* r = _instrument->regions[k];
             
             copyCurves(r->volume_curvecc, r->volume_oncc);
+            copySmoothValues(r->volume_smoothcc, r->volume_oncc);
             
             r->volume_curvecc.clear();
+            r->volume_smoothcc.clear();
         }
     }
 
@@ -989,6 +993,16 @@ namespace sfz
             for (int j = 0; j < dest.size(); j++) {
                 if (curves[i].Controller == dest[j].Controller) {
                     dest[j].Curve = curves[i].Curve;
+                }
+            }
+        }
+    }
+    
+    void File::copySmoothValues(LinuxSampler::ArrayList<CC>& smooths, LinuxSampler::ArrayList<CC>& dest) {
+        for (int i = 0; i < smooths.size(); i++) {
+            for (int j = 0; j < dest.size(); j++) {
+                if (smooths[i].Controller == dest[j].Controller) {
+                    dest[j].Smooth = smooths[i].Smooth;
                 }
             }
         }
@@ -1467,6 +1481,7 @@ namespace sfz
             else if ("amplfo_freq" == key_cc) pCurDef->amplfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
             else if ("volume_on" == key_cc) pCurDef->volume_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if ("volume_curve" == key_cc) pCurDef->volume_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
+            else if ("volume_smooth" == key_cc) pCurDef->volume_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
 
