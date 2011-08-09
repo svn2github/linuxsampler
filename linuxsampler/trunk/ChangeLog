@@ -131,6 +131,7 @@ Version CVS HEAD (?)
       lfoN_freq_smoothccX, lfoN_pitch_smoothccX, lfoN_pan_onccX,
       lfoN_pan_smoothccX, lfoN_cutoff_onccX, lfoN_cutoff_smoothccX,
       lfoN_resonance_onccX, lfoN_resonance_smoothccX, lfoN_delay_onccX
+    - implemented opcode end
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

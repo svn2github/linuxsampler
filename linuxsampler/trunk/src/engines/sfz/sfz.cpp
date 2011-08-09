@@ -51,7 +51,7 @@ namespace sfz
         return val;
     }
 
-    Sample* SampleManager::FindSample(std::string samplePath, int offset) {
+    Sample* SampleManager::FindSample(std::string samplePath, uint offset, int end) {
         std::map<Sample*, std::set<Region*> >::iterator it = sampleMap.begin();
         for (; it != sampleMap.end(); it++) {
             if (it->first->GetFile() == samplePath) {
@@ -59,10 +59,7 @@ namespace sfz
                  * same sample with different offset as different samples
                  * // TODO: Ignore offset when the whole sample is cached in RAM?
                  */
-                int maxOffset = it->first->MaxOffset;
-                if(it->first->Offset == offset || (it->first->Offset < maxOffset && offset < maxOffset)) {
-                    return it->first;
-                }
+                if (it->first->Offset == offset && it->first->End == end) return it->first;
             }
         }
 
@@ -113,10 +110,11 @@ namespace sfz
     Sample* Region::GetSample(bool create)
     {
         if(pSample == NULL && create) {
-            int i = offset ? *offset : 0;
-            Sample* sf = GetInstrument()->GetSampleManager()->FindSample(sample, i);
+            uint i = offset ? *offset : 0;
+            int e = end ? *end : -2;
+            Sample* sf = GetInstrument()->GetSampleManager()->FindSample(sample, i, e);
             if (sf != NULL) pSample = sf; // Reuse already created sample
-            else pSample = new Sample(sample, false, i);
+            else pSample = new Sample(sample, false, i, e);
             GetInstrument()->GetSampleManager()->AddSampleConsumer(pSample, this);
         }
         return pSample;

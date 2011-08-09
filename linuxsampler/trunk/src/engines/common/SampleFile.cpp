@@ -132,7 +132,7 @@ namespace LinuxSampler {
     }
 
     Sample::buffer_t SampleFile::LoadSampleData() {
-        return LoadSampleDataWithNullSamplesExtension(this->TotalFrameCount, 0); // 0 amount of NullSamples
+        return LoadSampleDataWithNullSamplesExtension(GetTotalFrameCount(), 0); // 0 amount of NullSamples
     }
 
     Sample::buffer_t SampleFile::LoadSampleData(unsigned long FrameCount) {
@@ -140,15 +140,15 @@ namespace LinuxSampler {
     }
 
     Sample::buffer_t SampleFile::LoadSampleDataWithNullSamplesExtension(uint NullFrameCount) {
-        return LoadSampleDataWithNullSamplesExtension(this->TotalFrameCount, NullFrameCount);
+        return LoadSampleDataWithNullSamplesExtension(GetTotalFrameCount(), NullFrameCount);
     }
 
     Sample::buffer_t SampleFile::LoadSampleDataWithNullSamplesExtension(unsigned long FrameCount, uint NullFramesCount) {
         Open();
-        if (FrameCount > this->TotalFrameCount) FrameCount = this->TotalFrameCount;
+        if (FrameCount > GetTotalFrameCount()) FrameCount = GetTotalFrameCount();
         
-        if (Offset > MaxOffset && FrameCount < TotalFrameCount) {
-            FrameCount = FrameCount + Offset > TotalFrameCount ? TotalFrameCount - Offset : FrameCount;
+        if (Offset > MaxOffset && FrameCount < GetTotalFrameCount()) {
+            FrameCount = FrameCount + Offset > GetTotalFrameCount() ? GetTotalFrameCount() - Offset : FrameCount;
             // Offset the RAM cache
             RAMCacheOffset = Offset;
         }
@@ -167,6 +167,8 @@ namespace LinuxSampler {
 
     long SampleFile::Read(void* pBuffer, unsigned long FrameCount) {
         Open();
+        
+        if (GetPos() + FrameCount > GetTotalFrameCount()) FrameCount = GetTotalFrameCount() - GetPos(); // For the cases where a different sample end is specified (not the end of the file)
 
         // ogg files must be read with sf_readf, not sf_read_raw. On
         // big endian machines, sf_readf_short is also used for 16 bit

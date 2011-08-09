@@ -48,13 +48,35 @@ namespace sfz
     class Instrument;
     class File;
     class LookupTable;
+    class SampleManager;
 
     class Sample : public LinuxSampler::SampleFileBase<Region> {
+        private:
+            int  End;
+            long TotalFrames;
+            
         public:
-            Sample(String File, bool DontClose = false, uint offset = 0): LinuxSampler::SampleFileBase<Region>(File, DontClose) {
+            Sample(String File, bool DontClose = false, uint offset = 0, int end = -2 /* -2 means unspecified */)
+                  : LinuxSampler::SampleFileBase<Region>(File, DontClose)
+            {
                 Offset = offset;
+                End = end;
+                
+                long tfc = LinuxSampler::SampleFileBase<Region>::GetTotalFrameCount();
+                if (Offset >= tfc) {
+                    std::cerr << "Offset for file '" << this->GetFile() << "' too long (" << Offset << ")" << std::endl;
+                    Offset = 0;
+                }
+                
+                if (End == -2 || End > tfc) TotalFrames = tfc;
+                else if (End == -1 || End < Offset) TotalFrames = 0;
+                else TotalFrames = End;
             }
             virtual ~Sample() { }
+            
+            virtual long GetTotalFrameCount() { return TotalFrames; }
+            
+            friend class SampleManager;
     };
 
     // Enumerations
@@ -72,7 +94,7 @@ namespace sfz
 
     class SampleManager : public LinuxSampler::SampleManager<Sample, Region> {
     public:
-        Sample* FindSample(std::string samplePath, int offset);
+        Sample* FindSample(std::string samplePath, uint offset, int end);
 
     protected:
         virtual void OnSampleInUse(Sample* pSample) {
@@ -405,7 +427,7 @@ namespace sfz
         optional<int> delay_samples; Array<optional<int> > delay_samples_oncc;
         optional<int> end;
         optional<float> loop_crossfade;
-        optional<int> offset; optional<int> offset_random; Array<optional<int> > offset_oncc;
+        optional<uint> offset; optional<int> offset_random; Array<optional<int> > offset_oncc;
         loop_mode_t loop_mode;
         optional<int> loop_start; optional<int> loop_end;
         optional<int> sync_beats;
@@ -576,7 +598,7 @@ namespace sfz
     /////////////////////////////////////////////////////////////
     // class Instrument
 
-    /// Provides all neccessary information for the synthesis of an Instrument
+    /// Provides all necessary information for the synthesis of an Instrument
     class Instrument : public SampleManager
     {
     public:

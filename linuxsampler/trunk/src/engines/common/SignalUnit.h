@@ -38,7 +38,7 @@ namespace LinuxSampler {
             }
             
             ~FixedArray() {
-                delete pData;
+                delete[] pData;
                 pData = NULL;
             }
             
