@@ -158,7 +158,13 @@ namespace LinuxSampler { namespace sfz {
         protected:
             ::sfz::EG egInfo;
         public:
-            EGv2Unit(SfzSignalUnitRack* rack): EGUnit< ::LinuxSampler::sfz::EG>(rack) { }
+            CCUnit suAmpOnCC;
+            CCUnit suVolOnCC;
+            CCUnit suPitchOnCC;
+            CCUnit suCutoffOnCC;
+            CCUnit suResOnCC;
+            
+            EGv2Unit(SfzSignalUnitRack* rack);
             virtual void Trigger();
     };
     
@@ -330,6 +336,8 @@ namespace LinuxSampler { namespace sfz {
             virtual float CalculateResonance(float res) {
                 return GetResonance() + res;
             }
+            
+            virtual float CalculateFilterCutoff(float cutoff);
     };
     
     
@@ -355,6 +363,12 @@ namespace LinuxSampler { namespace sfz {
             
             // used for optimization - contains only the ones that are modulating pitch
             FixedArray<EGv2Unit*> pitchEGs;
+            
+            // used for optimization - contains only the ones that are modulating filter cutoff
+            FixedArray<EGv2Unit*> filEGs;
+            
+            // used for optimization - contains only the ones that are modulating filter cutoff
+            FixedArray<EGv2Unit*> resEGs;
             
             
             FixedArray<LFOv2Unit*> LFOs;

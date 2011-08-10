@@ -132,6 +132,9 @@ Version CVS HEAD (?)
       lfoN_pan_smoothccX, lfoN_cutoff_onccX, lfoN_cutoff_smoothccX,
       lfoN_resonance_onccX, lfoN_resonance_smoothccX, lfoN_delay_onccX
     - implemented opcode end
+    - implemented opcodes egN_amplitude_onccX,
+      egN_volume, egN_volume_onccX, egN_cutoff, egN_cutoff_onccX,
+      egN_pitch, egN_pitch_onccX, egN_resonance, egN_resonance_onccX
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

@@ -1347,7 +1347,15 @@ namespace sfz
             else if (strcmp(s, "_loop") == 0) eg(x).loop = ToInt(value);
             else if (strcmp(s, "_loop_count") == 0) eg(x).loop_count = ToInt(value);
             else if (strcmp(s, "_amplitude") == 0) eg(x).amplitude = ToFloat(value);
+            else if (sscanf(s, "_amplitude_oncc%d", &y)) eg(x).amplitude_oncc.add( CC(y, check(key, 0.0f, 100.0f, ToFloat(value))) );
+            else if (strcmp(s, "_volume") == 0) eg(x).volume = check(key, -144.0f, 6.0f, ToFloat(value));
+            else if (sscanf(s, "_volume_oncc%d", &y)) eg(x).volume_oncc.add( CC(y, check(key, -144.0f, 6.0f, ToFloat(value))) );
             else if (strcmp(s, "_cutoff") == 0) eg(x).cutoff = ToFloat(value);
+            else if (sscanf(s, "_cutoff_oncc%d", &y)) eg(x).cutoff_oncc.add( CC(y, check(key, -9600, 9600, ToInt(value))) );
+            else if (strcmp(s, "_pitch") == 0) eg(x).pitch = check(key, -9600, 9600, ToInt(value));
+            else if (sscanf(s, "_pitch_oncc%d", &y)) eg(x).pitch_oncc.add( CC(y, check(key, -9600, 9600, ToInt(value))) );
+            else if (strcmp(s, "_resonance") == 0) eg(x).resonance = check(key, 0.0f, 40.0f, ToFloat(value));
+            else if (sscanf(s, "_resonance_oncc%d", &y)) eg(x).resonance_oncc.add( CC(y, check(key, 0.0f, 40.0f, ToFloat(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
 
@@ -1575,17 +1583,26 @@ namespace sfz
     }
 
     EG::EG() :
-        sustain(0), loop(0), loop_count(0),
-        amplitude(0), cutoff(0) {
-    }
+        sustain(0), loop(0), loop_count(0), amplitude(0),
+        cutoff(0), pitch(0), resonance(0), volume(-200) /* less than -144 dB is considered unset */
+    { }
     
     void EG::Copy(const EG& eg) {
         sustain    = eg.sustain;
         loop       = eg.loop;
         loop_count = eg.loop_count;
         amplitude  = eg.amplitude;
+        volume     = eg.volume;
         cutoff     = eg.cutoff;
+        pitch      = eg.pitch;
+        resonance  = eg.resonance;
         node       = eg.node;
+        
+        amplitude_oncc = eg.amplitude_oncc;
+        volume_oncc    = eg.volume_oncc;
+        cutoff_oncc    = eg.cutoff_oncc;
+        pitch_oncc     = eg.pitch_oncc;
+        resonance_oncc = eg.resonance_oncc;
     }
     
     LFO::LFO(): freq (-1),/* -1 is used to determine whether the LFO was initialized */

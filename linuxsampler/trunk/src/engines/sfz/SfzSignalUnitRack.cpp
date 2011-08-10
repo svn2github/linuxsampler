@@ -44,6 +44,11 @@ namespace LinuxSampler { namespace sfz {
     }
     
     
+    EGv2Unit::EGv2Unit(SfzSignalUnitRack* rack)
+        : EGUnit< ::LinuxSampler::sfz::EG>(rack),
+          suAmpOnCC(rack), suVolOnCC(rack), suPitchOnCC(rack), suCutoffOnCC(rack), suResOnCC(rack)
+    { }
+    
     void EGv2Unit::Trigger() {
         egInfo = *pEGInfo;
         for (int i = 0; i < egInfo.node.size(); i++) {
@@ -335,8 +340,20 @@ namespace LinuxSampler { namespace sfz {
         for (int i = 0; i < GetRack()->volEGs.size(); i++) {
             EGv2Unit* eg = GetRack()->volEGs[i];
             if (!eg->Active()) continue;
-            vol += eg->GetLevel() * (eg->pEGInfo->amplitude / 100.0f);
             
+            float dB = eg->suVolOnCC.Active() ? eg->suVolOnCC.GetLevel() : -200;
+            if (dB < -144) dB = eg->pEGInfo->volume;
+            else if (eg->pEGInfo->volume >= -144) dB += eg->pEGInfo->volume;
+            
+            float amp = eg->suAmpOnCC.Active() ? eg->suAmpOnCC.GetLevel() : 0;
+            amp = (amp + eg->pEGInfo->amplitude) / 100.0f;
+            
+            if (dB >= -144) {
+                if (amp == 0 && eg->suAmpOnCC.GetCCCount() == 0) amp = 1.0f;
+                amp *= ::sf2::ToRatio(dB * 10.0);
+            }
+            
+            vol += amp * eg->GetLevel();
         }
         
         AmpLFOUnit* u = &(GetRack()->suAmpLFO);
@@ -368,6 +385,15 @@ namespace LinuxSampler { namespace sfz {
         FilEGUnit* u2 = &(GetRack()->suFilEG);
         val *= u2->Active() ? RTMath::CentsToFreqRatioUnlimited(u2->GetLevel() * u2->depth) : 1;
         
+        for (int i = 0; i < GetRack()->filEGs.size(); i++) {
+            EGv2Unit* eg = GetRack()->filEGs[i];
+            if (!eg->Active()) continue;
+            
+            float f = eg->suCutoffOnCC.Active() ? eg->suCutoffOnCC.GetLevel() : 0;
+            f = eg->GetLevel() * (eg->pEGInfo->cutoff + f);
+            val *= RTMath::CentsToFreqRatioUnlimited(f);
+        }
+        
         for (int i = 0; i < GetRack()->filLFOs.size(); i++) {
             LFOv2Unit* lfo = GetRack()->filLFOs[i];
             if (!lfo->Active()) continue;
@@ -380,10 +406,24 @@ namespace LinuxSampler { namespace sfz {
         return val;
     }
     
+    float EndpointUnit::CalculateFilterCutoff(float cutoff) {
+         cutoff *= GetFilterCutoff();
+         float maxCutoff = 0.49 * pVoice->GetSampleRate();
+         return cutoff > maxCutoff ? maxCutoff : cutoff;
+    }
+    
     float EndpointUnit::GetPitch() {
         double p;
         EGv1Unit* u = &(GetRack()->suPitchEG);
         p = u->Active() ? RTMath::CentsToFreqRatioUnlimited(u->GetLevel() * u->depth) : 1;
+        
+        for (int i = 0; i < GetRack()->pitchEGs.size(); i++) {
+            EGv2Unit* eg = GetRack()->pitchEGs[i];
+            if (!eg->Active()) continue;
+            
+            float f = eg->suPitchOnCC.Active() ? eg->suPitchOnCC.GetLevel() : 0;
+            p *= RTMath::CentsToFreqRatioUnlimited(eg->GetLevel() * (eg->pEGInfo->pitch + f));
+        }
         
         PitchLFOUnit* u2 = &(GetRack()->suPitchLFO);
         CCSignalUnit* u3 = &(GetRack()->suPitchLFO.suDepthOnCC);
@@ -403,6 +443,14 @@ namespace LinuxSampler { namespace sfz {
     
     float EndpointUnit::GetResonance() {
          float val = 0;
+        
+        for (int i = 0; i < GetRack()->resEGs.size(); i++) {
+            EGv2Unit* eg = GetRack()->resEGs[i];
+            if (!eg->Active()) continue;
+            
+            float f = eg->suResOnCC.Active() ? eg->suResOnCC.GetLevel() : 0;
+            val += eg->GetLevel() * (eg->pEGInfo->resonance + f);
+        }
         
         for (int i = 0; i < GetRack()->resLFOs.size(); i++) {
             LFOv2Unit* lfo = GetRack()->resLFOs[i];
@@ -435,7 +483,7 @@ namespace LinuxSampler { namespace sfz {
     
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
         : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suFilEG(this), suPitchEG(this),
-        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), suVolOnCC(this),
+        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), filEGs(maxEgCount), resEGs(maxEgCount), suVolOnCC(this),
         suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
         LFOs(maxLfoCount), volLFOs(maxLfoCount), pitchLFOs(maxLfoCount),
         filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
@@ -449,6 +497,11 @@ namespace LinuxSampler { namespace sfz {
         for (int i = 0; i < EGs.capacity(); i++) {
             EGs[i] = new EGv2Unit(this);
             EGs[i]->pVoice = voice;
+            EGs[i]->suAmpOnCC.pVoice = voice;
+            EGs[i]->suVolOnCC.pVoice = voice;
+            EGs[i]->suPitchOnCC.pVoice = voice;
+            EGs[i]->suCutoffOnCC.pVoice = voice;
+            EGs[i]->suResOnCC.pVoice = voice;
         }
         
         for (int i = 0; i < LFOs.capacity(); i++) {
@@ -478,6 +531,8 @@ namespace LinuxSampler { namespace sfz {
         EGs.clear();
         volEGs.clear();
         pitchEGs.clear();
+        filEGs.clear();
+        resEGs.clear();
         
         LFOs.clear();
         volLFOs.clear();
@@ -497,10 +552,32 @@ namespace LinuxSampler { namespace sfz {
                 EGv2Unit eg(this);
                 eg.pEGInfo = &(pRegion->eg[i]);
                 EGs.increment()->Copy(eg);
+                EGs[EGs.size() - 1]->suAmpOnCC.SetCCs(pRegion->eg[i].amplitude_oncc);
+                EGs[EGs.size() - 1]->suVolOnCC.SetCCs(pRegion->eg[i].volume_oncc);
+                EGs[EGs.size() - 1]->suPitchOnCC.SetCCs(pRegion->eg[i].pitch_oncc);
+                EGs[EGs.size() - 1]->suCutoffOnCC.SetCCs(pRegion->eg[i].cutoff_oncc);
+                EGs[EGs.size() - 1]->suResOnCC.SetCCs(pRegion->eg[i].resonance_oncc);
             } else { std::cerr << "Maximum number of EGs reached!" << std::endl; break; }
             
-            if (pRegion->eg[i].amplitude > 0) {
+            if ( pRegion->eg[i].amplitude > 0 || !pRegion->eg[i].amplitude_oncc.empty() ||
+                 pRegion->eg[i].volume > -145 || !pRegion->eg[i].volume_oncc.empty()
+            ) {
                 if(volEGs.size() < volEGs.capacity()) volEGs.add(EGs[EGs.size() - 1]);
+                else std::cerr << "Maximum number of EGs reached!" << std::endl;
+            }
+            
+            if (pRegion->eg[i].cutoff != 0 || !pRegion->eg[i].cutoff_oncc.empty()) {
+                if(filEGs.size() < filEGs.capacity()) filEGs.add(EGs[EGs.size() - 1]);
+                else std::cerr << "Maximum number of EGs reached!" << std::endl;
+            }
+            
+            if (pRegion->eg[i].resonance != 0 || !pRegion->eg[i].resonance_oncc.empty()) {
+                if(resEGs.size() < resEGs.capacity()) resEGs.add(EGs[EGs.size() - 1]);
+                else std::cerr << "Maximum number of EGs reached!" << std::endl;
+            }
+            
+            if (pRegion->eg[i].pitch != 0 || !pRegion->eg[i].pitch_oncc.empty()) {
+                if(pitchEGs.size() < pitchEGs.capacity()) pitchEGs.add(EGs[EGs.size() - 1]);
                 else std::cerr << "Maximum number of EGs reached!" << std::endl;
             }
         }
@@ -586,6 +663,11 @@ namespace LinuxSampler { namespace sfz {
         
         for (int i = 0; i < EGs.size(); i++) {
             Units.add(EGs[i]);
+            Units.add(&(EGs[i]->suAmpOnCC));
+            Units.add(&(EGs[i]->suVolOnCC));
+            Units.add(&(EGs[i]->suPitchOnCC));
+            Units.add(&(EGs[i]->suCutoffOnCC));
+            Units.add(&(EGs[i]->suResOnCC));
         }
         
         for (int i = 0; i < LFOs.size(); i++) {

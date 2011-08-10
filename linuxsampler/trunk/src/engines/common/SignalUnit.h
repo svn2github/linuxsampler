@@ -448,6 +448,8 @@ namespace LinuxSampler {
                 Ctrls.clear();
             }
             
+            int GetCCCount() { return Ctrls.size(); }
+            
             virtual void Increment() {
                 if (hasSmoothCtrls && isSmoothingOut) Calculate();
             }

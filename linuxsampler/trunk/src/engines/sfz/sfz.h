@@ -289,7 +289,17 @@ namespace sfz
         int loop;
         int loop_count;
         float amplitude;
+        float volume;
         float cutoff;
+        int   pitch; // -9600 to 9600 cents
+        float resonance; // 0 to 40 dB
+        
+        LinuxSampler::ArrayList<CC> amplitude_oncc;
+        LinuxSampler::ArrayList<CC> volume_oncc;
+        LinuxSampler::ArrayList<CC> cutoff_oncc; // -9600 to 9600 cents
+        LinuxSampler::ArrayList<CC> pitch_oncc;
+        LinuxSampler::ArrayList<CC> resonance_oncc; // 0 to 40 dB
+        
         EG();
         EG(const EG& eg) { Copy(eg); }
         void operator=(const EG& eg) { Copy(eg); }
