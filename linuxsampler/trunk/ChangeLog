@@ -135,6 +135,10 @@ Version CVS HEAD (?)
     - implemented opcodes egN_amplitude_onccX,
       egN_volume, egN_volume_onccX, egN_cutoff, egN_cutoff_onccX,
       egN_pitch, egN_pitch_onccX, egN_resonance, egN_resonance_onccX
+    - implemented opcodes xfin_lokey, xfin_hikey,
+      xfout_lokey, xfout_hikey, xf_keycurve, xfin_lovel, xfin_hivel,
+      xfout_lovel, xfout_hivel, xf_velcurve, xfin_loccN, xfin_hiccN,
+      xfout_loccN, xfout_hiccN, xf_cccurve
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

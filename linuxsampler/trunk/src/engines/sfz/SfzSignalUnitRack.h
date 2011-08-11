@@ -98,6 +98,24 @@ namespace LinuxSampler { namespace sfz {
     };
     
     
+    class XFInCCUnit: public CCUnit {
+        public:
+            XFInCCUnit(SfzSignalUnitRack* rack, Listener* l = NULL): CCUnit(rack, l) { }
+            
+            virtual bool Active() { return Ctrls.size() > 0; }
+            virtual void Calculate();
+            virtual void SetCrossFadeCCs(::sfz::Array<int>& loCCs, ::sfz::Array<int>& hiCCs);
+    };
+    
+    
+    class XFOutCCUnit: public XFInCCUnit {
+        public:
+            XFOutCCUnit(SfzSignalUnitRack* rack, Listener* l = NULL): XFInCCUnit(rack, l) { }
+            
+            virtual void Calculate();
+    };
+    
+    
     template <class T>
     class EGUnit: public SfzSignalUnit {
         public:
@@ -315,8 +333,13 @@ namespace LinuxSampler { namespace sfz {
     
     
     class EndpointUnit: public EndpointSignalUnit {
+        private:
+            float xfCoeff; // crossfade coefficient
+            
         public:
             Voice* pVoice;
+            XFInCCUnit  suXFInCC;
+            XFOutCCUnit suXFOutCC;
 
             EndpointUnit(SfzSignalUnitRack* rack);
 

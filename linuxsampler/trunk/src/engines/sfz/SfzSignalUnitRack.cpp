@@ -43,6 +43,80 @@ namespace LinuxSampler { namespace sfz {
         return f;
     }
     
+    void XFInCCUnit::SetCrossFadeCCs(::sfz::Array<int>& loCCs, ::sfz::Array<int>& hiCCs) {
+        RemoveAllCCs();
+        
+        for (int cc = 0; cc < 128; cc++) {
+            if (loCCs[cc] == 0 && hiCCs[cc] == 0) continue;
+            int i = loCCs[cc];
+            int j = hiCCs[cc];
+            if (j == 0) j = 127;
+            i += j << 8; // workaround to keep both values in the Influence parameter
+            AddCC(cc, i);
+        }
+    }
+    
+    void XFInCCUnit::Calculate() {
+        float l = 1;
+                
+        for (int i = 0; i < Ctrls.size(); i++) {
+            float c = 1;
+            int influence = Ctrls[i].Influence;
+            int lo = influence & 0xff;
+            int hi = influence >> 8;
+            if (Ctrls[i].Value <= lo) {
+                c = 0;
+            } else if (Ctrls[i].Value >= hi) {
+                c = 1;
+            } else {
+                float xfVelSize = hi - lo;
+                float velPos = Ctrls[i].Value - lo;
+                c = velPos / xfVelSize;
+                if (pVoice->pRegion->xf_cccurve == ::sfz::POWER) {
+                    c = sin(c * M_PI / 2.0);
+                }
+            }
+            
+            l *= c;
+        }
+        
+        if (Level != l) {
+            Level = l;
+            if (pListener != NULL) pListener->ValueChanged(this);
+        }
+    }
+    
+    
+    void XFOutCCUnit::Calculate() {
+        float l = 1;
+                
+        for (int i = 0; i < Ctrls.size(); i++) {
+            float c = 1;
+            int influence = Ctrls[i].Influence;
+            int lo = influence & 0xff;
+            int hi = influence >> 8;
+            if (Ctrls[i].Value >= hi) {
+                c = 0;
+            } else if (Ctrls[i].Value <= lo) {
+                c = 1;
+            } else {
+                float xfVelSize = hi - lo;
+                float velPos = Ctrls[i].Value - lo;
+                c = 1.0f - velPos / xfVelSize;
+                if (pVoice->pRegion->xf_cccurve == ::sfz::POWER) {
+                    c = sin(c * M_PI / 2.0);
+                }
+            }
+            
+            l *= c;
+        }
+        
+        if (Level != l) {
+            Level = l;
+            if (pListener != NULL) pListener->ValueChanged(this);
+        }
+    }
+    
     
     EGv2Unit::EGv2Unit(SfzSignalUnitRack* rack)
         : EGUnit< ::LinuxSampler::sfz::EG>(rack),
@@ -311,7 +385,7 @@ namespace LinuxSampler { namespace sfz {
      }
 
 
-    EndpointUnit::EndpointUnit(SfzSignalUnitRack* rack): EndpointSignalUnit(rack) {
+    EndpointUnit::EndpointUnit(SfzSignalUnitRack* rack): EndpointSignalUnit(rack), suXFInCC(rack), suXFOutCC(rack) {
         
     }
     
@@ -320,7 +394,70 @@ namespace LinuxSampler { namespace sfz {
     }
     
     void EndpointUnit::Trigger() {
+        float xfInVelCoeff = 1;
         
+        if (pVoice->MIDIVelocity <= pVoice->pRegion->xfin_lovel) {
+            xfInVelCoeff = 0;
+        } else if (pVoice->MIDIVelocity >= pVoice->pRegion->xfin_hivel) {
+            xfInVelCoeff = 1;
+        } else {
+            float xfVelSize = pVoice->pRegion->xfin_hivel - pVoice->pRegion->xfin_lovel;
+            float velPos = pVoice->MIDIVelocity - pVoice->pRegion->xfin_lovel;
+            xfInVelCoeff = velPos / xfVelSize;
+            if (pVoice->pRegion->xf_velcurve == ::sfz::POWER) {
+                xfInVelCoeff = sin(xfInVelCoeff * M_PI / 2.0);
+            }
+        }
+        
+        float xfOutVelCoeff = 1;
+        
+        if (pVoice->MIDIVelocity >= pVoice->pRegion->xfout_hivel) {
+            if (pVoice->pRegion->xfout_lovel < 127 /* is set */) xfOutVelCoeff = 0;
+        } else if (pVoice->MIDIVelocity <= pVoice->pRegion->xfout_lovel) {
+            xfOutVelCoeff = 1;
+        } else {
+            float xfVelSize = pVoice->pRegion->xfout_hivel - pVoice->pRegion->xfout_lovel;
+            float velPos = pVoice->MIDIVelocity - pVoice->pRegion->xfout_lovel;
+            xfOutVelCoeff = 1.0f - velPos / xfVelSize;
+            if (pVoice->pRegion->xf_velcurve == ::sfz::POWER) {
+                xfOutVelCoeff = sin(xfOutVelCoeff * M_PI / 2.0);
+            }
+        }
+        
+        float xfInKeyCoeff = 1;
+        
+        if (pVoice->MIDIKey <= pVoice->pRegion->xfin_lokey) {
+            if (pVoice->pRegion->xfin_hikey > 0 /* is set */) xfInKeyCoeff = 0;
+        } else if (pVoice->MIDIKey >= pVoice->pRegion->xfin_hikey) {
+            xfInKeyCoeff = 1;
+        } else {
+            float xfKeySize = pVoice->pRegion->xfin_hikey - pVoice->pRegion->xfin_lokey;
+            float keyPos = pVoice->MIDIKey - pVoice->pRegion->xfin_lokey;
+            xfInKeyCoeff = keyPos / xfKeySize;
+            if (pVoice->pRegion->xf_keycurve == ::sfz::POWER) {
+                xfInKeyCoeff = sin(xfInKeyCoeff * M_PI / 2.0);
+            }
+        }
+        
+        float xfOutKeyCoeff = 1;
+        
+        if (pVoice->MIDIKey >= pVoice->pRegion->xfout_hikey) {
+            if (pVoice->pRegion->xfout_lokey < 127 /* is set */) xfOutKeyCoeff = 0;
+        } else if (pVoice->MIDIKey <= pVoice->pRegion->xfout_lokey) {
+            xfOutKeyCoeff = 1;
+        } else {
+            float xfKeySize = pVoice->pRegion->xfout_hikey - pVoice->pRegion->xfout_lokey;
+            float keyPos = pVoice->MIDIKey - pVoice->pRegion->xfout_lokey;
+            xfOutKeyCoeff = 1.0f - keyPos / xfKeySize;
+            if (pVoice->pRegion->xf_keycurve == ::sfz::POWER) {
+                xfOutKeyCoeff = sin(xfOutKeyCoeff * M_PI / 2.0);
+            }
+        }
+        
+        xfCoeff = xfInVelCoeff * xfOutVelCoeff * xfInKeyCoeff * xfOutKeyCoeff;
+        
+        suXFInCC.SetCrossFadeCCs(pVoice->pRegion->xfin_locc, pVoice->pRegion->xfin_hicc);
+        suXFOutCC.SetCrossFadeCCs(pVoice->pRegion->xfout_locc, pVoice->pRegion->xfout_hicc);
     }
     
     bool EndpointUnit::Active() {
@@ -371,7 +508,9 @@ namespace LinuxSampler { namespace sfz {
             vol *= ::sf2::ToRatio(lfo->GetLevel() * (lfo->pLfoInfo->volume + f) * 10.0);
         }
         
-        return vol;
+        if (suXFInCC.Active())  vol *= suXFInCC.GetLevel();
+        if (suXFOutCC.Active()) vol *= suXFOutCC.GetLevel();
+        return vol * xfCoeff;
     }
     
     float EndpointUnit::GetFilterCutoff() {
@@ -488,7 +627,8 @@ namespace LinuxSampler { namespace sfz {
         LFOs(maxLfoCount), volLFOs(maxLfoCount), pitchLFOs(maxLfoCount),
         filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
     {
-        suEndpoint.pVoice = suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
+        suEndpoint.pVoice = suEndpoint.suXFInCC.pVoice = suEndpoint.suXFOutCC.pVoice = voice;
+        suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
         suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = suVolOnCC.pVoice = voice;
         suPitchLFO.suDepthOnCC.pVoice = suPitchLFO.suFadeEG.pVoice = suPitchLFO.suFreqOnCC.pVoice = voice;
         suFilLFO.suFadeEG.pVoice = suFilLFO.suDepthOnCC.pVoice = suFilLFO.suFreqOnCC.pVoice = voice;
@@ -682,6 +822,8 @@ namespace LinuxSampler { namespace sfz {
         }
         
         Units.add(&suEndpoint);
+        Units.add(&suEndpoint.suXFInCC);
+        Units.add(&suEndpoint.suXFOutCC);
         
         SignalUnitRack::Trigger();
     }

@@ -411,8 +411,8 @@ namespace sfz
             gain_oncc.set(i, 0);
             xfin_locc.set(i, 0);
             xfin_hicc.set(i, 0);
-            xfout_locc.set(i, 127);
-            xfout_hicc.set(i, 127);
+            xfout_locc.set(i, 0);
+            xfout_hicc.set(i, 0);
 
             // filter
             cutoff_oncc.set(i, 0);
