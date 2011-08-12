@@ -51,7 +51,7 @@ namespace LinuxSampler {
             }
             
             
-            T increment() {
+            T& increment() {
                 if (iSize >= iCapacity) throw Exception("Array out of bounds");
                 return pData[iSize++];
             }
@@ -373,6 +373,9 @@ namespace LinuxSampler {
             bool isSmoothingOut() { return currentTimeStep < timeSteps; }
     };
     
+    
+    const int MaxCCs = 10;
+    
     /**
      * Continuous controller signal unit.
      * The level of this unit corresponds to the controllers changes
@@ -423,12 +426,12 @@ namespace LinuxSampler {
 
         public:
             
-            CCSignalUnit(SignalUnitRack* rack, Listener* l = NULL): SignalUnit(rack), Ctrls(128) {
+            CCSignalUnit(SignalUnitRack* rack, Listener* l = NULL): SignalUnit(rack), Ctrls(MaxCCs) {
                 pListener = l;
                 hasSmoothCtrls = isSmoothingOut = false;
             }
             
-            CCSignalUnit(const CCSignalUnit& Unit): SignalUnit(Unit.pRack), Ctrls(128) { Copy(Unit); }
+            CCSignalUnit(const CCSignalUnit& Unit): SignalUnit(Unit.pRack), Ctrls(MaxCCs) { Copy(Unit); }
             void operator=(const CCSignalUnit& Unit) { Copy(Unit); }
             
             void Copy(const CCSignalUnit& Unit) {
@@ -440,13 +443,15 @@ namespace LinuxSampler {
             }
             
             void AddCC(uint8_t Controller, float Influence, short int Curve = -1, Smoother* pSmoother = NULL) {
+                if(Ctrls.size() >= Ctrls.capacity()) {
+                    std::cerr << "Maximum number of CC reached" << std::endl;
+                    return;
+                }
                 Ctrls.add(CC(Controller, Influence, Curve, pSmoother));
                 if (pSmoother != NULL) hasSmoothCtrls = true;
             }
             
-            void RemoveAllCCs() {
-                Ctrls.clear();
-            }
+            virtual void RemoveAllCCs() { Ctrls.clear(); }
             
             int GetCCCount() { return Ctrls.size(); }
             

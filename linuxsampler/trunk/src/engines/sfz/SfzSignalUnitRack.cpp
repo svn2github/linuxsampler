@@ -377,8 +377,13 @@ namespace LinuxSampler { namespace sfz {
      
      void SmoothCCUnit::AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth) {
          if (Smooth > 0) {
-             Smoothers[Controller].trigger(Smooth / 1000.0f, GetSampleRate());
-             AddCC(Controller, Influence, Curve, &Smoothers[Controller]);
+             if (Smoothers.size() >= Smoothers.capacity()) {
+                 std::cerr << "Maximum number of smoothers reached" << std::endl;
+                 return;
+             }
+             
+             Smoothers.increment().trigger(Smooth / 1000.0f, GetSampleRate());
+             AddCC(Controller, Influence, Curve, &Smoothers[Smoothers.size() - 1]);
          } else {
              AddCC(Controller, Influence, Curve);
          }

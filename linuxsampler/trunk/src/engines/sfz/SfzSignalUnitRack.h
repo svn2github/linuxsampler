@@ -32,9 +32,9 @@
 #include "../common/SineLFO.h"
 
 namespace LinuxSampler { namespace sfz {
-    const int MaxUnitCount = 1000;
-    const int maxEgCount = 100; // Maximum number of v2 envelope generators
-    const int maxLfoCount = 100; // Maximum number of v2 LFOs
+    const int MaxUnitCount = 200;
+    const int maxEgCount = 30; // Maximum number of v2 envelope generators
+    const int maxLfoCount = 30; // Maximum number of v2 LFOs
     
     class Voice;
     class SfzSignalUnitRack;
@@ -90,11 +90,13 @@ namespace LinuxSampler { namespace sfz {
     
     class SmoothCCUnit: public CurveCCUnit {
         protected:
-            Smoother Smoothers[128];
+            FixedArray<Smoother> Smoothers;
         public:
-            SmoothCCUnit(SfzSignalUnitRack* rack, Listener* l = NULL): CurveCCUnit(rack, l) { }
+            SmoothCCUnit(SfzSignalUnitRack* rack, Listener* l = NULL): CurveCCUnit(rack, l), Smoothers(MaxCCs) { }
             
             virtual void AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth);
+            
+            virtual void RemoveAllCCs() { CurveCCUnit::RemoveAllCCs(); Smoothers.clear(); }
     };
     
     
