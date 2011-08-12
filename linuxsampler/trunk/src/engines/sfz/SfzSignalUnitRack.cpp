@@ -119,8 +119,8 @@ namespace LinuxSampler { namespace sfz {
     
     
     EGv2Unit::EGv2Unit(SfzSignalUnitRack* rack)
-        : EGUnit< ::LinuxSampler::sfz::EG>(rack),
-          suAmpOnCC(rack), suVolOnCC(rack), suPitchOnCC(rack), suCutoffOnCC(rack), suResOnCC(rack)
+        : EGUnit< ::LinuxSampler::sfz::EG>(rack), suAmpOnCC(rack), suVolOnCC(rack),
+          suPitchOnCC(rack), suCutoffOnCC(rack), suResOnCC(rack), suPanOnCC(rack)
     { }
     
     void EGv2Unit::Trigger() {
@@ -385,7 +385,9 @@ namespace LinuxSampler { namespace sfz {
      }
 
 
-    EndpointUnit::EndpointUnit(SfzSignalUnitRack* rack): EndpointSignalUnit(rack), suXFInCC(rack), suXFOutCC(rack) {
+    EndpointUnit::EndpointUnit(SfzSignalUnitRack* rack)
+        : EndpointSignalUnit(rack), suXFInCC(rack), suXFOutCC(rack), suPanOnCC(rack), pitchVeltrackRatio(0)
+    {
         
     }
     
@@ -458,6 +460,10 @@ namespace LinuxSampler { namespace sfz {
         
         suXFInCC.SetCrossFadeCCs(pVoice->pRegion->xfin_locc, pVoice->pRegion->xfin_hicc);
         suXFOutCC.SetCrossFadeCCs(pVoice->pRegion->xfout_locc, pVoice->pRegion->xfout_hicc);
+        
+        suPanOnCC.SetCCs(pVoice->pRegion->pan_oncc);
+        
+        pitchVeltrackRatio = RTMath::CentsToFreqRatioUnlimited((pVoice->MIDIVelocity / 127.0f) * pVoice->pRegion->pitch_veltrack);
     }
     
     bool EndpointUnit::Active() {
@@ -577,7 +583,7 @@ namespace LinuxSampler { namespace sfz {
             p *= RTMath::CentsToFreqRatioUnlimited(lfo->GetLevel() * (lfo->pLfoInfo->pitch + f));
         }
         
-        return p;
+        return p * pitchVeltrackRatio;
     }
     
     float EndpointUnit::GetResonance() {
@@ -603,7 +609,22 @@ namespace LinuxSampler { namespace sfz {
     }
     
     float EndpointUnit::GetPan() {
-        float pan = 0;
+        float pan = suPanOnCC.Active() ? suPanOnCC.GetLevel() : 0;
+        
+        for (int i = 0; i < GetRack()->panEGs.size(); i++) {
+            EGv2Unit* eg = GetRack()->panEGs[i];
+            if (!eg->Active()) continue;
+            
+            float f = eg->suPanOnCC.Active() ? eg->suPanOnCC.GetLevel() : 0;
+            
+            if (eg->pEGInfo->pan_curve >= 0 && eg->pEGInfo->pan_curve < suPanOnCC.GetCurveCount()) {
+                uint8_t val = eg->GetLevel() * 127;
+                if (val > 127) val = 127;
+                pan += eg->pEGInfo->pan * suPanOnCC.GetCurve(eg->pEGInfo->pan_curve)->v[val] +  eg->GetLevel() * f;
+            } else {
+                pan += eg->GetLevel() * (eg->pEGInfo->pan + f);
+            }
+        }
         
         for (int i = 0; i < GetRack()->panLFOs.size(); i++) {
             LFOv2Unit* lfo = GetRack()->panLFOs[i];
@@ -622,12 +643,12 @@ namespace LinuxSampler { namespace sfz {
     
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
         : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suFilEG(this), suPitchEG(this),
-        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), filEGs(maxEgCount), resEGs(maxEgCount), suVolOnCC(this),
+        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), filEGs(maxEgCount), resEGs(maxEgCount), panEGs(maxEgCount), suVolOnCC(this),
         suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
         LFOs(maxLfoCount), volLFOs(maxLfoCount), pitchLFOs(maxLfoCount),
         filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
     {
-        suEndpoint.pVoice = suEndpoint.suXFInCC.pVoice = suEndpoint.suXFOutCC.pVoice = voice;
+        suEndpoint.pVoice = suEndpoint.suXFInCC.pVoice = suEndpoint.suXFOutCC.pVoice = suEndpoint.suPanOnCC.pVoice = voice;
         suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
         suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = suVolOnCC.pVoice = voice;
         suPitchLFO.suDepthOnCC.pVoice = suPitchLFO.suFadeEG.pVoice = suPitchLFO.suFreqOnCC.pVoice = voice;
@@ -642,6 +663,7 @@ namespace LinuxSampler { namespace sfz {
             EGs[i]->suPitchOnCC.pVoice = voice;
             EGs[i]->suCutoffOnCC.pVoice = voice;
             EGs[i]->suResOnCC.pVoice = voice;
+            EGs[i]->suPanOnCC.pVoice = voice;
         }
         
         for (int i = 0; i < LFOs.capacity(); i++) {
@@ -673,6 +695,7 @@ namespace LinuxSampler { namespace sfz {
         pitchEGs.clear();
         filEGs.clear();
         resEGs.clear();
+        panEGs.clear();
         
         LFOs.clear();
         volLFOs.clear();
@@ -697,6 +720,7 @@ namespace LinuxSampler { namespace sfz {
                 EGs[EGs.size() - 1]->suPitchOnCC.SetCCs(pRegion->eg[i].pitch_oncc);
                 EGs[EGs.size() - 1]->suCutoffOnCC.SetCCs(pRegion->eg[i].cutoff_oncc);
                 EGs[EGs.size() - 1]->suResOnCC.SetCCs(pRegion->eg[i].resonance_oncc);
+                EGs[EGs.size() - 1]->suPanOnCC.SetCCs(pRegion->eg[i].pan_oncc);
             } else { std::cerr << "Maximum number of EGs reached!" << std::endl; break; }
             
             if ( pRegion->eg[i].amplitude > 0 || !pRegion->eg[i].amplitude_oncc.empty() ||
@@ -718,6 +742,11 @@ namespace LinuxSampler { namespace sfz {
             
             if (pRegion->eg[i].pitch != 0 || !pRegion->eg[i].pitch_oncc.empty()) {
                 if(pitchEGs.size() < pitchEGs.capacity()) pitchEGs.add(EGs[EGs.size() - 1]);
+                else std::cerr << "Maximum number of EGs reached!" << std::endl;
+            }
+            
+            if (pRegion->eg[i].pan != 0 || !pRegion->eg[i].pan_oncc.empty()) {
+                if(panEGs.size() < panEGs.capacity()) panEGs.add(EGs[EGs.size() - 1]);
                 else std::cerr << "Maximum number of EGs reached!" << std::endl;
             }
         }
@@ -808,6 +837,7 @@ namespace LinuxSampler { namespace sfz {
             Units.add(&(EGs[i]->suPitchOnCC));
             Units.add(&(EGs[i]->suCutoffOnCC));
             Units.add(&(EGs[i]->suResOnCC));
+            Units.add(&(EGs[i]->suPanOnCC));
         }
         
         for (int i = 0; i < LFOs.size(); i++) {
@@ -824,6 +854,7 @@ namespace LinuxSampler { namespace sfz {
         Units.add(&suEndpoint);
         Units.add(&suEndpoint.suXFInCC);
         Units.add(&suEndpoint.suXFOutCC);
+        Units.add(&suEndpoint.suPanOnCC);
         
         SignalUnitRack::Trigger();
     }

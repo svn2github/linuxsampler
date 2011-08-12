@@ -31,7 +31,6 @@
 
 #include "../../common/File.h"
 #include "../../common/Path.h"
-#include "../../common/global_private.h"
 #include "LookupTable.h"
 
 namespace sfz
@@ -324,6 +323,9 @@ namespace sfz
         volume_curvecc.clear();
         volume_smoothcc.clear();
         pan = 0;
+        pan_oncc.clear();
+        pan_curvecc.clear();
+        pan_smoothcc.clear();
         width = 100;
         position = 0;
         amp_keytrack = 0;
@@ -609,6 +611,9 @@ namespace sfz
         region->volume_curvecc = volume_curvecc;
         region->volume_smoothcc = volume_smoothcc;
         region->pan = pan;
+        region->pan_oncc = pan_oncc;
+        region->pan_curvecc = pan_curvecc;
+        region->pan_smoothcc = pan_smoothcc;
         region->width = width;
         region->position = position;
         region->amp_keytrack = amp_keytrack;
@@ -818,9 +823,11 @@ namespace sfz
         currentDir = LinuxSampler::Path::stripLastName(file);
         std::string token;
         std::string line;
+        currentLine = 0;
 
         while (std::getline(fs, line))
         {
+            currentLine++;
             // COMMENT
             std::string::size_type slash_index = line.find("//");
             if (slash_index != std::string::npos)
@@ -976,6 +983,17 @@ namespace sfz
             copySmoothValues(r->volume_smoothcc, r->volume_oncc);
             r->volume_smoothcc.clear();
             
+            copyCurves(r->pan_curvecc, r->pan_oncc);
+            r->pan_curvecc.clear();
+            
+            copySmoothValues(r->pan_smoothcc, r->pan_oncc);
+            r->pan_smoothcc.clear();
+            
+            for (int j = 0; j < r->eg.size(); j++) {
+                copyCurves(r->eg[j].pan_curvecc, r->eg[j].pan_oncc);
+                r->eg[j].pan_curvecc.clear();
+            }
+            
             for (int j = 0; j < r->lfos.size(); j++) {
                 copySmoothValues(r->lfos[j].volume_smoothcc, r->lfos[j].volume_oncc);
                 r->lfos[j].volume_smoothcc.clear();
@@ -1028,6 +1046,28 @@ namespace sfz
                 }
             }
         }
+    }
+    
+    int File::ToInt(const std::string& s) throw(LinuxSampler::Exception) {
+        int i;
+        std::istringstream iss(s);
+        if(!(iss >> i)) {
+            std::ostringstream oss;
+            oss << "Line " << currentLine << ": Expected an integer";
+            throw LinuxSampler::Exception(oss.str());
+        }
+        return i;
+    }
+
+    float File::ToFloat(const std::string& s) throw(LinuxSampler::Exception) {
+        float i;
+        std::istringstream iss(s);
+        if(!(iss >> i)) {
+            std::ostringstream oss;
+            oss << "Line " << currentLine << ": Expected a floating-point number";
+            throw LinuxSampler::Exception(oss.str());
+        }
+        return i;
     }
 
     void
@@ -1356,6 +1396,10 @@ namespace sfz
             else if (sscanf(s, "_pitch_oncc%d", &y)) eg(x).pitch_oncc.add( CC(y, check(key, -9600, 9600, ToInt(value))) );
             else if (strcmp(s, "_resonance") == 0) eg(x).resonance = check(key, 0.0f, 40.0f, ToFloat(value));
             else if (sscanf(s, "_resonance_oncc%d", &y)) eg(x).resonance_oncc.add( CC(y, check(key, 0.0f, 40.0f, ToFloat(value))) );
+            else if (strcmp(s, "_pan") == 0) eg(x).pan = check(key, -100.0f, 100.0f, ToFloat(value));
+            else if (strcmp(s, "_pan_curve") == 0) eg(x).pan_curve = check(key, 0, 30000, ToInt(value));
+            else if (sscanf(s, "_pan_oncc%d", &y)) eg(x).pan_oncc.add( CC(y, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if (sscanf(s, "_pan_curvecc%d", &y)) eg(x).pan_curvecc.add( CC(y, 0.0f, check(key, 0, 30000, ToInt(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
 
@@ -1522,9 +1566,12 @@ namespace sfz
             else if ("fillfo_freq" == key_cc) pCurDef->fillfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
             else if ("amplfo_depth" == key_cc) pCurDef->amplfo_depthcc.add( CC(num_cc, check(key, -10.0f, 10.0f, ToFloat(value))) );
             else if ("amplfo_freq" == key_cc) pCurDef->amplfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
-            else if ("volume_on" == key_cc) pCurDef->volume_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("volume_on" == key_cc) pCurDef->volume_oncc.add( CC(num_cc, check(key, -144.0f, 100.0f, ToFloat(value))) );
             else if ("volume_curve" == key_cc) pCurDef->volume_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
             else if ("volume_smooth" == key_cc) pCurDef->volume_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
+            else if ("pan_on" == key_cc) pCurDef->pan_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pan_curve" == key_cc) pCurDef->pan_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
+            else if ("pan_smooth" == key_cc) pCurDef->pan_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
 
@@ -1583,7 +1630,7 @@ namespace sfz
     }
 
     EG::EG() :
-        sustain(0), loop(0), loop_count(0), amplitude(0),
+        sustain(0), loop(0), loop_count(0), amplitude(0), pan(0), pan_curve(-1),
         cutoff(0), pitch(0), resonance(0), volume(-200) /* less than -144 dB is considered unset */
     { }
     
@@ -1596,6 +1643,8 @@ namespace sfz
         cutoff     = eg.cutoff;
         pitch      = eg.pitch;
         resonance  = eg.resonance;
+        pan        = eg.pan;
+        pan_curve  = eg.pan_curve;
         node       = eg.node;
         
         amplitude_oncc = eg.amplitude_oncc;
@@ -1603,6 +1652,8 @@ namespace sfz
         cutoff_oncc    = eg.cutoff_oncc;
         pitch_oncc     = eg.pitch_oncc;
         resonance_oncc = eg.resonance_oncc;
+        pan_oncc       = eg.pan_oncc;
+        pan_curvecc    = eg.pan_curvecc;
     }
     
     LFO::LFO(): freq (-1),/* -1 is used to determine whether the LFO was initialized */

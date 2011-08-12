@@ -74,17 +74,6 @@ namespace LinuxSampler { namespace sfz {
         ri.Pan       = int(pRegion->pan * 0.63); // convert from -100..100 to -64..63
         ri.SampleStartOffset = pRegion->offset ? *(pRegion->offset) : 0;
 
-        ri.EG2PreAttack        = pRegion->fileg_start * 10;
-        ri.EG2Attack           = pRegion->fileg_attack;
-        //ri.EG2Hold             = pRegion->fileg_hold; // TODO: 
-        ri.EG2Decay1           = pRegion->fileg_decay;
-        ri.EG2Decay2           = pRegion->fileg_decay;
-        ri.EG2Sustain          = pRegion->fileg_sustain * 10;
-        ri.EG2InfiniteSustain  = true;
-        ri.EG2Release          = pRegion->fileg_release;
-
-        ri.EG3Attack     = pRegion->pitcheg_attack;
-        ri.EG3Depth      = 0; // TODO:
         ri.VCFEnabled    = pRegion->cutoff;
         switch (pRegion->fil_type) {
         case ::sfz::LPF_1P:

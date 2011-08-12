@@ -293,12 +293,16 @@ namespace sfz
         float cutoff;
         int   pitch; // -9600 to 9600 cents
         float resonance; // 0 to 40 dB
+        float pan; // -100 to 100 %
+        int   pan_curve;
         
         LinuxSampler::ArrayList<CC> amplitude_oncc;
         LinuxSampler::ArrayList<CC> volume_oncc;
         LinuxSampler::ArrayList<CC> cutoff_oncc; // -9600 to 9600 cents
         LinuxSampler::ArrayList<CC> pitch_oncc;
         LinuxSampler::ArrayList<CC> resonance_oncc; // 0 to 40 dB
+        LinuxSampler::ArrayList<CC> pan_oncc; // -100 to 100 %
+        LinuxSampler::ArrayList<CC> pan_curvecc; // used only as temporary buffer during the parsing - values are then moved to pan_oncc
         
         EG();
         EG(const EG& eg) { Copy(eg); }
@@ -529,6 +533,10 @@ namespace sfz
         LinuxSampler::ArrayList<CC> volume_oncc;
         LinuxSampler::ArrayList<CC> volume_curvecc; // used only as temporary buffer during the parsing - values are then moved to volume_oncc
         LinuxSampler::ArrayList<CC> volume_smoothcc; // used only as temporary buffer during the parsing - values are then moved to volume_oncc
+        
+        LinuxSampler::ArrayList<CC> pan_oncc; // -100 to 100 %
+        LinuxSampler::ArrayList<CC> pan_curvecc; // used only as temporary buffer during the parsing - values are then moved to pan_oncc
+        LinuxSampler::ArrayList<CC> pan_smoothcc; // used only as temporary buffer during the parsing - values are then moved to pan_oncc
     };
 
     class Query {
@@ -683,7 +691,11 @@ namespace sfz
         LFO& lfo(int x);
         void copyCurves(LinuxSampler::ArrayList<CC>& curves, LinuxSampler::ArrayList<CC>& dest);
         void copySmoothValues(LinuxSampler::ArrayList<CC>& smooths, LinuxSampler::ArrayList<CC>& dest);
+        
+        int   ToInt(const std::string& s) throw(LinuxSampler::Exception);
+        float ToFloat(const std::string& s) throw(LinuxSampler::Exception);
 
+        int currentLine;
         std::string currentDir;
         /// Pointer to the Instrument belonging to this file
         Instrument* _instrument;

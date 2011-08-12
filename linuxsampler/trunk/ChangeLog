@@ -139,6 +139,11 @@ Version CVS HEAD (?)
       xfout_lokey, xfout_hikey, xf_keycurve, xfin_lovel, xfin_hivel,
       xfout_lovel, xfout_hivel, xf_velcurve, xfin_loccN, xfin_hiccN,
       xfout_loccN, xfout_hiccN, xf_cccurve
+    - implemented opcodes pan_onccN, pan_smoothccN,
+      pan_curveccN, egN_pan, egN_pan_curve, egN_pan_onccX,
+      egN_pan_curveccX, pitch_veltrack
+    - when failed to parse a sfz file
+      print the line number on which the error occurs
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
