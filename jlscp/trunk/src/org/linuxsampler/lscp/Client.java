@@ -30,6 +30,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 import java.util.ArrayList;
+import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -93,6 +94,9 @@ public class Client {
 	}
 
 	private Vector<ResultSetEntry> resultSetQueue = new Vector<ResultSetEntry>();
+	
+	/* Used for caching the engines' info */
+	private final TreeMap<String, SamplerEngine> engineMap = new TreeMap<String, SamplerEngine>();
 	
 	class EventThread extends Thread {
 		private Vector<String> queue = new Vector<String>();
@@ -323,6 +327,8 @@ public class Client {
 		if(sock != null) disconnect();
 		if(getPrintOnlyMode()) return;
 		
+		engineMap.clear();
+		
 		// Initializing LSCP event thread
 		if(eventThread.isAlive()) {
 			getLogger().warning("LSCP event thread already running!");
@@ -441,6 +447,8 @@ public class Client {
 			eventThread.terminate();
 			eventThread = new EventThread();
 		}
+		
+		engineMap.clear();
 	}
 	
 	/**
@@ -3503,9 +3511,13 @@ public class Client {
 	 */
 	private synchronized SamplerEngine
 	getEngineInfo(String engineName) throws IOException, LscpException, LSException {
-		SamplerEngine se = new SamplerEngine();
+		SamplerEngine se = engineMap.get(engineName);
+		if(se != null) return null;
+		
+		se = new SamplerEngine();
 		if(!retrieveInfo("GET ENGINE INFO " + engineName, se)) return null;
 		se.setName(engineName);
+		engineMap.put(engineName, se);
 
 		return se;
 	}
