@@ -3512,7 +3512,7 @@ public class Client {
 	private synchronized SamplerEngine
 	getEngineInfo(String engineName) throws IOException, LscpException, LSException {
 		SamplerEngine se = engineMap.get(engineName);
-		if(se != null) return null;
+		if(se != null) return se;
 		
 		se = new SamplerEngine();
 		if(!retrieveInfo("GET ENGINE INFO " + engineName, se)) return null;
