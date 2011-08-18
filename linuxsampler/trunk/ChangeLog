@@ -144,6 +144,7 @@ Version CVS HEAD (?)
       egN_pan_curveccX, pitch_veltrack
     - when failed to parse a sfz file
       print the line number on which the error occurs
+    - use common pool of CC objects to minimize RAM usage
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

@@ -156,7 +156,14 @@ namespace LinuxSampler {
                 }
 
                 void Reset() {
-                    if (pActiveVoices) pActiveVoices->clear();
+                    if (pActiveVoices) {
+                        RTListVoiceIterator itVoice = pActiveVoices->first();
+                        RTListVoiceIterator itVoicesEnd = pActiveVoices->end();
+                        for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                            itVoice->VoiceFreed();
+                        }
+                        pActiveVoices->clear();
+                    }
                     if (pEvents) pEvents->clear();
                     KeyPressed        = false;
                     Active            = false;
@@ -495,6 +502,7 @@ namespace LinuxSampler {
                             iPendingStreamDeletions++;
                         }
                         // free the voice to the voice pool and update key info
+                        itVoice->VoiceFreed();
                         FreeVoice(itVoice);
                     }
                 }

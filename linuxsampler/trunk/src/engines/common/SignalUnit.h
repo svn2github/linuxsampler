@@ -24,6 +24,7 @@
 #define	__LS_SIGNALUNIT_H__
 
 #include "../../common/ArrayList.h"
+#include "../../common/Pool.h"
 
 
 namespace LinuxSampler {
@@ -166,6 +167,7 @@ namespace LinuxSampler {
             SignalUnit(SignalUnitRack* rack): pRack(rack), bActive(false), Level(0.0f), bCalculating(false), uiDelayTrigger(0) { }
             SignalUnit(const SignalUnit& Unit): pRack(Unit.pRack) { Copy(Unit); }
             void operator=(const SignalUnit& Unit) { Copy(Unit); }
+            virtual ~SignalUnit() { }
             
             void Copy(const SignalUnit& Unit) {
                 if (this == &Unit) return;
@@ -373,9 +375,6 @@ namespace LinuxSampler {
             bool isSmoothingOut() { return currentTimeStep < timeSteps; }
     };
     
-    
-    const int MaxCCs = 10;
-    
     /**
      * Continuous controller signal unit.
      * The level of this unit corresponds to the controllers changes
@@ -389,7 +388,6 @@ namespace LinuxSampler {
                     virtual void ValueChanged(CCSignalUnit* pUnit) = 0;
             };
             
-        protected:
             class CC {
                 public:
                     uint8_t   Controller;  ///< MIDI controller number.
@@ -419,41 +417,56 @@ namespace LinuxSampler {
                     }
             };
             
-            FixedArray<CC> Ctrls; // The MIDI controllers which modulates this signal unit.
+        protected:
+            RTList<CC>* pCtrls; // The MIDI controllers which modulates this signal unit.
             Listener* pListener;
             bool hasSmoothCtrls; // determines whether there are smooth controllers (used for optimization)
             bool isSmoothingOut; // determines whether there is a CC which is in process of smoothing out (used for optimization)
 
         public:
             
-            CCSignalUnit(SignalUnitRack* rack, Listener* l = NULL): SignalUnit(rack), Ctrls(MaxCCs) {
+            CCSignalUnit(SignalUnitRack* rack, Listener* l = NULL): SignalUnit(rack), pCtrls(NULL) {
                 pListener = l;
                 hasSmoothCtrls = isSmoothingOut = false;
             }
             
-            CCSignalUnit(const CCSignalUnit& Unit): SignalUnit(Unit.pRack), Ctrls(MaxCCs) { Copy(Unit); }
+            CCSignalUnit(const CCSignalUnit& Unit): SignalUnit(Unit.pRack), pCtrls(NULL) { Copy(Unit); }
             void operator=(const CCSignalUnit& Unit) { Copy(Unit); }
             
+            virtual ~CCSignalUnit() {
+                if (pCtrls != NULL) delete pCtrls;
+            }
+            
             void Copy(const CCSignalUnit& Unit) {
-                Ctrls.copy(Unit.Ctrls);
+                if (pCtrls != NULL) delete pCtrls;
+                pCtrls = new RTList<CC>(*(Unit.pCtrls));
+                if (pCtrls->poolIsEmpty() && pCtrls->count() < Unit.pCtrls->count()) {
+                    std::cerr << "Maximum number of CC reached!" << std::endl;
+                }
+                
                 pListener = Unit.pListener;
                 hasSmoothCtrls = Unit.hasSmoothCtrls;
                 isSmoothingOut = Unit.isSmoothingOut;
                 SignalUnit::Copy(Unit);
             }
             
+            virtual void InitCCList(Pool<CC>* pCCPool, Pool<Smoother>* pSmootherPool) {
+                if (pCtrls != NULL) delete pCtrls;
+                pCtrls = new RTList<CC>(pCCPool);
+            }
+            
             void AddCC(uint8_t Controller, float Influence, short int Curve = -1, Smoother* pSmoother = NULL) {
-                if(Ctrls.size() >= Ctrls.capacity()) {
-                    std::cerr << "Maximum number of CC reached" << std::endl;
+                if(pCtrls->poolIsEmpty()) {
+                    std::cerr << "Maximum number of CC reached!" << std::endl;
                     return;
                 }
-                Ctrls.add(CC(Controller, Influence, Curve, pSmoother));
+                *(pCtrls->allocAppend()) = CC(Controller, Influence, Curve, pSmoother);
                 if (pSmoother != NULL) hasSmoothCtrls = true;
             }
             
-            virtual void RemoveAllCCs() { Ctrls.clear(); }
+            virtual void RemoveAllCCs() { pCtrls->clear(); }
             
-            int GetCCCount() { return Ctrls.size(); }
+            int GetCCCount() { return pCtrls->count(); }
             
             virtual void Increment() {
                 if (hasSmoothCtrls && isSmoothingOut) Calculate();
@@ -467,11 +480,13 @@ namespace LinuxSampler {
             virtual void ProcessCCEvent(uint8_t Controller, uint8_t Value) {
                 bool recalculate = false;
                 
-                for (int i = 0; i < Ctrls.size(); i++) {
-                    if (Controller != Ctrls[i].Controller) continue;
-                    if (Ctrls[i].Value == Value) continue;
-                    Ctrls[i].Value = Value;
-                    if (Ctrls[i].pSmoother != NULL) Ctrls[i].pSmoother->update(Value);
+                RTList<CC>::Iterator ctrl = pCtrls->first();
+                RTList<CC>::Iterator end  = pCtrls->end();
+                for(; ctrl != end; ++ctrl) {
+                    if (Controller != (*ctrl).Controller) continue;
+                    if ((*ctrl).Value == Value) continue;
+                    (*ctrl).Value = Value;
+                    if ((*ctrl).pSmoother != NULL) (*ctrl).pSmoother->update(Value);
                     if (!bActive) bActive = true;
                     recalculate = true;
                 }
@@ -482,12 +497,14 @@ namespace LinuxSampler {
             virtual void Calculate() {
                 float l = 0;
                 isSmoothingOut = false;
-                for (int i = 0; i < Ctrls.size(); i++) {
-                    if (Ctrls[i].pSmoother == NULL) {
-                        l += Normalize(Ctrls[i].Value, Ctrls[i].Curve) * Ctrls[i].Influence;
+                RTList<CC>::Iterator ctrl = pCtrls->first();
+                RTList<CC>::Iterator end  = pCtrls->end();
+                for(; ctrl != end; ++ctrl) {
+                    if ((*ctrl).pSmoother == NULL) {
+                        l += Normalize((*ctrl).Value, (*ctrl).Curve) * (*ctrl).Influence;
                     } else {
-                        if (Ctrls[i].pSmoother->isSmoothingOut()) isSmoothingOut = true;
-                        l += Normalize(Ctrls[i].pSmoother->render(), Ctrls[i].Curve) * Ctrls[i].Influence;
+                        if ((*ctrl).pSmoother->isSmoothingOut()) isSmoothingOut = true;
+                        l += Normalize((*ctrl).pSmoother->render(), (*ctrl).Curve) * (*ctrl).Influence;
                     }
                 }
                 if (Level != l) {

@@ -381,6 +381,19 @@ class RTList : public RTListBase<T> {
         RTList(Pool<T>* pPool) : RTListBase<T>::RTListBase() {
             this->pPool = pPool;
         }
+        
+        /**
+         * Copy constructor
+         */
+        RTList(RTList<T>& list) : RTListBase<T>::RTListBase() {
+            this->pPool = list.pPool;
+            RTList<T>::Iterator it = list.first();
+            RTList<T>::Iterator end = list.end();
+            for(; it != end; ++it) {
+                if (poolIsEmpty()) break;
+                *(allocAppend()) = *it;
+            }
+        }
 
         virtual ~RTList() {
             clear();

@@ -31,11 +31,12 @@
 #include "sfz.h"
 
 namespace LinuxSampler { namespace sfz {
-
+    const int MaxCCPerVoice = 128; // FIXME: too much?
+    
     class Engine: public LinuxSampler::EngineBase<Voice, ::sfz::Region, ::sfz::Region, DiskThread, InstrumentResourceManager, ::sfz::Instrument> {
         public:
-            Engine() { }
-            virtual ~Engine() { }
+            Engine();
+            virtual ~Engine();
             // implementation of abstract methods derived from class 'LinuxSampler::Engine'
             virtual bool    DiskStreamSupported();
             virtual String  Description();
@@ -47,10 +48,16 @@ namespace LinuxSampler { namespace sfz {
                 LinuxSampler::EngineChannel*  pEngineChannel,
                 Pool<Event>::Iterator&        itControlChangeEvent
             );
+            
+            virtual void PostSetMaxVoices(int iVoices);
 
             friend class Voice;
+            friend class SfzSignalUnitRack;
 
         protected:
+            Pool<CCSignalUnit::CC>* pCCPool;
+            Pool<Smoother>* pSmootherPool;
+            
             virtual DiskThread* CreateDiskThread();
 
             virtual Pool<Voice>::Iterator LaunchVoice (

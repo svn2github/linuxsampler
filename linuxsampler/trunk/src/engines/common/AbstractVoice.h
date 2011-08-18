@@ -104,6 +104,9 @@ namespace LinuxSampler {
                 int                     iKeyGroup
             );
 
+            /** Invoked when the voice is freed - gone from active to inactive. */
+            virtual void VoiceFreed() { }
+
             virtual void Synthesize(uint Samples, sample_t* pSrc, uint Skip);
             
             uint GetSampleRate() { return GetEngine()->SampleRate; }

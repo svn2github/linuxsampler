@@ -316,6 +316,7 @@ namespace LinuxSampler {
                                 if ((itVoice->DiskStreamRef).State != Stream::state_unused) StreamCount++;
                             }
                         }  else { // voice reached end, is now inactive
+                            itVoice->VoiceFreed();
                             pChannel->FreeVoice(itVoice); // remove voice from the list of active voices
                         }
                     }

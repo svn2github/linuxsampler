@@ -90,13 +90,16 @@ namespace LinuxSampler { namespace sfz {
     
     class SmoothCCUnit: public CurveCCUnit {
         protected:
-            FixedArray<Smoother> Smoothers;
+            RTList<Smoother>* pSmoothers;
         public:
-            SmoothCCUnit(SfzSignalUnitRack* rack, Listener* l = NULL): CurveCCUnit(rack, l), Smoothers(MaxCCs) { }
+            SmoothCCUnit(SfzSignalUnitRack* rack, Listener* l = NULL): CurveCCUnit(rack, l), pSmoothers(NULL) { }
+            virtual ~SmoothCCUnit();
             
             virtual void AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth);
+            virtual void RemoveAllCCs() { CurveCCUnit::RemoveAllCCs(); pSmoothers->clear(); }
+            virtual void InitCCList(Pool<CC>* pCCPool, Pool<Smoother>* pSmootherPool);
             
-            virtual void RemoveAllCCs() { CurveCCUnit::RemoveAllCCs(); Smoothers.clear(); }
+            void InitSmoothers(Pool<Smoother>* pSmootherPool);
     };
     
     
@@ -104,7 +107,7 @@ namespace LinuxSampler { namespace sfz {
         public:
             XFInCCUnit(SfzSignalUnitRack* rack, Listener* l = NULL): CCUnit(rack, l) { }
             
-            virtual bool Active() { return Ctrls.size() > 0; }
+            virtual bool Active() { return !pCtrls->isEmpty(); }
             virtual void Calculate();
             virtual void SetCrossFadeCCs(::sfz::Array<int>& loCCs, ::sfz::Array<int>& hiCCs);
     };
@@ -273,7 +276,9 @@ namespace LinuxSampler { namespace sfz {
             virtual void  Trigger();
             virtual void  Increment();
             virtual float GetLevel() { return Level; }
-            virtual void  ValueChanged(CCSignalUnit* pUnit);
+            
+            // CCSignalUnit::Listener interface implementation
+            virtual void ValueChanged(CCSignalUnit* pUnit);
     };
     
     class LFOv1Unit: public LFOUnit {
@@ -433,6 +438,12 @@ namespace LinuxSampler { namespace sfz {
             
             virtual void Trigger();
             virtual void EnterFadeOutStage();
+            
+            /** Called when the engine is set and the engine's pools are ready to use. */
+            void InitRTLists();
+            
+            /** Invoked when the voice gone inactive. */
+            void Reset();
             
             friend class EndpointUnit;
     };

@@ -27,6 +27,37 @@
 
 namespace LinuxSampler { namespace sfz {
     Engine::Format Engine::GetEngineFormat() { return SFZ; }
+    
+    Engine::Engine() {
+        pCCPool = new Pool<CCSignalUnit::CC>(GLOBAL_MAX_VOICES * MaxCCPerVoice);
+        pSmootherPool = new Pool<Smoother>(GLOBAL_MAX_VOICES * MaxCCPerVoice);
+        for (VoiceIterator iterVoice = GetVoicePool()->allocAppend(); iterVoice == GetVoicePool()->last(); iterVoice = GetVoicePool()->allocAppend()) {
+            (static_cast<SfzSignalUnitRack*>(iterVoice->pSignalUnitRack))->InitRTLists();
+        }
+        GetVoicePool()->clear();
+    }
+    
+    Engine::~Engine() {
+        if (pCCPool) {
+            pCCPool->clear();
+            delete pCCPool;
+        }
+        
+        if (pSmootherPool) {
+            pSmootherPool->clear();
+            delete pSmootherPool;
+        }
+    }
+    
+    void Engine::PostSetMaxVoices(int iVoices) {
+        pCCPool->resizePool(iVoices * MaxCCPerVoice);
+        pSmootherPool->resizePool(iVoices * MaxCCPerVoice);
+        
+        for (VoiceIterator iterVoice = GetVoicePool()->allocAppend(); iterVoice == GetVoicePool()->last(); iterVoice = GetVoicePool()->allocAppend()) {
+            (static_cast<SfzSignalUnitRack*>(iterVoice->pSignalUnitRack))->InitRTLists();
+        }
+        GetVoicePool()->clear();
+    }
 
     /**
      *  Reacts on supported control change commands (e.g. pitch bend wheel,

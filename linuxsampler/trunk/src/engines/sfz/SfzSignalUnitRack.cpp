@@ -21,10 +21,16 @@
  ***************************************************************************/
 
 #include "SfzSignalUnitRack.h"
-#include "Voice.h"
-#include <SF.h>
+#include "Engine.h"
+
+#define _200TH_ROOT_OF_10 1.011579454259899
 
 namespace LinuxSampler { namespace sfz {
+    
+    double ToRatio(int Centibels) {
+        if (Centibels == 0) return 1.0;
+        return pow(_200TH_ROOT_OF_10, Centibels);
+    }
     
     SfzSignalUnit::SfzSignalUnit(SfzSignalUnitRack* rack): SignalUnit(rack), pVoice(rack->pVoice) {
         
@@ -59,18 +65,20 @@ namespace LinuxSampler { namespace sfz {
     void XFInCCUnit::Calculate() {
         float l = 1;
                 
-        for (int i = 0; i < Ctrls.size(); i++) {
+        RTList<CC>::Iterator ctrl = pCtrls->first();
+        RTList<CC>::Iterator end  = pCtrls->end();
+        for(; ctrl != end; ++ctrl) {
             float c = 1;
-            int influence = Ctrls[i].Influence;
+            int influence = (*ctrl).Influence;
             int lo = influence & 0xff;
             int hi = influence >> 8;
-            if (Ctrls[i].Value <= lo) {
+            if ((*ctrl).Value <= lo) {
                 c = 0;
-            } else if (Ctrls[i].Value >= hi) {
+            } else if ((*ctrl).Value >= hi) {
                 c = 1;
             } else {
                 float xfVelSize = hi - lo;
-                float velPos = Ctrls[i].Value - lo;
+                float velPos = (*ctrl).Value - lo;
                 c = velPos / xfVelSize;
                 if (pVoice->pRegion->xf_cccurve == ::sfz::POWER) {
                     c = sin(c * M_PI / 2.0);
@@ -90,18 +98,20 @@ namespace LinuxSampler { namespace sfz {
     void XFOutCCUnit::Calculate() {
         float l = 1;
                 
-        for (int i = 0; i < Ctrls.size(); i++) {
+        RTList<CC>::Iterator ctrl = pCtrls->first();
+        RTList<CC>::Iterator end  = pCtrls->end();
+        for(; ctrl != end; ++ctrl) {
             float c = 1;
-            int influence = Ctrls[i].Influence;
+            int influence = (*ctrl).Influence;
             int lo = influence & 0xff;
             int hi = influence >> 8;
-            if (Ctrls[i].Value >= hi) {
+            if ((*ctrl).Value >= hi) {
                 c = 0;
-            } else if (Ctrls[i].Value <= lo) {
+            } else if ((*ctrl).Value <= lo) {
                 c = 1;
             } else {
                 float xfVelSize = hi - lo;
-                float velPos = Ctrls[i].Value - lo;
+                float velPos = (*ctrl).Value - lo;
                 c = 1.0f - velPos / xfVelSize;
                 if (pVoice->pRegion->xf_cccurve == ::sfz::POWER) {
                     c = sin(c * M_PI / 2.0);
@@ -334,60 +344,77 @@ namespace LinuxSampler { namespace sfz {
     }
     
     void CCUnit::Trigger() {
-        for (int i = 0; i < Ctrls.size(); i++) {
-            Ctrls[i].Value = pVoice->GetControllerValue(Ctrls[i].Controller);
-            if (Ctrls[i].pSmoother != NULL) Ctrls[i].pSmoother->setValue(Ctrls[i].Value);
+        RTList<CC>::Iterator ctrl = pCtrls->first();
+        RTList<CC>::Iterator end  = pCtrls->end();
+        for(; ctrl != end; ++ctrl) {
+            (*ctrl).Value = pVoice->GetControllerValue((*ctrl).Controller);
+            if ((*ctrl).pSmoother != NULL) (*ctrl).pSmoother->setValue((*ctrl).Value);
         }
         CCSignalUnit::Trigger();
     }
     
-     void CCUnit::SetCCs(::sfz::Array<int>& cc) {
-         RemoveAllCCs();
-         for (int i = 0; i < 128; i++) {
-             if (cc[i] != 0) AddCC(i, cc[i]);
-         }
-     }
+    void CCUnit::SetCCs(::sfz::Array<int>& cc) {
+        RemoveAllCCs();
+        for (int i = 0; i < 128; i++) {
+            if (cc[i] != 0) AddCC(i, cc[i]);
+        }
+    }
     
-     void CCUnit::SetCCs(ArrayList< ::sfz::CC>& cc) {
-         RemoveAllCCs();
-         for (int i = 0; i < cc.size(); i++) {
-             if (cc[i].Influence != 0) {
-                 short int curve = cc[i].Curve;
-                 if (curve >= GetCurveCount()) curve = -1;
-                 AddSmoothCC(cc[i].Controller, cc[i].Influence, curve, cc[i].Smooth);
-             }
-         }
-     }
-     
-     void CCUnit::AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth) {
-         AddCC(Controller, Influence, Curve);
-     }
-     
-     int CCUnit::GetCurveCount() {
-         return pVoice->pRegion->GetInstrument()->curves.size();
-     }
-     
-     ::sfz::Curve* CCUnit::GetCurve(int idx) { 
-         return &pVoice->pRegion->GetInstrument()->curves[idx];
-     }
-     
-     double CCUnit::GetSampleRate() {
-        return pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
+    void CCUnit::SetCCs(ArrayList< ::sfz::CC>& cc) {
+        RemoveAllCCs();
+        for (int i = 0; i < cc.size(); i++) {
+            if (cc[i].Influence != 0) {
+                short int curve = cc[i].Curve;
+                if (curve >= GetCurveCount()) curve = -1;
+                AddSmoothCC(cc[i].Controller, cc[i].Influence, curve, cc[i].Smooth);
+            }
+        }
     }
      
-     void SmoothCCUnit::AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth) {
-         if (Smooth > 0) {
-             if (Smoothers.size() >= Smoothers.capacity()) {
-                 std::cerr << "Maximum number of smoothers reached" << std::endl;
-                 return;
-             }
-             
-             Smoothers.increment().trigger(Smooth / 1000.0f, GetSampleRate());
-             AddCC(Controller, Influence, Curve, &Smoothers[Smoothers.size() - 1]);
-         } else {
-             AddCC(Controller, Influence, Curve);
-         }
-     }
+    void CCUnit::AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth) {
+        AddCC(Controller, Influence, Curve);
+    }
+     
+    int CCUnit::GetCurveCount() {
+        return pVoice->pRegion->GetInstrument()->curves.size();
+    }
+     
+    ::sfz::Curve* CCUnit::GetCurve(int idx) { 
+        return &pVoice->pRegion->GetInstrument()->curves[idx];
+    }
+     
+    double CCUnit::GetSampleRate() {
+        return pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
+    }
+    
+    
+    SmoothCCUnit::~SmoothCCUnit() {
+        if (pSmoothers != NULL) delete pSmoothers;
+    }
+     
+    void SmoothCCUnit::AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth) {
+        if (Smooth > 0) {
+            if (pSmoothers->poolIsEmpty()) {
+                std::cerr << "Maximum number of smoothers reached" << std::endl;
+                return;
+            }
+            Smoother* smoother = &(*(pSmoothers->allocAppend()));
+            smoother->trigger(Smooth / 1000.0f, GetSampleRate());
+            AddCC(Controller, Influence, Curve, smoother);
+        } else {
+            AddCC(Controller, Influence, Curve);
+        }
+    }
+     
+    void SmoothCCUnit::InitSmoothers(Pool<Smoother>* pSmootherPool) {
+        if (pSmoothers != NULL) delete pSmoothers;
+        pSmoothers = new RTList<Smoother>(pSmootherPool);
+    }
+    
+    void SmoothCCUnit::InitCCList(Pool<CC>* pCCPool, Pool<Smoother>* pSmootherPool) {
+        CurveCCUnit::InitCCList(pCCPool, pSmootherPool);
+        InitSmoothers(pSmootherPool);
+    }
 
 
     EndpointUnit::EndpointUnit(SfzSignalUnitRack* rack)
@@ -498,7 +525,7 @@ namespace LinuxSampler { namespace sfz {
             
             if (dB >= -144) {
                 if (amp == 0 && eg->suAmpOnCC.GetCCCount() == 0) amp = 1.0f;
-                amp *= ::sf2::ToRatio(dB * 10.0);
+                amp *= ToRatio(dB * 10.0);
             }
             
             vol += amp * eg->GetLevel();
@@ -507,16 +534,16 @@ namespace LinuxSampler { namespace sfz {
         AmpLFOUnit* u = &(GetRack()->suAmpLFO);
         CCSignalUnit* u2 = &(GetRack()->suAmpLFO.suDepthOnCC);
         float f = u2->Active() ? u2->GetLevel() : 0;
-        vol *= u->Active() ? ::sf2::ToRatio((u->GetLevel() * (u->pLfoInfo->volume + f) * 10.0)) : 1;
+        vol *= u->Active() ? ToRatio((u->GetLevel() * (u->pLfoInfo->volume + f) * 10.0)) : 1;
         
-        vol *= ::sf2::ToRatio(GetRack()->suVolOnCC.GetLevel() * 10.0);
+        vol *= ToRatio(GetRack()->suVolOnCC.GetLevel() * 10.0);
         
         for (int i = 0; i < GetRack()->volLFOs.size(); i++) {
             LFOv2Unit* lfo = GetRack()->volLFOs[i];
             if (!lfo->Active()) continue;
             
             float f = lfo->suVolOnCC.Active() ? lfo->suVolOnCC.GetLevel() : 0;
-            vol *= ::sf2::ToRatio(lfo->GetLevel() * (lfo->pLfoInfo->volume + f) * 10.0);
+            vol *= ToRatio(lfo->GetLevel() * (lfo->pLfoInfo->volume + f) * 10.0);
         }
         
         if (suXFInCC.Active())  vol *= suXFInCC.GetLevel();
@@ -674,6 +701,8 @@ namespace LinuxSampler { namespace sfz {
         for (int i = 0; i < LFOs.capacity(); i++) {
             LFOs[i] = new LFOv2Unit(this);
             LFOs[i]->pVoice = voice;
+            LFOs[i]->suDepthOnCC.pVoice = voice;
+            LFOs[i]->suFreqOnCC.pVoice = voice;
             LFOs[i]->suFadeEG.pVoice = voice;
             LFOs[i]->suVolOnCC.pVoice = voice;
             LFOs[i]->suPitchOnCC.pVoice = voice;
@@ -691,6 +720,42 @@ namespace LinuxSampler { namespace sfz {
         
         for (int i = 0; i < LFOs.capacity(); i++) {
             delete LFOs[i]; LFOs[i] = NULL;
+        }
+    }
+    
+    void SfzSignalUnitRack::InitRTLists() {
+        Pool<CCSignalUnit::CC>* pCCPool = pVoice->pEngine->pCCPool;
+        Pool<Smoother>* pSmootherPool = pVoice->pEngine->pSmootherPool;
+        
+        suVolOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEndpoint.suXFInCC.InitCCList(pCCPool, pSmootherPool);
+        suEndpoint.suXFOutCC.InitCCList(pCCPool, pSmootherPool);
+        suEndpoint.suPanOnCC.InitCCList(pCCPool, pSmootherPool);
+        suPitchLFO.suDepthOnCC.InitCCList(pCCPool, pSmootherPool);
+        suPitchLFO.suFreqOnCC.InitCCList(pCCPool, pSmootherPool);
+        suFilLFO.suDepthOnCC.InitCCList(pCCPool, pSmootherPool);
+        suFilLFO.suFreqOnCC.InitCCList(pCCPool, pSmootherPool);
+        suAmpLFO.suDepthOnCC.InitCCList(pCCPool, pSmootherPool);
+        suAmpLFO.suFreqOnCC.InitCCList(pCCPool, pSmootherPool);
+        
+        for (int i = 0; i < EGs.capacity(); i++) {
+            EGs[i]->suAmpOnCC.InitCCList(pCCPool, pSmootherPool);
+            EGs[i]->suVolOnCC.InitCCList(pCCPool, pSmootherPool);
+            EGs[i]->suPitchOnCC.InitCCList(pCCPool, pSmootherPool);
+            EGs[i]->suCutoffOnCC.InitCCList(pCCPool, pSmootherPool);
+            EGs[i]->suResOnCC.InitCCList(pCCPool, pSmootherPool);
+            EGs[i]->suPanOnCC.InitCCList(pCCPool, pSmootherPool);
+        }
+        
+        for (int i = 0; i < LFOs.capacity(); i++) {
+            LFOs[i]->suDepthOnCC.InitCCList(pCCPool, pSmootherPool);
+            LFOs[i]->suFreqOnCC.InitCCList(pCCPool, pSmootherPool);
+            LFOs[i]->suVolOnCC.InitCCList(pCCPool, pSmootherPool);
+            LFOs[i]->suPitchOnCC.InitCCList(pCCPool, pSmootherPool);
+            LFOs[i]->suFreqOnCC.InitCCList(pCCPool, pSmootherPool);
+            LFOs[i]->suPanOnCC.InitCCList(pCCPool, pSmootherPool);
+            LFOs[i]->suCutoffOnCC.InitCCList(pCCPool, pSmootherPool);
+            LFOs[i]->suResOnCC.InitCCList(pCCPool, pSmootherPool);
         }
     }
     
@@ -873,6 +938,39 @@ namespace LinuxSampler { namespace sfz {
         
         for (int i = 0; i < volEGs.size(); i++) {
             volEGs[i]->EG.enterFadeOutStage();
+        }
+    }
+    
+    void SfzSignalUnitRack::Reset() {
+        suVolOnCC.RemoveAllCCs();
+        suEndpoint.suXFInCC.RemoveAllCCs();
+        suEndpoint.suXFOutCC.RemoveAllCCs();
+        suEndpoint.suPanOnCC.RemoveAllCCs();
+        suPitchLFO.suDepthOnCC.RemoveAllCCs();
+        suPitchLFO.suFreqOnCC.RemoveAllCCs();
+        suFilLFO.suDepthOnCC.RemoveAllCCs();
+        suFilLFO.suFreqOnCC.RemoveAllCCs();
+        suAmpLFO.suDepthOnCC.RemoveAllCCs();
+        suAmpLFO.suFreqOnCC.RemoveAllCCs();
+        
+        for (int i = 0; i < EGs.capacity(); i++) {
+            EGs[i]->suAmpOnCC.RemoveAllCCs();
+            EGs[i]->suVolOnCC.RemoveAllCCs();
+            EGs[i]->suPitchOnCC.RemoveAllCCs();
+            EGs[i]->suCutoffOnCC.RemoveAllCCs();
+            EGs[i]->suResOnCC.RemoveAllCCs();
+            EGs[i]->suPanOnCC.RemoveAllCCs();
+        }
+        
+        for (int i = 0; i < LFOs.capacity(); i++) {
+            LFOs[i]->suDepthOnCC.RemoveAllCCs();
+            LFOs[i]->suFreqOnCC.RemoveAllCCs();
+            LFOs[i]->suVolOnCC.RemoveAllCCs();
+            LFOs[i]->suPitchOnCC.RemoveAllCCs();
+            LFOs[i]->suFreqOnCC.RemoveAllCCs();
+            LFOs[i]->suPanOnCC.RemoveAllCCs();
+            LFOs[i]->suCutoffOnCC.RemoveAllCCs();
+            LFOs[i]->suResOnCC.RemoveAllCCs();
         }
     }
     

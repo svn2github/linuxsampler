@@ -243,8 +243,12 @@ namespace LinuxSampler {
                 }
                 pVoicePool->clear();
 
+                PostSetMaxVoices(iVoices);
                 ResumeAll();
             }
+            
+            /** Called after the new max number of voices is set and before resuming the engine. */
+            virtual void PostSetMaxVoices(int iVoices) { }
 
             virtual uint DiskStreamCount() { return (pDiskThread) ? pDiskThread->GetActiveStreamCount() : 0; }
             virtual uint DiskStreamCountMax() { return (pDiskThread) ? pDiskThread->ActiveStreamCountMax : 0; }

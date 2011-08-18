@@ -52,6 +52,8 @@ namespace LinuxSampler { namespace sfz {
             virtual ~Voice();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
             void SetEngine(LinuxSampler::Engine* pEngine);
+            
+            virtual void VoiceFreed() { SignalRack.Reset(); }
 
         protected:
             virtual SampleInfo       GetSampleInfo();
