@@ -47,8 +47,9 @@ public:
 protected:
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
     virtual bool on_expose_event(GdkEventExpose* e);
-#endif
+#else
     virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
+#endif
     virtual bool on_button_press_event(GdkEventButton* event);
     virtual bool on_button_release_event(GdkEventButton* event);
     virtual bool on_motion_notify_event(GdkEventMotion* event);
@@ -67,6 +68,7 @@ protected:
     int focus_line;
     int dimvalue[256];
     int label_width;
+    bool labels_changed;
     int nbDimensions;
 
     // information needed during a resize
@@ -86,6 +88,7 @@ protected:
 
     bool cursor_is_resize;
     bool is_in_resize_zone(double x, double y);
+    void update_after_resize();
 
     int h;
 };

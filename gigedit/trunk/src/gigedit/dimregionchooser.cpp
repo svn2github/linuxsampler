@@ -41,6 +41,7 @@ DimRegionChooser::DimRegionChooser() :
                Gdk::POINTER_MOTION_HINT_MASK);
 
     for (int i = 0 ; i < 256 ; i++) dimvalue[i] = 0;
+    labels_changed = true;
 }
 
 DimRegionChooser::~DimRegionChooser()
@@ -50,12 +51,23 @@ DimRegionChooser::~DimRegionChooser()
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
 bool DimRegionChooser::on_expose_event(GdkEventExpose* e)
 {
-    return on_draw(get_window()->create_cairo_context());
+    double clipx1 = e->area.x;
+    double clipx2 = e->area.x + e->area.width;
+    double clipy1 = e->area.y;
+    double clipy2 = e->area.y + e->area.height;
+
+    const Cairo::RefPtr<Cairo::Context>& cr =
+        get_window()->create_cairo_context();
+#if 0
 }
 #endif
-
+#else
 bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
+    double clipx1, clipx2, clipy1, clipy2;
+    cr->get_clip_extents(clipx1, clipy1, clipx2, clipy2);
+#endif
+
     if (!region) return true;
 
     // This is where we draw on the window
@@ -65,170 +77,215 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
     cr->set_line_width(1);
 
-    // draw labels on the left (reflecting the dimension type)
     int y = 0;
-    double maxwidth = 0;
-    for (int i = 0 ; i < region->Dimensions ; i++) {
-        int nbZones = region->pDimensionDefinitions[i].zones;
-        if (nbZones) {
-            const char* dstr;
-            char dstrbuf[10];
-            switch (region->pDimensionDefinitions[i].dimension) {
-            case gig::dimension_none: dstr=_("none"); break;
-            case gig::dimension_samplechannel: dstr=_("samplechannel"); break;
-            case gig::dimension_layer: dstr=_("layer"); break;
-            case gig::dimension_velocity: dstr=_("velocity"); break;
-            case gig::dimension_channelaftertouch: dstr=_("channelaftertouch"); break;
-            case gig::dimension_releasetrigger: dstr=_("releasetrigger"); break;
-            case gig::dimension_keyboard: dstr=_("keyswitching"); break;
-            case gig::dimension_roundrobin: dstr=_("roundrobin"); break;
-            case gig::dimension_random: dstr=_("random"); break;
-            case gig::dimension_smartmidi: dstr=_("smartmidi"); break;
-            case gig::dimension_roundrobinkeyboard: dstr=_("roundrobinkeyboard"); break;
-            case gig::dimension_modwheel: dstr=_("modwheel"); break;
-            case gig::dimension_breath: dstr=_("breath"); break;
-            case gig::dimension_foot: dstr=_("foot"); break;
-            case gig::dimension_portamentotime: dstr=_("portamentotime"); break;
-            case gig::dimension_effect1: dstr=_("effect1"); break;
-            case gig::dimension_effect2: dstr=_("effect2"); break;
-            case gig::dimension_genpurpose1: dstr=_("genpurpose1"); break;
-            case gig::dimension_genpurpose2: dstr=_("genpurpose2"); break;
-            case gig::dimension_genpurpose3: dstr=_("genpurpose3"); break;
-            case gig::dimension_genpurpose4: dstr=_("genpurpose4"); break;
-            case gig::dimension_sustainpedal: dstr=_("sustainpedal"); break;
-            case gig::dimension_portamento: dstr=_("portamento"); break;
-            case gig::dimension_sostenutopedal: dstr=_("sostenutopedal"); break;
-            case gig::dimension_softpedal: dstr=_("softpedal"); break;
-            case gig::dimension_genpurpose5: dstr=_("genpurpose5"); break;
-            case gig::dimension_genpurpose6: dstr=_("genpurpose6"); break;
-            case gig::dimension_genpurpose7: dstr=_("genpurpose7"); break;
-            case gig::dimension_genpurpose8: dstr=_("genpurpose8"); break;
-            case gig::dimension_effect1depth: dstr=_("effect1depth"); break;
-            case gig::dimension_effect2depth: dstr=_("effect2depth"); break;
-            case gig::dimension_effect3depth: dstr=_("effect3depth"); break;
-            case gig::dimension_effect4depth: dstr=_("effect4depth"); break;
-            case gig::dimension_effect5depth: dstr=_("effect5depth"); break;
-            default:
-                sprintf(dstrbuf, "%d",
-                        region->pDimensionDefinitions[i].dimension);
-                dstr = dstrbuf;
-                break;
-            }
-            layout->set_text(dstr);
+    if (labels_changed || label_width - 10 > clipx1) {
+        // draw labels on the left (reflecting the dimension type)
+        double maxwidth = 0;
+        for (int i = 0 ; i < region->Dimensions ; i++) {
+            int nbZones = region->pDimensionDefinitions[i].zones;
+            if (nbZones) {
+                const char* dstr;
+                char dstrbuf[10];
+                switch (region->pDimensionDefinitions[i].dimension) {
+                case gig::dimension_none: dstr=_("none"); break;
+                case gig::dimension_samplechannel: dstr=_("samplechannel");
+                    break;
+                case gig::dimension_layer: dstr=_("layer"); break;
+                case gig::dimension_velocity: dstr=_("velocity"); break;
+                case gig::dimension_channelaftertouch:
+                    dstr=_("channelaftertouch"); break;
+                case gig::dimension_releasetrigger:
+                    dstr=_("releasetrigger"); break;
+                case gig::dimension_keyboard: dstr=_("keyswitching"); break;
+                case gig::dimension_roundrobin: dstr=_("roundrobin"); break;
+                case gig::dimension_random: dstr=_("random"); break;
+                case gig::dimension_smartmidi: dstr=_("smartmidi"); break;
+                case gig::dimension_roundrobinkeyboard:
+                    dstr=_("roundrobinkeyboard"); break;
+                case gig::dimension_modwheel: dstr=_("modwheel"); break;
+                case gig::dimension_breath: dstr=_("breath"); break;
+                case gig::dimension_foot: dstr=_("foot"); break;
+                case gig::dimension_portamentotime:
+                    dstr=_("portamentotime"); break;
+                case gig::dimension_effect1: dstr=_("effect1"); break;
+                case gig::dimension_effect2: dstr=_("effect2"); break;
+                case gig::dimension_genpurpose1: dstr=_("genpurpose1"); break;
+                case gig::dimension_genpurpose2: dstr=_("genpurpose2"); break;
+                case gig::dimension_genpurpose3: dstr=_("genpurpose3"); break;
+                case gig::dimension_genpurpose4: dstr=_("genpurpose4"); break;
+                case gig::dimension_sustainpedal:
+                    dstr=_("sustainpedal"); break;
+                case gig::dimension_portamento: dstr=_("portamento"); break;
+                case gig::dimension_sostenutopedal:
+                    dstr=_("sostenutopedal"); break;
+                case gig::dimension_softpedal: dstr=_("softpedal"); break;
+                case gig::dimension_genpurpose5: dstr=_("genpurpose5"); break;
+                case gig::dimension_genpurpose6: dstr=_("genpurpose6"); break;
+                case gig::dimension_genpurpose7: dstr=_("genpurpose7"); break;
+                case gig::dimension_genpurpose8: dstr=_("genpurpose8"); break;
+                case gig::dimension_effect1depth:
+                    dstr=_("effect1depth"); break;
+                case gig::dimension_effect2depth:
+                    dstr=_("effect2depth"); break;
+                case gig::dimension_effect3depth:
+                    dstr=_("effect3depth"); break;
+                case gig::dimension_effect4depth:
+                    dstr=_("effect4depth"); break;
+                case gig::dimension_effect5depth:
+                    dstr=_("effect5depth"); break;
+                default:
+                    sprintf(dstrbuf, "%d",
+                            region->pDimensionDefinitions[i].dimension);
+                    dstr = dstrbuf;
+                    break;
+                }
+                layout->set_text(dstr);
 
-            Pango::Rectangle rectangle = layout->get_logical_extents();
-            double text_w = double(rectangle.get_width()) / Pango::SCALE;
-            if (text_w > maxwidth) maxwidth = text_w;
-            double text_h = double(rectangle.get_height()) / Pango::SCALE;
+                Pango::Rectangle rectangle = layout->get_logical_extents();
+                double text_w = double(rectangle.get_width()) / Pango::SCALE;
+                if (text_w > maxwidth) maxwidth = text_w;
+
+                if (y + h > clipy1 && y < clipy2 && text_w >= clipx1) {
+                    double text_h = double(rectangle.get_height()) /
+                        Pango::SCALE;
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
-            const Gdk::Color fg = get_style()->get_fg(get_state());
+                    const Gdk::Color fg = get_style()->get_fg(get_state());
 #else
-            const Gdk::RGBA fg = get_style_context()->get_color(get_state_flags());
+                    const Gdk::RGBA fg =
+                        get_style_context()->get_color(get_state_flags());
 #endif
-            Gdk::Cairo::set_source_rgba(cr, fg);
-            cr->move_to(4, int(y + (h - text_h) / 2 + 0.5));
+                    Gdk::Cairo::set_source_rgba(cr, fg);
+                    cr->move_to(4, int(y + (h - text_h) / 2 + 0.5));
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
-            pango_cairo_show_layout(cr->cobj(), layout->gobj());
+                    pango_cairo_show_layout(cr->cobj(), layout->gobj());
 #else
-            layout->show_in_cairo_context(cr);
+                    layout->show_in_cairo_context(cr);
 #endif
+                }
+            }
+            y += h;
         }
-        y += h;
+        label_width = int(maxwidth + 10);
+        labels_changed = false;
     }
+    if (label_width >= clipx2) return true;
 
     // draw dimensions' zones areas
     y = 0;
     int bitpos = 0;
-    label_width = int(maxwidth + 10);
     for (int i = 0 ; i < region->Dimensions ; i++) {
         int nbZones = region->pDimensionDefinitions[i].zones;
         if (nbZones) {
-            // draw focus rectangle around dimension's label and zones
-            if (has_focus() && focus_line == i) {
+            if (y >= clipy2) break;
+            if (y + h > clipy1) {
+                // draw focus rectangle around dimension's label and zones
+                if (has_focus() && focus_line == i) {
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
-                Gdk::Rectangle farea(0, y, 150, 20);
-                get_style()->paint_focus(get_window(), get_state(), farea, *this, "",
-                                         0, y, label_width, 20);
+                    Gdk::Rectangle farea(0, y, 150, 20);
+                    get_style()->paint_focus(get_window(), get_state(), farea,
+                                             *this, "",
+                                             0, y, label_width, 20);
 #else
-                get_style_context()->render_focus(cr, 0, y, label_width, 20);
+                    get_style_context()->render_focus(cr,
+                                                      0, y, label_width, 20);
 #endif
-            }
-
-            // draw top and bottom lines of dimension's zones
-            Gdk::Cairo::set_source_rgba(cr, black);
-            cr->move_to(label_width, y + 0.5);
-            cr->line_to(w, y + 0.5);
-            cr->move_to(w, y + h - 0.5);
-            cr->line_to(label_width, y + h - 0.5);
-            cr->stroke();
-
-            // erase whole dimension's zones area
-            Gdk::Cairo::set_source_rgba(cr, white);
-            cr->rectangle(label_width + 1, y + 1, (w - label_width - 2), h - 2);
-            cr->fill();
-
-            int c = 0;
-            if (dimregno >= 0) {
-                int mask = ~(((1 << region->pDimensionDefinitions[i].bits) - 1) << bitpos);
-                c = dimregno & mask; // mask away this dimension
-            }
-            bool customsplits =
-                ((region->pDimensionDefinitions[i].split_type == gig::split_type_normal &&
-                 region->pDimensionRegions[c]->DimensionUpperLimits[i]) ||
-                (region->pDimensionDefinitions[i].dimension == gig::dimension_velocity &&
-                 region->pDimensionRegions[c]->VelocityUpperLimit));
-
-            // draw dimension's zone borders
-            Gdk::Cairo::set_source_rgba(cr, black);
-            if (customsplits) {
-                cr->move_to(label_width + 0.5, y + 1);
-                cr->line_to(label_width + 0.5, y + h - 1);
-
-                for (int j = 0 ; j < nbZones ; j++) {
-                    gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
-                    int upperLimit = d->DimensionUpperLimits[i];
-                    if (!upperLimit) upperLimit = d->VelocityUpperLimit;
-                    int v = upperLimit + 1;
-                    int x = int((w - label_width - 1) * v / 128.0 + 0.5);
-                    cr->move_to(label_width + x + 0.5, y + 1);
-                    cr->line_to(label_width + x + 0.5, y + h - 1);
                 }
-            } else {
-                for (int j = 0 ; j <= nbZones ; j++) {
-                    int x = int((w - label_width - 1) * j / double(nbZones) + 0.5);
-                    cr->move_to(label_width + x + 0.5, y + 1);
-                    cr->line_to(label_width + x + 0.5, y + h - 1);
-                }
-            }
-            cr->stroke();
 
-            // draw fill for currently selected zone
-            if (dimregno >= 0) {
-                Gdk::Cairo::set_source_rgba(cr, red);
-                int dr = (dimregno >> bitpos) & ((1 << region->pDimensionDefinitions[i].bits) - 1);
+                // draw top and bottom lines of dimension's zones
+                Gdk::Cairo::set_source_rgba(cr, black);
+                cr->move_to(label_width, y + 0.5);
+                cr->line_to(w, y + 0.5);
+                cr->move_to(w, y + h - 0.5);
+                cr->line_to(label_width, y + h - 0.5);
+                cr->stroke();
+
+                // erase whole dimension's zones area
+                Gdk::Cairo::set_source_rgba(cr, white);
+                cr->rectangle(label_width + 1, y + 1,
+                              (w - label_width - 2), h - 2);
+                cr->fill();
+
+                int c = 0;
+                if (dimregno >= 0) {
+                    int mask =
+                        ~(((1 << region->pDimensionDefinitions[i].bits) - 1) <<
+                          bitpos);
+                    c = dimregno & mask; // mask away this dimension
+                }
+                bool customsplits =
+                    ((region->pDimensionDefinitions[i].split_type ==
+                      gig::split_type_normal &&
+                      region->pDimensionRegions[c]->DimensionUpperLimits[i]) ||
+                     (region->pDimensionDefinitions[i].dimension ==
+                      gig::dimension_velocity &&
+                      region->pDimensionRegions[c]->VelocityUpperLimit));
+
+                // draw dimension's zone borders
+                Gdk::Cairo::set_source_rgba(cr, black);
                 if (customsplits) {
-                    int x1 = 0;
+                    cr->move_to(label_width + 0.5, y + 1);
+                    cr->line_to(label_width + 0.5, y + h - 1);
+
                     for (int j = 0 ; j < nbZones ; j++) {
-                        gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
+                        gig::DimensionRegion* d =
+                            region->pDimensionRegions[c + (j << bitpos)];
                         int upperLimit = d->DimensionUpperLimits[i];
                         if (!upperLimit) upperLimit = d->VelocityUpperLimit;
                         int v = upperLimit + 1;
-                        int x2 = int((w - label_width - 1) * v / 128.0 + 0.5);
-                        if (j == dr && x1 < x2) {
+                        int x = int((w - label_width - 1) * v / 128.0 + 0.5) +
+                            label_width;
+                        if (x >= clipx2) break;
+                        if (x < clipx1) continue;
+                        cr->move_to(x + 0.5, y + 1);
+                        cr->line_to(x + 0.5, y + h - 1);
+                    }
+                } else {
+                    for (int j = 0 ; j <= nbZones ; j++) {
+                        int x = int((w - label_width - 1) * j /
+                                    double(nbZones) + 0.5) + label_width;
+                        if (x >= clipx2) break;
+                        if (x < clipx1) continue;
+                        cr->move_to(x + 0.5, y + 1);
+                        cr->line_to(x + 0.5, y + h - 1);
+                    }
+                }
+                cr->stroke();
+
+                // draw fill for currently selected zone
+                if (dimregno >= 0) {
+                    Gdk::Cairo::set_source_rgba(cr, red);
+                    int dr = (dimregno >> bitpos) &
+                        ((1 << region->pDimensionDefinitions[i].bits) - 1);
+                    if (customsplits) {
+                        int x1 = label_width;
+                        for (int j = 0 ; j < nbZones && x1 + 1 < clipx2 ; j++) {
+                            gig::DimensionRegion* d =
+                                region->pDimensionRegions[c + (j << bitpos)];
+                            int upperLimit = d->DimensionUpperLimits[i];
+                            if (!upperLimit) {
+                                upperLimit = d->VelocityUpperLimit;
+                            }
+                            int v = upperLimit + 1;
+                            int x2 = int((w - label_width - 1) * v / 128.0 +
+                                         0.5) + label_width;
+                            if (j == dr && x1 < x2) {
+                                cr->rectangle(x1 + 1, y + 1,
+                                              (x2 - x1) - 1, h - 2);
+                                cr->fill();
+                                break;
+                            }
+                            x1 = x2;
+                        }
+                    } else {
+                        if (dr < nbZones) {
+                            int x1 = int((w - label_width - 1) * dr /
+                                         double(nbZones) + 0.5);
+                            int x2 = int((w - label_width - 1) * (dr + 1) /
+                                         double(nbZones) + 0.5);
                             cr->rectangle(label_width + x1 + 1, y + 1,
                                           (x2 - x1) - 1, h - 2);
                             cr->fill();
-                            break;
                         }
-                        x1 = x2;
-                    }
-                } else {
-                    if (dr < nbZones) {
-                        int x1 = int((w - label_width - 1) * dr / double(nbZones) + 0.5);
-                        int x2 = int((w - label_width - 1) * (dr + 1) / double(nbZones) + 0.5);
-                        cr->rectangle(label_width + x1 + 1, y + 1,
-                                      (x2 - x1) - 1, h - 2);
-                        cr->fill();
                     }
                 }
             }
@@ -264,6 +321,7 @@ void DimRegionChooser::set_region(gig::Region* region)
     dimregion_selected();
     set_size_request(800, region ? nbDimensions * 20 : 0);
 
+    labels_changed = true;
     queue_resize();
 }
 
@@ -290,6 +348,80 @@ void DimRegionChooser::get_dimregions(const gig::Region* region, bool stereo,
     if (stereo_bit) dimregs.insert(region->pDimensionRegions[dimregno | stereo_bit]);
 }
 
+void DimRegionChooser::update_after_resize()
+{
+    if (region->pDimensionDefinitions[resize.dimension].dimension == gig::dimension_velocity) {
+
+        int bitpos = 0;
+        for (int j = 0 ; j < resize.dimension ; j++) {
+            bitpos += region->pDimensionDefinitions[j].bits;
+        }
+        int mask =
+            ~(((1 << region->pDimensionDefinitions[resize.dimension].bits) - 1) << bitpos);
+        int c = dimregno & mask; // mask away this dimension
+
+        if (region->pDimensionRegions[c]->DimensionUpperLimits[resize.dimension] == 0) {
+            // the velocity dimension didn't previously have
+            // custom v3 splits, so we initialize all splits with
+            // default values
+            int nbZones = region->pDimensionDefinitions[resize.dimension].zones;
+            for (int j = 0 ; j < nbZones ; j++) {
+                gig::DimensionRegion* d = region->pDimensionRegions[c + (j << bitpos)];
+                d->DimensionUpperLimits[resize.dimension] = int(128.0 * (j + 1) / nbZones - 1);
+            }
+        }
+        if (region->pDimensionRegions[c]->VelocityUpperLimit == 0) {
+            // the velocity dimension didn't previously have
+            // custom v2 splits, so we initialize all splits with
+            // default values
+            int nbZones = region->pDimensionDefinitions[resize.dimension].zones;
+            for (int j = 0 ; j < nbZones ; j++) {
+                gig::DimensionRegion* d = region->pDimensionRegions[c + (j << bitpos)];
+                d->VelocityUpperLimit = int(128.0 * (j + 1) / nbZones - 1);
+            }
+        }
+
+        gig::DimensionRegion* d = region->pDimensionRegions[c + resize.offset];
+        // update both v2 and v3 values
+        d->DimensionUpperLimits[resize.dimension] = resize.pos - 1;
+        d->VelocityUpperLimit = resize.pos - 1;
+
+    } else {
+        for (int i = 0 ; i < region->DimensionRegions ; ) {
+
+            if (region->pDimensionRegions[i]->DimensionUpperLimits[resize.dimension] == 0) {
+                // the dimension didn't previously have custom
+                // limits, so we have to set default limits for
+                // all the dimension regions
+                int bitpos = 0;
+                for (int j = 0 ; j < resize.dimension ; j++) {
+                    bitpos += region->pDimensionDefinitions[j].bits;
+                }
+                int nbZones = region->pDimensionDefinitions[resize.dimension].zones;
+
+                for (int j = 0 ; j < nbZones ; j++) {
+                    gig::DimensionRegion* d = region->pDimensionRegions[i + (j << bitpos)];
+                    d->DimensionUpperLimits[resize.dimension] = int(128.0 * (j + 1) / nbZones - 1);
+                }
+            }
+            gig::DimensionRegion* d = region->pDimensionRegions[i + resize.offset];
+            d->DimensionUpperLimits[resize.dimension] = resize.pos - 1;
+
+            int bitpos = 0;
+            int j;
+            for (j = 0 ; j < region->Dimensions ; j++) {
+                if (j != resize.dimension) {
+                    int maxzones = 1 << region->pDimensionDefinitions[j].bits;
+                    int dimj = (i >> bitpos) & (maxzones - 1);
+                    if (dimj + 1 < region->pDimensionDefinitions[j].zones) break;
+                }
+                bitpos += region->pDimensionDefinitions[j].bits;
+            }
+            if (j == region->Dimensions) break;
+            i = (i & ~((1 << bitpos) - 1)) + (1 << bitpos);
+        }
+    }
+}
 
 bool DimRegionChooser::on_button_release_event(GdkEventButton* event)
 {
@@ -301,77 +433,6 @@ bool DimRegionChooser::on_button_release_event(GdkEventButton* event)
 #endif
         resize.active = false;
 
-        if (region->pDimensionDefinitions[resize.dimension].dimension == gig::dimension_velocity) {
-
-            int bitpos = 0;
-            for (int j = 0 ; j < resize.dimension ; j++) {
-                bitpos += region->pDimensionDefinitions[j].bits;
-            }
-            int mask =
-                ~(((1 << region->pDimensionDefinitions[resize.dimension].bits) - 1) << bitpos);
-            int c = dimregno & mask; // mask away this dimension
-
-            if (region->pDimensionRegions[c]->DimensionUpperLimits[resize.dimension] == 0) {
-                // the velocity dimension didn't previously have
-                // custom v3 splits, so we initialize all splits with
-                // default values
-                int nbZones = region->pDimensionDefinitions[resize.dimension].zones;
-                for (int j = 0 ; j < nbZones ; j++) {
-                    gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
-                    d->DimensionUpperLimits[resize.dimension] = int(128.0 * (j + 1) / nbZones - 1);
-                }
-            }
-            if (region->pDimensionRegions[c]->VelocityUpperLimit == 0) {
-                // the velocity dimension didn't previously have
-                // custom v2 splits, so we initialize all splits with
-                // default values
-                int nbZones = region->pDimensionDefinitions[resize.dimension].zones;
-                for (int j = 0 ; j < nbZones ; j++) {
-                    gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
-                    d->VelocityUpperLimit = int(128.0 * (j + 1) / nbZones - 1);
-                }
-            }
-
-            gig::DimensionRegion *d = region->pDimensionRegions[c + resize.offset];
-            // update both v2 and v3 values
-            d->DimensionUpperLimits[resize.dimension] = resize.pos - 1;
-            d->VelocityUpperLimit = resize.pos - 1;
-
-        } else {
-            for (int i = 0 ; i < region->DimensionRegions ; ) {
-
-                if (region->pDimensionRegions[i]->DimensionUpperLimits[resize.dimension] == 0) {
-                    // the dimension didn't previously have custom
-                    // limits, so we have to set default limits for
-                    // all the dimension regions
-                    int bitpos = 0;
-                    for (int j = 0 ; j < resize.dimension ; j++) {
-                        bitpos += region->pDimensionDefinitions[j].bits;
-                    }
-                    int nbZones = region->pDimensionDefinitions[resize.dimension].zones;
-
-                    for (int j = 0 ; j < nbZones ; j++) {
-                        gig::DimensionRegion *d = region->pDimensionRegions[i + (j << bitpos)];
-                        d->DimensionUpperLimits[resize.dimension] = int(128.0 * (j + 1) / nbZones - 1);
-                    }
-                }
-                gig::DimensionRegion *d = region->pDimensionRegions[i + resize.offset];
-                d->DimensionUpperLimits[resize.dimension] = resize.pos - 1;
-
-                int bitpos = 0;
-                int j;
-                for (j = 0 ; j < region->Dimensions ; j++) {
-                    if (j != resize.dimension) {
-                        int maxzones = 1 << region->pDimensionDefinitions[j].bits;
-                        int dimj = (i >> bitpos) & (maxzones - 1);
-                        if (dimj + 1 < region->pDimensionDefinitions[j].zones) break;
-                    }
-                    bitpos += region->pDimensionDefinitions[j].bits;
-                }
-                if (j == region->Dimensions) break;
-                i = (i & ~((1 << bitpos) - 1)) + (1 << bitpos);
-            }
-        }
         region_changed();
 
         if (!is_in_resize_zone(event->x, event->y) && cursor_is_resize) {
@@ -438,12 +499,12 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
 
                 if (region->pDimensionRegions[c]->DimensionUpperLimits[i]) {
                     for (z = 0 ; z < nbZones ; z++) {
-                        gig::DimensionRegion *d = region->pDimensionRegions[c + (z << bitpos)];
+                        gig::DimensionRegion* d = region->pDimensionRegions[c + (z << bitpos)];
                         if (val <= d->DimensionUpperLimits[i]) break;
                     }
                 } else {
                     for (z = 0 ; z < nbZones ; z++) {
-                        gig::DimensionRegion *d = region->pDimensionRegions[c + (z << bitpos)];
+                        gig::DimensionRegion* d = region->pDimensionRegions[c + (z << bitpos)];
                         if (val <= d->VelocityUpperLimit) break;
                     }
                 }
@@ -487,48 +548,22 @@ bool DimRegionChooser::on_motion_notify_event(GdkEventMotion* event)
         if (k < 2) k = 2; // k is upper limit + 1, upper limit 0 is forbidden
 
         if (k != resize.pos) {
-            Cairo::RefPtr<Cairo::Context> cr = get_window()->create_cairo_context();
-            cr->set_line_width(1);
-
             int prevx = int((w - label_width - 1) * resize.pos / 128.0 + 0.5) + label_width;
             int x = int((w - label_width - 1) * k / 128.0 + 0.5) + label_width;
             int y = resize.dimension * h;
-
-            if (resize.selected == resize.none) {
-                if (resize.pos != resize.min && resize.pos != resize.max) {
-                    Gdk::Cairo::set_source_rgba(cr, white);
-                    cr->move_to(prevx + 0.5, y + 1);
-                    cr->line_to(prevx + 0.5, y + h - 1);
-                    cr->stroke();
-                }
+            int x1, x2;
+            if (k > resize.pos) {
+                x1 = prevx;
+                x2 = x;
             } else {
-                Gdk::RGBA left;
-                Gdk::RGBA right;
-                if (resize.selected == resize.left) {
-                    left = red;
-                    right = white;
-                } else {
-                    left = white;
-                    right = red;
-                }
-
-                if (k > resize.pos) {
-                    int xx = resize.pos == resize.min ? 1 : 0;
-                    Gdk::Cairo::set_source_rgba(cr, left);
-                    cr->rectangle(prevx + xx, y + 1, x - prevx - xx, h - 2);
-                } else {
-                    int xx = resize.pos == resize.max ? 0 : 1;
-                    Gdk::Cairo::set_source_rgba(cr, right);
-                    cr->rectangle(x, y + 1, prevx - x + xx, h - 2);
-                }
-                cr->fill();
+                x1 = x;
+                x2 = prevx;
             }
-            Gdk::Cairo::set_source_rgba(cr, black);
-            cr->move_to(x + 0.5, y + 1);
-            cr->line_to(x + 0.5, y + h - 1);
-            cr->stroke();
+            Gdk::Rectangle rect(x1, y + 1, x2 - x1 + 1, h - 2);
 
             resize.pos = k;
+            update_after_resize();
+            get_window()->invalidate_rect(rect, false);
         }
     } else {
         if (is_in_resize_zone(x, y)) {
@@ -578,7 +613,7 @@ bool DimRegionChooser::is_in_resize_zone(double x, double y)
         if (region->pDimensionDefinitions[dim].split_type != gig::split_type_bit) {
             int prev_limit = 0;
             for (int iZone = 0 ; iZone < nbZones - 1 ; iZone++) {
-                gig::DimensionRegion *d = region->pDimensionRegions[c + (iZone << bitpos)];
+                gig::DimensionRegion* d = region->pDimensionRegions[c + (iZone << bitpos)];
                 const int upperLimit =
                     (customsplits) ?
                         (d->DimensionUpperLimits[dim]) ?
@@ -599,7 +634,7 @@ bool DimRegionChooser::is_in_resize_zone(double x, double y)
                         dr == iZone + 1 ? resize.right : resize.none;
 
                     iZone++;
-                    gig::DimensionRegion *d = region->pDimensionRegions[c + (iZone << bitpos)];
+                    gig::DimensionRegion* d = region->pDimensionRegions[c + (iZone << bitpos)];
 
                     const int upperLimit =
                         (customsplits) ?

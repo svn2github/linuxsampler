@@ -31,8 +31,8 @@
 
 #include "global.h"
 
-#define REGION_BLOCK_HEIGHT		20
-#define KEYBOARD_HEIGHT			40
+#define REGION_BLOCK_HEIGHT             20
+#define KEYBOARD_HEIGHT                 40
 
 void SortedRegions::update(gig::Instrument* instrument) {
     // Usually, the regions in a gig file are ordered after their key
@@ -81,7 +81,7 @@ RegionChooser::RegionChooser() :
 
     // properties of the virtual keyboard
     {
-        const char* choices[] = { _("normal"), _("chord"), NULL };
+        const char* choices[] = { _("normal"), _("chord"), 0 };
         static const virt_keyboard_mode_t values[] = {
             VIRT_KEYBOARD_MODE_NORMAL,
             VIRT_KEYBOARD_MODE_CHORD
@@ -101,6 +101,7 @@ RegionChooser::RegionChooser() :
     m_VirtKeybPropsBox.pack_start(m_VirtKeybOffVelocityLabel, Gtk::PACK_SHRINK);
     m_VirtKeybPropsBox.set_spacing(10);
     m_VirtKeybPropsBox.show();
+    for (int i = 0 ; i < 128 ; i++) key_pressed[i] = false;
 
     actionGroup = Gtk::ActionGroup::create();
     actionGroup->add(Gtk::Action::create("Properties",
@@ -166,32 +167,46 @@ template<class T> inline std::string ToString(T o) {
     return ss.str();
 }
 
+void RegionChooser::invalidate_key(int key) {
+    const int h = KEYBOARD_HEIGHT;
+    const int w = get_width() - 1;
+    int x1 = key_to_x(key - 0.5, w);
+    int x2 = key_to_x(key + 1.5, w);
+
+    Gdk::Rectangle rect(x1 + 1, h1 + 1, x2 - x1 - 1, h - 2);
+    get_window()->invalidate_rect(rect, false);
+}
+
 void RegionChooser::on_note_on_event(int key, int velocity) {
-    draw_key(key, activeKeyColor);
+    key_pressed[key] = true;
+    invalidate_key(key);
     m_VirtKeybVelocityLabel.set_text(ToString(velocity));
 }
 
 void RegionChooser::on_note_off_event(int key, int velocity) {
-    if (is_black_key(key)) {
-        draw_key(key, black);
-    } else {
-        draw_key(key, key >= 21 && key <= 108 ? white : grey1);
-    }
+    key_pressed[key] = false;
+    invalidate_key(key);
     m_VirtKeybOffVelocityLabel.set_text(ToString(velocity));
 }
 
+
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
-bool RegionChooser::on_expose_event(GdkEventExpose* e)
-{
-    return on_draw(get_window()->create_cairo_context());
+bool RegionChooser::on_expose_event(GdkEventExpose* e) {
+    double clipx1 = e->area.x;
+    double clipx2 = e->area.x + e->area.width;
+    double clipy1 = e->area.y;
+    double clipy2 = e->area.y + e->area.height;
+
+    const Cairo::RefPtr<Cairo::Context>& cr =
+        get_window()->create_cairo_context();
+#if 0
 }
 #endif
-
-bool RegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
-{
-    const int h = KEYBOARD_HEIGHT;
-    const int w = get_width() - 1;
-    const int bh = int(h * 0.55);
+#else
+bool RegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
+    double clipx1, clipx2, clipy1, clipy2;
+    cr->get_clip_extents(clipx1, clipy1, clipx2, clipy2);
+#endif
 
     cr->save();
     cr->set_line_width(1);
@@ -204,17 +219,37 @@ bool RegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     Gdk::Cairo::set_source_rgba(cr, bg);
     cr->paint();
 
+    const int w = get_width() - 1;
+
+    if (clipy2 > h1) {
+        draw_keyboard(cr, clipx1, clipx2);
+    }
+
+    if (clipy1 < h1 && instrument) {
+        draw_regions(cr, clipx1, clipx2);
+    }
+
+    cr->restore();
+
+    return true;
+}
+
+void RegionChooser::draw_keyboard(const Cairo::RefPtr<Cairo::Context>& cr,
+                                  int clip_low, int clip_high) {
+    const int h = KEYBOARD_HEIGHT;
+    const int w = get_width() - 1;
+    const int bh = int(h * 0.55);
+
     Gdk::Cairo::set_source_rgba(cr, black);
     cr->rectangle(0.5, h1 + 0.5, w, h - 1);
     cr->stroke();
 
-    int x1 = int(w * 20.5 / 128.0 + 0.5);
-    int x2 = int(w * 109.5 / 128.0 + 0.5);
-
+    int x1 = key_to_x(20.5, w);
     Gdk::Cairo::set_source_rgba(cr, grey1);
     cr->rectangle(1, h1 + 1, x1 - 1, h - 2);
     cr->fill();
 
+    int x2 = key_to_x(109.5, w);
     Gdk::Cairo::set_source_rgba(cr, white);
     cr->rectangle(x1 + 1, h1 + 1, x2 - x1 - 1, h - 2);
     cr->fill();
@@ -224,87 +259,98 @@ bool RegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     cr->fill();
 
     Gdk::Cairo::set_source_rgba(cr, black);
-    for (int i = 0 ; i < 128 ; i++) {
+
+    int clipkey1 = std::max(0, x_to_key_right(clip_low - 1, w));
+    int clipkey2 = std::min(x_to_key_right(clip_high - 1, w) + 1, 128);
+
+    for (int i = clipkey1 ; i < clipkey2 ; i++) {
         int note = (i + 3) % 12;
-        int x = int(w * i / 128.0 + 0.5);
+        int x = key_to_x(i, w);
 
         if (note == 1 || note == 4 || note == 6 ||
             note == 9 || note == 11) {
-            int x2 = int(w * (i + 0.5) / 128.0 + 0.5);
+            // black key: short line in the middle, with a rectangle
+            // on top
+            int x2 = key_to_x(i + 0.5, w);
             cr->move_to(x2 + 0.5, h1 + bh + 0.5);
             cr->line_to(x2 + 0.5, h1 + h - 1);
             cr->stroke();
 
-            int x3 = int(w * (i + 1) / 128.0 + 0.5);
+            int x3 = key_to_x(i + 1, w);
             cr->rectangle(x, h1 + 1, x3 - x + 1, bh);
             cr->fill();
         } else if (note == 3 || note == 8) {
+            // C or F: long line to the left
             cr->move_to(x + 0.5, h1 + 1);
             cr->line_to(x + 0.5, h1 + h - 1);
             cr->stroke();
-
-            if (note == 3) draw_digit(i);
         }
+
+        if (key_pressed[i]) draw_key(cr, i);
+
+        if (note == 3) draw_digit(cr, i);
     }
+}
 
-    if (instrument) {
-        int i = 0;
-        gig::Region* next_region;
-        int x3 = -1;
-        for (gig::Region* r = regions.first() ; r ; r = next_region) {
 
-            if (x3 < 0) x3 = int(w * (r->KeyRange.low) / 128.0 + 0.5);
-            next_region = regions.next();
-            if (!next_region ||
-                r->KeyRange.high + 1 != next_region->KeyRange.low) {
-                int x2 = int(w * (r->KeyRange.high + 1) / 128.0 + 0.5);
+void RegionChooser::draw_regions(const Cairo::RefPtr<Cairo::Context>& cr,
+                                 int clip_low, int clip_high) {
+    const int w = get_width() - 1;
+
+    Gdk::Cairo::set_source_rgba(cr, black);
+    gig::Region* next_region;
+    int x3 = -1;
+    for (gig::Region* r = regions.first() ; r ; r = next_region) {
+        next_region = regions.next();
+
+        if (x3 < 0) {
+            x3 = key_to_x(r->KeyRange.low, w);
+            if (x3 >= clip_high) break;
+        }
+        if (!next_region ||
+            r->KeyRange.high + 1 != next_region->KeyRange.low ||
+            r == region || next_region == region) {
+
+            int x2 = key_to_x(r->KeyRange.high + 1, w);
+            if (x2 >= clip_low) {
                 cr->move_to(x3, 0.5);
                 cr->line_to(x2 + 0.5, 0.5);
                 cr->line_to(x2 + 0.5, h1 - 0.5);
                 cr->line_to(x3, h1 - 0.5);
                 cr->stroke();
 
-                Gdk::Cairo::set_source_rgba(cr, white);
+                Gdk::Cairo::set_source_rgba(cr, region == r ? red : white);
                 cr->rectangle(x3 + 1, 1, x2 - x3 - 1, h1 - 2);
                 cr->fill();
                 Gdk::Cairo::set_source_rgba(cr, black);
-
-                x3 = -1;
             }
-            i++;
-        }
-
-        for (gig::Region* r = regions.first() ; r ; r = regions.next()) {
-            int x = int(w * (r->KeyRange.low) / 128.0 + 0.5);
-            cr->move_to(x + 0.5, 1);
-            cr->line_to(x + 0.5, h1 - 1);
-            cr->stroke();
-        }
-
-        if (region) {
-            int x1 = int(w * (region->KeyRange.low) / 128.0 + 0.5);
-            int x2 = int(w * (region->KeyRange.high + 1) / 128.0 + 0.5);
-            Gdk::Cairo::set_source_rgba(cr, red);
-            cr->rectangle(x1 + 1, 1, x2 - x1 - 1, h1 - 2);
-            cr->fill();
+            x3 = -1;
         }
     }
 
-    cr->restore();
+    for (gig::Region* r = regions.first() ; r ; r = regions.next()) {
+        int x = key_to_x(r->KeyRange.low, w);
 
-    return true;
+        if (x < clip_low) continue;
+        if (x >= clip_high) break;
+
+        cr->move_to(x + 0.5, 1);
+        cr->line_to(x + 0.5, h1 - 1);
+        cr->stroke();
+    }
 }
-
 
 bool RegionChooser::is_black_key(int key) {
     const int note = (key + 3) % 12;
     return note == 1 || note == 4 || note == 6 || note == 9 || note == 11;
 }
 
-void RegionChooser::draw_digit(int key) {
+void RegionChooser::draw_digit(const Cairo::RefPtr<Cairo::Context>& cr,
+                               int key) {
     const int h = KEYBOARD_HEIGHT;
     const int w = get_width() - 1;
-    Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(get_pango_context());
+    Glib::RefPtr<Pango::Layout> layout =
+        Pango::Layout::create(get_pango_context());
     char buf[30];
     sprintf(buf, "<span size=\"8000\">%d</span>", key / 12 - 1);
     layout->set_markup(buf);
@@ -312,7 +358,6 @@ void RegionChooser::draw_digit(int key) {
     double text_w = double(rectangle.get_width()) / Pango::SCALE;
     double text_h = double(rectangle.get_height()) / Pango::SCALE;
     double x = w * (key + 0.75) / 128.0;
-    Cairo::RefPtr<Cairo::Context> cr = get_window()->create_cairo_context();
     Gdk::Cairo::set_source_rgba(cr, black);
     cr->move_to(int(x - text_w / 2 + 1), int(h1 + h - text_h + 0.5));
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
@@ -322,20 +367,19 @@ void RegionChooser::draw_digit(int key) {
 #endif
 }
 
-void RegionChooser::draw_key(int key, const Gdk::RGBA& color)
-{
+void RegionChooser::draw_key(const Cairo::RefPtr<Cairo::Context>& cr,
+                             int key) {
     const int h = KEYBOARD_HEIGHT;
     const int w = get_width() - 1;
     const int bh = int(h * 0.55);
 
-    Cairo::RefPtr<Cairo::Context> cr = get_window()->create_cairo_context();
-    Gdk::Cairo::set_source_rgba(cr, color);
+    Gdk::Cairo::set_source_rgba(cr, activeKeyColor);
 
     int note = (key + 3) % 12;
-    int x = int(w * key / 128.0 + 0.5) + 1;
-    int x2 = int(w * (key + 1.5) / 128.0 + 0.5);
-    int x3 = int(w * (key + 1) / 128.0 + 0.5);
-    int x4 = int(w * (key - 0.5) / 128.0 + 0.5);
+    int x = key_to_x(key, w) + 1;
+    int x2 = key_to_x(key + 1.5, w);
+    int x3 = key_to_x(key + 1, w);
+    int x4 = key_to_x(key - 0.5, w);
     int w1 = x3 - x;
     switch (note) {
     case 0: case 5: case 10:
@@ -355,13 +399,13 @@ void RegionChooser::draw_key(int key, const Gdk::RGBA& color)
         cr->fill();
         cr->rectangle(x, h1 + bh + 1, x2 - x, h - bh - 2);
         cr->fill();
-        if (note == 3) draw_digit(key);
         break;
     default:
         cr->rectangle(x, h1 + 1, w1, bh - 1);
         cr->fill();
         break;
     }
+    Gdk::Cairo::set_source_rgba(cr, black);
 }
 
 void RegionChooser::set_instrument(gig::Instrument* instrument)
@@ -376,7 +420,7 @@ void RegionChooser::set_instrument(gig::Instrument* instrument)
 
 bool RegionChooser::on_button_release_event(GdkEventButton* event)
 {
-    const int k = int(event->x / (get_width() - 1) * 128.0);
+    const int k = x_to_key(event->x, get_width() - 1);
 
     // handle-note off on virtual keyboard
     if (event->type == GDK_BUTTON_RELEASE) {
@@ -406,30 +450,6 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
 #endif
         resize.active = false;
 
-        if (resize.mode == resize.moving_high_limit) {
-            if (resize.region->KeyRange.high != resize.pos - 1) {
-                instrument_struct_to_be_changed_signal.emit(instrument);
-                resize.region->SetKeyRange(
-                    resize.region->KeyRange.low, // low
-                    resize.pos - 1 // high
-                );
-                regions.update(instrument);
-                instrument_changed.emit();
-                instrument_struct_changed_signal.emit(instrument);
-            }
-        } else if (resize.mode == resize.moving_low_limit) {
-            if (resize.region->KeyRange.low != resize.pos) {
-                instrument_struct_to_be_changed_signal.emit(instrument);
-                resize.region->SetKeyRange(
-                    resize.pos, // low
-                    resize.region->KeyRange.high // high
-                );
-                regions.update(instrument);
-                instrument_changed.emit();
-                instrument_struct_changed_signal.emit(instrument);
-            }
-        }
-
         if (!is_in_resize_zone(event->x, event->y) && cursor_is_resize) {
             get_window()->set_cursor();
             cursor_is_resize = false;
@@ -441,17 +461,6 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
         Glib::wrap(event->device, true)->ungrab(event->time);
 #endif
         move.active = false;
-
-        if (move.pos) {
-            instrument_struct_to_be_changed_signal.emit(instrument);
-            region->SetKeyRange(
-                region->KeyRange.low  + move.pos,
-                region->KeyRange.high + move.pos
-            );
-            regions.update(instrument);
-            instrument_changed.emit();
-            instrument_struct_changed_signal.emit(instrument);
-        }
 
         if (is_in_resize_zone(event->x, event->y)) {
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
@@ -465,11 +474,45 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
     return true;
 }
 
+void RegionChooser::update_after_resize()
+{
+    if (resize.mode == resize.moving_high_limit) {
+        if (resize.region->KeyRange.high != resize.pos - 1) {
+            instrument_struct_to_be_changed_signal.emit(instrument);
+            resize.region->SetKeyRange(resize.region->KeyRange.low,
+                                       resize.pos - 1);
+            regions.update(instrument);
+            instrument_changed.emit();
+            instrument_struct_changed_signal.emit(instrument);
+        }
+    } else if (resize.mode == resize.moving_low_limit) {
+        if (resize.region->KeyRange.low != resize.pos) {
+            instrument_struct_to_be_changed_signal.emit(instrument);
+            resize.region->SetKeyRange(resize.pos,
+                                       resize.region->KeyRange.high);
+            regions.update(instrument);
+            instrument_changed.emit();
+            instrument_struct_changed_signal.emit(instrument);
+        }
+    }
+}
+
+void RegionChooser::update_after_move(int pos)
+{
+    instrument_struct_to_be_changed_signal.emit(instrument);
+    region->SetKeyRange(pos, pos + region->KeyRange.high -
+                        region->KeyRange.low);
+    regions.update(instrument);
+    instrument_changed.emit();
+    instrument_struct_changed_signal.emit(instrument);
+}
+
 bool RegionChooser::on_button_press_event(GdkEventButton* event)
 {
     if (!instrument) return true;
 
-    const int k = int(event->x / (get_width() - 1) * 128.0);
+    const int w = get_width() - 1;
+    const int k = x_to_key(event->x, w);
 
     if (event->type == GDK_BUTTON_PRESS) {
         if (event->y >= REGION_BLOCK_HEIGHT) {
@@ -539,8 +582,7 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
                                                       event->time);
 #endif
                 move.active = true;
-                move.from_x = event->x;
-                move.pos = 0;
+                move.offset = event->x - key_to_x(region->KeyRange.low, w);
             }
         }
     }
@@ -549,18 +591,9 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
 
 gig::Region* RegionChooser::get_region(int key)
 {
-    gig::Region* prev_region = 0;
-    gig::Region* next_region;
-    for (gig::Region* r = regions.first() ; r ; r = next_region) {
-        next_region = regions.next();
-
+    for (gig::Region* r = regions.first() ; r ; r = regions.next()) {
         if (key < r->KeyRange.low) return 0;
-        if (key <= r->KeyRange.high) {
-            move.touch_left = prev_region && prev_region->KeyRange.high + 1 == r->KeyRange.low;
-            move.touch_right = next_region && r->KeyRange.high + 1 == next_region->KeyRange.low;
-            return r;
-        }
-        prev_region = r;
+        if (key <= r->KeyRange.high) return r;
     }
     return 0;
 }
@@ -575,9 +608,6 @@ void RegionChooser::motion_resize_region(int x, int y)
     else if (k > resize.max) k = resize.max;
 
     if (k != resize.pos) {
-        Cairo::RefPtr<Cairo::Context> cr = get_window()->create_cairo_context();
-        cr->set_line_width(1);
-
         if (resize.mode == resize.undecided) {
             if (k < resize.pos) {
                 // edit high limit of prev_region
@@ -590,99 +620,68 @@ void RegionChooser::motion_resize_region(int x, int y)
                 resize.mode = resize.moving_low_limit;
             }
         }
-        const Gdk::RGBA white = region == resize.region ? red : this->white;
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
-        const Gdk::Color bg = get_style()->get_bg(Gtk::STATE_NORMAL);
-#else
-        const Gdk::RGBA bg = get_style_context()->get_background_color();
-#endif
+        resize.pos = k;
 
-        int prevx = int(w * resize.pos / 128.0 + 0.5);
-        x = int(w * k / 128.0 + 0.5);
-
+        int x1, x2;
         if (resize.mode == resize.moving_high_limit) {
-            if (k > resize.pos) {
-                Gdk::Cairo::set_source_rgba(cr, white);
-                cr->rectangle(prevx, 1, x - prevx, h1 - 2);
-                cr->fill();
-
-                Gdk::Cairo::set_source_rgba(cr, black);
-                cr->move_to(prevx, 0.5);
-                cr->line_to(x + 1, 0.5);
-                cr->move_to(prevx, h1 - 0.5);
-                cr->line_to(x + 1, h1 - 0.5);
-                cr->stroke();
+            if (resize.region->KeyRange.high < resize.pos - 1) {
+                x1 = resize.region->KeyRange.high;
+                x2 = resize.pos - 1;
             } else {
-                int xx = (resize.pos == resize.max &&
-                          resize.max != 128) ? 1 : 0;
-                Gdk::Cairo::set_source_rgba(cr, bg);
-                cr->rectangle(x + 1, 0, prevx - x - xx, h1);
-                cr->fill();
+                x1 = resize.pos - 1;
+                x2 = resize.region->KeyRange.high;
             }
         } else {
-            if (k < resize.pos) {
-                Gdk::Cairo::set_source_rgba(cr, white);
-                cr->rectangle(x + 1, 1, prevx - x, h1 - 2);
-                cr->fill();
-
-                Gdk::Cairo::set_source_rgba(cr, black);
-                cr->move_to(x, 0.5);
-                cr->line_to(prevx, 0.5);
-                cr->move_to(x, h1 - 0.5);
-                cr->line_to(prevx, h1 - 0.5);
-                cr->stroke();
+            if (resize.region->KeyRange.low < resize.pos) {
+                x1 = resize.region->KeyRange.low;
+                x2 = resize.pos;
             } else {
-                int xx = (resize.pos == resize.min &&
-                          resize.min != 0) ? 1 : 0;
-                Gdk::Cairo::set_source_rgba(cr, bg);
-                cr->rectangle(prevx + xx, 0, x - prevx - xx, h1);
-                cr->fill();
+                x1 = resize.pos;
+                x2 = resize.region->KeyRange.low;
             }
         }
-        Gdk::Cairo::set_source_rgba(cr, black);
-        cr->move_to(x + 0.5, 1);
-        cr->line_to(x + 0.5, h1 - 1);
-        cr->stroke();
-        resize.pos = k;
+        x1 = key_to_x(x1, w);
+        x2 = key_to_x(x2 + 1, w) + 1;
+        Gdk::Rectangle rect(x1, 0, x2 - x1, h1);
+
+        update_after_resize();
+
+        get_window()->invalidate_rect(rect, false);
     }
 }
 
 void RegionChooser::motion_move_region(int x, int y)
 {
     const int w = get_width() - 1;
-    Cairo::RefPtr<Cairo::Context> cr = get_window()->create_cairo_context();
-    cr->set_line_width(1);
 
-    int k = int(double(x - move.from_x) / w * 128.0 + 0.5);
-    if (k == move.pos) return;
-    int new_k;
-    bool new_touch_left;
-    bool new_touch_right;
+    int l = int(double(x - move.offset) / w * 128.0 + 0.5);
+
+    if (l == region->KeyRange.low) return;
+    int new_l;
+    int regionsize = region->KeyRange.high - region->KeyRange.low;
     int a = 0;
-    if (k > move.pos) {
+    if (l > region->KeyRange.low) {
         for (gig::Region* r = regions.first() ; ; r = regions.next()) {
             if (r != region) {
                 int b = r ? r->KeyRange.low : 128;
 
                 // gap: from a to b (not inclusive b)
 
-                if (region->KeyRange.high + move.pos >= b) {
+                if (region->KeyRange.high >= b) {
                     // not found the current gap yet, just continue
                 } else {
 
-                    if (a > region->KeyRange.low + k) {
+                    if (a > l) {
                         // this gap is too far to the right, break
                         break;
                     }
 
-                    int newhigh = std::min(region->KeyRange.high + k, b - 1);
-                    int newlo = newhigh - (region->KeyRange.high - region->KeyRange.low);
+                    int newhigh = std::min(l + regionsize, b - 1);
+                    int newlo = newhigh - regionsize;
 
                     if (newlo >= a) {
                         // yes it fits - it's a candidate
-                        new_k = newlo - region->KeyRange.low;
-                        new_touch_left = a > 0 && a == newlo;
-                        new_touch_right = b < 128 && newhigh + 1 == b;
+                        new_l = newlo;
                     }
                 }
                 if (!r) break;
@@ -696,23 +695,21 @@ void RegionChooser::motion_move_region(int x, int y)
 
                 // gap from a to b (not inclusive b)
 
-                if (region->KeyRange.high + k >= b) {
+                if (l + regionsize >= b) {
                     // not found the current gap yet, just continue
                 } else {
 
-                    if (a > region->KeyRange.low + move.pos) {
+                    if (a > region->KeyRange.low) {
                         // this gap is too far to the right, break
                         break;
                     }
 
-                    int newlo = std::max(region->KeyRange.low + k, a);
-                    int newhigh = newlo + (region->KeyRange.high - region->KeyRange.low);
+                    int newlo = std::max(l, a);
+                    int newhigh = newlo + regionsize;
 
                     if (newhigh < b) {
                         // yes it fits - break as the first one is the best
-                        new_k = newlo - region->KeyRange.low;
-                        new_touch_left = a > 0 && a == newlo;
-                        new_touch_right = b < 128 && newhigh + 1 == b;
+                        new_l = newlo;
                         break;
                     }
                 }
@@ -721,73 +718,16 @@ void RegionChooser::motion_move_region(int x, int y)
             }
         }
     }
-    k = new_k;
-    if (k == move.pos) return;
+    if (new_l == region->KeyRange.low) return;
 
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
-    const Gdk::Color bg = get_style()->get_bg(Gtk::STATE_NORMAL);
-#else
-    const Gdk::RGBA bg = get_style_context()->get_background_color();
-#endif
+    int x1 = key_to_x(std::min(int(region->KeyRange.low), new_l), w);
+    int x2 = key_to_x(std::max(int(region->KeyRange.high),
+                               new_l + regionsize) + 1, w) + 1;
 
-    int prevx = int(w * (move.pos + region->KeyRange.low) / 128.0 + 0.5);
-    x = int(w * (k + region->KeyRange.low) / 128.0 + 0.5);
-    int prevx2 = int(w * (move.pos + region->KeyRange.high + 1) / 128.0 + 0.5);
-    int x2 = int(w * (k + region->KeyRange.high + 1) / 128.0 + 0.5);
+    Gdk::Rectangle rect(x1, 0, x2 - x1, h1);
+    update_after_move(new_l);
 
-    if (!new_touch_left) { 
-        Gdk::Cairo::set_source_rgba(cr, black);
-        cr->move_to(x + 0.5, 1);
-        cr->line_to(x + 0.5, h1 - 1);
-        cr->stroke();
-    }
-    if (!new_touch_right) { 
-        Gdk::Cairo::set_source_rgba(cr, black);
-        cr->move_to(x2 + 0.5, 1);
-        cr->line_to(x2 + 0.5, h1 - 1);
-        cr->stroke();
-    }
-
-    if (k > move.pos) {
-        Gdk::Cairo::set_source_rgba(cr, bg);
-        cr->rectangle(prevx + (move.touch_left ? 1 : 0), 0,
-                      std::min(x, prevx2 + 1 - (move.touch_right ? 1 : 0)) -
-                      (prevx + (move.touch_left ? 1 : 0)), h1);
-        cr->fill();
-
-        Gdk::Cairo::set_source_rgba(cr, black);
-        cr->move_to(std::max(x, prevx2 + 1), 0.5);
-        cr->line_to(x2 + 1, 0.5);
-        cr->move_to(std::max(x, prevx2 + 1), h1 - 0.5);
-        cr->line_to(x2 + 1, h1 - 0.5);
-        cr->stroke();
-
-        Gdk::Cairo::set_source_rgba(cr, red);
-        cr->rectangle(std::max(x + 1, prevx2), 1,
-                      x2 - std::max(x + 1, prevx2), h1 - 2);
-        cr->fill();
-    } else {
-        Gdk::Cairo::set_source_rgba(cr, bg);
-        cr->rectangle(std::max(x2 + 1, prevx + (move.touch_left ? 1 : 0)), 0,
-                      prevx2 + 1 - (move.touch_right ? 1 : 0) -
-                      std::max(x2 + 1, prevx + (move.touch_left ? 1 : 0)), h1);
-        cr->fill();
-
-        Gdk::Cairo::set_source_rgba(cr, black);
-        cr->move_to(x, 0.5);
-        cr->line_to(std::min(x2, prevx - 1) + 1, 0.5);
-        cr->move_to(x, h1 - 0.5);
-        cr->line_to(std::min(x2, prevx - 1) + 1, h1 - 0.5);
-        cr->stroke();
-
-        Gdk::Cairo::set_source_rgba(cr, red);
-        cr->rectangle(x + 1, 1, std::min(x2 - 1, prevx) - x, h1 - 2);
-        cr->fill();
-    }
-
-    move.pos = k;
-    move.touch_left = new_touch_left;
-    move.touch_right = new_touch_right;
+    get_window()->invalidate_rect(rect, false);
 }
 
 
@@ -804,7 +744,7 @@ bool RegionChooser::on_motion_notify_event(GdkEventMotion* event)
         event->y >= REGION_BLOCK_HEIGHT &&
         event->y < REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT)
     {
-        const int k = int(event->x / (get_width() - 1) * 128.0);
+        const int k = x_to_key(event->x, get_width() - 1);
         if (k != currentActiveKey) {
             int velocity =
                 (event->y >= REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT - 1) ? 127 :
@@ -849,7 +789,7 @@ bool RegionChooser::is_in_resize_zone(double x, double y) {
         for (gig::Region* r = regions.first(); r ; r = next_region) {
             next_region = regions.next();
 
-            int lo = int(w * (r->KeyRange.low) / 128.0 + 0.5);
+            int lo = key_to_x(r->KeyRange.low, w);
             if (x <= lo - 2) break;
             if (x < lo + 2) {
                 resize.region = r;
@@ -872,7 +812,7 @@ bool RegionChooser::is_in_resize_zone(double x, double y) {
                 return resize.min != resize.max;
             }
             if (!next_region || r->KeyRange.high + 1 != next_region->KeyRange.low) {
-                int hi = int(w * (r->KeyRange.high + 1) / 128.0 + 0.5);
+                int hi = key_to_x(r->KeyRange.high + 1, w);
                 if (x <= hi - 2) break;
                 if (x < hi + 2) {
                     // edit high limit

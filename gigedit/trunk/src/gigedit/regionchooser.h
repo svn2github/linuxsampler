@@ -82,8 +82,9 @@ public:
 protected:
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
     virtual bool on_expose_event(GdkEventExpose* e);
-#endif
+#else
     virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
+#endif
     virtual bool on_button_press_event(GdkEventButton* event);
     virtual bool on_button_release_event(GdkEventButton* event);
     virtual bool on_motion_notify_event(GdkEventMotion* event);
@@ -109,10 +110,33 @@ protected:
     SortedRegions regions;
 
     bool is_black_key(int key);
-    void draw_key(int key, const Gdk::RGBA& color);
-    void draw_digit(int key);
+    void draw_keyboard(const Cairo::RefPtr<Cairo::Context>& cr,
+                       int clip_low, int clip_high);
+    void draw_regions(const Cairo::RefPtr<Cairo::Context>& cr,
+                      int clip_low, int clip_high);
+    void draw_key(const Cairo::RefPtr<Cairo::Context>& cr, int key);
+    void draw_digit(const Cairo::RefPtr<Cairo::Context>& cr, int key);
     void motion_resize_region(int x, int y);
     void motion_move_region(int x, int y);
+    void update_after_resize();
+    void update_after_move(int pos);
+    void invalidate_key(int key);
+
+    // returns the leftmost pixel of a key
+    int key_to_x(double k, int w) const {
+        return int(k * w / 128.0 + 0.5);
+    }
+
+    // returns the key given a pixel
+    int x_to_key(double x, int w) const {
+        return int(x / w * 128.0);
+    }
+
+    // returns the key given a pixel. If the pixel is the border
+    // between two keys, the key to the ríght is always returned.
+    int x_to_key_right(double x, int w) const {
+        return int(ceil((x + 0.5) / w * 128.0)) - 1;
+    }
 
     // information needed during a resize
     struct {
@@ -132,10 +156,7 @@ protected:
     // information needed during a region move
     struct {
         bool active;
-        double from_x;
-        int pos;
-        bool touch_left;
-        bool touch_right;
+        int offset;
     } move;
 
     bool cursor_is_resize;
@@ -155,13 +176,14 @@ protected:
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;
     Glib::RefPtr<Gtk::UIManager> uiManager;
 
-    // properties of the virtaul keyboard
+    // properties of the virtual keyboard
     ChoiceEntry<virt_keyboard_mode_t> m_VirtKeybModeChoice;
     Gtk::Label m_VirtKeybVelocityLabelDescr;
     Gtk::Label m_VirtKeybVelocityLabel;
     Gtk::Label m_VirtKeybOffVelocityLabelDescr;
     Gtk::Label m_VirtKeybOffVelocityLabel;
     int currentActiveKey;
+    bool key_pressed[128];
 
     DimensionManager dimensionManager;
 };

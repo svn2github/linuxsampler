@@ -254,6 +254,8 @@ MainWindow::MainWindow() :
     m_VBox.pack_start(m_DimRegionChooser, Gtk::PACK_SHRINK);
     m_VBox.pack_start(m_StatusBar, Gtk::PACK_SHRINK);
 
+    set_file_is_shared(false);
+
     // Status Bar:
     m_StatusBar.pack_start(m_AttachedStateLabel, Gtk::PACK_SHRINK);
     m_StatusBar.pack_start(m_AttachedStateImage, Gtk::PACK_SHRINK);
@@ -356,7 +358,6 @@ MainWindow::MainWindow() :
 
     file = 0;
     file_is_changed = false;
-    set_file_is_shared(false);
 
     show_all_children();
 
