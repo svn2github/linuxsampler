@@ -148,6 +148,12 @@ Version CVS HEAD (?)
     - implemented opcodes amplfo_delay_onccN,
       amplfo_fade_onccN, fillfo_delay_onccN, fillfo_fade_onccN,
       pitchlfo_delay_onccN, pitchlfo_fade_onccN
+    - implemented opcodes fileg_delay_onccN,
+      fileg_start_onccN, fileg_attack_onccN, fileg_hold_onccN,
+      fileg_decay_onccN, fileg_sustain_onccN, fileg_release_onccN,
+      fileg_depth_onccN, pitcheg_delay_onccN, pitcheg_start_onccN,
+      pitcheg_attack_onccN, pitcheg_hold_onccN, pitcheg_decay_onccN,
+      pitcheg_sustain_onccN, pitcheg_release_onccN, pitcheg_depth_onccN
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

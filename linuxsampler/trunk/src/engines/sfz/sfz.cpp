@@ -492,6 +492,15 @@ namespace sfz
         fileg_vel2sustain = 0;
         fileg_vel2release = 0;
         fileg_depth       = 0;
+        
+        fileg_delay_oncc.clear();
+        fileg_start_oncc.clear();
+        fileg_attack_oncc.clear();
+        fileg_hold_oncc.clear();
+        fileg_decay_oncc.clear();
+        fileg_sustain_oncc.clear();
+        fileg_release_oncc.clear();
+        fileg_depth_oncc.clear();
 
         pitcheg_delay    = 0;
         pitcheg_start    = 0; //in percentage
@@ -508,6 +517,15 @@ namespace sfz
         pitcheg_vel2decay   = 0;
         pitcheg_vel2sustain = 0;
         pitcheg_vel2release = 0;
+        
+        pitcheg_delay_oncc.clear();
+        pitcheg_start_oncc.clear();
+        pitcheg_attack_oncc.clear();
+        pitcheg_hold_oncc.clear();
+        pitcheg_decay_oncc.clear();
+        pitcheg_sustain_oncc.clear();
+        pitcheg_release_oncc.clear();
+        pitcheg_depth_oncc.clear();
 
         amplfo_delay     = 0;
         amplfo_fade      = 0;
@@ -762,6 +780,15 @@ namespace sfz
         region->fileg_vel2decay   = fileg_vel2decay;
         region->fileg_vel2sustain = fileg_vel2sustain;
         region->fileg_vel2release = fileg_vel2release;
+        
+        region->fileg_delay_oncc   = fileg_delay_oncc;
+        region->fileg_start_oncc   = fileg_start_oncc;
+        region->fileg_attack_oncc  = fileg_attack_oncc;
+        region->fileg_hold_oncc    = fileg_hold_oncc;
+        region->fileg_decay_oncc   = fileg_decay_oncc;
+        region->fileg_sustain_oncc = fileg_sustain_oncc;
+        region->fileg_release_oncc = fileg_release_oncc;
+        region->fileg_depth_oncc   = fileg_depth_oncc;
 
         region->pitcheg_delay    = pitcheg_delay;
         region->pitcheg_start    = pitcheg_start;
@@ -778,6 +805,15 @@ namespace sfz
         region->pitcheg_vel2decay   = pitcheg_vel2decay;
         region->pitcheg_vel2sustain = pitcheg_vel2sustain;
         region->pitcheg_vel2release = pitcheg_vel2release;
+        
+        region->pitcheg_delay_oncc   = pitcheg_delay_oncc;
+        region->pitcheg_start_oncc   = pitcheg_start_oncc;
+        region->pitcheg_attack_oncc  = pitcheg_attack_oncc;
+        region->pitcheg_hold_oncc    = pitcheg_hold_oncc;
+        region->pitcheg_decay_oncc   = pitcheg_decay_oncc;
+        region->pitcheg_sustain_oncc = pitcheg_sustain_oncc;
+        region->pitcheg_release_oncc = pitcheg_release_oncc;
+        region->pitcheg_depth_oncc   = pitcheg_depth_oncc;
 
         region->amplfo_delay     = amplfo_delay;
         region->amplfo_fade      = amplfo_fade;
@@ -1571,6 +1607,24 @@ namespace sfz
             else if ("ampeg_decay"   == key_cc) pCurDef->ampeg_decaycc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if ("ampeg_sustain" == key_cc) pCurDef->ampeg_sustaincc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if ("ampeg_release" == key_cc) pCurDef->ampeg_releasecc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            
+            else if ("fileg_delay_on"   == key_cc) pCurDef->fileg_delay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_start_on"   == key_cc) pCurDef->fileg_start_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_attack_on"  == key_cc) pCurDef->fileg_attack_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_hold_on"    == key_cc) pCurDef->fileg_hold_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_decay_on"   == key_cc) pCurDef->fileg_decay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_sustain_on" == key_cc) pCurDef->fileg_sustain_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_release_on" == key_cc) pCurDef->fileg_release_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_depth_on"   == key_cc) pCurDef->fileg_depth_oncc.add( CC(num_cc, check(key, -12000, 12000, ToInt(value))) );
+            
+            else if ("pitcheg_delay_on"   == key_cc) pCurDef->pitcheg_delay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_start_on"   == key_cc) pCurDef->pitcheg_start_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_attack_on"  == key_cc) pCurDef->pitcheg_attack_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_hold_on"    == key_cc) pCurDef->pitcheg_hold_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_decay_on"   == key_cc) pCurDef->pitcheg_decay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_sustain_on" == key_cc) pCurDef->pitcheg_sustain_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_release_on" == key_cc) pCurDef->pitcheg_release_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_depth_on"   == key_cc) pCurDef->pitcheg_depth_oncc.add( CC(num_cc, check(key, -12000, 12000, ToInt(value))) );
             
             else if ("pitchlfo_delay_on" == key_cc) pCurDef->pitchlfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if ("pitchlfo_fade_on" == key_cc) pCurDef->pitchlfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );

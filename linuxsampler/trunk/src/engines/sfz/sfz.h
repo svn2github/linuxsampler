@@ -509,9 +509,13 @@ namespace sfz
         LinuxSampler::ArrayList<CC> ampeg_decaycc, ampeg_sustaincc, ampeg_releasecc;
         float fileg_delay, fileg_start, fileg_attack, fileg_hold, fileg_decay, fileg_sustain, fileg_release;
         float fileg_vel2delay, fileg_vel2attack, fileg_vel2hold, fileg_vel2decay, fileg_vel2sustain, fileg_vel2release;
+        LinuxSampler::ArrayList<CC> fileg_delay_oncc, fileg_start_oncc, fileg_attack_oncc, fileg_hold_oncc;
+        LinuxSampler::ArrayList<CC> fileg_decay_oncc, fileg_sustain_oncc, fileg_release_oncc, fileg_depth_oncc;
         float pitcheg_delay, pitcheg_start, pitcheg_attack, pitcheg_hold, pitcheg_decay, pitcheg_sustain, pitcheg_release;
         float pitcheg_vel2delay, pitcheg_vel2attack, pitcheg_vel2hold, pitcheg_vel2decay, pitcheg_vel2sustain, pitcheg_vel2release;
         int   fileg_depth, pitcheg_depth;
+        LinuxSampler::ArrayList<CC> pitcheg_delay_oncc, pitcheg_start_oncc, pitcheg_attack_oncc, pitcheg_hold_oncc;
+        LinuxSampler::ArrayList<CC> pitcheg_decay_oncc, pitcheg_sustain_oncc, pitcheg_release_oncc, pitcheg_depth_oncc;
         float amplfo_delay, amplfo_fade, amplfo_freq, amplfo_depth;
         float fillfo_delay, fillfo_fade, fillfo_freq, fillfo_depth;
         float pitchlfo_delay, pitchlfo_fade, pitchlfo_freq;

@@ -148,41 +148,73 @@ namespace LinuxSampler { namespace sfz {
     
     void PitchEGUnit::Trigger() {
         ::sfz::Region* const pRegion = pVoice->pRegion;
-        depth = pRegion->pitcheg_depth;
+        depth = pRegion->pitcheg_depth + GetInfluence(pRegion->pitcheg_depth_oncc);
         
         // the length of the decay and release curves are dependent on the velocity
         const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity);
 
         // set the delay trigger
-        uiDelayTrigger = (pRegion->pitcheg_delay + pRegion->pitcheg_vel2delay * velrelease) * GetSampleRate();
+        float delay = pRegion->pitcheg_delay + pRegion->pitcheg_vel2delay * velrelease;
+        delay += GetInfluence(pRegion->pitcheg_delay_oncc);
+        uiDelayTrigger = std::max(0.0f, delay) * GetSampleRate();
         
-        EG.trigger(uint(pRegion->pitcheg_start * 10),
-                   std::max(0.0, pRegion->pitcheg_attack + pRegion->pitcheg_vel2attack * velrelease),
-                   std::max(0.0, pRegion->pitcheg_hold + pRegion->pitcheg_vel2hold * velrelease),
-                   std::max(0.0, pRegion->pitcheg_decay + pRegion->pitcheg_vel2decay * velrelease),
-                   uint(std::min(std::max(0.0, 10 * (pRegion->pitcheg_sustain + pRegion->pitcheg_vel2sustain * velrelease)), 1000.0)),
-                   std::max(0.0, pRegion->pitcheg_release + pRegion->pitcheg_vel2release * velrelease),
-                   GetSampleRate());
+        float start = (pRegion->pitcheg_start + GetInfluence(pRegion->pitcheg_start_oncc)) * 10;
+        
+        float attack = pRegion->pitcheg_attack + pRegion->pitcheg_vel2attack * velrelease;
+        attack = std::max(0.0f, attack + GetInfluence(pRegion->pitcheg_attack_oncc));
+        
+        float hold = pRegion->pitcheg_hold + pRegion->pitcheg_vel2hold * velrelease;
+        hold = std::max(0.0f, hold + GetInfluence(pRegion->pitcheg_hold_oncc));
+        
+        float decay = pRegion->pitcheg_decay + pRegion->pitcheg_vel2decay * velrelease;
+        decay = std::max(0.0f, decay + GetInfluence(pRegion->pitcheg_decay_oncc));
+        
+        float sustain = pRegion->pitcheg_sustain + pRegion->pitcheg_vel2sustain * velrelease;
+        sustain = 10 * (sustain + GetInfluence(pRegion->pitcheg_sustain_oncc));
+        
+        float release = pRegion->pitcheg_release + pRegion->pitcheg_vel2release * velrelease;
+        release = std::max(0.0f, release + GetInfluence(pRegion->pitcheg_release_oncc));
+        
+        EG.trigger (
+            uint(std::min(std::max(0.0f, start), 1000.0f)), attack, hold, decay,
+            uint(std::min(std::max(0.0f, sustain), 1000.0f)), release, GetSampleRate()
+        );
     }
     
     
     void FilEGUnit::Trigger() {
         ::sfz::Region* const pRegion = pVoice->pRegion;
-        depth = pRegion->fileg_depth;
+        depth = pRegion->fileg_depth + GetInfluence(pRegion->fileg_depth_oncc);
         
         // the length of the decay and release curves are dependent on the velocity
         const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity);
 
         // set the delay trigger
-        uiDelayTrigger = (pRegion->fileg_delay + pRegion->fileg_vel2delay * velrelease) * GetSampleRate();
+        float delay = pRegion->fileg_delay + pRegion->fileg_vel2delay * velrelease;
+        delay += GetInfluence(pRegion->fileg_delay_oncc);
+        uiDelayTrigger = std::max(0.0f, delay) * GetSampleRate();
         
-        EG.trigger(uint(pRegion->fileg_start * 10),
-                   std::max(0.0, pRegion->fileg_attack + pRegion->fileg_vel2attack * velrelease),
-                   std::max(0.0, pRegion->fileg_hold + pRegion->fileg_vel2hold * velrelease),
-                   std::max(0.0, pRegion->fileg_decay + pRegion->fileg_vel2decay * velrelease),
-                   uint(std::min(std::max(0.0, 10 * (pRegion->fileg_sustain + pRegion->fileg_vel2sustain * velrelease)), 1000.0)),
-                   std::max(0.0, pRegion->fileg_release + pRegion->fileg_vel2release * velrelease),
-                   GetSampleRate());
+        float start = (pRegion->fileg_start + GetInfluence(pRegion->fileg_start_oncc)) * 10;
+        
+        float attack = pRegion->fileg_attack + pRegion->fileg_vel2attack * velrelease;
+        attack = std::max(0.0f, attack + GetInfluence(pRegion->fileg_attack_oncc));
+        
+        float hold = pRegion->fileg_hold + pRegion->fileg_vel2hold * velrelease;
+        hold = std::max(0.0f, hold + GetInfluence(pRegion->fileg_hold_oncc));
+        
+        float decay = pRegion->fileg_decay + pRegion->fileg_vel2decay * velrelease;
+        decay = std::max(0.0f, decay + GetInfluence(pRegion->fileg_decay_oncc));
+        
+        float sustain = pRegion->fileg_sustain + pRegion->fileg_vel2sustain * velrelease;
+        sustain = 10 * (sustain + GetInfluence(pRegion->fileg_sustain_oncc));
+        
+        float release = pRegion->fileg_release + pRegion->fileg_vel2release * velrelease;
+        release = std::max(0.0f, release + GetInfluence(pRegion->fileg_release_oncc));
+        
+        EG.trigger (
+            uint(std::min(std::max(0.0f, start), 1000.0f)), attack, hold, decay,
+            uint(std::min(std::max(0.0f, sustain), 1000.0f)), release, GetSampleRate()
+        );
     }
     
     
