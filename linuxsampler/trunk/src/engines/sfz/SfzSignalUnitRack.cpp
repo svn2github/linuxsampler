@@ -311,9 +311,9 @@ namespace LinuxSampler { namespace sfz {
     
     void AmpLFOUnit::Trigger() {
         ::sfz::Region* const pRegion = pVoice->pRegion;
-        pLfoInfo->delay  = pRegion->amplfo_delay;
+        pLfoInfo->delay  = pRegion->amplfo_delay + GetInfluence(pRegion->amplfo_delay_oncc);
         pLfoInfo->freq   = pRegion->amplfo_freq;
-        pLfoInfo->fade   = pRegion->amplfo_fade;
+        pLfoInfo->fade   = pRegion->amplfo_fade + GetInfluence(pRegion->amplfo_fade_oncc);
         pLfoInfo->volume = pRegion->amplfo_depth;
         
         LFOv1Unit::Trigger();
@@ -321,9 +321,9 @@ namespace LinuxSampler { namespace sfz {
     
     void PitchLFOUnit::Trigger() {
         ::sfz::Region* const pRegion = pVoice->pRegion;
-        pLfoInfo->delay = pRegion->pitchlfo_delay;
+        pLfoInfo->delay = pRegion->pitchlfo_delay + GetInfluence(pRegion->pitchlfo_delay_oncc);
         pLfoInfo->freq  = pRegion->pitchlfo_freq;
-        pLfoInfo->fade  = pRegion->pitchlfo_fade;
+        pLfoInfo->fade  = pRegion->pitchlfo_fade + GetInfluence(pRegion->pitchlfo_fade_oncc);
         pLfoInfo->pitch = pRegion->pitchlfo_depth;
         
         LFOv1Unit::Trigger();
@@ -331,9 +331,9 @@ namespace LinuxSampler { namespace sfz {
     
     void FilLFOUnit::Trigger() {
         ::sfz::Region* const pRegion = pVoice->pRegion;
-        pLfoInfo->delay  = pRegion->fillfo_delay;
+        pLfoInfo->delay  = pRegion->fillfo_delay + GetInfluence(pRegion->fillfo_delay_oncc);
         pLfoInfo->freq   = pRegion->fillfo_freq;
-        pLfoInfo->fade   = pRegion->fillfo_fade;
+        pLfoInfo->fade   = pRegion->fillfo_fade + GetInfluence(pRegion->fillfo_fade_oncc);
         pLfoInfo->cutoff = pRegion->fillfo_depth;
         
         LFOv1Unit::Trigger();

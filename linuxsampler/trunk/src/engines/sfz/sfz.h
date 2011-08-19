@@ -518,9 +518,15 @@ namespace sfz
         int pitchlfo_depth;
         Array<int> pitchlfo_depthcc;
         
+        LinuxSampler::ArrayList<CC> pitchlfo_delay_oncc; // 0 to 100 seconds
+        LinuxSampler::ArrayList<CC> pitchlfo_fade_oncc; // 0 to 100 seconds
         LinuxSampler::ArrayList<CC> pitchlfo_freqcc; // 0 to 20 Hz
+        LinuxSampler::ArrayList<CC> fillfo_delay_oncc; // 0 to 100 seconds
+        LinuxSampler::ArrayList<CC> fillfo_fade_oncc; // 0 to 100 seconds
         LinuxSampler::ArrayList<CC> fillfo_depthcc;  // -1200 to 1200 cents
         LinuxSampler::ArrayList<CC> fillfo_freqcc;   // 0 to 20 Hz
+        LinuxSampler::ArrayList<CC> amplfo_delay_oncc; // 0 to 100 seconds
+        LinuxSampler::ArrayList<CC> amplfo_fade_oncc; // 0 to 100 seconds
         LinuxSampler::ArrayList<CC> amplfo_depthcc;  // -10 to 10 dB
         LinuxSampler::ArrayList<CC> amplfo_freqcc;   // 0 to 20 Hz
 

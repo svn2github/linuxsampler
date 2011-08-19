@@ -513,6 +513,8 @@ namespace sfz
         amplfo_fade      = 0;
         amplfo_freq      = -1; /* -1 is used to determine whether the LFO was initialized */
         amplfo_depth     = 0;
+        amplfo_delay_oncc.clear();
+        amplfo_fade_oncc.clear();
         amplfo_depthcc.clear();
         amplfo_freqcc.clear();
 
@@ -520,6 +522,8 @@ namespace sfz
         fillfo_fade      = 0;
         fillfo_freq      = -1; /* -1 is used to determine whether the LFO was initialized */
         fillfo_depth     = 0;
+        fillfo_delay_oncc.clear();
+        fillfo_fade_oncc.clear();
         fillfo_depthcc.clear();
         fillfo_freqcc.clear();
 
@@ -527,6 +531,8 @@ namespace sfz
         pitchlfo_fade    = 0;
         pitchlfo_freq    = -1; /* -1 is used to determine whether the LFO was initialized */
         pitchlfo_depth   = 0;
+        pitchlfo_delay_oncc.clear();
+        pitchlfo_fade_oncc.clear();
         pitchlfo_freqcc.clear();
     }
 
@@ -778,6 +784,8 @@ namespace sfz
         region->amplfo_freq      = amplfo_freq;
         region->amplfo_depth     = amplfo_depth;
         
+        region->amplfo_delay_oncc = amplfo_delay_oncc;
+        region->amplfo_fade_oncc  = amplfo_fade_oncc;
         region->amplfo_depthcc   = amplfo_depthcc;
         region->amplfo_freqcc    = amplfo_freqcc;
 
@@ -786,6 +794,8 @@ namespace sfz
         region->fillfo_freq      = fillfo_freq;
         region->fillfo_depth     = fillfo_depth;
         
+        region->fillfo_delay_oncc = fillfo_delay_oncc;
+        region->fillfo_fade_oncc  = fillfo_fade_oncc;
         region->fillfo_depthcc   = fillfo_depthcc;
         region->fillfo_freqcc    = fillfo_freqcc;
 
@@ -794,6 +804,8 @@ namespace sfz
         region->pitchlfo_freq    = pitchlfo_freq;
         region->pitchlfo_depth   = pitchlfo_depth;
         
+        region->pitchlfo_delay_oncc = pitchlfo_delay_oncc;
+        region->pitchlfo_fade_oncc  = pitchlfo_fade_oncc;
         region->pitchlfo_depthcc = pitchlfo_depthcc;
         region->pitchlfo_freqcc  = pitchlfo_freqcc;
         
@@ -1560,10 +1572,16 @@ namespace sfz
             else if ("ampeg_sustain" == key_cc) pCurDef->ampeg_sustaincc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if ("ampeg_release" == key_cc) pCurDef->ampeg_releasecc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
             
+            else if ("pitchlfo_delay_on" == key_cc) pCurDef->pitchlfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
+            else if ("pitchlfo_fade_on" == key_cc) pCurDef->pitchlfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if ("pitchlfo_depth" == key_cc) pCurDef->pitchlfo_depthcc.set(num_cc, ToInt(value));
             else if ("pitchlfo_freq" == key_cc) pCurDef->pitchlfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
+            else if ("fillfo_delay_on" == key_cc) pCurDef->fillfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
+            else if ("fillfo_fade_on" == key_cc) pCurDef->fillfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if ("fillfo_depth" == key_cc) pCurDef->fillfo_depthcc.add( CC(num_cc, check(key, -1200, 1200, ToInt(value))) );
             else if ("fillfo_freq" == key_cc) pCurDef->fillfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
+            else if ("amplfo_delay_on" == key_cc) pCurDef->amplfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
+            else if ("amplfo_fade_on" == key_cc) pCurDef->amplfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if ("amplfo_depth" == key_cc) pCurDef->amplfo_depthcc.add( CC(num_cc, check(key, -10.0f, 10.0f, ToFloat(value))) );
             else if ("amplfo_freq" == key_cc) pCurDef->amplfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
             else if ("volume_on" == key_cc) pCurDef->volume_oncc.add( CC(num_cc, check(key, -144.0f, 100.0f, ToFloat(value))) );

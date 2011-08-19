@@ -145,6 +145,9 @@ Version CVS HEAD (?)
     - when failed to parse a sfz file
       print the line number on which the error occurs
     - use common pool of CC objects to minimize RAM usage
+    - implemented opcodes amplfo_delay_onccN,
+      amplfo_fade_onccN, fillfo_delay_onccN, fillfo_fade_onccN,
+      pitchlfo_delay_onccN, pitchlfo_fade_onccN
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

@@ -70,8 +70,8 @@ namespace LinuxSampler { namespace sfz {
             
             virtual void AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth);
             
-            inline int GetCurveCount();
-            inline ::sfz::Curve* GetCurve(int idx);
+            int GetCurveCount();
+            ::sfz::Curve* GetCurve(int idx);
             
             double GetSampleRate();
     };
