@@ -1545,6 +1545,9 @@ namespace sfz
         {
             std::string::size_type delimiter_index = key.find("cc");
             std::string key_cc = key.substr(0, delimiter_index);
+            if (key_cc.size() > 3 && !strcmp(key_cc.c_str() + (key_cc.size() - 3), "_on")) {
+                key_cc = key_cc.substr(0, key_cc.size() - 3);
+            }
             int num_cc = ToInt(key.substr(delimiter_index + 2));
 
             // input controls
@@ -1558,30 +1561,30 @@ namespace sfz
             else if ("on_hi" == key_cc) pCurDef->on_hicc.set(num_cc, ToInt(value));
 
             // sample player
-            else if ("delay_on" == key_cc) pCurDef->delay_oncc.set(num_cc, ToFloat(value));
-            else if ("delay_samples_on" == key_cc) pCurDef->delay_samples_oncc.set(num_cc, ToInt(value));
-            else if ("offset_on" == key_cc) pCurDef->offset_oncc.set(num_cc, ToInt(value));
+            else if ("delay" == key_cc) pCurDef->delay_oncc.set(num_cc, ToFloat(value));
+            else if ("delay_samples" == key_cc) pCurDef->delay_samples_oncc.set(num_cc, ToInt(value));
+            else if ("offset" == key_cc) pCurDef->offset_oncc.set(num_cc, ToInt(value));
 
             // amplifier
-            else if ("gain_on"  == key_cc || "gain_" == key_cc) pCurDef->gain_oncc.set(num_cc, ToFloat(value));
+            else if ("gain"  == key_cc || "gain_" == key_cc) pCurDef->gain_oncc.set(num_cc, ToFloat(value));
             else if ("xfin_lo"  == key_cc) pCurDef->xfin_locc.set(num_cc, ToInt(value));
             else if ("xfin_hi"  == key_cc) pCurDef->xfin_hicc.set(num_cc, ToInt(value));
             else if ("xfout_lo" == key_cc) pCurDef->xfout_locc.set(num_cc, ToInt(value));
             else if ("xfout_hi" == key_cc) pCurDef->xfout_hicc.set(num_cc, ToInt(value));
 
             // filter
-            else if ("cutoff_on"  == key_cc || "cutoff_" == key_cc) {
+            else if ("cutoff"  == key_cc || "cutoff_" == key_cc) {
                 pCurDef->cutoff_oncc.set(num_cc, ToInt(value));
                 pCurDef->cutoff_cc = num_cc;
-            } else if ("cutoff2_on" == key_cc) pCurDef->cutoff2_oncc.set(num_cc, ToInt(value));
+            } else if ("cutoff2" == key_cc) pCurDef->cutoff2_oncc.set(num_cc, ToInt(value));
             else if ("cutoff_smooth"  == key_cc) pCurDef->cutoff_smoothcc.set(num_cc, ToInt(value));
             else if ("cutoff2_smooth" == key_cc) pCurDef->cutoff2_smoothcc.set(num_cc, ToInt(value));
             else if ("cutoff_step"  == key_cc) pCurDef->cutoff_stepcc.set(num_cc, ToInt(value));
             else if ("cutoff2_step" == key_cc) pCurDef->cutoff2_stepcc.set(num_cc, ToInt(value));
             else if ("cutoff_curve" == key_cc) pCurDef->cutoff_curvecc.set(num_cc, ToInt(value));
             else if ("cutoff2_curve" == key_cc) pCurDef->cutoff2_curvecc.set(num_cc, ToInt(value));
-            else if ("resonance_on" == key_cc) pCurDef->resonance_oncc.set(num_cc, ToInt(value));
-            else if ("resonance2_on" == key_cc) pCurDef->resonance2_oncc.set(num_cc, ToInt(value));
+            else if ("resonance" == key_cc) pCurDef->resonance_oncc.set(num_cc, ToInt(value));
+            else if ("resonance2" == key_cc) pCurDef->resonance2_oncc.set(num_cc, ToInt(value));
             else if ("resonance_smooth" == key_cc) pCurDef->resonance_smoothcc.set(num_cc, ToInt(value));
             else if ("resonance2_smooth" == key_cc) pCurDef->resonance2_smoothcc.set(num_cc, ToInt(value));
             else if ("resonance_step" == key_cc) pCurDef->resonance_stepcc.set(num_cc, ToInt(value));
@@ -1590,15 +1593,15 @@ namespace sfz
             else if ("resonance2_curve" == key_cc) pCurDef->resonance2_curvecc.set(num_cc, ToInt(value));
 
             // per voice equalizer
-            else if ("eq1_freq_on" == key_cc || "eq1_freq" == key_cc) pCurDef->eq1_freq_oncc.set(num_cc, ToInt(value));
-            else if ("eq2_freq_on" == key_cc || "eq2_freq" == key_cc) pCurDef->eq2_freq_oncc.set(num_cc, ToInt(value));
-            else if ("eq3_freq_on" == key_cc || "eq3_freq" == key_cc) pCurDef->eq3_freq_oncc.set(num_cc, ToInt(value));
-            else if ("eq1_bw_on" == key_cc || "eq1_bw" == key_cc) pCurDef->eq1_bw_oncc.set(num_cc, ToInt(value));
-            else if ("eq2_bw_on" == key_cc || "eq2_bw" == key_cc) pCurDef->eq2_bw_oncc.set(num_cc, ToInt(value));
-            else if ("eq3_bw_on" == key_cc || "eq3_bw" == key_cc) pCurDef->eq3_bw_oncc.set(num_cc, ToInt(value));
-            else if ("eq1_gain_on" == key_cc || "eq1_gain" == key_cc) pCurDef->eq1_gain_oncc.set(num_cc, ToInt(value));
-            else if ("eq2_gain_on" == key_cc || "eq2_gain" == key_cc) pCurDef->eq2_gain_oncc.set(num_cc, ToInt(value));
-            else if ("eq3_gain_on" == key_cc || "eq3_gain" == key_cc) pCurDef->eq3_gain_oncc.set(num_cc, ToInt(value));
+            else if ("eq1_freq" == key_cc) pCurDef->eq1_freq_oncc.set(num_cc, ToInt(value));
+            else if ("eq2_freq" == key_cc) pCurDef->eq2_freq_oncc.set(num_cc, ToInt(value));
+            else if ("eq3_freq" == key_cc) pCurDef->eq3_freq_oncc.set(num_cc, ToInt(value));
+            else if ("eq1_bw" == key_cc) pCurDef->eq1_bw_oncc.set(num_cc, ToInt(value));
+            else if ("eq2_bw" == key_cc) pCurDef->eq2_bw_oncc.set(num_cc, ToInt(value));
+            else if ("eq3_bw" == key_cc) pCurDef->eq3_bw_oncc.set(num_cc, ToInt(value));
+            else if ("eq1_gain" == key_cc) pCurDef->eq1_gain_oncc.set(num_cc, ToInt(value));
+            else if ("eq2_gain" == key_cc) pCurDef->eq2_gain_oncc.set(num_cc, ToInt(value));
+            else if ("eq3_gain" == key_cc) pCurDef->eq3_gain_oncc.set(num_cc, ToInt(value));
             
             else if ("ampeg_delay"   == key_cc) pCurDef->ampeg_delaycc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if ("ampeg_start"   == key_cc) pCurDef->ampeg_startcc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
@@ -1608,40 +1611,40 @@ namespace sfz
             else if ("ampeg_sustain" == key_cc) pCurDef->ampeg_sustaincc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if ("ampeg_release" == key_cc) pCurDef->ampeg_releasecc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
             
-            else if ("fileg_delay_on"   == key_cc) pCurDef->fileg_delay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("fileg_start_on"   == key_cc) pCurDef->fileg_start_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("fileg_attack_on"  == key_cc) pCurDef->fileg_attack_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("fileg_hold_on"    == key_cc) pCurDef->fileg_hold_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("fileg_decay_on"   == key_cc) pCurDef->fileg_decay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("fileg_sustain_on" == key_cc) pCurDef->fileg_sustain_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("fileg_release_on" == key_cc) pCurDef->fileg_release_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("fileg_depth_on"   == key_cc) pCurDef->fileg_depth_oncc.add( CC(num_cc, check(key, -12000, 12000, ToInt(value))) );
+            else if ("fileg_delay"   == key_cc) pCurDef->fileg_delay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_start"   == key_cc) pCurDef->fileg_start_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_attack"  == key_cc) pCurDef->fileg_attack_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_hold"    == key_cc) pCurDef->fileg_hold_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_decay"   == key_cc) pCurDef->fileg_decay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_sustain" == key_cc) pCurDef->fileg_sustain_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_release" == key_cc) pCurDef->fileg_release_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("fileg_depth"   == key_cc) pCurDef->fileg_depth_oncc.add( CC(num_cc, check(key, -12000, 12000, ToInt(value))) );
             
-            else if ("pitcheg_delay_on"   == key_cc) pCurDef->pitcheg_delay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("pitcheg_start_on"   == key_cc) pCurDef->pitcheg_start_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("pitcheg_attack_on"  == key_cc) pCurDef->pitcheg_attack_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("pitcheg_hold_on"    == key_cc) pCurDef->pitcheg_hold_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("pitcheg_decay_on"   == key_cc) pCurDef->pitcheg_decay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("pitcheg_sustain_on" == key_cc) pCurDef->pitcheg_sustain_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("pitcheg_release_on" == key_cc) pCurDef->pitcheg_release_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
-            else if ("pitcheg_depth_on"   == key_cc) pCurDef->pitcheg_depth_oncc.add( CC(num_cc, check(key, -12000, 12000, ToInt(value))) );
+            else if ("pitcheg_delay"   == key_cc) pCurDef->pitcheg_delay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_start"   == key_cc) pCurDef->pitcheg_start_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_attack"  == key_cc) pCurDef->pitcheg_attack_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_hold"    == key_cc) pCurDef->pitcheg_hold_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_decay"   == key_cc) pCurDef->pitcheg_decay_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_sustain" == key_cc) pCurDef->pitcheg_sustain_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_release" == key_cc) pCurDef->pitcheg_release_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pitcheg_depth"   == key_cc) pCurDef->pitcheg_depth_oncc.add( CC(num_cc, check(key, -12000, 12000, ToInt(value))) );
             
-            else if ("pitchlfo_delay_on" == key_cc) pCurDef->pitchlfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
-            else if ("pitchlfo_fade_on" == key_cc) pCurDef->pitchlfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
+            else if ("pitchlfo_delay" == key_cc) pCurDef->pitchlfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
+            else if ("pitchlfo_fade" == key_cc) pCurDef->pitchlfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if ("pitchlfo_depth" == key_cc) pCurDef->pitchlfo_depthcc.set(num_cc, ToInt(value));
             else if ("pitchlfo_freq" == key_cc) pCurDef->pitchlfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
-            else if ("fillfo_delay_on" == key_cc) pCurDef->fillfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
-            else if ("fillfo_fade_on" == key_cc) pCurDef->fillfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
+            else if ("fillfo_delay" == key_cc) pCurDef->fillfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
+            else if ("fillfo_fade" == key_cc) pCurDef->fillfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if ("fillfo_depth" == key_cc) pCurDef->fillfo_depthcc.add( CC(num_cc, check(key, -1200, 1200, ToInt(value))) );
             else if ("fillfo_freq" == key_cc) pCurDef->fillfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
-            else if ("amplfo_delay_on" == key_cc) pCurDef->amplfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
-            else if ("amplfo_fade_on" == key_cc) pCurDef->amplfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
+            else if ("amplfo_delay" == key_cc) pCurDef->amplfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
+            else if ("amplfo_fade" == key_cc) pCurDef->amplfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if ("amplfo_depth" == key_cc) pCurDef->amplfo_depthcc.add( CC(num_cc, check(key, -10.0f, 10.0f, ToFloat(value))) );
             else if ("amplfo_freq" == key_cc) pCurDef->amplfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
-            else if ("volume_on" == key_cc) pCurDef->volume_oncc.add( CC(num_cc, check(key, -144.0f, 100.0f, ToFloat(value))) );
+            else if ("volume" == key_cc) pCurDef->volume_oncc.add( CC(num_cc, check(key, -144.0f, 100.0f, ToFloat(value))) );
             else if ("volume_curve" == key_cc) pCurDef->volume_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
             else if ("volume_smooth" == key_cc) pCurDef->volume_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
-            else if ("pan_on" == key_cc) pCurDef->pan_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pan" == key_cc) pCurDef->pan_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if ("pan_curve" == key_cc) pCurDef->pan_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
             else if ("pan_smooth" == key_cc) pCurDef->pan_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;

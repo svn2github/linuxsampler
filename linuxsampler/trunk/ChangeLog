@@ -154,6 +154,7 @@ Version CVS HEAD (?)
       fileg_depth_onccN, pitcheg_delay_onccN, pitcheg_start_onccN,
       pitcheg_attack_onccN, pitcheg_hold_onccN, pitcheg_decay_onccN,
       pitcheg_sustain_onccN, pitcheg_release_onccN, pitcheg_depth_onccN
+    - implemented automatic aliasing *ccN <-> *_onccN
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
