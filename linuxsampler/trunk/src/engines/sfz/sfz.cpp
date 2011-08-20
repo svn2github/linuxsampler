@@ -1732,7 +1732,7 @@ namespace sfz
     }
     
     LFO::LFO(): freq (-1),/* -1 is used to determine whether the LFO was initialized */
-                fade(0), phase(0), wave(0), delay(0), pitch(0), cutoff(0), resonance(0), pan(0) {
+                fade(0), phase(0), wave(0), delay(0), pitch(0), cutoff(0), resonance(0), pan(0), volume(0) {
         
     }
     

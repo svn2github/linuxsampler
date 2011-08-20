@@ -293,6 +293,7 @@ namespace LinuxSampler { namespace sfz {
     }
     
     void LFOUnit::ValueChanged(CCSignalUnit* pUnit) {
+        if (pLFO == NULL) return;
         pLFO->SetFrequency(std::max(0.0f, suFreqOnCC.GetLevel() + pLfoInfo->freq), GetSampleRate());
     }
     
@@ -342,31 +343,49 @@ namespace LinuxSampler { namespace sfz {
     }
     
     void AmpLFOUnit::Trigger() {
+        bActive = true;
         ::sfz::Region* const pRegion = pVoice->pRegion;
         pLfoInfo->delay  = pRegion->amplfo_delay + GetInfluence(pRegion->amplfo_delay_oncc);
         pLfoInfo->freq   = pRegion->amplfo_freq;
         pLfoInfo->fade   = pRegion->amplfo_fade + GetInfluence(pRegion->amplfo_fade_oncc);
         pLfoInfo->volume = pRegion->amplfo_depth;
         
+        if (pLfoInfo->freq <= 0) {
+            if (!pRegion->amplfo_freqcc.empty()) pLfoInfo->freq = 0;
+            else bActive = false;
+        }
+        
         LFOv1Unit::Trigger();
     }
     
     void PitchLFOUnit::Trigger() {
+        bActive = true;
         ::sfz::Region* const pRegion = pVoice->pRegion;
         pLfoInfo->delay = pRegion->pitchlfo_delay + GetInfluence(pRegion->pitchlfo_delay_oncc);
         pLfoInfo->freq  = pRegion->pitchlfo_freq;
         pLfoInfo->fade  = pRegion->pitchlfo_fade + GetInfluence(pRegion->pitchlfo_fade_oncc);
         pLfoInfo->pitch = pRegion->pitchlfo_depth;
         
+        if (pLfoInfo->freq <= 0) {
+            if (!pRegion->pitchlfo_freqcc.empty()) pLfoInfo->freq = 0;
+            else bActive = false;
+        }
+        
         LFOv1Unit::Trigger();
     }
     
     void FilLFOUnit::Trigger() {
+        bActive = true;
         ::sfz::Region* const pRegion = pVoice->pRegion;
         pLfoInfo->delay  = pRegion->fillfo_delay + GetInfluence(pRegion->fillfo_delay_oncc);
         pLfoInfo->freq   = pRegion->fillfo_freq;
         pLfoInfo->fade   = pRegion->fillfo_fade + GetInfluence(pRegion->fillfo_fade_oncc);
         pLfoInfo->cutoff = pRegion->fillfo_depth;
+        
+        if (pLfoInfo->freq <= 0) {
+            if (!pRegion->fillfo_freqcc.empty()) pLfoInfo->freq = 0;
+            else bActive = false;
+        }
         
         LFOv1Unit::Trigger();
     }
@@ -860,7 +879,10 @@ namespace LinuxSampler { namespace sfz {
         
         // LFO
         for (int i = 0; i < pRegion->lfos.size(); i++) {
-            if (pRegion->lfos[i].freq == -1) continue; // Not initialized
+            if (pRegion->lfos[i].freq <= 0) {
+                if (pRegion->lfos[i].freq_oncc.empty()) continue; // Not initialized
+                else pRegion->lfos[i].freq = 0;
+            }
             
             if(LFOs.size() < LFOs.capacity()) {
                 LFOv2Unit lfo(this);

@@ -164,7 +164,7 @@ namespace LinuxSampler {
         public:
             ArrayList<SignalUnit::Parameter> Params; // The list of parameters which are modulating the signal unit
             
-            SignalUnit(SignalUnitRack* rack): pRack(rack), bActive(false), Level(0.0f), bCalculating(false), uiDelayTrigger(0) { }
+            SignalUnit(SignalUnitRack* rack): pRack(rack), bActive(false), Level(0.0f), bRecalculate(true), bCalculating(false), uiDelayTrigger(0) { }
             SignalUnit(const SignalUnit& Unit): pRack(Unit.pRack) { Copy(Unit); }
             void operator=(const SignalUnit& Unit) { Copy(Unit); }
             virtual ~SignalUnit() { }
@@ -204,7 +204,7 @@ namespace LinuxSampler {
              * the parameters, their levels are calculated too.
              */
             virtual float GetLevel() {
-                if (!bRecalculate) return Level;
+                if (Params.empty() || !bRecalculate) return Level;
 
                 if (bCalculating) {
                     std::cerr << "SignalUnit: Loop detected. Aborted!";

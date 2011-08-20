@@ -155,6 +155,10 @@ Version CVS HEAD (?)
       pitcheg_attack_onccN, pitcheg_hold_onccN, pitcheg_decay_onccN,
       pitcheg_sustain_onccN, pitcheg_release_onccN, pitcheg_depth_onccN
     - implemented automatic aliasing *ccN <-> *_onccN
+    - *lfo_freqccN wasn't working when the respective *lfo_freq
+      was not set or was set to zero
+    - lfoN_freq_onccX wasn't working when lfoN_freq
+      was not set or was set to zero
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

@@ -272,7 +272,6 @@ namespace LinuxSampler { namespace sfz {
                 SfzSignalUnit::Copy(Unit);
             }
             
-            virtual bool  Active() { return pLfoInfo->freq > 0; }
             virtual void  Trigger();
             virtual void  Increment();
             virtual float GetLevel() { return Level; }
@@ -316,6 +315,7 @@ namespace LinuxSampler { namespace sfz {
             LFOv2Unit(SfzSignalUnitRack* rack);
             
             virtual void Trigger();
+            virtual bool  Active() { return true; }
     };
     
     class AmpLFOUnit: public LFOv1Unit {
