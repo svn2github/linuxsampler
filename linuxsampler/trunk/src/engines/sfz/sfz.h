@@ -518,10 +518,10 @@ namespace sfz
         float fillfo_delay, fillfo_fade, fillfo_freq, fillfo_depth;
         float pitchlfo_delay, pitchlfo_fade, pitchlfo_freq;
         int pitchlfo_depth;
-        Array<int> pitchlfo_depthcc;
         
         LinuxSampler::ArrayList<CC> pitchlfo_delay_oncc; // 0 to 100 seconds
         LinuxSampler::ArrayList<CC> pitchlfo_fade_oncc; // 0 to 100 seconds
+        LinuxSampler::ArrayList<CC> pitchlfo_depthcc; // -1200 to 1200 cents
         LinuxSampler::ArrayList<CC> pitchlfo_freqcc; // 0 to 20 Hz
         LinuxSampler::ArrayList<CC> fillfo_delay_oncc; // 0 to 100 seconds
         LinuxSampler::ArrayList<CC> fillfo_fade_oncc; // 0 to 100 seconds

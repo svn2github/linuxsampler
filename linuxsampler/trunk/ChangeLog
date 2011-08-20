@@ -161,6 +161,9 @@ Version CVS HEAD (?)
       was not set or was set to zero
     - implemented opcodes resonance_onccN, resonance_smoothccN,
       resonance_curveccN, cutoff_smoothccN, cutoff_curveccN
+    - implemented opcodes fillfo_depthchanaft,
+      fillfo_freqchanaft, amplfo_depthchanaft, amplfo_freqchanaft,
+      pitchlfo_depthchanaft, pitchlfo_freqchanaft
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

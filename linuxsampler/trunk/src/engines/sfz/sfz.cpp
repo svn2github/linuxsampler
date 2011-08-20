@@ -447,8 +447,6 @@ namespace sfz
             eq1_gain_oncc.set(i, 0);
             eq2_gain_oncc.set(i, 0);
             eq3_gain_oncc.set(i, 0);
-            
-            pitchlfo_depthcc.set(i, 0);
         }
 
         eg.clear();
@@ -552,6 +550,7 @@ namespace sfz
         pitchlfo_depth   = 0;
         pitchlfo_delay_oncc.clear();
         pitchlfo_fade_oncc.clear();
+        pitchlfo_depthcc.clear();
         pitchlfo_freqcc.clear();
     }
 
@@ -1525,15 +1524,22 @@ namespace sfz
         else if ("amplfo_delay" == key) pCurDef->amplfo_delay = ToFloat(value);
         else if ("amplfo_fade" == key) pCurDef->amplfo_fade = ToFloat(value);
         else if ("amplfo_freq" == key) pCurDef->amplfo_freq = ToFloat(value);
+        else if ("amplfo_freqchanaft" == key) pCurDef->amplfo_freqcc.add( CC(128, check(key, -200.0f, 200.0f, ToFloat(value))) );
         else if ("amplfo_depth" == key) pCurDef->amplfo_depth = ToFloat(value);
+        else if ("amplfo_depthchanaft" == key) pCurDef->amplfo_depthcc.add( CC(128, check(key, -10.0f, 10.0f, ToFloat(value))) );
         else if ("fillfo_delay" == key) pCurDef->fillfo_delay = ToFloat(value);
         else if ("fillfo_fade" == key) pCurDef->fillfo_fade = ToFloat(value);
         else if ("fillfo_freq" == key) pCurDef->fillfo_freq = ToFloat(value);
+        else if ("fillfo_freqchanaft" == key) pCurDef->fillfo_freqcc.add( CC(128, check(key, -200.0f, 200.0f, ToFloat(value))) );
         else if ("fillfo_depth" == key) pCurDef->fillfo_depth = ToFloat(value);
+        else if ("fillfo_depthchanaft" == key) pCurDef->fillfo_depthcc.add( CC(128, check(key, -1200, 1200, ToInt(value))) );
         else if ("pitchlfo_delay" == key) pCurDef->pitchlfo_delay = ToFloat(value);
         else if ("pitchlfo_fade" == key) pCurDef->pitchlfo_fade = ToFloat(value);
         else if ("pitchlfo_freq" == key) pCurDef->pitchlfo_freq = ToFloat(value);
+        else if ("pitchlfo_freqchanaft" == key) pCurDef->pitchlfo_freqcc.add( CC(128, check(key, -200.0f, 200.0f, ToFloat(value))) );
         else if ("pitchlfo_depth" == key) pCurDef->pitchlfo_depth = ToInt(value);
+        else if ("pitchlfo_depthchanaft" == key) pCurDef->pitchlfo_depthcc.add( CC(128, check(key, -1200, 1200, ToInt(value))) );
+        
         
         // v2 LFO
         else if (sscanf(key.c_str(), "lfo%d%n", &x, &y)) {
@@ -1656,7 +1662,7 @@ namespace sfz
             
             else if ("pitchlfo_delay" == key_cc) pCurDef->pitchlfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if ("pitchlfo_fade" == key_cc) pCurDef->pitchlfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
-            else if ("pitchlfo_depth" == key_cc) pCurDef->pitchlfo_depthcc.set(num_cc, ToInt(value));
+            else if ("pitchlfo_depth" == key_cc) pCurDef->pitchlfo_depthcc.add( CC(num_cc, check(key, -1200, 1200, ToInt(value))) );
             else if ("pitchlfo_freq" == key_cc) pCurDef->pitchlfo_freqcc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
             else if ("fillfo_delay" == key_cc) pCurDef->fillfo_delay_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
             else if ("fillfo_fade" == key_cc) pCurDef->fillfo_fade_oncc.add( CC(num_cc, check(key, 0.0f, 100.0f, ToFloat(value))) );
