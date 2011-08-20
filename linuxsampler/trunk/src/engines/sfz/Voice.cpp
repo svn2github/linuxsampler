@@ -153,19 +153,6 @@ namespace LinuxSampler { namespace sfz {
         }*/ // TODO: ^^^
     }
 
-    void Voice::ProcessCutoffEvent(RTList<Event>::Iterator& itEvent) {
-        int ccvalue = itEvent->Param.CC.Value;
-        if (VCFCutoffCtrl.value == ccvalue) return;
-        VCFCutoffCtrl.value = ccvalue;
-
-        float cutoff = CutoffBase * RTMath::CentsToFreqRatioUnlimited(
-            ccvalue / 127.0f * pRegion->cutoff_oncc[VCFCutoffCtrl.controller]);
-        if (cutoff > 0.49 * pEngine->SampleRate) cutoff = 0.49 * pEngine->SampleRate;
-
-        VCFCutoffCtrl.fvalue = cutoff; // needed for initialization of fFinalCutoff next time
-        fFinalCutoff = cutoff;
-    }
-
     double Voice::CalculateCrossfadeVolume(uint8_t MIDIKeyVelocity) {
         /*float crossfadeVolume;
         switch (pRegion->AttenuationController.type) {
@@ -271,49 +258,9 @@ namespace LinuxSampler { namespace sfz {
     }
 
     float Voice::CalculateFinalCutoff(float cutoffBase) {
-        float cutoff;
-        if (VCFCutoffCtrl.controller) {
-            int ccvalue = GetSfzEngineChannel()->ControllerTable[VCFCutoffCtrl.controller];
-            cutoff = CutoffBase * RTMath::CentsToFreqRatioUnlimited(
-                ccvalue / 127.0f * pRegion->cutoff_oncc[VCFCutoffCtrl.controller]);
-        } else {
-            cutoff = cutoffBase;
-        }
+        float cutoff = cutoffBase;
         if (cutoff > 0.49 * pEngine->SampleRate) cutoff = 0.49 * pEngine->SampleRate;
         return cutoff;
-    }
-
-    uint8_t Voice::GetVCFCutoffCtrl() {
-        // TODO: the sfz format allows several CC for the same
-        // modulation destination. The Voice interface needs to be
-        // changed to support that.
-        if (pRegion->cutoff_cc) return pRegion->cutoff_cc;
-        else if (pRegion->cutoff_chanaft) return 128;
-        return 0;
-    }
-
-    uint8_t Voice::GetVCFResonanceCtrl() {
-        /*uint8_t ctrl;
-        switch (pRegion->VCFResonanceController) {
-            case ::gig::vcf_res_ctrl_genpurpose3:
-                ctrl = 18;
-                break;
-            case ::gig::vcf_res_ctrl_genpurpose4:
-                ctrl = 19;
-                break;
-            case ::gig::vcf_res_ctrl_genpurpose5:
-                ctrl = 80;
-                break;
-            case ::gig::vcf_res_ctrl_genpurpose6:
-                ctrl = 81;
-                break;
-            case ::gig::vcf_res_ctrl_none:
-            default:
-                ctrl = 0;
-        }
-
-        return ctrl;*/ // TODO: ^^^
-        return 0;
     }
 
     float Voice::GetReleaseTriggerAttenuation(float noteLength) {

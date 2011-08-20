@@ -603,12 +603,12 @@ namespace LinuxSampler { namespace sfz {
     }
     
     float EndpointUnit::GetFilterCutoff() {
-        float val;
+        float val = GetRack()->suCutoffOnCC.Active() ? RTMath::CentsToFreqRatioUnlimited(GetRack()->suCutoffOnCC.GetLevel()) : 1;
         
         FilLFOUnit* u = &(GetRack()->suFilLFO);
         CCSignalUnit* u1 = &(GetRack()->suFilLFO.suDepthOnCC);
         float f = u1->Active() ? u1->GetLevel() : 0;
-        val = u->Active() ? RTMath::CentsToFreqRatioUnlimited(u->GetLevel() * (u->pLfoInfo->cutoff + f)) : 1;
+        val *= u->Active() ? RTMath::CentsToFreqRatioUnlimited(u->GetLevel() * (u->pLfoInfo->cutoff + f)) : 1;
         
         FilEGUnit* u2 = &(GetRack()->suFilEG);
         val *= u2->Active() ? RTMath::CentsToFreqRatioUnlimited(u2->GetLevel() * u2->depth) : 1;
@@ -635,9 +635,9 @@ namespace LinuxSampler { namespace sfz {
     }
     
     float EndpointUnit::CalculateFilterCutoff(float cutoff) {
-         cutoff *= GetFilterCutoff();
-         float maxCutoff = 0.49 * pVoice->GetSampleRate();
-         return cutoff > maxCutoff ? maxCutoff : cutoff;
+        cutoff *= GetFilterCutoff();
+        float maxCutoff = 0.49 * pVoice->GetSampleRate();
+        return cutoff > maxCutoff ? maxCutoff : cutoff;
     }
     
     float EndpointUnit::GetPitch() {
@@ -670,7 +670,7 @@ namespace LinuxSampler { namespace sfz {
     }
     
     float EndpointUnit::GetResonance() {
-         float val = 0;
+         float val = GetRack()->suResOnCC.Active() ? GetRack()->suResOnCC.GetLevel() : 0;
         
         for (int i = 0; i < GetRack()->resEGs.size(); i++) {
             EGv2Unit* eg = GetRack()->resEGs[i];
@@ -726,14 +726,15 @@ namespace LinuxSampler { namespace sfz {
     
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
         : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suFilEG(this), suPitchEG(this),
-        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), filEGs(maxEgCount), resEGs(maxEgCount), panEGs(maxEgCount), suVolOnCC(this),
+        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), filEGs(maxEgCount), resEGs(maxEgCount), panEGs(maxEgCount),
+        suVolOnCC(this), suCutoffOnCC(this), suResOnCC(this),
         suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
         LFOs(maxLfoCount), volLFOs(maxLfoCount), pitchLFOs(maxLfoCount),
         filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
     {
         suEndpoint.pVoice = suEndpoint.suXFInCC.pVoice = suEndpoint.suXFOutCC.pVoice = suEndpoint.suPanOnCC.pVoice = voice;
         suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
-        suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = suVolOnCC.pVoice = voice;
+        suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = suVolOnCC.pVoice = suCutoffOnCC.pVoice = suResOnCC.pVoice = voice;
         suPitchLFO.suDepthOnCC.pVoice = suPitchLFO.suFadeEG.pVoice = suPitchLFO.suFreqOnCC.pVoice = voice;
         suFilLFO.suFadeEG.pVoice = suFilLFO.suDepthOnCC.pVoice = suFilLFO.suFreqOnCC.pVoice = voice;
         suAmpLFO.suFadeEG.pVoice = suAmpLFO.suDepthOnCC.pVoice = suAmpLFO.suFreqOnCC.pVoice = voice;
@@ -779,6 +780,8 @@ namespace LinuxSampler { namespace sfz {
         Pool<Smoother>* pSmootherPool = pVoice->pEngine->pSmootherPool;
         
         suVolOnCC.InitCCList(pCCPool, pSmootherPool);
+        suCutoffOnCC.InitCCList(pCCPool, pSmootherPool);
+        suResOnCC.InitCCList(pCCPool, pSmootherPool);
         suEndpoint.suXFInCC.InitCCList(pCCPool, pSmootherPool);
         suEndpoint.suXFOutCC.InitCCList(pCCPool, pSmootherPool);
         suEndpoint.suPanOnCC.InitCCList(pCCPool, pSmootherPool);
@@ -828,6 +831,8 @@ namespace LinuxSampler { namespace sfz {
         ::sfz::Region* const pRegion = pVoice->pRegion;
         
         suVolOnCC.SetCCs(pRegion->volume_oncc);
+        suCutoffOnCC.SetCCs(pRegion->cutoff_oncc);
+        suResOnCC.SetCCs(pRegion->resonance_oncc);
         
         for (int i = 0; i < pRegion->eg.size(); i++) {
             if (pRegion->eg[i].node.size() == 0) continue;
@@ -934,6 +939,8 @@ namespace LinuxSampler { namespace sfz {
         Units.clear();
         
         Units.add(&suVolOnCC);
+        Units.add(&suCutoffOnCC);
+        Units.add(&suResOnCC);
         
         Units.add(&suVolEG);
         Units.add(&suFilEG);
@@ -997,6 +1004,8 @@ namespace LinuxSampler { namespace sfz {
     
     void SfzSignalUnitRack::Reset() {
         suVolOnCC.RemoveAllCCs();
+        suCutoffOnCC.RemoveAllCCs();
+        suResOnCC.RemoveAllCCs();
         suEndpoint.suXFInCC.RemoveAllCCs();
         suEndpoint.suXFOutCC.RemoveAllCCs();
         suEndpoint.suPanOnCC.RemoveAllCCs();

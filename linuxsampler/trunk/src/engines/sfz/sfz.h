@@ -474,19 +474,17 @@ namespace sfz
         // filter
         filter_t fil_type; filter_t fil2_type;
         optional<float> cutoff; optional<float> cutoff2;
-        Array<int> cutoff_oncc; Array<int> cutoff2_oncc;
-        int cutoff_cc; // TODO: this is just a temporary fix to avoid
-                       // looping through the cutoff_oncc array
-        Array<int> cutoff_smoothcc; Array<int> cutoff2_smoothcc;
+        LinuxSampler::ArrayList<CC> cutoff_oncc, cutoff2_oncc;
+        LinuxSampler::ArrayList<CC> cutoff_smoothcc, cutoff2_smoothcc;
         Array<int> cutoff_stepcc; Array<int> cutoff2_stepcc;
-        Array<int> cutoff_curvecc; Array<int> cutoff2_curvecc;
+        LinuxSampler::ArrayList<CC> cutoff_curvecc, cutoff2_curvecc;
         int cutoff_chanaft; int cutoff2_chanaft;
         int cutoff_polyaft; int cutoff2_polyaft;
         float resonance; float resonance2;
-        Array<int> resonance_oncc; Array<int> resonance2_oncc;
-        Array<int> resonance_smoothcc; Array<int> resonance2_smoothcc;
+        LinuxSampler::ArrayList<CC> resonance_oncc, resonance2_oncc;
+        LinuxSampler::ArrayList<CC> resonance_smoothcc, resonance2_smoothcc;
         Array<int> resonance_stepcc; Array<int> resonance2_stepcc;
-        Array<int> resonance_curvecc; Array<int> resonance2_curvecc;
+        LinuxSampler::ArrayList<CC> resonance_curvecc, resonance2_curvecc;
         int fil_keytrack; int fil2_keytrack;
         int fil_keycenter; int fil2_keycenter;
         int fil_veltrack; int fil2_veltrack;

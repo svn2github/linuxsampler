@@ -388,6 +388,8 @@ namespace LinuxSampler { namespace sfz {
             // SFZ v2
             
             SmoothCCUnit suVolOnCC;
+            SmoothCCUnit suCutoffOnCC;
+            SmoothCCUnit suResOnCC;
             
             FixedArray<EGv2Unit*> EGs;
             

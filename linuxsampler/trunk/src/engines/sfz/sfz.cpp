@@ -372,6 +372,20 @@ namespace sfz
         fil2_keycenter = 60;
         fil2_veltrack = 0;
         fil2_random = 0;
+        
+        cutoff_oncc.clear();
+        cutoff_smoothcc.clear();
+        cutoff_curvecc.clear();
+        cutoff2_oncc.clear();
+        cutoff2_smoothcc.clear();
+        cutoff2_curvecc.clear();
+        
+        resonance_oncc.clear();
+        resonance_smoothcc.clear();
+        resonance_curvecc.clear();
+        resonance2_oncc.clear();
+        resonance2_smoothcc.clear();
+        resonance2_curvecc.clear();
 
         // per voice equalizer
         eq1_freq = 50;
@@ -417,23 +431,11 @@ namespace sfz
             xfout_hicc.set(i, 0);
 
             // filter
-            cutoff_oncc.set(i, 0);
-            cutoff_smoothcc.set(i, 0);
             cutoff_stepcc.set(i, 0);
-            cutoff_curvecc.set(i, 0);
-            resonance_oncc.set(i, 0);
-            resonance_smoothcc.set(i, 0);
             resonance_stepcc.set(i, 0);
-            resonance_curvecc.set(i, 0);
-
-            cutoff2_oncc.set(i, 0);
-            cutoff2_smoothcc.set(i, 0);
+            
             cutoff2_stepcc.set(i, 0);
-            cutoff2_curvecc.set(i, 0);
-            resonance2_oncc.set(i, 0);
-            resonance2_smoothcc.set(i, 0);
             resonance2_stepcc.set(i, 0);
-            resonance2_curvecc.set(i, 0);
 
             // per voice equalizer
             eq1_freq_oncc.set(i, 0);
@@ -448,7 +450,6 @@ namespace sfz
             
             pitchlfo_depthcc.set(i, 0);
         }
-        cutoff_cc = 0;
 
         eg.clear();
         lfos.clear();
@@ -678,7 +679,6 @@ namespace sfz
         region->fil_type = fil_type;
         region->cutoff = cutoff;
         region->cutoff_oncc = cutoff_oncc;
-        region->cutoff_cc = cutoff_cc;
         region->cutoff_smoothcc = cutoff_smoothcc;
         region->cutoff_stepcc = cutoff_stepcc;
         region->cutoff_curvecc = cutoff_curvecc;
@@ -1037,6 +1037,30 @@ namespace sfz
             copySmoothValues(r->pan_smoothcc, r->pan_oncc);
             r->pan_smoothcc.clear();
             
+            copyCurves(r->cutoff_curvecc, r->cutoff_oncc);
+            r->cutoff_curvecc.clear();
+            
+            copySmoothValues(r->cutoff_smoothcc, r->cutoff_oncc);
+            r->cutoff_smoothcc.clear();
+            
+            copyCurves(r->cutoff2_curvecc, r->cutoff2_oncc);
+            r->cutoff2_curvecc.clear();
+            
+            copySmoothValues(r->cutoff2_smoothcc, r->cutoff2_oncc);
+            r->cutoff2_smoothcc.clear();
+            
+            copyCurves(r->resonance_curvecc, r->resonance_oncc);
+            r->resonance_curvecc.clear();
+            
+            copySmoothValues(r->resonance_smoothcc, r->resonance_oncc);
+            r->resonance_smoothcc.clear();
+            
+            copyCurves(r->resonance2_curvecc, r->resonance2_oncc);
+            r->resonance2_curvecc.clear();
+            
+            copySmoothValues(r->resonance2_smoothcc, r->resonance2_oncc);
+            r->resonance2_smoothcc.clear();
+            
             for (int j = 0; j < r->eg.size(); j++) {
                 copyCurves(r->eg[j].pan_curvecc, r->eg[j].pan_oncc);
                 r->eg[j].pan_curvecc.clear();
@@ -1381,8 +1405,10 @@ namespace sfz
         }
         else if ("cutoff"  == key) pCurDef->cutoff = ToFloat(value);
         else if ("cutoff2" == key) pCurDef->cutoff2 = ToFloat(value);
-        else if ("cutoff_chanaft"  == key) pCurDef->cutoff_chanaft = ToInt(value);
-        else if ("cutoff2_chanaft" == key) pCurDef->cutoff2_chanaft = ToInt(value);
+        else if ("cutoff_chanaft"  == key) {
+            pCurDef->cutoff_chanaft = check(key, -9600, 9600, ToInt(value));
+            pCurDef->cutoff_oncc.add( CC(128, check(key, -9600, 9600, ToInt(value))) );
+        } else if ("cutoff2_chanaft" == key) pCurDef->cutoff2_chanaft = ToInt(value);
         else if ("cutoff_polyaft"  == key) pCurDef->cutoff_polyaft = ToInt(value);
         else if ("cutoff2_polyaft" == key) pCurDef->cutoff2_polyaft = ToInt(value);
         else if ("resonance"  == key) pCurDef->resonance = ToFloat(value);
@@ -1574,23 +1600,22 @@ namespace sfz
 
             // filter
             else if ("cutoff"  == key_cc || "cutoff_" == key_cc) {
-                pCurDef->cutoff_oncc.set(num_cc, ToInt(value));
-                pCurDef->cutoff_cc = num_cc;
-            } else if ("cutoff2" == key_cc) pCurDef->cutoff2_oncc.set(num_cc, ToInt(value));
-            else if ("cutoff_smooth"  == key_cc) pCurDef->cutoff_smoothcc.set(num_cc, ToInt(value));
-            else if ("cutoff2_smooth" == key_cc) pCurDef->cutoff2_smoothcc.set(num_cc, ToInt(value));
+                pCurDef->cutoff_oncc.add( CC(num_cc, check(key, -9600, 9600, ToInt(value))) );
+            } else if ("cutoff2" == key_cc) pCurDef->cutoff2_oncc.add( CC(num_cc, check(key, -9600, 9600, ToInt(value))) );
+            else if ("cutoff_smooth"  == key_cc) pCurDef->cutoff_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
+            else if ("cutoff2_smooth" == key_cc) pCurDef->cutoff2_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
             else if ("cutoff_step"  == key_cc) pCurDef->cutoff_stepcc.set(num_cc, ToInt(value));
             else if ("cutoff2_step" == key_cc) pCurDef->cutoff2_stepcc.set(num_cc, ToInt(value));
-            else if ("cutoff_curve" == key_cc) pCurDef->cutoff_curvecc.set(num_cc, ToInt(value));
-            else if ("cutoff2_curve" == key_cc) pCurDef->cutoff2_curvecc.set(num_cc, ToInt(value));
-            else if ("resonance" == key_cc) pCurDef->resonance_oncc.set(num_cc, ToInt(value));
-            else if ("resonance2" == key_cc) pCurDef->resonance2_oncc.set(num_cc, ToInt(value));
-            else if ("resonance_smooth" == key_cc) pCurDef->resonance_smoothcc.set(num_cc, ToInt(value));
-            else if ("resonance2_smooth" == key_cc) pCurDef->resonance2_smoothcc.set(num_cc, ToInt(value));
+            else if ("cutoff_curve" == key_cc) pCurDef->cutoff_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
+            else if ("cutoff2_curve" == key_cc) pCurDef->cutoff2_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
+            else if ("resonance" == key_cc) pCurDef->resonance_oncc.add( CC(num_cc, check(key, 0.0f, 40.0f, ToFloat(value))) );
+            else if ("resonance2" == key_cc) pCurDef->resonance2_oncc.add( CC(num_cc, check(key, 0.0f, 40.0f, ToFloat(value))) );
+            else if ("resonance_smooth" == key_cc) pCurDef->resonance_smoothcc.add( CC(num_cc, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if ("resonance2_smooth" == key_cc) pCurDef->resonance2_smoothcc.add( CC(num_cc, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
             else if ("resonance_step" == key_cc) pCurDef->resonance_stepcc.set(num_cc, ToInt(value));
             else if ("resonance2_step" == key_cc) pCurDef->resonance2_stepcc.set(num_cc, ToInt(value));
-            else if ("resonance_curve" == key_cc) pCurDef->resonance_curvecc.set(num_cc, ToInt(value));
-            else if ("resonance2_curve" == key_cc) pCurDef->resonance2_curvecc.set(num_cc, ToInt(value));
+            else if ("resonance_curve" == key_cc) pCurDef->resonance_curvecc.add( CC(num_cc, 0.0f, check(key, 0, 30000, ToInt(value))) );
+            else if ("resonance2_curve" == key_cc) pCurDef->resonance2_curvecc.add( CC(num_cc, 0.0f, check(key, 0, 30000, ToInt(value))) );
 
             // per voice equalizer
             else if ("eq1_freq" == key_cc) pCurDef->eq1_freq_oncc.set(num_cc, ToInt(value));

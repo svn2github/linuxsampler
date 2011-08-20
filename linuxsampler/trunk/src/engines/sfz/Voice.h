@@ -73,10 +73,10 @@ namespace LinuxSampler { namespace sfz {
             virtual void             InitLFO3() { }
             virtual float            CalculateCutoffBase(uint8_t MIDIKeyVelocity);
             virtual float            CalculateFinalCutoff(float cutoffBase);
-            virtual uint8_t          GetVCFCutoffCtrl();
-            virtual uint8_t          GetVCFResonanceCtrl();
+            virtual uint8_t          GetVCFCutoffCtrl() { return 0; }
+            virtual uint8_t          GetVCFResonanceCtrl() { return 0; }
             virtual void             ProcessCCEvent(RTList<Event>::Iterator& itEvent);
-            virtual void             ProcessCutoffEvent(RTList<Event>::Iterator& itEvent);
+            virtual void             ProcessCutoffEvent(RTList<Event>::Iterator& itEvent) { }
             virtual double           GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
             virtual double           GetVelocityRelease(uint8_t MIDIKeyVelocity);
             virtual double           GetSampleAttenuation();
