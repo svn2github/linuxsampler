@@ -135,6 +135,43 @@ td.decorated_header {
 	padding: 0.6em;
 }
 
+table.decocomp {
+    border: none;
+    background-color: transparent;
+    font-size: 13.33px;
+    font-family: sans-serif,Arial,Helvetica;
+    text-align: justify;
+    font-style: normal;
+    font-weight: normal;
+    padding: 0em 0em 0em 0em;
+    margin: 0em 0em 0em 1em;
+}
+
+td.decocomp {
+    border: none;
+    background-color: #F2F2F4;
+    font-size: 13.33px;
+    font-family: sans-serif,Arial,Helvetica;
+    font-style: normal;
+    font-weight: normal;
+    text-align: left;
+    padding-left: 0.6em;
+    padding-right: 0.6em;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+}
+
+td.decocomp_header {
+    border: none;
+    background-color: #dddddd;
+    font-size: 13.33px;
+    font-family: sans-serif,Arial,Helvetica;
+    font-style: normal;
+    font-weight: bold;
+    text-align: left;
+    padding: 0.6em;
+}
+
 .boxed {
 	padding: 0.6em;
 	border: 1px outset White;
