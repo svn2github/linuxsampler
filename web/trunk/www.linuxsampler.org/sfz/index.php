@@ -171,7 +171,7 @@ include '../tmpl/header.php';
 
 <tr><td class="decocomp_header" colspan="3">Amplifier</td></tr>
 <tr><td class="decocomp">volume</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">pan</td><td style="background: #ffb">P?</td><td class="decocomp">funkar, men kan finetunas</td></tr>
+<tr><td>pan</td><td style="background: #90ff90; text-align: center">Yes</td><td>Works, but can be fine-tuned. sfzplayer uses L=cos((100 + pan) / 200 * pi / 2) * sqrt(2), Dimension LE uses L=sqrt((100 - x) / 100), but LS uses a line-approximation measured from GigaStudio, which lies somewhere between to other two.</td></tr>
 <tr><td class="decocomp">width</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">position</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">amp_keytrack</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
@@ -289,7 +289,6 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">&lt;effects><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 
 <tr><td class="decocomp_header" colspan="3"><b>Sample Definition</b></td></tr>
-<!-- <tr><td>sample<td style="background: #ff9090; text-align: center">No</td><td>&nbsp;</td></tr> -->
 <tr><td class="decocomp">md5<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">waveguide<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 
@@ -578,7 +577,7 @@ include '../tmpl/header.php';
 <br>
 
 <h2>ARIA custom opcodes</h2>
-<p>The ARIA Engine from Plouge / Garritan implements some <a href="http://www.plogue.com/phpBB3/viewtopic.php?f=14&t=4386">custom SFZ opcodes</a>. Only some of them are listed here.</p>
+<p>The ARIA Engine from Plouge / Garritan implements some <a href="http://www.plogue.com/phpBB3/viewtopic.php?f=14&amp;t=4389">custom sfz opcodes</a>. Only some of them are listed here.</p>
 
 <table class="decocomp">
 <thead>
