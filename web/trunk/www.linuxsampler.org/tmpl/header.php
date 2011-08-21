@@ -115,7 +115,7 @@
         <h1><span class="hidden">The LinuxSampler Project</span></h1>
 
             <table border=0 cellspacing=0 cellpadding=0><tr><th colspan=2 align=left>
-            <img name="h1about" src="/gfx/h1about.png" alt="About"><span class="hidden">about</span></th></tr>
+            <img name="h1about" src="/gfx/h1blank.png" alt="About"><span class="hidden">about</span></th></tr>
             <tr><td valign=top>
             <a id="news" href="/index.php" onmouseover="javascript:if(document.images)document.news.src = newsover.src" onmouseout="javascript:if(document.images)document.news.src = newsout.src"><img name="news" src="/gfx/mnews.png" alt="news"></a>
             <a id="about" href="/about.html" onmouseover="javascript:if(document.images)document.about.src = aboutover.src" onmouseout="javascript:if(document.images)document.about.src = aboutout.src"><img name="about" src="/gfx/mabout.png" alt="about"></a>
