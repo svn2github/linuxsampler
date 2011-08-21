@@ -80,11 +80,9 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">offset_ccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: offset_onccN</td></tr>
 <tr><td class="decocomp">end</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">count</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">loop_mode</td><td style="background: #ffb">P?</td><td class="decocomp">Alias: loopmode. bara delvis, dvs om loop eller inte (+ one_shot?)
-    no_loop, one_shot, loop_continuous, loop_sustain</td></tr>
-<tr><td class="decocomp">loop_start</td><td style="background: #ffb">P?</td><td class="decocomp">Alias: loopstart. är det rätt? - TODO use sample loop when loop_start
-    not defined</td></tr>
-<tr><td class="decocomp">loop_end</td><td style="background: #ffb">P?</td><td class="decocomp">Alias: loopend. är det rätt? - TODO &quot;</td></tr>
+<tr><td class="decocomp">loop_mode</td><td style="background: #ffb; text-align: center">Partial</td><td class="decocomp">Alias: loopmode<br>Supported values: no_loop, one_shot, loop_continuous<br>Unsupported value: loop_sustain</td></tr>
+<tr><td class="decocomp">loop_start</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Alias: loopstart</td></tr>
+<tr><td class="decocomp">loop_end</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Alias: loopend</td></tr>
 <tr><td class="decocomp">sync_beats</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">sync_offset</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 
@@ -171,7 +169,7 @@ include '../tmpl/header.php';
 
 <tr><td class="decocomp_header" colspan="3">Amplifier</td></tr>
 <tr><td class="decocomp">volume</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">pan</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Works, but can be fine-tuned. sfzplayer uses L=cos((100 + pan) / 200 * pi / 2) * sqrt(2), Dimension LE uses L=sqrt((100 - x) / 100), but LS uses a line-approximation measured from GigaStudio, which lies somewhere between to other two.</td></tr>
+<tr><td class="decocomp">pan</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Works, but can be fine-tuned. sfzplayer uses L=cos((100 + pan) / 200 * pi / 2) * sqrt(2), Dimension LE uses L=sqrt((100 - x) / 100), but LS uses a line segment approximation measured from GigaStudio, which lies somewhere between to other two.</td></tr>
 <tr><td class="decocomp">width</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">position</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">amp_keytrack</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
@@ -293,7 +291,7 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">waveguide<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 
 <tr><td class="decocomp_header" colspan="3"><b>&lt;control> Header Directives</b></td></tr>
-<tr><td class="decocomp">default_path<td style="background: #ffb; text-align: center">P?</td><td class="decocomp">"funkar kanske, om det inte ska vara en /"</td></tr>
+<tr><td class="decocomp">default_path<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">octave_offset<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">note_offset<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">set_ccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
