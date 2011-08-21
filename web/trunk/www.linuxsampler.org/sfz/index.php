@@ -171,7 +171,7 @@ include '../tmpl/header.php';
 
 <tr><td class="decocomp_header" colspan="3">Amplifier</td></tr>
 <tr><td class="decocomp">volume</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td>pan</td><td style="background: #90ff90; text-align: center">Yes</td><td>Works, but can be fine-tuned. sfzplayer uses L=cos((100 + pan) / 200 * pi / 2) * sqrt(2), Dimension LE uses L=sqrt((100 - x) / 100), but LS uses a line-approximation measured from GigaStudio, which lies somewhere between to other two.</td></tr>
+<tr><td class="decocomp">pan</td><td style="background: #90ff90; text-align: center">Yes</td><td>Works, but can be fine-tuned. sfzplayer uses L=cos((100 + pan) / 200 * pi / 2) * sqrt(2), Dimension LE uses L=sqrt((100 - x) / 100), but LS uses a line-approximation measured from GigaStudio, which lies somewhere between to other two.</td></tr>
 <tr><td class="decocomp">width</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">position</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">amp_keytrack</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
