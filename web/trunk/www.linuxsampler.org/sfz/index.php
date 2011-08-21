@@ -315,6 +315,9 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">oscillator_mode<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">oscillator_detune<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">oscillator_detune_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">oscillator_detune_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">oscillator_detune_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">oscillator_detune_curveccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 <tr><td class="decocomp">oscillator_mod_depth<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">oscillator_mod_depth_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">oscillator_mod_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
@@ -344,21 +347,24 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">loop_crossfade<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 
 <tr><td class="decocomp_header" colspan="3">Amplifier</td></tr>
-<tr><td class="decocomp">volume_onccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but supported in Dimension LE.</td></tr>
-<tr><td class="decocomp">volume_smoothccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but supported in Dimension LE.</td></tr>
-<tr><td class="decocomp">volume_curveccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but supported in Dimension LE.</td></tr>
-<tr><td class="decocomp">pan_onccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but supported in Dimension LE.</td></tr>
-<tr><td class="decocomp">pan_smoothccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but supported in Dimension LE.</td></tr>
-<tr><td class="decocomp">pan_curveccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but supported in Dimension LE.</td></tr>
-<tr><td class="decocomp">width_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but supported in Dimension LE.</td></tr>
-<tr><td class="decocomp">width_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but supported in Dimension LE.</td></tr>
-<tr><td class="decocomp">width_curveccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but supported in Dimension LE.</td></tr>
+<tr><td class="decocomp">volume_onccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">volume_smoothccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">volume_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">volume_curveccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">pan_onccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">pan_smoothccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">pan_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">pan_curveccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">width_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">width_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">width_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">width_curveccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 
 <tr><td class="decocomp_header" colspan="3">Pitch</td></tr>
 <tr><td class="decocomp">pitch_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">pitch_curveccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">pitch_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">pitch_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but supported in Dimension LE.</td></tr>
+<tr><td class="decocomp">pitch_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 <tr><td class="decocomp">bend_stepup<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">bend_stepdown<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 
