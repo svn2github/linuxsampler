@@ -259,7 +259,10 @@ p {
 	text-align: justify;
 	font-style: normal;
 	font-weight: normal;
-	padding: 1em 2.2em;
+	padding-left: 1.2em;
+	padding-right: 1.2em;
+	padding-top: 0.0em;
+	padding-bottom: 0.0em;
 }
 
 p.default  {
