@@ -347,11 +347,11 @@ include '../tmpl/header.php';
 <tr><td class="decocomp_header" colspan="3">Amplifier</td></tr>
 <tr><td class="decocomp">volume_onccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 <tr><td class="decocomp">volume_smoothccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
-<tr><td class="decocomp">volume_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">volume_stepccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 <tr><td class="decocomp">volume_curveccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 <tr><td class="decocomp">pan_onccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 <tr><td class="decocomp">pan_smoothccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
-<tr><td class="decocomp">pan_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">pan_stepccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 <tr><td class="decocomp">pan_curveccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 <tr><td class="decocomp">width_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 <tr><td class="decocomp">width_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
@@ -359,10 +359,10 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">width_curveccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 
 <tr><td class="decocomp_header" colspan="3">Pitch</td></tr>
-<tr><td class="decocomp">pitch_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">pitch_curveccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">pitch_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">pitch_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
+<tr><td class="decocomp">pitch_onccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">pitch_curveccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">pitch_stepccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">pitch_smoothccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Not listed in the book, but recognized by Dimension LE.</td></tr>
 <tr><td class="decocomp">bend_stepup<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">bend_stepdown<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 
@@ -372,7 +372,7 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">cutoff2_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">cutoff_smoothccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">cutoff2_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">cutoff_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">cutoff_stepccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">cutoff2_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">cutoff_curveccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">cutoff2_curveccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
@@ -381,7 +381,7 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">resonance2_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">resonance_smoothccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">resonance2_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">resonance_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">resonance_stepccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">resonance2_stepccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">resonance_curveccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">resonance2_curveccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
@@ -461,7 +461,7 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">lfoN_freq<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_freq_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_freq_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_freq_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_freq_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_delay<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_delay_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_fade<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
@@ -486,9 +486,9 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">lfoN_amplitude_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_pan_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_width_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_volume_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_volume_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_amplitude_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_pan_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_pan_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_width_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_freq_lfoX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_depth_lfoX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
@@ -496,7 +496,7 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">lfoN_pitch<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_pitch_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_pitch_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_pitch_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_pitch_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_cutoff<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_cutoff2<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_resonance<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
@@ -509,9 +509,9 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">lfoN_cutoff2_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_resonance_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_resonance2_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_cutoff_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_cutoff_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_cutoff2_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_resonance_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_resonance_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_resonance2_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_eq1freq<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_eq2freq<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
