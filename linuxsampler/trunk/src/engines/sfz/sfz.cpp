@@ -322,10 +322,12 @@ namespace sfz
         volume_oncc.clear();
         volume_curvecc.clear();
         volume_smoothcc.clear();
+        volume_stepcc.clear();
         pan = 0;
         pan_oncc.clear();
         pan_curvecc.clear();
         pan_smoothcc.clear();
+        pan_stepcc.clear();
         width = 100;
         position = 0;
         amp_keytrack = 0;
@@ -381,16 +383,20 @@ namespace sfz
         cutoff_oncc.clear();
         cutoff_smoothcc.clear();
         cutoff_curvecc.clear();
+        cutoff_stepcc.clear();
         cutoff2_oncc.clear();
         cutoff2_smoothcc.clear();
         cutoff2_curvecc.clear();
+        cutoff2_stepcc.clear();
         
         resonance_oncc.clear();
         resonance_smoothcc.clear();
         resonance_curvecc.clear();
+        resonance_stepcc.clear();
         resonance2_oncc.clear();
         resonance2_smoothcc.clear();
         resonance2_curvecc.clear();
+        resonance2_stepcc.clear();
 
         // per voice equalizer
         eq1_freq = 50;
@@ -434,13 +440,6 @@ namespace sfz
             xfin_hicc.set(i, 0);
             xfout_locc.set(i, 0);
             xfout_hicc.set(i, 0);
-
-            // filter
-            cutoff_stepcc.set(i, 0);
-            resonance_stepcc.set(i, 0);
-            
-            cutoff2_stepcc.set(i, 0);
-            resonance2_stepcc.set(i, 0);
 
             // per voice equalizer
             eq1_freq_oncc.set(i, 0);
@@ -639,10 +638,12 @@ namespace sfz
         region->volume_oncc = volume_oncc;
         region->volume_curvecc = volume_curvecc;
         region->volume_smoothcc = volume_smoothcc;
+        region->volume_stepcc = volume_stepcc;
         region->pan = pan;
         region->pan_oncc = pan_oncc;
         region->pan_curvecc = pan_curvecc;
         region->pan_smoothcc = pan_smoothcc;
+        region->pan_stepcc = pan_stepcc;
         region->width = width;
         region->position = position;
         region->amp_keytrack = amp_keytrack;
@@ -1040,6 +1041,9 @@ namespace sfz
             copySmoothValues(r->volume_smoothcc, r->volume_oncc);
             r->volume_smoothcc.clear();
             
+            copyStepValues(r->volume_stepcc, r->volume_oncc);
+            r->volume_stepcc.clear();
+            
             copyCurves(r->pitch_curvecc, r->pitch_oncc);
             r->pitch_curvecc.clear();
             
@@ -1055,11 +1059,17 @@ namespace sfz
             copySmoothValues(r->pan_smoothcc, r->pan_oncc);
             r->pan_smoothcc.clear();
             
+            copyStepValues(r->pan_stepcc, r->pan_oncc);
+            r->pan_stepcc.clear();
+            
             copyCurves(r->cutoff_curvecc, r->cutoff_oncc);
             r->cutoff_curvecc.clear();
             
             copySmoothValues(r->cutoff_smoothcc, r->cutoff_oncc);
             r->cutoff_smoothcc.clear();
+            
+            copyStepValues(r->cutoff_stepcc, r->cutoff_oncc);
+            r->cutoff_stepcc.clear();
             
             copyCurves(r->cutoff2_curvecc, r->cutoff2_oncc);
             r->cutoff2_curvecc.clear();
@@ -1067,17 +1077,26 @@ namespace sfz
             copySmoothValues(r->cutoff2_smoothcc, r->cutoff2_oncc);
             r->cutoff2_smoothcc.clear();
             
+            copyStepValues(r->cutoff2_stepcc, r->cutoff2_oncc);
+            r->cutoff2_stepcc.clear();
+            
             copyCurves(r->resonance_curvecc, r->resonance_oncc);
             r->resonance_curvecc.clear();
             
             copySmoothValues(r->resonance_smoothcc, r->resonance_oncc);
             r->resonance_smoothcc.clear();
             
+            copyStepValues(r->resonance_stepcc, r->resonance_oncc);
+            r->resonance_stepcc.clear();
+            
             copyCurves(r->resonance2_curvecc, r->resonance2_oncc);
             r->resonance2_curvecc.clear();
             
             copySmoothValues(r->resonance2_smoothcc, r->resonance2_oncc);
             r->resonance2_smoothcc.clear();
+            
+            copyStepValues(r->resonance2_stepcc, r->resonance2_oncc);
+            r->resonance2_stepcc.clear();
             
             for (int j = 0; j < r->eg.size(); j++) {
                 copyCurves(r->eg[j].pan_curvecc, r->eg[j].pan_oncc);
@@ -1088,20 +1107,38 @@ namespace sfz
                 copySmoothValues(r->lfos[j].volume_smoothcc, r->lfos[j].volume_oncc);
                 r->lfos[j].volume_smoothcc.clear();
                 
+                copyStepValues(r->lfos[j].volume_stepcc, r->lfos[j].volume_oncc);
+                r->lfos[j].volume_stepcc.clear();
+                
                 copySmoothValues(r->lfos[j].freq_smoothcc, r->lfos[j].freq_oncc);
                 r->lfos[j].freq_smoothcc.clear();
+                
+                copyStepValues(r->lfos[j].freq_stepcc, r->lfos[j].freq_oncc);
+                r->lfos[j].freq_stepcc.clear();
                 
                 copySmoothValues(r->lfos[j].pitch_smoothcc, r->lfos[j].pitch_oncc);
                 r->lfos[j].pitch_smoothcc.clear();
                 
+                copyStepValues(r->lfos[j].pitch_stepcc, r->lfos[j].pitch_oncc);
+                r->lfos[j].pitch_stepcc.clear();
+                
                 copySmoothValues(r->lfos[j].pan_smoothcc, r->lfos[j].pan_oncc);
                 r->lfos[j].pan_smoothcc.clear();
+                
+                copyStepValues(r->lfos[j].pan_stepcc, r->lfos[j].pan_oncc);
+                r->lfos[j].pan_stepcc.clear();
                 
                 copySmoothValues(r->lfos[j].cutoff_smoothcc, r->lfos[j].cutoff_oncc);
                 r->lfos[j].cutoff_smoothcc.clear();
                 
+                copyStepValues(r->lfos[j].cutoff_stepcc, r->lfos[j].cutoff_oncc);
+                r->lfos[j].cutoff_stepcc.clear();
+                
                 copySmoothValues(r->lfos[j].resonance_smoothcc, r->lfos[j].resonance_oncc);
                 r->lfos[j].resonance_smoothcc.clear();
+                
+                copyStepValues(r->lfos[j].resonance_stepcc, r->lfos[j].resonance_oncc);
+                r->lfos[j].resonance_stepcc.clear();
             }
         }
     }
@@ -1576,6 +1613,7 @@ namespace sfz
             if (strcmp(s, "_freq") == 0) lfo(x).freq = check(key, 0.0f, 20.0f, ToFloat(value));
             else if (sscanf(s, "_freq_oncc%d", &y)) lfo(x).freq_oncc.add( CC(y, check(key, 0.0f, 20.0f, ToFloat(value))) );
             else if (sscanf(s, "_freq_smoothcc%d", &y)) lfo(x).freq_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_freq_stepcc%d", &y)) lfo(x).freq_stepcc.add( CC(y, 0, -1, 0, check(key, 0.0f, 20.0f, ToFloat(value))) );
             else if (strcmp(s, "_wave") == 0) lfo(x).wave = ToInt(value);
             else if (strcmp(s, "_delay") == 0) lfo(x).delay = check(key, 0.0f, 100.0f, ToFloat(value));
             else if (sscanf(s, "_delay_oncc%d", &y)) lfo(x).delay_oncc.add( CC(y, check(key, 0.0f, 100.0f, ToFloat(value))) );
@@ -1586,18 +1624,23 @@ namespace sfz
             else if (strcmp(s, "_volume") == 0) lfo(x).volume = check(key, -144.0f, 6.0f, ToFloat(value));
             else if (sscanf(s, "_volume_oncc%d", &y)) lfo(x).volume_oncc.add( CC(y, check(key, -144.0f, 6.0f, ToFloat(value))) );
             else if (sscanf(s, "_volume_smoothcc%d", &y)) lfo(x).volume_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_volume_stepcc%d", &y)) lfo(x).volume_stepcc.add( CC(y, 0, -1, 0, check(key, -20.0f, 20.0f, ToFloat(value))) );
             else if (strcmp(s, "_pitch") == 0) lfo(x).pitch = check(key, -9600, 9600, ToInt(value));
             else if (sscanf(s, "_pitch_oncc%d", &y)) lfo(x).pitch_oncc.add( CC(y, check(key, -9600, 9600, ToInt(value))) );
             else if (sscanf(s, "_pitch_smoothcc%d", &y)) lfo(x).pitch_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_pitch_stepcc%d", &y)) lfo(x).pitch_stepcc.add( CC(y, 0, -1, 0, check(key, -9600, 9600, ToInt(value))) );
             else if (strcmp(s, "_cutoff") == 0) lfo(x).cutoff = check(key, -9600, 9600, ToInt(value));
             else if (sscanf(s, "_cutoff_oncc%d", &y)) lfo(x).cutoff_oncc.add( CC(y, check(key, -9600, 9600, ToInt(value))) );
             else if (sscanf(s, "_cutoff_smoothcc%d", &y)) lfo(x).cutoff_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_cutoff_stepcc%d", &y)) lfo(x).cutoff_stepcc.add( CC(y, 0, -1, 0, check(key, -9600, 9600, ToInt(value))) );
             else if (strcmp(s, "_resonance") == 0) lfo(x).resonance = check(key, 0.0f, 40.0f, ToFloat(value));
             else if (sscanf(s, "_resonance_oncc%d", &y)) lfo(x).resonance_oncc.add( CC(y, check(key, 0.0f, 40.0f, ToFloat(value))) );
             else if (sscanf(s, "_resonance_smoothcc%d", &y)) lfo(x).resonance_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_resonance_stepcc%d", &y)) lfo(x).resonance_stepcc.add( CC(y, 0, -1, 0, check(key, 0.0f, 40.0f, ToFloat(value))) );
             else if (strcmp(s, "_pan") == 0) lfo(x).pan = check(key, -100.0f, 100.0f, ToFloat(value));
             else if (sscanf(s, "_pan_oncc%d", &y)) lfo(x).pan_oncc.add( CC(y, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if (sscanf(s, "_pan_smoothcc%d", &y)) lfo(x).pan_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_pan_stepcc%d", &y)) lfo(x).pan_stepcc.add( CC(y, 0, -1, 0, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
         
@@ -1645,16 +1688,16 @@ namespace sfz
             } else if ("cutoff2" == key_cc) pCurDef->cutoff2_oncc.add( CC(num_cc, check(key, -9600, 9600, ToInt(value))) );
             else if ("cutoff_smooth"  == key_cc) pCurDef->cutoff_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
             else if ("cutoff2_smooth" == key_cc) pCurDef->cutoff2_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
-            else if ("cutoff_step"  == key_cc) pCurDef->cutoff_stepcc.set(num_cc, ToInt(value));
-            else if ("cutoff2_step" == key_cc) pCurDef->cutoff2_stepcc.set(num_cc, ToInt(value));
+            else if ("cutoff_step"  == key_cc) pCurDef->cutoff_stepcc.add( CC(num_cc, 0, -1, 0, check(key, -1200, 1200, ToInt(value))) );
+            else if ("cutoff2_step" == key_cc) pCurDef->cutoff2_stepcc.add( CC(num_cc, 0, -1, 0, check(key, -1200, 1200, ToInt(value))) );
             else if ("cutoff_curve" == key_cc) pCurDef->cutoff_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
             else if ("cutoff2_curve" == key_cc) pCurDef->cutoff2_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
             else if ("resonance" == key_cc) pCurDef->resonance_oncc.add( CC(num_cc, check(key, 0.0f, 40.0f, ToFloat(value))) );
             else if ("resonance2" == key_cc) pCurDef->resonance2_oncc.add( CC(num_cc, check(key, 0.0f, 40.0f, ToFloat(value))) );
             else if ("resonance_smooth" == key_cc) pCurDef->resonance_smoothcc.add( CC(num_cc, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
             else if ("resonance2_smooth" == key_cc) pCurDef->resonance2_smoothcc.add( CC(num_cc, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
-            else if ("resonance_step" == key_cc) pCurDef->resonance_stepcc.set(num_cc, ToInt(value));
-            else if ("resonance2_step" == key_cc) pCurDef->resonance2_stepcc.set(num_cc, ToInt(value));
+            else if ("resonance_step" == key_cc) pCurDef->resonance_stepcc.add( CC(num_cc, 0, -1, 0, check(key, 0.0f, 40.0f, ToFloat(value))) );
+            else if ("resonance2_step" == key_cc) pCurDef->resonance2_stepcc.add( CC(num_cc, 0, -1, 0, check(key, 0.0f, 40.0f, ToFloat(value))) );
             else if ("resonance_curve" == key_cc) pCurDef->resonance_curvecc.add( CC(num_cc, 0.0f, check(key, 0, 30000, ToInt(value))) );
             else if ("resonance2_curve" == key_cc) pCurDef->resonance2_curvecc.add( CC(num_cc, 0.0f, check(key, 0, 30000, ToInt(value))) );
 
@@ -1710,9 +1753,11 @@ namespace sfz
             else if ("volume" == key_cc) pCurDef->volume_oncc.add( CC(num_cc, check(key, -144.0f, 100.0f, ToFloat(value))) );
             else if ("volume_curve" == key_cc) pCurDef->volume_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
             else if ("volume_smooth" == key_cc) pCurDef->volume_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
+            else if ("volume_step" == key_cc) pCurDef->volume_stepcc.add( CC(num_cc, 0, -1, 0, check(key, -20.0f, 20.0f, ToFloat(value))) );
             else if ("pan" == key_cc) pCurDef->pan_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if ("pan_curve" == key_cc) pCurDef->pan_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
             else if ("pan_smooth" == key_cc) pCurDef->pan_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
+            else if ("pan_step" == key_cc) pCurDef->pan_stepcc.add( CC(num_cc, 0, -1, 0, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
 
@@ -1817,18 +1862,24 @@ namespace sfz
         delay_oncc      = lfo.delay_oncc;
         freq_oncc       = lfo.freq_oncc;
         freq_smoothcc   = lfo.freq_smoothcc;
+        freq_stepcc     = lfo.freq_stepcc;
         fade_oncc       = lfo.fade_oncc;
         phase_oncc      = lfo.phase_oncc;
         pitch_oncc      = lfo.pitch_oncc;
         pitch_smoothcc  = lfo.pitch_smoothcc;
+        pitch_stepcc    = lfo.pitch_stepcc;
         volume_oncc     = lfo.volume_oncc;
         volume_smoothcc = lfo.volume_smoothcc;
+        volume_stepcc   = lfo.volume_stepcc;
         pan_oncc        = lfo.pan_oncc;
         pan_smoothcc    = lfo.pan_smoothcc;
+        pan_stepcc      = lfo.pan_stepcc;
         cutoff_oncc     = lfo.cutoff_oncc;
         cutoff_smoothcc = lfo.cutoff_smoothcc;
+        cutoff_stepcc   = lfo.cutoff_stepcc;
         resonance_oncc     = lfo.resonance_oncc;
         resonance_smoothcc = lfo.resonance_smoothcc;
+        resonance_stepcc   = lfo.resonance_stepcc;
     }
 
     EG& File::eg(int x) {

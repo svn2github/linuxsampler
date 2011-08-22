@@ -336,18 +336,24 @@ namespace sfz
         LinuxSampler::ArrayList<CC> delay_oncc; // 0 to 100 seconds
         LinuxSampler::ArrayList<CC> freq_oncc; // 0 to 20 Hz
         LinuxSampler::ArrayList<CC> freq_smoothcc; // 0 to ? milliseconds
+        LinuxSampler::ArrayList<CC> freq_stepcc;
         LinuxSampler::ArrayList<CC> fade_oncc; // 0 to 100 seconds
         LinuxSampler::ArrayList<CC> phase_oncc; // 0 to 360 degrees
         LinuxSampler::ArrayList<CC> volume_oncc; // -144 to 6 dB
         LinuxSampler::ArrayList<CC> volume_smoothcc; // 0 to ? milliseconds
+        LinuxSampler::ArrayList<CC> volume_stepcc;
         LinuxSampler::ArrayList<CC> pitch_oncc;
         LinuxSampler::ArrayList<CC> pitch_smoothcc; // 0 to ? milliseconds
+        LinuxSampler::ArrayList<CC> pitch_stepcc;
         LinuxSampler::ArrayList<CC> pan_oncc; // -100 to 100 %
         LinuxSampler::ArrayList<CC> pan_smoothcc; // 0 to ? milliseconds
+        LinuxSampler::ArrayList<CC> pan_stepcc;
         LinuxSampler::ArrayList<CC> cutoff_oncc; // -9600 to 9600 cents
         LinuxSampler::ArrayList<CC> cutoff_smoothcc; // 0 to ? milliseconds
+        LinuxSampler::ArrayList<CC> cutoff_stepcc;
         LinuxSampler::ArrayList<CC> resonance_oncc; // 0 to 40 dB
         LinuxSampler::ArrayList<CC> resonance_smoothcc; // 0 to ? milliseconds
+        LinuxSampler::ArrayList<CC> resonance_stepcc; // 0 to 40 dB
         
         LFO();
         LFO(const LFO& lfo) { Copy(lfo); }
@@ -485,14 +491,14 @@ namespace sfz
         optional<float> cutoff; optional<float> cutoff2;
         LinuxSampler::ArrayList<CC> cutoff_oncc, cutoff2_oncc;
         LinuxSampler::ArrayList<CC> cutoff_smoothcc, cutoff2_smoothcc;
-        Array<int> cutoff_stepcc; Array<int> cutoff2_stepcc;
+        LinuxSampler::ArrayList<CC> cutoff_stepcc, cutoff2_stepcc;
         LinuxSampler::ArrayList<CC> cutoff_curvecc, cutoff2_curvecc;
         int cutoff_chanaft; int cutoff2_chanaft;
         int cutoff_polyaft; int cutoff2_polyaft;
         float resonance; float resonance2;
         LinuxSampler::ArrayList<CC> resonance_oncc, resonance2_oncc;
         LinuxSampler::ArrayList<CC> resonance_smoothcc, resonance2_smoothcc;
-        Array<int> resonance_stepcc; Array<int> resonance2_stepcc;
+        LinuxSampler::ArrayList<CC> resonance_stepcc, resonance2_stepcc;
         LinuxSampler::ArrayList<CC> resonance_curvecc, resonance2_curvecc;
         LinuxSampler::ArrayList<CC> pitch_oncc, pitch_stepcc;
         LinuxSampler::ArrayList<CC> pitch_smoothcc, pitch_curvecc;
@@ -552,10 +558,12 @@ namespace sfz
         LinuxSampler::ArrayList<CC> volume_oncc;
         LinuxSampler::ArrayList<CC> volume_curvecc; // used only as temporary buffer during the parsing - values are then moved to volume_oncc
         LinuxSampler::ArrayList<CC> volume_smoothcc; // used only as temporary buffer during the parsing - values are then moved to volume_oncc
+        LinuxSampler::ArrayList<CC> volume_stepcc; // used only as temporary buffer during the parsing - values are then moved to volume_oncc
         
         LinuxSampler::ArrayList<CC> pan_oncc; // -100 to 100 %
         LinuxSampler::ArrayList<CC> pan_curvecc; // used only as temporary buffer during the parsing - values are then moved to pan_oncc
         LinuxSampler::ArrayList<CC> pan_smoothcc; // used only as temporary buffer during the parsing - values are then moved to pan_oncc
+        LinuxSampler::ArrayList<CC> pan_stepcc; // used only as temporary buffer during the parsing - values are then moved to pan_oncc
     };
 
     class Query {

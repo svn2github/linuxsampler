@@ -166,6 +166,10 @@ Version CVS HEAD (?)
       pitchlfo_depthchanaft, pitchlfo_freqchanaft
     - implemented opcodes pitch_onccN,
       pitch_curveccN, pitch_smoothccN, pitch_stepccN
+    - implemented opcodes volume_stepccN, pan_stepccN,
+      cutoff_stepccN, resonance_stepccN, lfoN_freq_stepccX,
+      lfoN_volume_stepccX, lfoN_pitch_stepccX, lfoN_pan_stepccX,
+      lfoN_cutoff_stepccX, lfoN_resonance_stepccX
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
