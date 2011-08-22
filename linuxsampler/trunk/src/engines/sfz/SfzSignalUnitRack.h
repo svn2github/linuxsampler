@@ -68,7 +68,7 @@ namespace LinuxSampler { namespace sfz {
             void SetCCs(::sfz::Array<int>& pCC);
             void SetCCs(ArrayList< ::sfz::CC>& cc);
             
-            virtual void AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth);
+            virtual void AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth, float Step);
             
             int GetCurveCount();
             ::sfz::Curve* GetCurve(int idx);
@@ -95,7 +95,7 @@ namespace LinuxSampler { namespace sfz {
             SmoothCCUnit(SfzSignalUnitRack* rack, Listener* l = NULL): CurveCCUnit(rack, l), pSmoothers(NULL) { }
             virtual ~SmoothCCUnit();
             
-            virtual void AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth);
+            virtual void AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth, float Step);
             virtual void RemoveAllCCs() { CurveCCUnit::RemoveAllCCs(); pSmoothers->clear(); }
             virtual void InitCCList(Pool<CC>* pCCPool, Pool<Smoother>* pSmootherPool);
             
@@ -388,6 +388,7 @@ namespace LinuxSampler { namespace sfz {
             // SFZ v2
             
             SmoothCCUnit suVolOnCC;
+            SmoothCCUnit suPitchOnCC;
             SmoothCCUnit suCutoffOnCC;
             SmoothCCUnit suResOnCC;
             

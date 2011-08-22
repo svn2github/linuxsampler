@@ -329,10 +329,10 @@ namespace LinuxSampler {
      */
     class Smoother {
         protected:
-            uint    timeSteps; // The number of time steps to reach the goal
-            uint    currentTimeStep;
-            uint8_t goal; // 0 - 127
-            uint8_t prev; // 0 - 127
+            uint  timeSteps; // The number of time steps to reach the goal
+            uint  currentTimeStep;
+            float goal;
+            float prev;
             
         public:
             /**
@@ -341,7 +341,7 @@ namespace LinuxSampler {
              * @param sampleRate
              * @param val The initial value
              */
-            void trigger(float time, float sampleRate, uint8_t val = 0) {
+            void trigger(float time, float sampleRate, float val = 0) {
                 currentTimeStep = timeSteps = time * sampleRate;
                 prev = goal = val;
             }
@@ -350,7 +350,7 @@ namespace LinuxSampler {
              * Set the current value, which the smoother will not smooth out.
              * If you want the value to be smoothen out, use update() instead.
              */
-            void setValue( uint8_t val) {
+            void setValue( float val) {
                 currentTimeStep = timeSteps;
                 prev = goal = val;
             }
@@ -359,7 +359,7 @@ namespace LinuxSampler {
              * Sets a new value. The render function will return
              * values gradually approaching this value.
              */
-            void update(uint8_t val) {
+            void update(float val) {
                 if (val == goal) return;
                 
                 prev = prev + (goal - prev) * (currentTimeStep / (float)timeSteps);
@@ -367,12 +367,14 @@ namespace LinuxSampler {
                 currentTimeStep = 0;
             }
             
-            uint8_t render() {
+            float render() {
                 if (currentTimeStep >= timeSteps) return goal;
                 return prev + (goal - prev) * (currentTimeStep++ / (float)timeSteps);
             }
             
             bool isSmoothingOut() { return currentTimeStep < timeSteps; }
+            
+            float getGoal() { return goal; }
     };
     
     /**
@@ -394,15 +396,23 @@ namespace LinuxSampler {
                     uint8_t   Value;       ///< Controller Value.
                     short int Curve;       ///< specifies the curve type
                     float     Influence;
+                    float     Step;
                     
                     Smoother* pSmoother;
                     
-                    CC(uint8_t Controller = 0, float Influence = 0.0f, short int Curve = -1, Smoother* pSmoother = NULL) {
+                    CC (
+                        uint8_t   Controller = 0,
+                        float     Influence  = 0.0f,
+                        short int Curve      = -1,
+                        Smoother* pSmoother  = NULL,
+                        float     Step       = 0
+                    ) {
                         this->Controller = Controller;
                         this->Value = 0;
                         this->Curve = Curve;
                         this->Influence = Influence;
                         this->pSmoother = pSmoother;
+                        this->Step  = Step;
                     }
                     
                     CC(const CC& cc) { Copy(cc); }
@@ -410,10 +420,11 @@ namespace LinuxSampler {
                     
                     void Copy(const CC& cc) {
                         Controller = cc.Controller;
-                        Value = cc.Value;
-                        Influence = cc.Influence;
-                        Curve = cc.Curve;
-                        pSmoother = cc.pSmoother;
+                        Value      = cc.Value;
+                        Influence  = cc.Influence;
+                        Curve      = cc.Curve;
+                        pSmoother  = cc.pSmoother;
+                        Step       = cc.Step;
                     }
             };
             
@@ -455,12 +466,12 @@ namespace LinuxSampler {
                 pCtrls = new RTList<CC>(pCCPool);
             }
             
-            void AddCC(uint8_t Controller, float Influence, short int Curve = -1, Smoother* pSmoother = NULL) {
+            void AddCC(uint8_t Controller, float Influence, short int Curve = -1, Smoother* pSmoother = NULL, float Step = 0) {
                 if(pCtrls->poolIsEmpty()) {
                     std::cerr << "Maximum number of CC reached!" << std::endl;
                     return;
                 }
-                *(pCtrls->allocAppend()) = CC(Controller, Influence, Curve, pSmoother);
+                *(pCtrls->allocAppend()) = CC(Controller, Influence, Curve, pSmoother, Step);
                 if (pSmoother != NULL) hasSmoothCtrls = true;
             }
             
@@ -485,8 +496,17 @@ namespace LinuxSampler {
                 for(; ctrl != end; ++ctrl) {
                     if (Controller != (*ctrl).Controller) continue;
                     if ((*ctrl).Value == Value) continue;
+                    
                     (*ctrl).Value = Value;
-                    if ((*ctrl).pSmoother != NULL) (*ctrl).pSmoother->update(Value);
+                    
+                    if ((*ctrl).Step > 0 && (*ctrl).pSmoother != NULL) {
+                        float oldGoal = (*ctrl).pSmoother->getGoal();
+                        float newGoal = Normalize(Value, (*ctrl).Curve) * (*ctrl).Influence;
+                        newGoal = ((int) (newGoal / (*ctrl).Step)) * (*ctrl).Step;
+                        if (oldGoal != newGoal) (*ctrl).pSmoother->update(newGoal);
+                    }
+                    
+                    if ((*ctrl).pSmoother != NULL && (*ctrl).Step <= 0) (*ctrl).pSmoother->update(Value);
                     if (!bActive) bActive = true;
                     recalculate = true;
                 }
@@ -501,10 +521,17 @@ namespace LinuxSampler {
                 RTList<CC>::Iterator end  = pCtrls->end();
                 for(; ctrl != end; ++ctrl) {
                     if ((*ctrl).pSmoother == NULL) {
-                        l += Normalize((*ctrl).Value, (*ctrl).Curve) * (*ctrl).Influence;
+                        float val = Normalize((*ctrl).Value, (*ctrl).Curve) * (*ctrl).Influence;
+                        if ((*ctrl).Step > 0) val = ( (int)(val / (*ctrl).Step) ) * (*ctrl).Step;
+                        l += val;
                     } else {
                         if ((*ctrl).pSmoother->isSmoothingOut()) isSmoothingOut = true;
-                        l += Normalize((*ctrl).pSmoother->render(), (*ctrl).Curve) * (*ctrl).Influence;
+                        
+                        if ((*ctrl).Step > 0) {
+                            l += (*ctrl).pSmoother->render();
+                        } else {
+                            l += Normalize((*ctrl).pSmoother->render(), (*ctrl).Curve) * (*ctrl).Influence;
+                        }
                     }
                 }
                 if (Level != l) {

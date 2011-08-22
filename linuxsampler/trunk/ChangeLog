@@ -164,6 +164,8 @@ Version CVS HEAD (?)
     - implemented opcodes fillfo_depthchanaft,
       fillfo_freqchanaft, amplfo_depthchanaft, amplfo_freqchanaft,
       pitchlfo_depthchanaft, pitchlfo_freqchanaft
+    - implemented opcodes pitch_onccN,
+      pitch_curveccN, pitch_smoothccN, pitch_stepccN
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

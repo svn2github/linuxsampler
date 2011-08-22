@@ -112,12 +112,20 @@ namespace sfz
             short int Curve;
             float     Influence;   ///< Controller Value.
             float     Smooth;      ///< The speed of parameter change in milliseconds
+            float     Step;
             
-            CC(uint8_t Controller = 0, float Influence = 0.0f, short int Curve = -1, float Smooth = 0) {
+            CC (
+                uint8_t   Controller = 0,
+                float     Influence  = 0,
+                short int Curve      = -1,
+                float     Smooth     = 0,
+                float     Step       = 0
+            ) {
                 this->Controller = Controller;
                 this->Influence  = Influence;
                 this->Curve      = Curve;
                 this->Smooth     = Smooth;
+                this->Step       = Step;
             }
                     
             CC(const CC& cc) { Copy(cc); }
@@ -128,6 +136,7 @@ namespace sfz
                 Influence  = cc.Influence;
                 Curve      = cc.Curve;
                 Smooth     = cc.Smooth;
+                Step       = cc.Step;
             }
     };
 
@@ -485,6 +494,8 @@ namespace sfz
         LinuxSampler::ArrayList<CC> resonance_smoothcc, resonance2_smoothcc;
         Array<int> resonance_stepcc; Array<int> resonance2_stepcc;
         LinuxSampler::ArrayList<CC> resonance_curvecc, resonance2_curvecc;
+        LinuxSampler::ArrayList<CC> pitch_oncc, pitch_stepcc;
+        LinuxSampler::ArrayList<CC> pitch_smoothcc, pitch_curvecc;
         int fil_keytrack; int fil2_keytrack;
         int fil_keycenter; int fil2_keycenter;
         int fil_veltrack; int fil2_veltrack;
@@ -699,6 +710,7 @@ namespace sfz
         LFO& lfo(int x);
         void copyCurves(LinuxSampler::ArrayList<CC>& curves, LinuxSampler::ArrayList<CC>& dest);
         void copySmoothValues(LinuxSampler::ArrayList<CC>& smooths, LinuxSampler::ArrayList<CC>& dest);
+        void copyStepValues(LinuxSampler::ArrayList<CC>& steps, LinuxSampler::ArrayList<CC>& dest);
         
         int   ToInt(const std::string& s) throw(LinuxSampler::Exception);
         float ToFloat(const std::string& s) throw(LinuxSampler::Exception);

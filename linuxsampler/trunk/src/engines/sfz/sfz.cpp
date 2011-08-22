@@ -351,6 +351,11 @@ namespace sfz
         bend_up = 200;
         bend_down = -200;
         bend_step = 1;
+        
+        pitch_oncc.clear();
+        pitch_smoothcc.clear();
+        pitch_curvecc.clear();
+        pitch_stepcc.clear();
 
         // filter
         fil_type = LPF_2P;
@@ -673,6 +678,11 @@ namespace sfz
         region->bend_up = bend_up;
         region->bend_down = bend_down;
         region->bend_step = bend_step;
+        
+        region->pitch_oncc     = pitch_oncc;
+        region->pitch_smoothcc = pitch_smoothcc;
+        region->pitch_curvecc  = pitch_curvecc;
+        region->pitch_stepcc   = pitch_stepcc;
 
         // filter
         region->fil_type = fil_type;
@@ -1030,6 +1040,15 @@ namespace sfz
             copySmoothValues(r->volume_smoothcc, r->volume_oncc);
             r->volume_smoothcc.clear();
             
+            copyCurves(r->pitch_curvecc, r->pitch_oncc);
+            r->pitch_curvecc.clear();
+            
+            copySmoothValues(r->pitch_smoothcc, r->pitch_oncc);
+            r->pitch_smoothcc.clear();
+            
+            copyStepValues(r->pitch_stepcc, r->pitch_oncc);
+            r->pitch_stepcc.clear();
+            
             copyCurves(r->pan_curvecc, r->pan_oncc);
             r->pan_curvecc.clear();
             
@@ -1114,6 +1133,16 @@ namespace sfz
             for (int j = 0; j < dest.size(); j++) {
                 if (smooths[i].Controller == dest[j].Controller) {
                     dest[j].Smooth = smooths[i].Smooth;
+                }
+            }
+        }
+    }
+    
+    void File::copyStepValues(LinuxSampler::ArrayList<CC>& steps, LinuxSampler::ArrayList<CC>& dest) {
+        for (int i = 0; i < steps.size(); i++) {
+            for (int j = 0; j < dest.size(); j++) {
+                if (steps[i].Controller == dest[j].Controller) {
+                    dest[j].Step = steps[i].Step;
                 }
             }
         }
@@ -1603,6 +1632,12 @@ namespace sfz
             else if ("xfin_hi"  == key_cc) pCurDef->xfin_hicc.set(num_cc, ToInt(value));
             else if ("xfout_lo" == key_cc) pCurDef->xfout_locc.set(num_cc, ToInt(value));
             else if ("xfout_hi" == key_cc) pCurDef->xfout_hicc.set(num_cc, ToInt(value));
+            
+            // pitch
+            else if ("pitch" == key_cc) pCurDef->pitch_oncc.add( CC(num_cc, check(key, -9600, 9600, ToInt(value))) );
+            else if ("pitch_smooth" == key_cc) pCurDef->pitch_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
+            else if ("pitch_curve" == key_cc) pCurDef->pitch_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
+            else if ("pitch_step" == key_cc) pCurDef->pitch_stepcc.add( CC(num_cc, 0, -1, 0, check(key, 0, 1200, ToInt(value))) );
 
             // filter
             else if ("cutoff"  == key_cc || "cutoff_" == key_cc) {

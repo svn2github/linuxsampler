@@ -399,7 +399,14 @@ namespace LinuxSampler { namespace sfz {
         RTList<CC>::Iterator end  = pCtrls->end();
         for(; ctrl != end; ++ctrl) {
             (*ctrl).Value = pVoice->GetControllerValue((*ctrl).Controller);
-            if ((*ctrl).pSmoother != NULL) (*ctrl).pSmoother->setValue((*ctrl).Value);
+            if ((*ctrl).pSmoother != NULL) {
+                if ((*ctrl).Step > 0) {
+                    float val = Normalize((*ctrl).Value, (*ctrl).Curve) * (*ctrl).Influence;
+                    (*ctrl).pSmoother->setValue( ((int) (val / (*ctrl).Step)) * (*ctrl).Step );
+                } else {
+                    (*ctrl).pSmoother->setValue((*ctrl).Value);
+                }
+            }
         }
         CCSignalUnit::Trigger();
     }
@@ -417,13 +424,13 @@ namespace LinuxSampler { namespace sfz {
             if (cc[i].Influence != 0) {
                 short int curve = cc[i].Curve;
                 if (curve >= GetCurveCount()) curve = -1;
-                AddSmoothCC(cc[i].Controller, cc[i].Influence, curve, cc[i].Smooth);
+                AddSmoothCC(cc[i].Controller, cc[i].Influence, curve, cc[i].Smooth, cc[i].Step);
             }
         }
     }
      
-    void CCUnit::AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth) {
-        AddCC(Controller, Influence, Curve);
+    void CCUnit::AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth, float Step) {
+        AddCC(Controller, Influence, Curve, NULL, Step);
     }
      
     int CCUnit::GetCurveCount() {
@@ -443,7 +450,7 @@ namespace LinuxSampler { namespace sfz {
         if (pSmoothers != NULL) delete pSmoothers;
     }
      
-    void SmoothCCUnit::AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth) {
+    void SmoothCCUnit::AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth, float Step) {
         if (Smooth > 0) {
             if (pSmoothers->poolIsEmpty()) {
                 std::cerr << "Maximum number of smoothers reached" << std::endl;
@@ -451,9 +458,9 @@ namespace LinuxSampler { namespace sfz {
             }
             Smoother* smoother = &(*(pSmoothers->allocAppend()));
             smoother->trigger(Smooth / 1000.0f, GetSampleRate());
-            AddCC(Controller, Influence, Curve, smoother);
+            AddCC(Controller, Influence, Curve, smoother, Step);
         } else {
-            AddCC(Controller, Influence, Curve);
+            AddCC(Controller, Influence, Curve, NULL, Step);
         }
     }
      
@@ -641,9 +648,10 @@ namespace LinuxSampler { namespace sfz {
     }
     
     float EndpointUnit::GetPitch() {
-        double p;
+        double p = GetRack()->suPitchOnCC.Active() ? RTMath::CentsToFreqRatioUnlimited(GetRack()->suPitchOnCC.GetLevel()) : 1;
+        
         EGv1Unit* u = &(GetRack()->suPitchEG);
-        p = u->Active() ? RTMath::CentsToFreqRatioUnlimited(u->GetLevel() * u->depth) : 1;
+        p *= u->Active() ? RTMath::CentsToFreqRatioUnlimited(u->GetLevel() * u->depth) : 1;
         
         for (int i = 0; i < GetRack()->pitchEGs.size(); i++) {
             EGv2Unit* eg = GetRack()->pitchEGs[i];
@@ -727,14 +735,15 @@ namespace LinuxSampler { namespace sfz {
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
         : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suFilEG(this), suPitchEG(this),
         EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), filEGs(maxEgCount), resEGs(maxEgCount), panEGs(maxEgCount),
-        suVolOnCC(this), suCutoffOnCC(this), suResOnCC(this),
+        suVolOnCC(this), suPitchOnCC(this), suCutoffOnCC(this), suResOnCC(this),
         suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
         LFOs(maxLfoCount), volLFOs(maxLfoCount), pitchLFOs(maxLfoCount),
         filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
     {
         suEndpoint.pVoice = suEndpoint.suXFInCC.pVoice = suEndpoint.suXFOutCC.pVoice = suEndpoint.suPanOnCC.pVoice = voice;
         suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
-        suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = suVolOnCC.pVoice = suCutoffOnCC.pVoice = suResOnCC.pVoice = voice;
+        suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = voice;
+        suVolOnCC.pVoice = suPitchOnCC.pVoice = suCutoffOnCC.pVoice = suResOnCC.pVoice = voice;
         suPitchLFO.suDepthOnCC.pVoice = suPitchLFO.suFadeEG.pVoice = suPitchLFO.suFreqOnCC.pVoice = voice;
         suFilLFO.suFadeEG.pVoice = suFilLFO.suDepthOnCC.pVoice = suFilLFO.suFreqOnCC.pVoice = voice;
         suAmpLFO.suFadeEG.pVoice = suAmpLFO.suDepthOnCC.pVoice = suAmpLFO.suFreqOnCC.pVoice = voice;
@@ -780,6 +789,7 @@ namespace LinuxSampler { namespace sfz {
         Pool<Smoother>* pSmootherPool = pVoice->pEngine->pSmootherPool;
         
         suVolOnCC.InitCCList(pCCPool, pSmootherPool);
+        suPitchOnCC.InitCCList(pCCPool, pSmootherPool);
         suCutoffOnCC.InitCCList(pCCPool, pSmootherPool);
         suResOnCC.InitCCList(pCCPool, pSmootherPool);
         suEndpoint.suXFInCC.InitCCList(pCCPool, pSmootherPool);
@@ -831,6 +841,7 @@ namespace LinuxSampler { namespace sfz {
         ::sfz::Region* const pRegion = pVoice->pRegion;
         
         suVolOnCC.SetCCs(pRegion->volume_oncc);
+        suPitchOnCC.SetCCs(pRegion->pitch_oncc);
         suCutoffOnCC.SetCCs(pRegion->cutoff_oncc);
         suResOnCC.SetCCs(pRegion->resonance_oncc);
         
@@ -939,6 +950,7 @@ namespace LinuxSampler { namespace sfz {
         Units.clear();
         
         Units.add(&suVolOnCC);
+        Units.add(&suPitchOnCC);
         Units.add(&suCutoffOnCC);
         Units.add(&suResOnCC);
         
@@ -1004,6 +1016,7 @@ namespace LinuxSampler { namespace sfz {
     
     void SfzSignalUnitRack::Reset() {
         suVolOnCC.RemoveAllCCs();
+        suPitchOnCC.RemoveAllCCs();
         suCutoffOnCC.RemoveAllCCs();
         suResOnCC.RemoveAllCCs();
         suEndpoint.suXFInCC.RemoveAllCCs();
