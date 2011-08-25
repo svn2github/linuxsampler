@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="sfz_logo.svg"
+   inkscape:export-filename="/home/cuse/sfz.png"
+   inkscape:export-xdpi="92.252274"
+   inkscape:export-ydpi="92.252274">
+  <title
+     id="title3622">SFZ Sound Format Logo</title>
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient3795">
+      <stop
+         style="stop-color:#0000e1;stop-opacity:1;"
+         offset="0"
+         id="stop3797" />
+      <stop
+         id="stop3803"
+         offset="0.5"
+         style="stop-color:#32ec9d;stop-opacity:1;" />
+      <stop
+         style="stop-color:#6480f8;stop-opacity:1;"
+         offset="1"
+         id="stop3799" />
+    </linearGradient>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective10" />
+    <inkscape:perspective
+       id="perspective3606"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3671"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3702"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3729"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3815"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3795-6"
+       id="radialGradient3805-8"
+       cx="332.57144"
+       cy="457.21933"
+       fx="332.57144"
+       fy="457.21933"
+       r="127.92857"
+       gradientTransform="matrix(1,0,0,0.62702401,0,170.53183)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       id="linearGradient3795-6">
+      <stop
+         style="stop-color:#0000e1;stop-opacity:1;"
+         offset="0"
+         id="stop3797-0" />
+      <stop
+         id="stop3803-3"
+         offset="0.5"
+         style="stop-color:#32ec9d;stop-opacity:1;" />
+      <stop
+         style="stop-color:#6480f8;stop-opacity:1;"
+         offset="1"
+         id="stop3799-3" />
+    </linearGradient>
+    <inkscape:perspective
+       id="perspective3856"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3795-8"
+       id="radialGradient3805-1"
+       cx="332.57144"
+       cy="457.21933"
+       fx="332.57144"
+       fy="457.21933"
+       r="127.92857"
+       gradientTransform="matrix(1,0,0,0.62702401,0,170.53183)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       id="linearGradient3795-8">
+      <stop
+         id="stop3803-0"
+         offset="0"
+         style="stop-color:#e4154c;stop-opacity:1;" />
+      <stop
+         style="stop-color:#f864ea;stop-opacity:1;"
+         offset="1"
+         id="stop3799-5" />
+    </linearGradient>
+    <inkscape:perspective
+       id="perspective3958"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3795-3"
+       id="radialGradient3805-10"
+       cx="332.57144"
+       cy="457.21933"
+       fx="332.57144"
+       fy="457.21933"
+       r="127.92857"
+       gradientTransform="matrix(1,0,0,0.62702401,0,170.53183)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       id="linearGradient3795-3">
+      <stop
+         style="stop-color:#ffffdc;stop-opacity:1;"
+         offset="0"
+         id="stop3797-00" />
+      <stop
+         id="stop3995"
+         offset="0.5"
+         style="stop-color:#a9a900;stop-opacity:0.49756098;" />
+      <stop
+         id="stop3803-4"
+         offset="1"
+         style="stop-color:#000000;stop-opacity:1;" />
+    </linearGradient>
+    <inkscape:perspective
+       id="perspective3628"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3650"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3630"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3631"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.05"
+     inkscape:cx="247.92544"
+     inkscape:cy="610.04447"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1010"
+     inkscape:window-height="905"
+     inkscape:window-x="608"
+     inkscape:window-y="31"
+     inkscape:window-maximized="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid3622"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>SFZ Sound Format Logo</dc:title>
+        <dc:date>2011-08-25</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Christian Schoenebeck</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:source>http://www.linuxsampler.org</dc:source>
+        <dc:publisher>
+          <cc:Agent>
+            <dc:title>The LinuxSampler Project</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:description>This logo was created to symbolize the SFZ format, which is an open file format for audio sample libraries, intended for virtual musical instruments, based on audio files.</dc:description>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       sodipodi:type="arc"
+       style="fill:#46a2ff;fill-opacity:1;stroke:#000f63;stroke-width:4.35469627;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path2820"
+       sodipodi:cx="332.57144"
+       sodipodi:cy="457.21933"
+       sodipodi:rx="127.42857"
+       sodipodi:ry="79.714287"
+       d="m 460.00002,457.21933 a 127.42857,79.714287 0 1 1 -254.85715,0 127.42857,79.714287 0 1 1 254.85715,0 z"
+       transform="matrix(0.96492266,0,0,0.97545998,11.151983,15.505848)" />
+    <g
+       transform="scale(1.2529214,0.79813467)"
+       style="font-size:128.98356628px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000f63;fill-opacity:1;stroke:#000f63;stroke-width:1;stroke-opacity:1;font-family:UnDinaru;-inkscape-font-specification:UnDinaru"
+       id="text2816-4">
+      <path
+         d="m 198.10323,601.56753 c -1.80543,-1.51152 -2.83411,-3.35894 -3.08603,-5.54227 0,-1.25959 0.48285,-2.45621 1.44855,-3.58987 0.9237,-0.9237 2.07834,-1.38555 3.46391,-1.38557 1.30158,2e-5 2.37225,0.29393 3.21199,0.88173 1.04966,0.41988 2.43523,1.3226 4.1567,2.70815 l 3.46392,2.20431 c 0.67177,0.41988 2.18329,1.00769 4.53457,1.76344 1.67945,0.54584 3.35892,0.81876 5.03842,0.81875 3.69481,10e-6 6.78084,-0.69278 9.2581,-2.07835 3.19096,-1.63748 4.78646,-4.0937 4.7865,-7.36869 -4e-5,-2.89707 -1.76349,-5.47926 -5.29034,-7.74657 -2.68719,-1.55349 -6.00415,-3.08601 -9.95088,-4.59756 l -6.17207,-2.58219 -4.7865,-2.20431 c -2.72915,-1.42752 -5.05942,-3.35891 -6.9908,-5.79419 -2.05737,-2.51916 -3.08604,-5.54221 -3.08604,-9.06915 0,-7.05373 3.56888,-12.47003 10.70665,-16.24891 3.4429,-1.88934 7.36866,-2.83404 11.77731,-2.83411 3.86275,7e-5 7.97746,0.73484 12.34413,2.20431 4.40857,1.63755 7.28466,3.19106 8.62829,4.66054 1.72141,1.72152 2.58214,3.48496 2.58219,5.29034 -5e-5,1.00774 -0.46191,2.12039 -1.38556,3.33795 -1.1337,0.92377 -2.33032,1.49059 -3.58988,1.70047 -1.7215,-0.54578 -3.88382,-1.55346 -6.48697,-3.02305 l -6.0461,-3.33796 c -0.88176,-0.33583 -1.61653,-0.54577 -2.20431,-0.6298 -0.88175,-0.25186 -1.78447,-0.37782 -2.70815,-0.37788 -3.19103,6e-5 -5.94116,0.62986 -8.25041,1.88941 -2.85513,1.38562 -4.28268,3.63191 -4.28266,6.73888 0.46184,2.05741 1.44853,3.86284 2.96007,5.41631 l 1.95239,1.5745 c 0.92369,0.62985 2.09932,1.25965 3.52689,1.88941 0.62978,0.41991 2.1623,1.07071 4.59756,1.95239 0.25189,0.084 1.32256,0.46189 3.212,1.13364 l 6.23504,2.33027 c 9.53096,3.6109 14.29646,9.42608 14.29652,17.44553 -6e-5,3.52691 -1.11271,6.92784 -3.33795,10.20281 -2.14138,3.06504 -4.84953,5.4163 -8.12446,7.05378 -3.69488,1.88941 -8.33442,2.83412 -13.91863,2.83412 -8.60733,0 -16.10197,-2.54021 -22.48396,-7.62061"
+         style="stroke:#000f63"
+         id="path3625" />
+    </g>
+    <path
+       style="fill:#ababab;fill-opacity:1;stroke:#000f63;stroke-width:4.22499999999999964;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 350.57837,401.80559 c -24.39661,18.91574 -7.33141,144.43347 -80.08168,126.88514 9.75024,5.41774 46.814,10.82734 61.69122,10.82734 67.90822,0 122.96128,-34.81166 122.96128,-77.75628 0,-42.94461 -49.59182,-63.55871 -74.38783,-71.60296 -20.04285,1.0007 -18.63821,6.75208 -30.18299,11.64676 z"
+       id="path2820-1"
+       sodipodi:nodetypes="ccsscc" />
+    <g
+       transform="matrix(1.0096469,0,0,1.0214716,0.4125233,-15.957672)"
+       style="font-size:126.74797057999997207px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000f63;fill-opacity:1;stroke:#000f63;font-family:LMMonoSlant10;-inkscape-font-specification:LMMonoSlant10 Italic;stroke-opacity:1;stroke-width:0.98469582000000000;stroke-miterlimit:4;stroke-dasharray:none"
+       id="text2816">
+      <path
+         d="m 403.0635,488.10799 1.26748,-7.35138 c 0.38024,-2.40821 0.76048,-5.19667 -3.54894,-5.19667 -4.43618,0 -4.81643,2.66171 -5.19667,5.19667 l -0.14394,2.54329 -30.19288,0.37886 41.23714,-35.62313 c 3.04195,-2.53496 3.1687,-2.9152 3.54895,-5.06992 0.76049,-4.30942 -2.02797,-4.30943 -4.43618,-4.30943 l -43.09431,0 c -4.18268,0 -5.32342,1.01399 -6.0839,5.19667 l -1.01399,5.83041 c -0.38024,2.4082 -0.76048,5.19666 3.54895,5.19666 4.43617,0 4.81642,-2.66171 5.19666,-5.19666 l 0.44792,-2.72717 26.91463,-0.18943 -41.05133,37.13855 c -3.04195,2.53495 -3.1687,2.9152 -3.54894,5.06992 -0.76049,4.30942 2.02797,4.30943 4.43618,4.30943 l 48.03748,0 c 2.9152,-0.76049 3.29545,-3.29545 3.67569,-5.19667"
+         id="path3777"
+         sodipodi:nodetypes="ccsccccsccccsccccsccc"
+         style="stroke:#000f63;stroke-opacity:1;stroke-width:0.98469582000000000;stroke-miterlimit:4;stroke-dasharray:none;fill:#000f63;fill-opacity:1" />
+    </g>
+    <path
+       id="path3661-5"
+       style="fill:#000f63;fill-opacity:1;stroke:#000f63;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 359.00338,438.77158 c -18.84866,7.88656 -32.91724,33.02534 -56.10177,16.14621 33.85649,4.50555 30.68273,-18.44425 56.10177,-16.14621 z"
+       sodipodi:nodetypes="ccc" />
+    <path
+       id="path3596-5"
+       style="fill:#000f63;stroke:#000f63;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;fill-opacity:1"
+       d="M 250,518.58183 C 398.64201,597.72465 274.33864,340.253 423.60514,410.06161 264.59116,320.9179 385.77261,580.36549 250,518.58183 z"
+       sodipodi:nodetypes="ccc" />
+  </g>
+</svg>
