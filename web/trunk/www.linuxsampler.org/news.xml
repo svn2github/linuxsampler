@@ -1,5 +1,14 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2011-08-25">
+    <link ref="sfz/" img="gfx/logos/sfz.png"></link>
+    <link ref="sfz/">Added SFZ implementation status page.</link>
+    We are currently in the works to implement support for the SFZ format,
+    which is a powerful and open sample library format, already adopted by
+    many commercial samplers. Check our new SFZ status page to see which
+    aspects of the format are already supported by LinuxSampler, and which
+    ones are yet to be implemented.
+  </entry>
   <entry date="2011-07-18">
     <link ref="http://download.linuxsampler.org/packages/osx/snapshots/" img="gfx/logos/apple.png"></link>
     <link ref="http://download.linuxsampler.org/packages/osx/snapshots/">Download the latest OS X snapshot of the sampler!</link>
