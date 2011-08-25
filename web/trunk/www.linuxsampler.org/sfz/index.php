@@ -4,6 +4,12 @@ include '../tmpl/header.php';
 
 <h2>SFZ support in LinuxSampler</h2>
 <p>
+  <table>
+    <tr>
+      <td>
+        <img src="/gfx/logos/sfz.png" />
+      </td>
+      <td>
   SFZ is an open file format for samplers, currently evolving to a standard
   among many commercial samplers. The articulation files are ordinary human
   readable text files, which can be viewed and edited with any ordinary text
@@ -11,6 +17,9 @@ include '../tmpl/header.php';
   support of the SFZ format. Since development of the SFZ format engine in
   LinuxSampler is quickly evolving, this page may not be always up to date,
   so please also check the <a href="/">latest Subversion commits on our frontsite</a>.
+      </td>
+    </tr>
+  </table>
 </p>
 
 
