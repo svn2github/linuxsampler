@@ -7,7 +7,9 @@ include '../tmpl/header.php';
   <table>
     <tr>
       <td>
-        <img src="/gfx/logos/sfz.png" />
+        <a href="sfz_logo.svg">
+          <img src="/gfx/logos/sfz.png" />
+        </a>
       </td>
       <td>
   SFZ is an open file format for samplers, currently evolving to a standard
