@@ -30,13 +30,6 @@
 #include "../../common/global_private.h"
 #include "../../plugins/InstrumentEditorFactory.h"
 
-// We need to know the maximum number of sample points which are going to
-// be processed for each render cycle of the audio output driver, to know
-// how much initial sample points we need to cache into RAM. If the given
-// sampler channel does not have an audio output device assigned yet
-// though, we simply use this default value.
-#define GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE     128
-
 namespace LinuxSampler { namespace gig {
 
     // data stored as long as an instrument resource exists
@@ -609,13 +602,15 @@ namespace LinuxSampler { namespace gig {
         pEntry->ID.Index      = Key.Index;
         pEntry->pGig          = pGig;
 
+        // (try to resolve the audio device context)
         EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
+        AudioOutputDevice* pDevice = 
+            (pEngineChannel) ? dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice : NULL;
+        
         // and we save this to check if we need to reallocate for a engine with higher value of 'MaxSamplesPerSecond'
         pEntry->MaxSamplesPerCycle =
-            (!pEngineChannel) ? 0 /* don't care for instrument editors */ :
-                (pEngineChannel->GetEngine()) ?
-                    dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
-                    : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
+            (pDevice) ? pDevice->MaxSamplesPerCycle() : DefaultMaxSamplesPerCycle();
+        
         pArg = pEntry;
 
         return pInstrument;
@@ -630,11 +625,17 @@ namespace LinuxSampler { namespace gig {
 
     void InstrumentResourceManager::OnBorrow(::gig::Instrument* pResource, InstrumentConsumer* pConsumer, void*& pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
+        
+        // (try to resolve the audio device context)
         EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
+        AudioOutputDevice* pDevice = 
+            (pEngineChannel) ? dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice : NULL;
+        
         uint maxSamplesPerCycle =
-            (pEngineChannel && pEngineChannel->GetEngine()) ? dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
-                                          : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
+            (pDevice) ? pDevice->MaxSamplesPerCycle() : DefaultMaxSamplesPerCycle();
+
         if (pEntry->MaxSamplesPerCycle < maxSamplesPerCycle) {
+	    dmsg(1,("Completely reloading instrument due to insufficient precached samples ...\n"));
             Update(pResource, pConsumer);
         }
     }
@@ -642,6 +643,7 @@ namespace LinuxSampler { namespace gig {
     void InstrumentResourceManager::DeleteRegionIfNotUsed(::gig::DimensionRegion* pRegion, region_info_t* pRegInfo) {
         // TODO: we could delete Region and Instrument here if they have become unused
     }
+
     void InstrumentResourceManager::DeleteSampleIfNotUsed(::gig::Sample* pSample, region_info_t* pRegInfo) {
         ::gig::File* gig = pRegInfo->file;
         ::RIFF::File* riff = static_cast< ::RIFF::File*>(pRegInfo->pArg);
@@ -696,7 +698,7 @@ namespace LinuxSampler { namespace gig {
             // the sample.
             const uint maxSamplesPerCycle =
                 (pEngine) ? pEngine->pAudioOutputDevice->MaxSamplesPerCycle()
-                          : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
+                          : DefaultMaxSamplesPerCycle();
             const uint neededSilenceSamples = (maxSamplesPerCycle << CONFIG_MAX_PITCH) + 3;
             const uint currentlyCachedSilenceSamples = pSample->GetCache().NullExtensionSize / pSample->FrameSize;
             if (currentlyCachedSilenceSamples < neededSilenceSamples) {
@@ -924,7 +926,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     void InstrumentResourceManager::GigResourceManager::Destroy(::gig::File* pResource, void* pArg) {
-        dmsg(1,("Freeing gig file from memory..."));
+        dmsg(1,("Freeing gig file '%s' from memory ...", pResource->GetFileName().c_str()));
 
         // Delete as much as possible of the gig file. Some of the
         // dimension regions and samples may still be in use - these

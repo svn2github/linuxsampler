@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
  *   Copyright (C) 2009 - 2011 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -144,13 +144,15 @@ namespace LinuxSampler { namespace sfz {
         pEntry->ID.Index      = Key.Index;
         pEntry->pSfz          = pSfz;
 
+        // (try to resolve the audio device context)
         EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
+        AudioOutputDevice* pDevice = 
+            (pEngineChannel) ? dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice : NULL;
+        
         // and we save this to check if we need to reallocate for a engine with higher value of 'MaxSamplesPerSecond'
         pEntry->MaxSamplesPerCycle =
-            (!pEngineChannel) ? 0 /* don't care for instrument editors */ :
-                (pEngineChannel->GetEngine()) ?
-                    dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
-                    : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
+            (pDevice) ? pDevice->MaxSamplesPerCycle() : DefaultMaxSamplesPerCycle();
+        
         pArg = pEntry;
 
         return pInstrument;
@@ -165,11 +167,17 @@ namespace LinuxSampler { namespace sfz {
 
     void InstrumentResourceManager::OnBorrow(::sfz::Instrument* pResource, InstrumentConsumer* pConsumer, void*& pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
+        
+        // (try to resolve the audio device context)
         EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
+        AudioOutputDevice* pDevice = 
+            (pEngineChannel) ? dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice : NULL;
+        
         uint maxSamplesPerCycle =
-            (pEngineChannel && pEngineChannel->GetEngine()) ? dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
-                                          : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
+            (pDevice) ? pDevice->MaxSamplesPerCycle() : DefaultMaxSamplesPerCycle();
+        
         if (pEntry->MaxSamplesPerCycle < maxSamplesPerCycle) {
+            dmsg(1,("Completely reloading instrument due to insufficient precached samples ...\n"));
             Update(pResource, pConsumer);
         }
     }

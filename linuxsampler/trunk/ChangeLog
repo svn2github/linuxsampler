@@ -264,6 +264,10 @@ Version CVS HEAD (?)
       it caused hanging threads on Windows
     - Fixed possible crashes due to corrupted MIDI/audio device list
       after MIDI/audio device creation failure
+    - When creating MIDI instrument map entries with "PERSISTENT" type, the
+      instruments were uselessly precached with zero samples, however it still
+      took the full preloading time and on 1st program change the respective
+      instrument was completely reloaded again.
 
 Version 1.0.0 (31 July 2009)
 

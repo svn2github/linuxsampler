@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
  *   Copyright (C) 2009 Grigor Iliev                                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -30,6 +30,7 @@
 #include "AbstractEngineChannel.h"
 #include "../common/ResourceManager.h"
 #include "../common/global_private.h"
+#include "../drivers/audio/AudioOutputDeviceFactory.h"
 
 // We need to know the maximum number of sample points which are going to
 // be processed for each render cycle of the audio output driver, to know
@@ -126,6 +127,35 @@ namespace LinuxSampler {
             virtual void SetMode(const InstrumentManager::instrument_id_t& ID, InstrumentManager::mode_t Mode) {
                 dmsg(2,("InstrumentManagerBase: setting mode for %s (Index=%d) to %d\n",ID.FileName.c_str(),ID.Index,Mode));
                 SetAvailabilityMode(ID, static_cast<typename ResourceManager<instrument_id_t, I>::mode_t>(Mode));
+            }
+            
+            /**
+             * Used by the implementing instrument manager descendents in case
+             * they don't have a reference to a sampler channel, which in turn
+             * provides a reference to an audio device which would actually
+             * define the maximum amount of sample points per audio render
+             * cycle. So in those missing cases (e.g. when MIDI instrument maps
+             * are created), this method will iterate through all already
+             * existing audio devices and return the biggest max. samples per
+             * cycle value of those audio devices.
+             * 
+             * In case no audio device is currently created, this method will
+             * return a hard coded constant default value.
+             * 
+             * Background: We need to know the maximum number of sample points
+             * which are going to be processed for each render cycle of the
+             * audio output driver, to know how many initial sample points we
+             * need to cache into RAM by the implementing instrument manager.
+             */
+            virtual uint DefaultMaxSamplesPerCycle() {
+                uint samples = 0;
+                std::map<uint, AudioOutputDevice*> devices = AudioOutputDeviceFactory::Devices();
+                for (std::map<uint, AudioOutputDevice*>::iterator iter = devices.begin(); iter != devices.end(); ++iter) {
+                    AudioOutputDevice* pDevice = iter->second;
+                    if (pDevice->MaxSamplesPerCycle() > samples)
+                        samples = pDevice->MaxSamplesPerCycle();
+                }
+                return (samples != 0) ? samples : 128 /* some fallback default value*/;
             }
 
         protected:
