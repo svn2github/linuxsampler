@@ -1430,6 +1430,17 @@ namespace DLS {
         delete pInstrument;
     }
 
+    /** @brief File name of this DLS file.
+     *
+     * This method returns the file name as it was provided when loading
+     * the respective DLS file. However in case the File object associates
+     * an empty, that is new DLS file, which was not yet saved to disk,
+     * this method will return an empty string.
+     */
+    String File::GetFileName() {
+        return pRIFF->GetFileName();
+    }
+
     /**
      * Apply all the DLS file's current instruments, samples and settings to
      * the respective RIFF chunks. You have to call Save() to make changes

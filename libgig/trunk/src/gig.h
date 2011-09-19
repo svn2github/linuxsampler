@@ -758,6 +758,7 @@ namespace gig {
             DLS::Resource::GetParent;
             // derived methods from DLS::File
             DLS::File::Save;
+            DLS::File::GetFileName;
             // overridden  methods
             File();
             File(RIFF::File* pRIFF);

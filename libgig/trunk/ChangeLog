@@ -12,6 +12,9 @@ Version CVS HEAD (?)
     - bugfix: VCF velocity dynamic range and VCF velocity curve
       weren't saved correctly
 
+  * src/DLS.cpp, src/DLS.h:
+    - added new method File::GetFileName()
+
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: avoid calling read() with count 0 when writing a file,
       as this may hang on some systems

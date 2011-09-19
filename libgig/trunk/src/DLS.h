@@ -470,6 +470,7 @@ namespace DLS {
 
             File();
             File(RIFF::File* pRIFF);
+            String      GetFileName();
             Sample*     GetFirstSample();     ///< Returns a pointer to the first <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Sample*     GetNextSample();      ///< Returns a pointer to the next <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Sample*     AddSample();
