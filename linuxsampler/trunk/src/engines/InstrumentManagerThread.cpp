@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -53,12 +53,11 @@ namespace LinuxSampler {
         }
         
         
-        // already tell the engine which instrument to load
-        pEngineChannel->PrepareLoadInstrument(Filename.c_str(), uiInstrumentIndex);
-
         command_t cmd;
         cmd.type           = command_t::DIRECT_LOAD;
         cmd.pEngineChannel = pEngineChannel;
+        cmd.instrumentId.Index = uiInstrumentIndex;
+        cmd.instrumentId.FileName = Filename;
 
         mutex.Lock();
         queue.push_back(cmd);
@@ -116,6 +115,7 @@ namespace LinuxSampler {
                     switch (cmd.type) {
                         case command_t::DIRECT_LOAD:
                             EngineChannelFactory::SetDeleteEnabled(cmd.pEngineChannel, false);
+                            cmd.pEngineChannel->PrepareLoadInstrument(cmd.instrumentId.FileName.c_str(), cmd.instrumentId.Index);
                             cmd.pEngineChannel->LoadInstrument();
                             EngineChannelFactory::SetDeleteEnabled(cmd.pEngineChannel, true);
                             break;

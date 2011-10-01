@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -346,7 +346,7 @@ namespace LinuxSampler {
              *
              * This method is not real-time safe.
              */
-            void ExecuteProgramChange(uint8_t Program);
+            void ExecuteProgramChange(uint32_t Program);
 
         protected:
             EngineChannel();

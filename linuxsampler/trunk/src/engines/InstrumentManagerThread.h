@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -59,7 +59,7 @@ namespace LinuxSampler {
                 } type;
                 EngineChannel*                     pEngineChannel; ///< only for DIRECT_LOAD commands
                 InstrumentManager*                 pManager;     ///< only for INSTR_MODE commands
-                InstrumentManager::instrument_id_t instrumentId; ///< only for INSTR_MODE commands
+                InstrumentManager::instrument_id_t instrumentId; ///< for both DIRECT_LOAD and INSTR_MODE
                 InstrumentManager::mode_t          mode;         ///< only for INSTR_MODE commands
             };
 

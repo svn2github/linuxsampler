@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2011 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -58,11 +58,13 @@ namespace LinuxSampler { namespace gig {
      *  @param Program     - MIDI program change number
      */
     void EngineChannel::SendProgramChange(uint8_t Program) {
+        SetMidiProgram(Program);
         Engine* engine = dynamic_cast<Engine*>(pEngine);
         if(engine == NULL) return;
 
         if(engine->GetDiskThread()) {
-            engine->GetDiskThread()->OrderProgramChange(Program, this);
+            uint32_t merged = (GetMidiBankMsb() << 16) | (GetMidiBankLsb() << 8) | Program;
+            engine->GetDiskThread()->OrderProgramChange(merged, this);
         } else {
             // TODO: 
         }

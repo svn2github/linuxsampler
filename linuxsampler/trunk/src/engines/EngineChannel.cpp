@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 20010 Christian Schoenebeck                      *
+ *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -300,12 +300,15 @@ namespace LinuxSampler {
         }
     }
 
-    void EngineChannel::ExecuteProgramChange(uint8_t Program) {
-        dmsg(1,("Received MIDI program change (prog=%d)\n",Program));
+    void EngineChannel::ExecuteProgramChange(uint32_t Program) {
+        uint8_t hb = (Program >> 16) & 0xff;
+        uint8_t lb = (Program >> 8) & 0xff;
+        uint8_t pc = Program & 0x7f;
+
+        dmsg(1,("Received MIDI program change (msb=%d) (lsb=%d) (prog=%d)\n", hb ,lb, pc));
         std::vector<int> maps = MidiInstrumentMapper::Maps();
         if (maps.empty()) return;
 
-        SetMidiProgram(Program);
         if (UsesNoMidiInstrumentMap()) return;
         if (MidiInstrumentMapper::GetMapCount() == 0) return;
         // retrieve the MIDI instrument map this engine channel is assigned to
@@ -313,9 +316,9 @@ namespace LinuxSampler {
             ? MidiInstrumentMapper::GetDefaultMap() /*default*/ : GetMidiInstrumentMap();
         // is there an entry for this MIDI bank&prog pair in that map?
         midi_prog_index_t midiIndex;
-        midiIndex.midi_bank_msb = GetMidiBankMsb();
-        midiIndex.midi_bank_lsb = GetMidiBankLsb();
-        midiIndex.midi_prog     = GetMidiProgram();
+        midiIndex.midi_bank_msb = hb;
+        midiIndex.midi_bank_lsb = lb;
+        midiIndex.midi_prog     = pc;
         optional<MidiInstrumentMapper::entry_t> mapping =
             MidiInstrumentMapper::GetEntry(iMapID, midiIndex);
         if (mapping) { // if mapping exists ...

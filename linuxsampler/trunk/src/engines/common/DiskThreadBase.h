@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2009 - 2011 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -67,7 +67,7 @@ namespace LinuxSampler {
                 bool              bNotify;
             };
             struct program_change_command_t {
-                uint8_t Program;
+                uint32_t Program;
                 EngineChannel* pEngineChannel;
             };
             // Attributes
@@ -382,7 +382,7 @@ namespace LinuxSampler {
              * Tell the disk thread to do a program change on the specified
              * EngineChannel.
              */
-            int OrderProgramChange(uint8_t Program, EngineChannel* pEngineChannel) {
+            int OrderProgramChange(uint32_t Program, EngineChannel* pEngineChannel) {
                 program_change_command_t cmd;
                 cmd.Program = Program;
                 cmd.pEngineChannel = pEngineChannel;
