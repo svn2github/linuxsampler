@@ -108,7 +108,7 @@ cp libatk-1.0-0.dll libatkmm-1.6-1.dll libcairo-2.dll \
 cd ../../..
 mkdir -p $DIST/etc/gtk-2.0
 echo "gtk-theme-name = \"MS-Windows\"" > $DIST/etc/gtk-2.0/gtkrc
-cd mingw64/bin
+cd x86_64-w64-mingw32/lib
 cp libgcc_s_sjlj-1.dll libstdc++-6.dll $DIST
 cd $WIN/lib/bin
 cp libgigedit-2.dll liblinuxsampler-3.dll $DIST
