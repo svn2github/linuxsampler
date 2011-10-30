@@ -7,12 +7,15 @@
 ;
 ; PREREQUISITES:
 ;
-; -> You must install the file cpudesc\cpudesc.dll into the NSIS's
-;    plugin directory before being able to compile this installer!
+; -> You must install the file cpudesc\cpudesc.dll into the working
+;    directory before being able to compile this installer!
 ;
 ; -> The compiled binaries must be placed into the respective directories
 ;    under bin\ (you have to read this file in order to get those exact
 ;    locations and expected file names).
+
+; NSIS plug-in for getting CPU information
+!addplugindir cpudesc
 
 ; Probably the best compression ratio
 SetCompressor lzma
@@ -37,10 +40,8 @@ OutFile "linuxsampler_${RELEASE_DATE}_setup.exe"
 
 ; Java Runtime Environment, needed for JSampler
 !define JRE_VERSION "1.6"
-; jre-6u26-windows-i586.exe, 1.6.0_26-b03:
-!define JRE_32_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=49025"
-; jre-6u26-windows-x64.exe, 1.6.0_26-b03:
-!define JRE_64_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=49026"
+!define JRE_32_URL "http://download.oracle.com/otn-pub/java/jdk/6u29-b11/jre-6u29-windows-i586.exe"
+!define JRE_64_URL "http://download.oracle.com/otn-pub/java/jdk/6u29-b11/jre-6u29-windows-x64.exe"
 
 ; The default installation directory
 InstallDir "$PROGRAMFILES64\LinuxSampler"
