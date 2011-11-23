@@ -68,6 +68,8 @@ import static org.linuxsampler.lscp.Parser.*;
  * @author  Grigor Iliev
  */
 public class Client {
+	public static final String VERSION = "0.8";
+	public static final String PROTOCOL_VERSION = "1.4";
 	private String address;
 	private int port;
 	private Socket sock = null;
@@ -282,9 +284,13 @@ public class Client {
 	 * @return The jlscp version. 
 	 */
 	public static String
-	getClientVersion() {
-		return Package.getPackage("org.linuxsampler.lscp").getImplementationVersion();
-	}
+	getClientVersion() { return VERSION; }
+	
+	/**
+	 * Gets the LSCP protocol version supported by this client.
+	 */
+	public static String
+	getProtocolVersion() { return PROTOCOL_VERSION; }
 	
 	/**
 	 * Gets the Linux Sampler address.
@@ -367,7 +373,7 @@ public class Client {
 			);
 		}
 		
-		String s = Package.getPackage("org.linuxsampler.lscp").getSpecificationVersion();
+		String s = getProtocolVersion();
 		String s2, sv, sv2;
 		
 		try {

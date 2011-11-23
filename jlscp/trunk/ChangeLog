@@ -1,6 +1,10 @@
 CVS HEAD
   * Added support for send effects
+
   * Cache engines' info to speed up the sampler channels' info retrieval
+
+  * API Changes
+    - Client: added new method - getProtocolVersion
 
 jlscp v0.8: 2009-08-03
   * Added support for monitoring MIDI events on sampler channels
