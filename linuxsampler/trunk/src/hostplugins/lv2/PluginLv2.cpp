@@ -39,16 +39,16 @@ namespace {
         Out[0] = 0;
         Out[1] = 0;
         UriMap = 0;
-        PathSupport = 0;
-        NewFileSupport = 0;
+        MapPath = 0;
+        MakePath = 0;
         for (int i = 0 ; Features[i] ; i++) {
             dmsg(2, ("linuxsampler: host feature: %s\n", Features[i]->URI));
             if (!strcmp(Features[i]->URI, LV2_URI_MAP_URI)) {
                 UriMap = (LV2_URI_Map_Feature*)Features[i]->data;
-            } else if (!strcmp(Features[i]->URI, LV2_FILES_PATH_SUPPORT_URI)) {
-                PathSupport = (LV2_Files_Path_Support*)Features[i]->data;
-            } else if (!strcmp(Features[i]->URI, LV2_FILES_NEW_FILE_SUPPORT_URI)) {
-                NewFileSupport = (LV2_Files_New_File_Support*)Features[i]->data;
+            } else if (!strcmp(Features[i]->URI, LV2_STATE_MAP_PATH_URI)) {
+                MapPath = (LV2_State_Map_Path*)Features[i]->data;
+            } else if (!strcmp(Features[i]->URI, LV2_STATE_MAKE_PATH_URI)) {
+                MakePath = (LV2_State_Make_Path*)Features[i]->data;
             }
         }
 
@@ -103,9 +103,9 @@ namespace {
     }
 
     String PluginLv2::PathToState(const String& path) {
-        if (PathSupport) {
-            char* cstr = PathSupport->abstract_path(PathSupport->host_data,
-                                                    path.c_str());
+        if (MapPath) {
+	        char* cstr = MapPath->abstract_path(MapPath->handle,
+                                                path.c_str());
             const String abstract_path(cstr);
             free(cstr);
             return abstract_path;
@@ -114,9 +114,9 @@ namespace {
     }
 
     String PluginLv2::PathFromState(const String& path) {
-        if (PathSupport) {
-            char* cstr = PathSupport->absolute_path(PathSupport->host_data,
-                                                    path.c_str());
+        if (MapPath) {
+	        char* cstr = MapPath->absolute_path(MapPath->handle,
+                                                path.c_str());
             const String abstract_path(cstr);
             free(cstr);
             return abstract_path;
@@ -124,52 +124,50 @@ namespace {
         return path;
     }
 
-    void PluginLv2::Save(LV2_Persist_Store_Function store, void* host_data) {
-        if (NewFileSupport) {
-            char* path = NewFileSupport->new_file_path(PathSupport->host_data,
-                                                       "linuxsampler");
+    void PluginLv2::Save(LV2_State_Store_Function store, LV2_State_Handle handle) {
+        if (MakePath) {
+	        char* path = MakePath->path(MapPath->handle,
+	                                    "linuxsampler");
             dmsg(2, ("saving to file %s\n", path));
 
             std::ofstream out(path);
             out << GetState();
 
-            const String abstract_path = PathToState(path);
-
-            store(host_data,
+            store(handle,
                   uri_to_id(NULL, NS_LS "state-file"),
-                  abstract_path.c_str(),
-                  abstract_path.length() + 1,
-                  uri_to_id(NULL, LV2_FILES_URI "#AbstractPath"),
-                  LV2_PERSIST_IS_PORTABLE);
+                  path,
+                  strlen(path) + 1,
+                  uri_to_id(NULL, LV2_STATE_PATH_URI),
+                  LV2_STATE_IS_PORTABLE);
         } else {
             dmsg(2, ("saving to string\n"));
 
             std::ostringstream out;
             out << GetState();
 
-            store(host_data,
+            store(handle,
                   uri_to_id(NULL, NS_LS "state-string"),
                   out.str().c_str(),
                   out.str().length() + 1,
                   uri_to_id(NULL, NS_ATOM "String"),
-                  LV2_PERSIST_IS_POD | LV2_PERSIST_IS_PORTABLE);
+                  LV2_STATE_IS_POD | LV2_STATE_IS_PORTABLE);
         }
         dmsg(2, ("saving done\n"));
     }
 
-    void PluginLv2::Restore(LV2_Persist_Retrieve_Function retrieve, void* data) {
+    void PluginLv2::Restore(LV2_State_Retrieve_Function retrieve, LV2_State_Handle handle) {
         size_t   size;
         uint32_t type;
         uint32_t flags;
 
+        // Attempt to restore from state-file
         const void* value = retrieve(
-            data,
+            handle,
             uri_to_id(NULL, NS_LS "state-file"),
             &size, &type, &flags);
-
         if (value) {
-            assert(type == uri_to_id(NULL, LV2_FILES_URI "#AbstractPath"));
-            const String path = PathFromState((const char*)value);
+            assert(type == uri_to_id(NULL, LV2_STATE_PATH_URI));
+            const String path((const char*)value);
             dmsg(2, ("linuxsampler: restoring from file %s\n", path.c_str()));
             std::ifstream in(path.c_str());
             String state;
@@ -178,8 +176,9 @@ namespace {
             return;
         }
 
+        // Attempt to restore from state-string
         value = retrieve(
-                data,
+                handle,
                 uri_to_id(NULL, NS_LS "state-string"),
                 &size, &type, &flags);
         if (value) {
@@ -221,12 +220,14 @@ namespace {
         delete static_cast<PluginLv2*>(instance);
     }
 
-    void save(LV2_Handle handle, LV2_Persist_Store_Function store, void* callback_data) {
-	    return static_cast<PluginLv2*>(handle)->Save(store, callback_data);
+    void save(LV2_Handle handle, LV2_State_Store_Function store, LV2_State_Handle state,
+              uint32_t flags, const LV2_Feature* const* features) {
+        return static_cast<PluginLv2*>(handle)->Save(store, state);
     }
 
-    void restore(LV2_Handle handle, LV2_Persist_Retrieve_Function store, void* callback_data) {
-        return static_cast<PluginLv2*>(handle)->Restore(store, callback_data);
+    void restore(LV2_Handle handle, LV2_State_Retrieve_Function retrieve, LV2_State_Handle state,
+                 uint32_t flags, const LV2_Feature* const* features) {
+        return static_cast<PluginLv2*>(handle)->Restore(retrieve, state);
     }
 
     PluginInfo PluginInfo::Instance;
@@ -240,15 +241,15 @@ namespace {
         Lv2.instantiate = instantiate;
         Lv2.run = run;
         Lv2.extension_data = extension_data;
-        Persist.save = save;
-        Persist.restore = restore;
+        StateInterface.save = save;
+        StateInterface.restore = restore;
     }
 
 
     const void* extension_data(const char* uri) {
         dmsg(2, ("linuxsampler: extension_data %s\n", uri));
-        if (strcmp(uri, LV2_PERSIST_URI) == 0) {
-            return PluginInfo::Lv2PersistDescriptor();
+        if (strcmp(uri, LV2_STATE_URI "#Interface") == 0) {
+            return PluginInfo::Lv2StateInterface();
         }
         return 0;
     }

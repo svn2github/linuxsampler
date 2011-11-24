@@ -8,9 +8,9 @@
     doap:name "LinuxSampler" ;
     doap:license <http://linuxsampler.org/downloads.html#exception> ;
     lv2:optionalFeature lv2:hardRtCapable ;
-    lv2:optionalFeature <http://lv2plug.in/ns/ext/persist> ;
-    lv2:optionalFeature <http://lv2plug.in/ns/ext/files#pathSupport> ;
-    lv2:optionalFeature <http://lv2plug.in/ns/ext/files#newFileSupport> ;
+    lv2:extensionData <http://lv2plug.in/ns/ext/state#Interface> ;
+    lv2:optionalFeature <http://lv2plug.in/ns/ext/state#mapPath> ;
+    lv2:optionalFeature <http://lv2plug.in/ns/ext/state#makePath> ;
     lv2:optionalFeature <http://lv2plug.in/ns/ext/uri-map> ;
     lv2:port [
 	a lv2:AudioPort , lv2:OutputPort ;

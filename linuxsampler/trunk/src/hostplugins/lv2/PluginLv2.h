@@ -23,9 +23,8 @@
 
 #include <lv2.h>
 #include "lv2_event.h"
-#include "lv2_persist.h"
+#include "lv2_state.h"
 #include "lv2_uri_map.h"
-#include "lv2_files.h"
 #include "../../drivers/Plugin.h"
 
 namespace {
@@ -39,8 +38,8 @@ namespace {
         void Activate();
         void Run(uint32_t SampleCount);
         void Deactivate();
-        void Save(LV2_Persist_Store_Function store, void* data);
-        void Restore(LV2_Persist_Retrieve_Function retrieve, void* data);
+        void Save(LV2_State_Store_Function store, void* data);
+        void Restore(LV2_State_Retrieve_Function retrieve, void* data);
 
 	protected:
         virtual String PathToState(const String& string);
@@ -54,8 +53,8 @@ namespace {
         float* Out[2];
         LV2_Event_Buffer* MidiBuf;
         LV2_URI_Map_Feature* UriMap;
-        LV2_Files_Path_Support* PathSupport;
-        LV2_Files_New_File_Support* NewFileSupport;
+        LV2_State_Map_Path* MapPath;
+        LV2_State_Make_Path* MakePath;
 
         String DefaultState;
     };
@@ -65,12 +64,12 @@ namespace {
         static const LV2_Descriptor* Lv2Descriptor() {
             return &Instance.Lv2;
         }
-        static const LV2_Persist* Lv2PersistDescriptor() {
-            return &Instance.Persist;
+        static const LV2_State_Interface* Lv2StateInterface() {
+            return &Instance.StateInterface;
         }
     private:
         LV2_Descriptor Lv2;
-        LV2_Persist Persist;
+        LV2_State_Interface StateInterface;
 
         PluginInfo();
         static PluginInfo Instance;
@@ -88,13 +87,13 @@ namespace {
         static void cleanup(LV2_Handle instance);
         static const void* extension_data(const char* uri);
 
-        static void save(LV2_Handle                 handle,
-                         LV2_Persist_Store_Function store,
-                         void*                      data);
+        static void save(LV2_Handle               handle,
+                         LV2_State_Store_Function store,
+                         void*                    data);
 
-        static void restore(LV2_Handle                    handle,
-                            LV2_Persist_Retrieve_Function retrieve,
-                            void*                         data);
+        static void restore(LV2_Handle                  handle,
+                            LV2_State_Retrieve_Function retrieve,
+                            void*                       data);
     }
 }
 
