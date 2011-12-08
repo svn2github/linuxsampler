@@ -418,6 +418,13 @@ namespace LinuxSampler { namespace sfz {
         }
     }
     
+    void CCUnit::SetCCs(::sfz::Array<float>& cc) {
+        RemoveAllCCs();
+        for (int i = 0; i < 128; i++) {
+            if (cc[i] != 0) AddCC(i, cc[i]);
+        }
+    }
+    
     void CCUnit::SetCCs(ArrayList< ::sfz::CC>& cc) {
         RemoveAllCCs();
         for (int i = 0; i < cc.size(); i++) {
@@ -735,6 +742,9 @@ namespace LinuxSampler { namespace sfz {
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
         : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suFilEG(this), suPitchEG(this),
         EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), filEGs(maxEgCount), resEGs(maxEgCount), panEGs(maxEgCount),
+        suEq1GainOnCC(this), suEq2GainOnCC(this), suEq3GainOnCC(this),
+        suEq1FreqOnCC(this), suEq2FreqOnCC(this), suEq3FreqOnCC(this),
+        suEq1BwOnCC(this), suEq2BwOnCC(this), suEq3BwOnCC(this),
         suVolOnCC(this), suPitchOnCC(this), suCutoffOnCC(this), suResOnCC(this),
         suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
         LFOs(maxLfoCount), volLFOs(maxLfoCount), pitchLFOs(maxLfoCount),
@@ -743,6 +753,11 @@ namespace LinuxSampler { namespace sfz {
         suEndpoint.pVoice = suEndpoint.suXFInCC.pVoice = suEndpoint.suXFOutCC.pVoice = suEndpoint.suPanOnCC.pVoice = voice;
         suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
         suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = voice;
+        
+        suEq1GainOnCC.pVoice = suEq2GainOnCC.pVoice = suEq3GainOnCC.pVoice = voice;
+        suEq1FreqOnCC.pVoice = suEq2FreqOnCC.pVoice = suEq3FreqOnCC.pVoice = voice;
+        suEq1BwOnCC.pVoice = suEq2BwOnCC.pVoice = suEq3BwOnCC.pVoice = voice;
+        
         suVolOnCC.pVoice = suPitchOnCC.pVoice = suCutoffOnCC.pVoice = suResOnCC.pVoice = voice;
         suPitchLFO.suDepthOnCC.pVoice = suPitchLFO.suFadeEG.pVoice = suPitchLFO.suFreqOnCC.pVoice = voice;
         suFilLFO.suFadeEG.pVoice = suFilLFO.suDepthOnCC.pVoice = suFilLFO.suFreqOnCC.pVoice = voice;
@@ -787,6 +802,16 @@ namespace LinuxSampler { namespace sfz {
     void SfzSignalUnitRack::InitRTLists() {
         Pool<CCSignalUnit::CC>* pCCPool = pVoice->pEngine->pCCPool;
         Pool<Smoother>* pSmootherPool = pVoice->pEngine->pSmootherPool;
+        
+        suEq1GainOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq2GainOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq3GainOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq1FreqOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq2FreqOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq3FreqOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq1BwOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq2BwOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq3BwOnCC.InitCCList(pCCPool, pSmootherPool);
         
         suVolOnCC.InitCCList(pCCPool, pSmootherPool);
         suPitchOnCC.InitCCList(pCCPool, pSmootherPool);
@@ -839,6 +864,19 @@ namespace LinuxSampler { namespace sfz {
         panLFOs.clear();
         
         ::sfz::Region* const pRegion = pVoice->pRegion;
+        
+        suEq1GainOnCC.SetCCs(pRegion->eq1_gain_oncc);
+        suEq2GainOnCC.SetCCs(pRegion->eq2_gain_oncc);
+        suEq3GainOnCC.SetCCs(pRegion->eq3_gain_oncc);
+        suEq1FreqOnCC.SetCCs(pRegion->eq1_freq_oncc);
+        suEq2FreqOnCC.SetCCs(pRegion->eq2_freq_oncc);
+        suEq3FreqOnCC.SetCCs(pRegion->eq3_freq_oncc);
+        suEq1BwOnCC.SetCCs(pRegion->eq1_bw_oncc);
+        suEq2BwOnCC.SetCCs(pRegion->eq2_bw_oncc);
+        suEq3BwOnCC.SetCCs(pRegion->eq3_bw_oncc);
+        
+        bHasEq = pRegion->eq1_gain || pRegion->eq2_gain || pRegion->eq3_gain ||
+                 suEq1GainOnCC.HasCCs() || suEq2GainOnCC.HasCCs() || suEq3GainOnCC.HasCCs();
         
         suVolOnCC.SetCCs(pRegion->volume_oncc);
         suPitchOnCC.SetCCs(pRegion->pitch_oncc);
@@ -949,6 +987,16 @@ namespace LinuxSampler { namespace sfz {
         
         Units.clear();
         
+        Units.add(&suEq1GainOnCC);
+        Units.add(&suEq2GainOnCC);
+        Units.add(&suEq3GainOnCC);
+        Units.add(&suEq1FreqOnCC);
+        Units.add(&suEq2FreqOnCC);
+        Units.add(&suEq3FreqOnCC);
+        Units.add(&suEq1BwOnCC);
+        Units.add(&suEq2BwOnCC);
+        Units.add(&suEq3BwOnCC);
+        
         Units.add(&suVolOnCC);
         Units.add(&suPitchOnCC);
         Units.add(&suCutoffOnCC);
@@ -1015,6 +1063,16 @@ namespace LinuxSampler { namespace sfz {
     }
     
     void SfzSignalUnitRack::Reset() {
+        suEq1GainOnCC.RemoveAllCCs();
+        suEq2GainOnCC.RemoveAllCCs();
+        suEq3GainOnCC.RemoveAllCCs();
+        suEq1FreqOnCC.RemoveAllCCs();
+        suEq2FreqOnCC.RemoveAllCCs();
+        suEq3FreqOnCC.RemoveAllCCs();
+        suEq1BwOnCC.RemoveAllCCs();
+        suEq2BwOnCC.RemoveAllCCs();
+        suEq3BwOnCC.RemoveAllCCs();
+        
         suVolOnCC.RemoveAllCCs();
         suPitchOnCC.RemoveAllCCs();
         suCutoffOnCC.RemoveAllCCs();
@@ -1048,6 +1106,43 @@ namespace LinuxSampler { namespace sfz {
             LFOs[i]->suCutoffOnCC.RemoveAllCCs();
             LFOs[i]->suResOnCC.RemoveAllCCs();
         }
+    }
+    
+    void SfzSignalUnitRack::UpdateEqSettings(EqSupport* pEqSupport) {
+        if (!pEqSupport->HasSupport()) return;
+        if (pEqSupport->GetBandCount() < 3) {
+            std::cerr << "SfzSignalUnitRack::UpdateEqSettings: EQ should have at least 3 bands\n";
+            return;
+        }
+        
+        ::sfz::Region* const pRegion = pVoice->pRegion;
+        
+        float dB = (suEq1GainOnCC.Active() ? suEq1GainOnCC.GetLevel() : 0) + pRegion->eq1_gain;
+        pEqSupport->SetGain(0, dB);
+        
+        dB = (suEq2GainOnCC.Active() ? suEq2GainOnCC.GetLevel() : 0) + pRegion->eq2_gain;
+        pEqSupport->SetGain(1, dB);
+        
+        dB = (suEq3GainOnCC.Active() ? suEq3GainOnCC.GetLevel() : 0) + pRegion->eq3_gain;
+        pEqSupport->SetGain(2, dB);
+        
+        float freq = (suEq1FreqOnCC.Active() ? suEq1FreqOnCC.GetLevel() : 0) + pRegion->eq1_freq;
+        pEqSupport->SetFreq(0, freq);
+        
+        freq = (suEq2FreqOnCC.Active() ? suEq2FreqOnCC.GetLevel() : 0) + pRegion->eq2_freq;
+        pEqSupport->SetFreq(1, freq);
+        
+        freq = (suEq3FreqOnCC.Active() ? suEq3FreqOnCC.GetLevel() : 0) + pRegion->eq3_freq;
+        pEqSupport->SetFreq(2, freq);
+        
+        float bw = (suEq1BwOnCC.Active() ? suEq1BwOnCC.GetLevel() : 0) + pRegion->eq1_bw;
+        pEqSupport->SetBandwidth(0, bw);
+        
+        bw = (suEq2BwOnCC.Active() ? suEq2BwOnCC.GetLevel() : 0) + pRegion->eq2_bw;
+        pEqSupport->SetBandwidth(1, bw);
+        
+        bw = (suEq3BwOnCC.Active() ? suEq3BwOnCC.GetLevel() : 0) + pRegion->eq3_bw;
+        pEqSupport->SetBandwidth(2, bw);
     }
     
 }} // namespace LinuxSampler::sfz

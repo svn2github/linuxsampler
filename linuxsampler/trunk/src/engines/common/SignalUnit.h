@@ -479,6 +479,8 @@ namespace LinuxSampler {
             
             int GetCCCount() { return pCtrls->count(); }
             
+            bool HasCCs() { return GetCCCount() > 0; }
+            
             virtual void Increment() {
                 if (hasSmoothCtrls && isSmoothingOut) Calculate();
             }

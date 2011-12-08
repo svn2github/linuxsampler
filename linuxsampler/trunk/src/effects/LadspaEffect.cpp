@@ -280,6 +280,8 @@ void LadspaEffect::InitEffect(AudioOutputDevice* pDevice) throw (Exception) {
         vOutputChannels[i] = new AudioChannel(i, pDevice->MaxSamplesPerCycle());
     }
     
+    // TODO: recalculate the min and max values that depends on sample rate
+    
     // assign (already created and initialized) control input and control
     // output variables (effect parameters)
     int iInControl = 0;
@@ -313,7 +315,7 @@ float LadspaEffect::getLowerB(int iPort) const {
             ? pDescriptor->PortRangeHints[iPort].LowerBound : 0.0f;
 
     if (pDescriptor->PortRangeHints[iPort].HintDescriptor & LADSPA_HINT_SAMPLE_RATE)
-        low *= float(pDevice->SampleRate());
+        low *= float(pDevice == NULL ? 44100 : pDevice->SampleRate());
 
     return low;
 }
@@ -325,7 +327,7 @@ float LadspaEffect::getUpperB(int iPort) const {
             ? pDescriptor->PortRangeHints[iPort].UpperBound : 1.0f;
 
     if (pDescriptor->PortRangeHints[iPort].HintDescriptor & LADSPA_HINT_SAMPLE_RATE)
-        up *= float(pDevice->SampleRate());
+        up *= float(pDevice == NULL ? 44100 : pDevice->SampleRate());
 
     return up;
 }

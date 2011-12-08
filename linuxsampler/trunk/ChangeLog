@@ -42,6 +42,7 @@ Version CVS HEAD (?)
     - raised limit of program change queue from 100 to 512
       (as suggested by Alex Stone)
     - implemented sine LFO, pulse LFO and saw LFO
+    - experimental support for per voice equalization
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension
@@ -170,6 +171,10 @@ Version CVS HEAD (?)
       cutoff_stepccN, resonance_stepccN, lfoN_freq_stepccX,
       lfoN_volume_stepccX, lfoN_pitch_stepccX, lfoN_pan_stepccX,
       lfoN_cutoff_stepccX, lfoN_resonance_stepccX
+    - implemented opcodes eq1_freq, eq2_freq, eq3_freq,
+      eq1_freqccN, eq2_freqccN, eq3_freqccN, eq1_bw, eq2_bw, eq3_bw,
+      eq1_bwccN, eq2_bwccN, eq3_bwccN, eq1_gain, eq2_gain, eq3_gain,
+      eq1_gainccN, eq2_gainccN, eq3_gainccN
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
@@ -271,6 +276,8 @@ Version CVS HEAD (?)
     - fixed handling of rapid bank select and program change messages
       sent to the same sampler channel (patch from the Open Octave
       project, slightly adjusted)
+    - fixed crash when trying to create an effect instance with controls
+      which min and/or max values depend on the sample rate
 
 Version 1.0.0 (31 July 2009)
 

@@ -318,8 +318,17 @@ namespace LinuxSampler {
         const bool bVoiceRequiresDedicatedRouting =
             pEngineChannel->GetFxSendCount() > 0 &&
             (pMidiKeyInfo->ReverbSend || pMidiKeyInfo->ChorusSend);
+        
+        const bool bEq =
+            pSignalUnitRack != NULL && pSignalUnitRack->HasEq() && GetEngine()->pEq->HasSupport();
 
-        if (bVoiceRequiresDedicatedRouting) {
+        if (bEq) {
+            GetEngine()->pEq->GetInChannelLeft()->Clear();
+            GetEngine()->pEq->GetInChannelRight()->Clear();
+            finalSynthesisParameters.pOutLeft  = &GetEngine()->pEq->GetInChannelLeft()->Buffer()[Skip];
+            finalSynthesisParameters.pOutRight = &GetEngine()->pEq->GetInChannelRight()->Buffer()[Skip];
+            pSignalUnitRack->UpdateEqSettings(GetEngine()->pEq);
+        } else if (bVoiceRequiresDedicatedRouting) {
             finalSynthesisParameters.pOutLeft  = &GetEngine()->pDedicatedVoiceChannelLeft->Buffer()[Skip];
             finalSynthesisParameters.pOutRight = &GetEngine()->pDedicatedVoiceChannelRight->Buffer()[Skip];
         } else {
@@ -538,11 +547,20 @@ namespace LinuxSampler {
         }
 
         if (bVoiceRequiresDedicatedRouting) {
+            if (bEq) {
+                GetEngine()->pEq->RenderAudio(Samples);
+                GetEngine()->pEq->GetOutChannelLeft()->CopyTo(GetEngine()->pDedicatedVoiceChannelLeft, Samples);
+                GetEngine()->pEq->GetOutChannelRight()->CopyTo(GetEngine()->pDedicatedVoiceChannelRight, Samples);
+            }
             optional<float> effectSendLevels[2] = {
                 pMidiKeyInfo->ReverbSend,
                 pMidiKeyInfo->ChorusSend
             };
             GetEngine()->RouteDedicatedVoiceChannels(pEngineChannel, effectSendLevels, Samples);
+        } else if (bEq) {
+            GetEngine()->pEq->RenderAudio(Samples);
+            GetEngine()->pEq->GetOutChannelLeft()->CopyTo(pChannel->pChannelLeft, Samples);
+            GetEngine()->pEq->GetOutChannelRight()->CopyTo(pChannel->pChannelRight, Samples);
         }
     }
 

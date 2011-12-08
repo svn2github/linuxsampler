@@ -30,9 +30,92 @@
 
 namespace LinuxSampler {
     
+    class EqSupport {
+        private:
+            int  BandCount;
+            int* GainIdxs; ///< the indices of the gain controls
+            int* FreqIdxs; ///< the indices of the frequency controls
+            int* BandwidthIdxs; ///< the indices of the bandwidth controls
+            Effect* pEffect;
+            Effect* pEffect2; // If the effect is mono we'll need two effects
+            
+            inline float check(optional<float> minimum, optional<float> maximum, float value) {
+                if (minimum) {
+                    float min = *minimum;
+                    if (value < min) value = min;
+                }
+                if (maximum) {
+                    float max = *maximum;
+                    if (value > max) value = max;
+                }
+                
+                return value;
+            }
+            
+        public:
+            EqSupport();
+            ~EqSupport();
+
+            /**
+             * Searches for know EQ effects and create one if the search succeed.
+             * If the initialization is successful and EQ effect is selected,
+             * HasSupport() returns true;
+             */
+            void Install();
+
+            void Uninstall();
+
+            /** Returns true if an EQ is created and is ready for use. */
+            bool HasSupport() { return pEffect != NULL; }
+ 
+            /** Reset the gains of all bands to 0dB. */
+            void Reset() {
+                if (!HasSupport()) return;
+                for (int i = 0; i < BandCount; i++) {
+                    pEffect->InputControl(GainIdxs[i])->SetValue(0); // 0dB
+                    if (pEffect2 != NULL) pEffect2->InputControl(GainIdxs[i])->SetValue(0); // 0dB
+                }
+            }
+            
+            void InitEffect(AudioOutputDevice* pDevice) {
+                if (pEffect != NULL) pEffect->InitEffect(pDevice);
+                if (pEffect2 != NULL) pEffect2->InitEffect(pDevice);
+            }
+                
+            int GetBandCount() { return BandCount; }
+
+            void SetGain(int band, float gain);
+            void SetFreq(int band, float freq);
+            void SetBandwidth(int band, float octaves);
+            
+            AudioChannel* GetInChannelLeft() {
+                return pEffect->InputChannel(0);
+            }
+            
+            AudioChannel* GetInChannelRight() {
+                return pEffect2 != NULL ? pEffect2->InputChannel(0) : pEffect->InputChannel(1);
+            }
+            
+            AudioChannel* GetOutChannelLeft() {
+                return pEffect->OutputChannel(0);
+            }
+            
+            AudioChannel* GetOutChannelRight() {
+                return pEffect2 != NULL ? pEffect2->OutputChannel(0) : pEffect->OutputChannel(1);
+            }
+            
+            void RenderAudio(uint Samples) {
+                pEffect->RenderAudio(Samples);
+                if (pEffect2 != NULL) pEffect2->RenderAudio(Samples);
+            }
+    };
+            
+            
+    
     class SignalUnitRack {
         protected:
             uint CurrentStep; // The current time step
+            bool bHasEq;
 
         public:
             FixedArray<SignalUnit*> Units; // A list of all signal units in this rack
@@ -40,7 +123,7 @@ namespace LinuxSampler {
             /**
              * @param maxUnitCount We are using fixed size array because of the real-time safe requirements.
              */
-            SignalUnitRack(int maxUnitCount): CurrentStep(0), Units(maxUnitCount) { }
+            SignalUnitRack(int maxUnitCount): CurrentStep(0), bHasEq(false), Units(maxUnitCount) { }
             
             uint GetCurrentStep() { return CurrentStep; }
 
@@ -94,6 +177,14 @@ namespace LinuxSampler {
                     Units[i]->CancelRelease();
                 }
             }
+            
+            /**
+             * Determines whether an equalization is applied to the voice.
+             * Used for optimization.
+             */
+            bool HasEq() { return bHasEq; }
+            
+            virtual void UpdateEqSettings(EqSupport* pEqSupport) = 0;
     };
 } // namespace LinuxSampler
 

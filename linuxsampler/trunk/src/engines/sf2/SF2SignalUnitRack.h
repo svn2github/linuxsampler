@@ -125,6 +125,8 @@ namespace LinuxSampler { namespace sf2 {
 
             virtual EndpointSignalUnit* GetEndpointUnit();
             virtual void EnterFadeOutStage();
+            
+            virtual void UpdateEqSettings(EqSupport* pEqSupport) { }
     };
     
 }} // namespace LinuxSampler::sf2

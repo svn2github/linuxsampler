@@ -66,6 +66,7 @@ namespace LinuxSampler { namespace sfz {
             virtual void Trigger();
             
             void SetCCs(::sfz::Array<int>& pCC);
+            void SetCCs(::sfz::Array<float>& pCC);
             void SetCCs(ArrayList< ::sfz::CC>& cc);
             
             virtual void AddSmoothCC(uint8_t Controller, float Influence, short int Curve, float Smooth, float Step);
@@ -385,6 +386,18 @@ namespace LinuxSampler { namespace sfz {
             PitchLFOUnit suPitchLFO;
             FilLFOUnit   suFilLFO;
             
+            CCUnit suEq1GainOnCC;
+            CCUnit suEq2GainOnCC;
+            CCUnit suEq3GainOnCC;
+            
+            CCUnit suEq1FreqOnCC;
+            CCUnit suEq2FreqOnCC;
+            CCUnit suEq3FreqOnCC;
+            
+            CCUnit suEq1BwOnCC;
+            CCUnit suEq2BwOnCC;
+            CCUnit suEq3BwOnCC;
+            
             // SFZ v2
             
             SmoothCCUnit suVolOnCC;
@@ -447,6 +460,8 @@ namespace LinuxSampler { namespace sfz {
             
             /** Invoked when the voice gone inactive. */
             void Reset();
+            
+            virtual void UpdateEqSettings(EqSupport* pEqSupport);
             
             friend class EndpointUnit;
     };

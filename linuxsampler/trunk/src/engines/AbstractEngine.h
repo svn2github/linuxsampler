@@ -33,6 +33,7 @@
 #include "../common/RingBuffer.h"
 #include "../drivers/audio/AudioOutputDevice.h"
 #include "common/Event.h"
+#include "common/SignalUnitRack.h"
 
 namespace LinuxSampler {
 
@@ -64,6 +65,7 @@ namespace LinuxSampler {
 
             void SetVoiceCount(uint Count);// Simple array wrapper just to make sure memory is freed
             // when liblinuxsampler is unloaded
+            
             class FloatTable {
             private:
                 const float* array;
@@ -103,6 +105,7 @@ namespace LinuxSampler {
             int                        ActiveVoiceCountMax;   ///< the maximum voice usage since application start
             atomic_t                   ActiveVoiceCount;      ///< number of currently active voices
             int                        VoiceSpawnsLeft;       ///< We only allow CONFIG_MAX_VOICES voices to be spawned per audio fragment, we use this variable to ensure this limit.
+            EqSupport*                 pEq;                   ///< Used for per voice equalization
 
             void RouteAudio(EngineChannel* pEngineChannel, uint Samples);
             void RouteDedicatedVoiceChannels(EngineChannel* pEngineChannel, optional<float> FxSendLevels[2], uint Samples);

@@ -359,6 +359,10 @@ namespace LinuxSampler {
                 if (pDedicatedVoiceChannelRight) delete pDedicatedVoiceChannelRight;
                 pDedicatedVoiceChannelLeft  = new AudioChannel(0, MaxSamplesPerCycle);
                 pDedicatedVoiceChannelRight = new AudioChannel(1, MaxSamplesPerCycle);
+                
+                if (pEq != NULL) delete pEq;
+                pEq = new EqSupport;
+                pEq->InitEffect(pAudioOutputDevice);
             }
 
             /**
