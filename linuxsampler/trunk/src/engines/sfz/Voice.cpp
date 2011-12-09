@@ -34,6 +34,7 @@ namespace LinuxSampler { namespace sfz {
     typedef LinuxSampler::VoiceBase<EngineChannel, ::sfz::Region, Sample, DiskThread> SfzVoice;
     Voice::Voice(): SignalRack(this), SfzVoice(&SignalRack) {
         pEngine     = NULL;
+        bEqSupport = true;
     }
 
     Voice::~Voice() {

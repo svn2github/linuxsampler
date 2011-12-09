@@ -122,6 +122,7 @@ namespace LinuxSampler {
             void processGroupEvents(RTList<Event>::Iterator& itEvent, uint End);
             void UpdatePortamentoPos(Pool<Event>::Iterator& itNoteOffEvent);
             void Kill(Pool<Event>::Iterator& itKillEvent);
+            void CreateEq();
 
             bool                Orphan;             ///< true if this voice is playing a sample from an instrument that is unloaded. When the voice dies, the sample (and dimension region) will be handed back to the instrument resource manager.
             playback_state_t    PlaybackState;      ///< When a sample will be triggered, it will be first played from RAM cache and after a couple of sample points it will switch to disk streaming and at the end of a disk stream we have to add null samples, so the interpolator can do it's work correctly
@@ -167,6 +168,17 @@ namespace LinuxSampler {
             gig::SynthesisParam         finalSynthesisParameters;
             gig::Loop                   loop;
             RTList<Event>*              pGroupEvents;        ///< Events directed to an exclusive group
+            
+            EqSupport* pEq;         ///< Used for per voice equalization
+            bool       bEqSupport;
+            
+            void PrintEqInfo() {
+                if (!bEqSupport || pEq == NULL) {
+                    dmsg(1,("EQ support: no\n"));
+                } else {
+                    pEq->PrintInfo();
+                }
+            }
 
             virtual AbstractEngine* GetEngine() = 0;
             virtual SampleInfo      GetSampleInfo() = 0;

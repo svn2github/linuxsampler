@@ -345,10 +345,18 @@ namespace LinuxSampler {
                 pDiskThread->StartThread();
                 dmsg(1,("OK\n"));
 
+                bool printEqInfo = true;
                 for (VoiceIterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
                     if (!iterVoice->pDiskThread) {
                         dmsg(0,("Engine -> voice::trigger: !pDiskThread\n"));
                         exit(EXIT_FAILURE);
+                    }
+                    
+                    iterVoice->CreateEq();
+                    
+                    if(printEqInfo) {
+                        iterVoice->PrintEqInfo();
+                        printEqInfo = false;
                     }
                 }
                 pVoicePool->clear();
@@ -359,10 +367,6 @@ namespace LinuxSampler {
                 if (pDedicatedVoiceChannelRight) delete pDedicatedVoiceChannelRight;
                 pDedicatedVoiceChannelLeft  = new AudioChannel(0, MaxSamplesPerCycle);
                 pDedicatedVoiceChannelRight = new AudioChannel(1, MaxSamplesPerCycle);
-                
-                if (pEq != NULL) delete pEq;
-                pEq = new EqSupport;
-                pEq->InitEffect(pAudioOutputDevice);
             }
 
             /**

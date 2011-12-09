@@ -79,17 +79,21 @@ namespace LinuxSampler {
                 pEffect2->InputControl(0)->SetValue(0); // Low-shelving gain (0dB)
                 pEffect2->InputControl(12)->SetValue(0); // High-shelving gain (0dB)
                 
-                dmsg(1,("EQ support: %s\n", pEffectInfo->Description().c_str()));
                 break;
             }
         }
         
-        if (pEffect == NULL) {
-            dmsg(1,("EQ support: no\n"));
-            return;
-        }
+        if (pEffect == NULL) return;
         
         Reset();
+    }
+    
+    void EqSupport::PrintInfo() {
+        if (!HasSupport()) {
+            dmsg(1,("EQ support: no\n"));
+        } else {
+            dmsg(1,("EQ support: %s\n", pEffect->GetEffectInfo()->Description().c_str()));
+        }
     }
     
     void EqSupport::SetGain(int band, float gain) {

@@ -43,12 +43,24 @@ namespace LinuxSampler {
 
         finalSynthesisParameters.filterLeft.Reset();
         finalSynthesisParameters.filterRight.Reset();
+        
+        pEq          = NULL;
+        bEqSupport   = false;
     }
 
     AbstractVoice::~AbstractVoice() {
         if (pLFO1) delete pLFO1;
         if (pLFO2) delete pLFO2;
         if (pLFO3) delete pLFO3;
+        
+        if(pEq != NULL) delete pEq;
+    }
+            
+    void AbstractVoice::CreateEq() {
+        if(!bEqSupport) return;
+        if(pEq != NULL) delete pEq;
+        pEq = new EqSupport;
+        pEq->InitEffect(GetEngine()->pAudioOutputDevice);
     }
 
     /**
@@ -336,14 +348,14 @@ namespace LinuxSampler {
             (pMidiKeyInfo->ReverbSend || pMidiKeyInfo->ChorusSend);
         
         const bool bEq =
-            pSignalUnitRack != NULL && pSignalUnitRack->HasEq() && GetEngine()->pEq->HasSupport();
+            pSignalUnitRack != NULL && pSignalUnitRack->HasEq() && pEq->HasSupport();
 
         if (bEq) {
-            GetEngine()->pEq->GetInChannelLeft()->Clear();
-            GetEngine()->pEq->GetInChannelRight()->Clear();
-            finalSynthesisParameters.pOutLeft  = &GetEngine()->pEq->GetInChannelLeft()->Buffer()[Skip];
-            finalSynthesisParameters.pOutRight = &GetEngine()->pEq->GetInChannelRight()->Buffer()[Skip];
-            pSignalUnitRack->UpdateEqSettings(GetEngine()->pEq);
+            pEq->GetInChannelLeft()->Clear();
+            pEq->GetInChannelRight()->Clear();
+            finalSynthesisParameters.pOutLeft  = &pEq->GetInChannelLeft()->Buffer()[Skip];
+            finalSynthesisParameters.pOutRight = &pEq->GetInChannelRight()->Buffer()[Skip];
+            pSignalUnitRack->UpdateEqSettings(pEq);
         } else if (bVoiceRequiresDedicatedRouting) {
             finalSynthesisParameters.pOutLeft  = &GetEngine()->pDedicatedVoiceChannelLeft->Buffer()[Skip];
             finalSynthesisParameters.pOutRight = &GetEngine()->pDedicatedVoiceChannelRight->Buffer()[Skip];
@@ -566,9 +578,9 @@ namespace LinuxSampler {
 
         if (bVoiceRequiresDedicatedRouting) {
             if (bEq) {
-                GetEngine()->pEq->RenderAudio(Samples);
-                GetEngine()->pEq->GetOutChannelLeft()->CopyTo(GetEngine()->pDedicatedVoiceChannelLeft, Samples);
-                GetEngine()->pEq->GetOutChannelRight()->CopyTo(GetEngine()->pDedicatedVoiceChannelRight, Samples);
+                pEq->RenderAudio(Samples);
+                pEq->GetOutChannelLeft()->CopyTo(GetEngine()->pDedicatedVoiceChannelLeft, Samples);
+                pEq->GetOutChannelRight()->CopyTo(GetEngine()->pDedicatedVoiceChannelRight, Samples);
             }
             optional<float> effectSendLevels[2] = {
                 pMidiKeyInfo->ReverbSend,
@@ -576,9 +588,9 @@ namespace LinuxSampler {
             };
             GetEngine()->RouteDedicatedVoiceChannels(pEngineChannel, effectSendLevels, Samples);
         } else if (bEq) {
-            GetEngine()->pEq->RenderAudio(Samples);
-            GetEngine()->pEq->GetOutChannelLeft()->CopyTo(pChannel->pChannelLeft, Samples);
-            GetEngine()->pEq->GetOutChannelRight()->CopyTo(pChannel->pChannelRight, Samples);
+            pEq->RenderAudio(Samples);
+            pEq->GetOutChannelLeft()->MixTo(pChannel->pChannelLeft, Samples);
+            pEq->GetOutChannelRight()->MixTo(pChannel->pChannelRight, Samples);
         }
     }
 

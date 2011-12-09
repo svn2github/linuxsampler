@@ -55,6 +55,8 @@ namespace LinuxSampler {
         public:
             EqSupport();
             ~EqSupport();
+            
+            void PrintInfo();
 
             /**
              * Searches for know EQ effects and create one if the search succeed.

@@ -81,7 +81,6 @@ namespace LinuxSampler {
         FrameTime          = 0;
         RandomSeed         = 0;
         pDedicatedVoiceChannelLeft = pDedicatedVoiceChannelRight = NULL;
-        pEq = NULL;
     }
 
     AbstractEngine::~AbstractEngine() {
@@ -92,7 +91,6 @@ namespace LinuxSampler {
         if (pSysexBuffer) delete pSysexBuffer;
         if (pDedicatedVoiceChannelLeft) delete pDedicatedVoiceChannelLeft;
         if (pDedicatedVoiceChannelRight) delete pDedicatedVoiceChannelRight;
-        if (pEq) delete pEq;
         Unregister();
     }
 
