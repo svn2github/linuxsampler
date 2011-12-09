@@ -115,7 +115,7 @@ namespace LinuxSampler {
     class SignalUnitRack {
         protected:
             uint CurrentStep; // The current time step
-            bool bHasEq;
+            bool bHasEq, releaseStageEntered;
 
         public:
             FixedArray<SignalUnit*> Units; // A list of all signal units in this rack
@@ -123,7 +123,8 @@ namespace LinuxSampler {
             /**
              * @param maxUnitCount We are using fixed size array because of the real-time safe requirements.
              */
-            SignalUnitRack(int maxUnitCount): CurrentStep(0), bHasEq(false), Units(maxUnitCount) { }
+            SignalUnitRack(int maxUnitCount): CurrentStep(0), bHasEq(false),
+                                              releaseStageEntered(false), Units(maxUnitCount) { }
             
             uint GetCurrentStep() { return CurrentStep; }
 
@@ -152,6 +153,7 @@ namespace LinuxSampler {
             
             /** Initializes and triggers the rack. */
             virtual void Trigger() {
+                releaseStageEntered = false;
                 CurrentStep = 0;
                 for (int i = 0; i < Units.size(); i++) {
                     Units[i]->Trigger();
@@ -163,10 +165,13 @@ namespace LinuxSampler {
              * called when the voice enter the release stage.
              */
             virtual void EnterReleaseStage() {
+                releaseStageEntered = true;
                 for (int i = 0; i < Units.size(); i++) {
                     Units[i]->EnterReleaseStage();
                 }
             }
+            
+            bool isReleaseStageEntered() { return releaseStageEntered; }
             
             /**
              * When the rack belongs to a voice, this method is

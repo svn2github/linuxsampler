@@ -488,11 +488,46 @@ namespace LinuxSampler { namespace sfz {
         
     }
     
+    float EndpointUnit::GetInfluence(::sfz::Array< ::sfz::optional<float> >& cc) {
+        float f = 0;
+        for (int i = 0; i < 128; i++) {
+            if (cc[i]) {
+                f += (pVoice->GetControllerValue(i) / 127.0f) * (*cc[i]);
+            }
+        }
+        return f;
+    }
+    
+    float EndpointUnit::GetInfluence(::sfz::Array< ::sfz::optional<int> >& cc) {
+        float f = 0;
+        for (int i = 0; i < 128; i++) {
+            if (cc[i]) {
+                f += (pVoice->GetControllerValue(i) / 127.0f) * (*cc[i]);
+            }
+        }
+        return f;
+    }
+    
     SfzSignalUnitRack* const EndpointUnit::GetRack() {
         return static_cast<SfzSignalUnitRack* const>(pRack);
     }
     
     void EndpointUnit::Trigger() {
+        uiDelayTrigger = (uint)GetInfluence(pVoice->pRegion->delay_samples_oncc);
+        if (pVoice->pRegion->delay_samples) uiDelayTrigger += *pVoice->pRegion->delay_samples;
+        
+        if (pVoice->pRegion->delay) {
+            /* here we use the device sample rate */
+            uiDelayTrigger += (uint)( (*pVoice->pRegion->delay) * pVoice->GetSampleRate() );
+        }
+        
+        if (pVoice->pRegion->delay_random) {
+            float r = pVoice->GetEngine()->Random();
+            uiDelayTrigger += (uint)( r * (*pVoice->pRegion->delay_random) * pVoice->GetSampleRate() );
+        }
+        
+        uiDelayTrigger += (uint)(GetInfluence(pVoice->pRegion->delay_oncc) * pVoice->GetSampleRate());
+        
         float xfInVelCoeff = 1;
         
         if (pVoice->MIDIVelocity <= pVoice->pRegion->xfin_lovel) {
@@ -564,6 +599,10 @@ namespace LinuxSampler { namespace sfz {
     }
     
     bool EndpointUnit::Active() {
+        if (pRack->isReleaseStageEntered() && uiDelayTrigger) {
+            return false; // The key was released before the delay end, so the voice won't play at all.
+        }
+        
         if (GetRack()->suVolEG.Active()) return true;
         
         bool b = false;

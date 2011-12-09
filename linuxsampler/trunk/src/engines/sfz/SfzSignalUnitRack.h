@@ -356,7 +356,10 @@ namespace LinuxSampler { namespace sfz {
 
             virtual void Trigger();
 
-            /** The endpoint should be active until the volume EG is active. */
+            /**
+             * The endpoint should be active until the volume EG is active.
+             * This method determines the end of the voice playback.
+             */
             virtual bool Active();
             
             virtual float GetVolume();
@@ -372,6 +375,9 @@ namespace LinuxSampler { namespace sfz {
             }
             
             virtual float CalculateFilterCutoff(float cutoff);
+            
+            float  GetInfluence(::sfz::Array< ::sfz::optional<float> >& cc);
+            float  GetInfluence(::sfz::Array< ::sfz::optional<int> >& cc);
     };
     
     

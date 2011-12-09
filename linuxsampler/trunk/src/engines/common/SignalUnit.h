@@ -322,6 +322,15 @@ namespace LinuxSampler {
                 if (p > 127) return 127;
                 return p;
             }
+            
+            /**
+             * Decreases the delay by Sample time steps.
+             * This method is used to delay the sample playback.
+             * While the endpoint unit is in delay stage the rack is not incremented.
+             */
+            void DecreaseDelay(uint Samples) {
+                uiDelayTrigger -= Samples;
+            }
     };
     
     /**

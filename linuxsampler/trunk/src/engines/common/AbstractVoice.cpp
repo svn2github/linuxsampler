@@ -312,6 +312,22 @@ namespace LinuxSampler {
      *  @param Skip    - number of sample points to skip in output buffer
      */
     void AbstractVoice::Synthesize(uint Samples, sample_t* pSrc, uint Skip) {
+        bool delay = false; // Whether the voice playback should be delayed for this call
+        
+        if (pSignalUnitRack != NULL) {
+            uint delaySteps = pSignalUnitRack->GetEndpointUnit()->DelayTrigger();
+            if (delaySteps > 0) { // delay on the endpoint unit means delay of the voice playback
+                if (delaySteps >= Samples) {
+                    pSignalUnitRack->GetEndpointUnit()->DecreaseDelay(Samples);
+                    delay = true;
+                } else {
+                    pSignalUnitRack->GetEndpointUnit()->DecreaseDelay(delaySteps);
+                    Samples -= delaySteps;
+                    Skip += delaySteps;
+                }
+            }
+        }
+        
         AbstractEngineChannel* pChannel = pEngineChannel;
         MidiKeyBase* pMidiKeyInfo = GetMidiKeyInfo(MIDIKey);
 
@@ -404,7 +420,7 @@ namespace LinuxSampler {
             // process transition events (note on, note off & sustain pedal)
             processTransitionEvents(itNoteEvent, iSubFragmentEnd);
             processGroupEvents(itGroupEvent, iSubFragmentEnd);
-
+            
             if (pSignalUnitRack == NULL) {
                 // if the voice was killed in this subfragment, or if the
                 // filter EG is finished, switch EG1 to fade out stage
@@ -502,7 +518,7 @@ namespace LinuxSampler {
                 fFinalVolume * VolumeRight * PanRightSmoother.render();
 #endif
             // render audio for one subfragment
-            RunSynthesisFunction(SynthesisMode, &finalSynthesisParameters, &loop);
+            if (!delay) RunSynthesisFunction(SynthesisMode, &finalSynthesisParameters, &loop);
 
             if (pSignalUnitRack == NULL) {
                 // stop the rendering if volume EG is finished
@@ -539,12 +555,14 @@ namespace LinuxSampler {
                     }*/
                 // TODO: ^^^
                 
-                pSignalUnitRack->Increment();
+                if (!delay) pSignalUnitRack->Increment();
             }
 
             Pos = newPos;
             i = iSubFragmentEnd;
         }
+        
+        if (delay) return;
 
         if (bVoiceRequiresDedicatedRouting) {
             if (bEq) {

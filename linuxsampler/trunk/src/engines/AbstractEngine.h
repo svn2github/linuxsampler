@@ -65,6 +65,11 @@ namespace LinuxSampler {
 
             void SetVoiceCount(uint Count);// Simple array wrapper just to make sure memory is freed
             // when liblinuxsampler is unloaded
+
+            float Random() {
+                RandomSeed = RandomSeed * 1103515245 + 12345; // classic pseudo random number generator
+                return RandomSeed / 4294967296.0f;
+            }
             
             class FloatTable {
             private:
@@ -121,11 +126,6 @@ namespace LinuxSampler {
             );
 
             uint8_t GSCheckSum(const RingBuffer<uint8_t,false>::NonVolatileReader AddrReader, uint DataSize);
-
-            float Random() {
-                RandomSeed = RandomSeed * 1103515245 + 12345; // classic pseudo random number generator
-                return RandomSeed / 4294967296.0f;
-            }
 
             virtual void ResetInternal() = 0;
             virtual void KillAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itKillEvent) = 0;

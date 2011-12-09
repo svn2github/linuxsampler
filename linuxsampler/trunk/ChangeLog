@@ -175,6 +175,8 @@ Version CVS HEAD (?)
       eq1_freqccN, eq2_freqccN, eq3_freqccN, eq1_bw, eq2_bw, eq3_bw,
       eq1_bwccN, eq2_bwccN, eq3_bwccN, eq1_gain, eq2_gain, eq3_gain,
       eq1_gainccN, eq2_gainccN, eq3_gainccN
+    - implemented opcodes delay, delay_onccN, delay_random,
+      delay_samples, delay_samples_onccN
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
