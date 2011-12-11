@@ -306,6 +306,15 @@ namespace LinuxSampler {
             VCFCutoffCtrl.controller    = 0;
             VCFResonanceCtrl.controller = 0;
         }
+        
+        const bool bEq =
+            pSignalUnitRack != NULL && pSignalUnitRack->HasEq() && pEq->HasSupport();
+
+        if (bEq) {
+            pEq->GetInChannelLeft()->Clear();
+            pEq->GetInChannelRight()->Clear();
+            pEq->RenderAudio(GetEngine()->pAudioOutputDevice->MaxSamplesPerCycle());
+        }
 
         return 0; // success
     }

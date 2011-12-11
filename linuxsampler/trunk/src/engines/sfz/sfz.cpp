@@ -1104,6 +1104,9 @@ namespace sfz
             }
             
             for (int j = 0; j < r->lfos.size(); j++) {
+                r->lfos[j].copySmoothValues();
+                r->lfos[j].copyStepValues();
+                
                 copySmoothValues(r->lfos[j].volume_smoothcc, r->lfos[j].volume_oncc);
                 r->lfos[j].volume_smoothcc.clear();
                 
@@ -1539,6 +1542,24 @@ namespace sfz
             else if (strcmp(s, "_pan_curve") == 0) eg(x).pan_curve = check(key, 0, 30000, ToInt(value));
             else if (sscanf(s, "_pan_oncc%d", &y)) eg(x).pan_oncc.add( CC(y, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if (sscanf(s, "_pan_curvecc%d", &y)) eg(x).pan_curvecc.add( CC(y, 0.0f, check(key, 0, 30000, ToInt(value))) );
+            else if (strcmp(s, "_eq1freq") == 0) eg(x).eq1freq = check(key, 0.0f, 30000.0f, ToFloat(value));
+            else if (strcmp(s, "_eq2freq") == 0) eg(x).eq2freq = check(key, 0.0f, 30000.0f, ToFloat(value));
+            else if (strcmp(s, "_eq3freq") == 0) eg(x).eq3freq = check(key, 0.0f, 30000.0f, ToFloat(value));
+            else if (strcmp(s, "_eq1bw") == 0) eg(x).eq1bw = check(key, 0.001f, 4.0f, ToFloat(value));
+            else if (strcmp(s, "_eq2bw") == 0) eg(x).eq2bw = check(key, 0.001f, 4.0f, ToFloat(value));
+            else if (strcmp(s, "_eq3bw") == 0) eg(x).eq3bw = check(key, 0.001f, 4.0f, ToFloat(value));
+            else if (strcmp(s, "_eq1gain") == 0) eg(x).eq1gain = check(key, -96.0f, 24.0f, ToFloat(value));
+            else if (strcmp(s, "_eq2gain") == 0) eg(x).eq2gain = check(key, -96.0f, 24.0f, ToFloat(value));
+            else if (strcmp(s, "_eq3gain") == 0) eg(x).eq3gain = check(key, -96.0f, 24.0f, ToFloat(value));
+            else if (sscanf(s, "_eq1freq_oncc%d", &y)) eg(x).eq1freq_oncc.add( CC(y, check(key, 0.0f, 30000.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq2freq_oncc%d", &y)) eg(x).eq2freq_oncc.add( CC(y, check(key, 0.0f, 30000.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq3freq_oncc%d", &y)) eg(x).eq3freq_oncc.add( CC(y, check(key, 0.0f, 30000.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq1bw_oncc%d", &y)) eg(x).eq1bw_oncc.add( CC(y, check(key, 0.001f, 4.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq2bw_oncc%d", &y)) eg(x).eq2bw_oncc.add( CC(y, check(key, 0.001f, 4.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq3bw_oncc%d", &y)) eg(x).eq3bw_oncc.add( CC(y, check(key, 0.001f, 4.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq1gain_oncc%d", &y)) eg(x).eq1gain_oncc.add( CC(y, check(key, -96.0f, 24.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq2gain_oncc%d", &y)) eg(x).eq2gain_oncc.add( CC(y, check(key, -96.0f, 24.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq3gain_oncc%d", &y)) eg(x).eq3gain_oncc.add( CC(y, check(key, -96.0f, 24.0f, ToFloat(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
 
@@ -1641,6 +1662,42 @@ namespace sfz
             else if (sscanf(s, "_pan_oncc%d", &y)) lfo(x).pan_oncc.add( CC(y, check(key, -100.0f, 100.0f, ToFloat(value))) );
             else if (sscanf(s, "_pan_smoothcc%d", &y)) lfo(x).pan_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
             else if (sscanf(s, "_pan_stepcc%d", &y)) lfo(x).pan_stepcc.add( CC(y, 0, -1, 0, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if (strcmp(s, "_eq1freq") == 0) lfo(x).eq1freq = check(key, 0.0f, 30000.0f, ToFloat(value));
+            else if (strcmp(s, "_eq2freq") == 0) lfo(x).eq2freq = check(key, 0.0f, 30000.0f, ToFloat(value));
+            else if (strcmp(s, "_eq3freq") == 0) lfo(x).eq3freq = check(key, 0.0f, 30000.0f, ToFloat(value));
+            else if (strcmp(s, "_eq1bw") == 0) lfo(x).eq1bw = check(key, 0.001f, 4.0f, ToFloat(value));
+            else if (strcmp(s, "_eq2bw") == 0) lfo(x).eq2bw = check(key, 0.001f, 4.0f, ToFloat(value));
+            else if (strcmp(s, "_eq3bw") == 0) lfo(x).eq3bw = check(key, 0.001f, 4.0f, ToFloat(value));
+            else if (strcmp(s, "_eq1gain") == 0) lfo(x).eq1gain = check(key, -96.0f, 24.0f, ToFloat(value));
+            else if (strcmp(s, "_eq2gain") == 0) lfo(x).eq2gain = check(key, -96.0f, 24.0f, ToFloat(value));
+            else if (strcmp(s, "_eq3gain") == 0) lfo(x).eq3gain = check(key, -96.0f, 24.0f, ToFloat(value));
+            else if (sscanf(s, "_eq1freq_oncc%d", &y)) lfo(x).eq1freq_oncc.add( CC(y, check(key, 0.0f, 30000.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq1freq_smoothcc%d", &y)) lfo(x).eq1freq_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_eq1freq_stepcc%d", &y)) lfo(x).eq1freq_stepcc.add( CC(y, 0, -1, 0, check(key, 0.0f, 4294967296.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq2freq_oncc%d", &y)) lfo(x).eq2freq_oncc.add( CC(y, check(key, 0.0f, 30000.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq2freq_smoothcc%d", &y)) lfo(x).eq2freq_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_eq2freq_stepcc%d", &y)) lfo(x).eq2freq_stepcc.add( CC(y, 0, -1, 0, check(key, 0.0f, 4294967296.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq3freq_oncc%d", &y)) lfo(x).eq3freq_oncc.add( CC(y, check(key, 0.0f, 30000.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq3freq_smoothcc%d", &y)) lfo(x).eq3freq_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_eq3freq_stepcc%d", &y)) lfo(x).eq3freq_stepcc.add( CC(y, 0, -1, 0, check(key, 0.0f, 4294967296.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq1bw_oncc%d", &y)) lfo(x).eq1bw_oncc.add( CC(y, check(key, 0.001f, 4.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq1bw_smoothcc%d", &y)) lfo(x).eq1bw_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_eq1bw_stepcc%d", &y)) lfo(x).eq1bw_stepcc.add( CC(y, 0, -1, 0, check(key, 0.0f, 4294967296.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq2bw_oncc%d", &y)) lfo(x).eq2bw_oncc.add( CC(y, check(key, 0.001f, 4.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq2bw_smoothcc%d", &y)) lfo(x).eq2bw_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_eq2bw_stepcc%d", &y)) lfo(x).eq2bw_stepcc.add( CC(y, 0, -1, 0, check(key, 0.0f, 4294967296.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq3bw_oncc%d", &y)) lfo(x).eq3bw_oncc.add( CC(y, check(key, 0.001f, 4.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq3bw_smoothcc%d", &y)) lfo(x).eq3bw_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_eq3bw_stepcc%d", &y)) lfo(x).eq3bw_stepcc.add( CC(y, 0, -1, 0, check(key, 0.0f, 4294967296.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq1gain_oncc%d", &y)) lfo(x).eq1gain_oncc.add( CC(y, check(key, -96.0f, 24.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq1gain_smoothcc%d", &y)) lfo(x).eq1gain_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_eq1gain_stepcc%d", &y)) lfo(x).eq1gain_stepcc.add( CC(y, 0, -1, 0, check(key, 0.0f, 4294967296.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq2gain_oncc%d", &y)) lfo(x).eq2gain_oncc.add( CC(y, check(key, -96.0f, 24.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq2gain_smoothcc%d", &y)) lfo(x).eq2gain_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_eq2gain_stepcc%d", &y)) lfo(x).eq2gain_stepcc.add( CC(y, 0, -1, 0, check(key, 0.0f, 4294967296.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq3gain_oncc%d", &y)) lfo(x).eq3gain_oncc.add( CC(y, check(key, -96.0f, 24.0f, ToFloat(value))) );
+            else if (sscanf(s, "_eq3gain_smoothcc%d", &y)) lfo(x).eq3gain_smoothcc.add( CC(y, 0, -1, check(key, 0, 100000 /* max? */, ToInt(value))) );
+            else if (sscanf(s, "_eq3gain_stepcc%d", &y)) lfo(x).eq3gain_stepcc.add( CC(y, 0, -1, 0, check(key, 0.0f, 4294967296.0f, ToFloat(value))) );
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
         
@@ -1821,6 +1878,8 @@ namespace sfz
     { }
     
     void EG::Copy(const EG& eg) {
+        EqImpl::Copy(static_cast<const EqImpl>(eg));
+        
         sustain    = eg.sustain;
         loop       = eg.loop;
         loop_count = eg.loop_count;
@@ -1848,6 +1907,8 @@ namespace sfz
     }
     
     void LFO::Copy(const LFO& lfo) {
+        EqSmoothStepImpl::Copy(static_cast<const EqSmoothStepImpl>(lfo));
+        
         delay      = lfo.delay;
         freq       = lfo.freq;
         fade       = lfo.fade;
@@ -1880,6 +1941,124 @@ namespace sfz
         resonance_oncc     = lfo.resonance_oncc;
         resonance_smoothcc = lfo.resonance_smoothcc;
         resonance_stepcc   = lfo.resonance_stepcc;
+    }
+    
+    EqImpl::EqImpl() {
+        eq1freq = eq2freq = eq3freq = 0;
+        eq1bw = eq2bw = eq3bw = 0;
+        eq1gain = eq2gain = eq3gain = 0;
+    }
+    
+    void EqImpl::Copy(const EqImpl& eq) {
+        eq1freq = eq.eq1freq;
+        eq2freq = eq.eq2freq;
+        eq3freq = eq.eq3freq;
+        eq1bw   = eq.eq1bw;
+        eq2bw   = eq.eq2bw;
+        eq3bw   = eq.eq3bw;
+        eq1gain = eq.eq1gain;
+        eq2gain = eq.eq2gain;
+        eq3gain = eq.eq3gain;
+        
+        eq1freq_oncc = eq.eq1freq_oncc;
+        eq2freq_oncc = eq.eq2freq_oncc;
+        eq3freq_oncc = eq.eq3freq_oncc;
+        eq1bw_oncc   = eq.eq1bw_oncc;
+        eq2bw_oncc   = eq.eq2bw_oncc;
+        eq3bw_oncc   = eq.eq3bw_oncc;
+        eq1gain_oncc = eq.eq1gain_oncc;
+        eq2gain_oncc = eq.eq2gain_oncc;
+        eq3gain_oncc = eq.eq3gain_oncc;
+    }
+    
+    bool EqImpl::HasEq() {
+        return eq1freq || eq2freq || eq3freq || eq1bw || eq2bw || eq3bw ||
+               eq1gain || eq2gain || eq3gain || !eq1gain_oncc.empty() ||
+               !eq2gain_oncc.empty() || !eq3gain_oncc.empty() ||
+               !eq1freq_oncc.empty() || !eq2freq_oncc.empty() || !eq3freq_oncc.empty() ||
+               !eq1bw_oncc.empty() || !eq2bw_oncc.empty() || !eq3bw_oncc.empty();
+    }
+    
+    void EqSmoothStepImpl::Copy(const EqSmoothStepImpl& eq) {
+        EqImpl::Copy(eq);
+        
+        eq1freq_smoothcc = eq.eq1freq_smoothcc;
+        eq2freq_smoothcc = eq.eq2freq_smoothcc;
+        eq3freq_smoothcc = eq.eq3freq_smoothcc;
+        eq1bw_smoothcc   = eq.eq1bw_smoothcc;
+        eq2bw_smoothcc   = eq.eq2bw_smoothcc;
+        eq3bw_smoothcc   = eq.eq3bw_smoothcc;
+        eq1gain_smoothcc = eq.eq1gain_smoothcc;
+        eq2gain_smoothcc = eq.eq2gain_smoothcc;
+        eq3gain_smoothcc = eq.eq3gain_smoothcc;
+        
+        eq1freq_stepcc = eq.eq1freq_stepcc;
+        eq2freq_stepcc = eq.eq2freq_stepcc;
+        eq3freq_stepcc = eq.eq3freq_stepcc;
+        eq1bw_stepcc   = eq.eq1bw_stepcc;
+        eq2bw_stepcc   = eq.eq2bw_stepcc;
+        eq3bw_stepcc   = eq.eq3bw_stepcc;
+        eq1gain_stepcc = eq.eq1gain_stepcc;
+        eq2gain_stepcc = eq.eq2gain_stepcc;
+        eq3gain_stepcc = eq.eq3gain_stepcc;
+    }
+    
+    void EqSmoothStepImpl::copySmoothValues() {
+        File::copySmoothValues(eq1freq_smoothcc, eq1freq_oncc);
+        eq1freq_smoothcc.clear();
+        
+        File::copySmoothValues(eq2freq_smoothcc, eq2freq_oncc);
+        eq2freq_smoothcc.clear();
+        
+        File::copySmoothValues(eq3freq_smoothcc, eq3freq_oncc);
+        eq3freq_smoothcc.clear();
+        
+        File::copySmoothValues(eq1bw_smoothcc, eq1bw_oncc);
+        eq1bw_smoothcc.clear();
+        
+        File::copySmoothValues(eq2bw_smoothcc, eq2bw_oncc);
+        eq2bw_smoothcc.clear();
+        
+        File::copySmoothValues(eq3bw_smoothcc, eq3bw_oncc);
+        eq3bw_smoothcc.clear();
+        
+        File::copySmoothValues(eq1gain_smoothcc, eq1gain_oncc);
+        eq1gain_smoothcc.clear();
+        
+        File::copySmoothValues(eq2gain_smoothcc, eq2gain_oncc);
+        eq2gain_smoothcc.clear();
+        
+        File::copySmoothValues(eq3gain_smoothcc, eq3gain_oncc);
+        eq3gain_smoothcc.clear();
+    }
+    
+    void EqSmoothStepImpl::copyStepValues() {
+        File::copyStepValues(eq1freq_stepcc, eq1freq_oncc);
+        eq1freq_stepcc.clear();
+        
+        File::copyStepValues(eq2freq_stepcc, eq2freq_oncc);
+        eq2freq_stepcc.clear();
+        
+        File::copyStepValues(eq3freq_stepcc, eq3freq_oncc);
+        eq3freq_stepcc.clear();
+        
+        File::copyStepValues(eq1bw_stepcc, eq1bw_oncc);
+        eq1bw_stepcc.clear();
+        
+        File::copyStepValues(eq2bw_stepcc, eq2bw_oncc);
+        eq2bw_stepcc.clear();
+        
+        File::copyStepValues(eq3bw_stepcc, eq3bw_oncc);
+        eq3bw_stepcc.clear();
+        
+        File::copyStepValues(eq1gain_stepcc, eq1gain_oncc);
+        eq1gain_stepcc.clear();
+        
+        File::copyStepValues(eq2gain_stepcc, eq2gain_oncc);
+        eq2gain_stepcc.clear();
+        
+        File::copyStepValues(eq3gain_stepcc, eq3gain_oncc);
+        eq3gain_stepcc.clear();
     }
 
     EG& File::eg(int x) {

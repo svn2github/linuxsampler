@@ -129,7 +129,7 @@ namespace LinuxSampler { namespace sfz {
     
     
     EGv2Unit::EGv2Unit(SfzSignalUnitRack* rack)
-        : EGUnit< ::LinuxSampler::sfz::EG>(rack), suAmpOnCC(rack), suVolOnCC(rack),
+        : EGUnit< ::LinuxSampler::sfz::EG>(rack), EqUnitSupport(rack), suAmpOnCC(rack), suVolOnCC(rack),
           suPitchOnCC(rack), suCutoffOnCC(rack), suResOnCC(rack), suPanOnCC(rack)
     { }
     
@@ -311,7 +311,7 @@ namespace LinuxSampler { namespace sfz {
     
     
     LFOv2Unit::LFOv2Unit(SfzSignalUnitRack* rack)
-        : LFOUnit(rack), lfos(8), lfo0(1200.0f), lfo1(1200.0f), lfo2(1200.0f),
+        : LFOUnit(rack), EqUnitSupport(rack), lfos(8), lfo0(1200.0f), lfo1(1200.0f), lfo2(1200.0f),
           lfo3(1200.0f), lfo4(1200.0f), lfo5(1200.0f), lfo6(1200.0f), lfo7(1200.0f),
           suVolOnCC(rack), suPitchOnCC(rack), suPanOnCC(rack), suCutoffOnCC(rack), suResOnCC(rack)
     {
@@ -779,23 +779,18 @@ namespace LinuxSampler { namespace sfz {
     
     
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
-        : SignalUnitRack(MaxUnitCount), pVoice(voice), suEndpoint(this), suVolEG(this), suFilEG(this), suPitchEG(this),
-        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), filEGs(maxEgCount), resEGs(maxEgCount), panEGs(maxEgCount),
-        suEq1GainOnCC(this), suEq2GainOnCC(this), suEq3GainOnCC(this),
-        suEq1FreqOnCC(this), suEq2FreqOnCC(this), suEq3FreqOnCC(this),
-        suEq1BwOnCC(this), suEq2BwOnCC(this), suEq3BwOnCC(this),
+        : SignalUnitRack(MaxUnitCount), EqUnitSupport(this, voice), pVoice(voice),
+        suEndpoint(this), suVolEG(this), suFilEG(this), suPitchEG(this),
+        EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), filEGs(maxEgCount),
+        resEGs(maxEgCount), panEGs(maxEgCount), eqEGs(maxEgCount),
         suVolOnCC(this), suPitchOnCC(this), suCutoffOnCC(this), suResOnCC(this),
         suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
         LFOs(maxLfoCount), volLFOs(maxLfoCount), pitchLFOs(maxLfoCount),
-        filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount)
+        filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount), eqLFOs(maxLfoCount)
     {
         suEndpoint.pVoice = suEndpoint.suXFInCC.pVoice = suEndpoint.suXFOutCC.pVoice = suEndpoint.suPanOnCC.pVoice = voice;
         suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;
         suAmpLFO.pVoice = suPitchLFO.pVoice = suFilLFO.pVoice = voice;
-        
-        suEq1GainOnCC.pVoice = suEq2GainOnCC.pVoice = suEq3GainOnCC.pVoice = voice;
-        suEq1FreqOnCC.pVoice = suEq2FreqOnCC.pVoice = suEq3FreqOnCC.pVoice = voice;
-        suEq1BwOnCC.pVoice = suEq2BwOnCC.pVoice = suEq3BwOnCC.pVoice = voice;
         
         suVolOnCC.pVoice = suPitchOnCC.pVoice = suCutoffOnCC.pVoice = suResOnCC.pVoice = voice;
         suPitchLFO.suDepthOnCC.pVoice = suPitchLFO.suFadeEG.pVoice = suPitchLFO.suFreqOnCC.pVoice = voice;
@@ -811,6 +806,7 @@ namespace LinuxSampler { namespace sfz {
             EGs[i]->suCutoffOnCC.pVoice = voice;
             EGs[i]->suResOnCC.pVoice = voice;
             EGs[i]->suPanOnCC.pVoice = voice;
+            EGs[i]->SetVoice(voice); // class EqUnitSupport
         }
         
         for (int i = 0; i < LFOs.capacity(); i++) {
@@ -825,6 +821,7 @@ namespace LinuxSampler { namespace sfz {
             LFOs[i]->suPanOnCC.pVoice = voice;
             LFOs[i]->suCutoffOnCC.pVoice = voice;
             LFOs[i]->suResOnCC.pVoice = voice;
+            LFOs[i]->SetVoice(voice); // class EqUnitSupport
         }
     }
     
@@ -842,15 +839,7 @@ namespace LinuxSampler { namespace sfz {
         Pool<CCSignalUnit::CC>* pCCPool = pVoice->pEngine->pCCPool;
         Pool<Smoother>* pSmootherPool = pVoice->pEngine->pSmootherPool;
         
-        suEq1GainOnCC.InitCCList(pCCPool, pSmootherPool);
-        suEq2GainOnCC.InitCCList(pCCPool, pSmootherPool);
-        suEq3GainOnCC.InitCCList(pCCPool, pSmootherPool);
-        suEq1FreqOnCC.InitCCList(pCCPool, pSmootherPool);
-        suEq2FreqOnCC.InitCCList(pCCPool, pSmootherPool);
-        suEq3FreqOnCC.InitCCList(pCCPool, pSmootherPool);
-        suEq1BwOnCC.InitCCList(pCCPool, pSmootherPool);
-        suEq2BwOnCC.InitCCList(pCCPool, pSmootherPool);
-        suEq3BwOnCC.InitCCList(pCCPool, pSmootherPool);
+        EqUnitSupport::InitCCLists(pCCPool, pSmootherPool);
         
         suVolOnCC.InitCCList(pCCPool, pSmootherPool);
         suPitchOnCC.InitCCList(pCCPool, pSmootherPool);
@@ -873,6 +862,7 @@ namespace LinuxSampler { namespace sfz {
             EGs[i]->suCutoffOnCC.InitCCList(pCCPool, pSmootherPool);
             EGs[i]->suResOnCC.InitCCList(pCCPool, pSmootherPool);
             EGs[i]->suPanOnCC.InitCCList(pCCPool, pSmootherPool);
+            EGs[i]->InitCCLists(pCCPool, pSmootherPool); // class EqUnitSupport
         }
         
         for (int i = 0; i < LFOs.capacity(); i++) {
@@ -884,6 +874,7 @@ namespace LinuxSampler { namespace sfz {
             LFOs[i]->suPanOnCC.InitCCList(pCCPool, pSmootherPool);
             LFOs[i]->suCutoffOnCC.InitCCList(pCCPool, pSmootherPool);
             LFOs[i]->suResOnCC.InitCCList(pCCPool, pSmootherPool);
+            LFOs[i]->InitCCLists(pCCPool, pSmootherPool); // class EqUnitSupport
         }
     }
     
@@ -894,6 +885,7 @@ namespace LinuxSampler { namespace sfz {
         filEGs.clear();
         resEGs.clear();
         panEGs.clear();
+        eqEGs.clear();
         
         LFOs.clear();
         volLFOs.clear();
@@ -901,21 +893,9 @@ namespace LinuxSampler { namespace sfz {
         filLFOs.clear();
         resLFOs.clear();
         panLFOs.clear();
+        eqLFOs.clear();
         
         ::sfz::Region* const pRegion = pVoice->pRegion;
-        
-        suEq1GainOnCC.SetCCs(pRegion->eq1_gain_oncc);
-        suEq2GainOnCC.SetCCs(pRegion->eq2_gain_oncc);
-        suEq3GainOnCC.SetCCs(pRegion->eq3_gain_oncc);
-        suEq1FreqOnCC.SetCCs(pRegion->eq1_freq_oncc);
-        suEq2FreqOnCC.SetCCs(pRegion->eq2_freq_oncc);
-        suEq3FreqOnCC.SetCCs(pRegion->eq3_freq_oncc);
-        suEq1BwOnCC.SetCCs(pRegion->eq1_bw_oncc);
-        suEq2BwOnCC.SetCCs(pRegion->eq2_bw_oncc);
-        suEq3BwOnCC.SetCCs(pRegion->eq3_bw_oncc);
-        
-        bHasEq = pRegion->eq1_gain || pRegion->eq2_gain || pRegion->eq3_gain ||
-                 suEq1GainOnCC.HasCCs() || suEq2GainOnCC.HasCCs() || suEq3GainOnCC.HasCCs();
         
         suVolOnCC.SetCCs(pRegion->volume_oncc);
         suPitchOnCC.SetCCs(pRegion->pitch_oncc);
@@ -935,6 +915,17 @@ namespace LinuxSampler { namespace sfz {
                 EGs[EGs.size() - 1]->suCutoffOnCC.SetCCs(pRegion->eg[i].cutoff_oncc);
                 EGs[EGs.size() - 1]->suResOnCC.SetCCs(pRegion->eg[i].resonance_oncc);
                 EGs[EGs.size() - 1]->suPanOnCC.SetCCs(pRegion->eg[i].pan_oncc);
+                if (pVoice->bEqSupport) {
+                    EGs[EGs.size() - 1]->suEq1FreqOnCC.SetCCs(pRegion->eg[i].eq1freq_oncc);
+                    EGs[EGs.size() - 1]->suEq2FreqOnCC.SetCCs(pRegion->eg[i].eq2freq_oncc);
+                    EGs[EGs.size() - 1]->suEq3FreqOnCC.SetCCs(pRegion->eg[i].eq3freq_oncc);
+                    EGs[EGs.size() - 1]->suEq1GainOnCC.SetCCs(pRegion->eg[i].eq1gain_oncc);
+                    EGs[EGs.size() - 1]->suEq2GainOnCC.SetCCs(pRegion->eg[i].eq2gain_oncc);
+                    EGs[EGs.size() - 1]->suEq3GainOnCC.SetCCs(pRegion->eg[i].eq3gain_oncc);
+                    EGs[EGs.size() - 1]->suEq1BwOnCC.SetCCs(pRegion->eg[i].eq1bw_oncc);
+                    EGs[EGs.size() - 1]->suEq2BwOnCC.SetCCs(pRegion->eg[i].eq2bw_oncc);
+                    EGs[EGs.size() - 1]->suEq3BwOnCC.SetCCs(pRegion->eg[i].eq3bw_oncc);
+                }
             } else { std::cerr << "Maximum number of EGs reached!" << std::endl; break; }
             
             if ( pRegion->eg[i].amplitude > 0 || !pRegion->eg[i].amplitude_oncc.empty() ||
@@ -963,6 +954,11 @@ namespace LinuxSampler { namespace sfz {
                 if(panEGs.size() < panEGs.capacity()) panEGs.add(EGs[EGs.size() - 1]);
                 else std::cerr << "Maximum number of EGs reached!" << std::endl;
             }
+            
+            if (pRegion->eg[i].HasEq()) {
+                if(eqEGs.size() < eqEGs.capacity()) eqEGs.add(EGs[EGs.size() - 1]);
+                else std::cerr << "Maximum number of EGs reached!" << std::endl;
+            }
         }
         
         if (pRegion->ampeg_sustain == -1) {
@@ -987,6 +983,17 @@ namespace LinuxSampler { namespace sfz {
                 LFOs[LFOs.size() - 1]->suPanOnCC.SetCCs(pRegion->lfos[i].pan_oncc);
                 LFOs[LFOs.size() - 1]->suCutoffOnCC.SetCCs(pRegion->lfos[i].cutoff_oncc);
                 LFOs[LFOs.size() - 1]->suResOnCC.SetCCs(pRegion->lfos[i].resonance_oncc);
+                if (pVoice->bEqSupport) {
+                    LFOs[LFOs.size() - 1]->suEq1FreqOnCC.SetCCs(pRegion->lfos[i].eq1freq_oncc);
+                    LFOs[LFOs.size() - 1]->suEq2FreqOnCC.SetCCs(pRegion->lfos[i].eq2freq_oncc);
+                    LFOs[LFOs.size() - 1]->suEq3FreqOnCC.SetCCs(pRegion->lfos[i].eq3freq_oncc);
+                    LFOs[LFOs.size() - 1]->suEq1GainOnCC.SetCCs(pRegion->lfos[i].eq1gain_oncc);
+                    LFOs[LFOs.size() - 1]->suEq2GainOnCC.SetCCs(pRegion->lfos[i].eq2gain_oncc);
+                    LFOs[LFOs.size() - 1]->suEq3GainOnCC.SetCCs(pRegion->lfos[i].eq3gain_oncc);
+                    LFOs[LFOs.size() - 1]->suEq1BwOnCC.SetCCs(pRegion->lfos[i].eq1bw_oncc);
+                    LFOs[LFOs.size() - 1]->suEq2BwOnCC.SetCCs(pRegion->lfos[i].eq2bw_oncc);
+                    LFOs[LFOs.size() - 1]->suEq3BwOnCC.SetCCs(pRegion->lfos[i].eq3bw_oncc);
+                }
             } else { std::cerr << "Maximum number of LFOs reached!" << std::endl; break; }
             
             if (pRegion->lfos[i].volume != 0 || !pRegion->lfos[i].volume_oncc.empty()) {
@@ -1013,6 +1020,29 @@ namespace LinuxSampler { namespace sfz {
                 if(panLFOs.size() < panLFOs.capacity()) panLFOs.add(LFOs[LFOs.size() - 1]);
                 else std::cerr << "Maximum number of LFOs reached!" << std::endl;
             }
+            
+            if (pRegion->lfos[i].HasEq()) {
+                if(eqLFOs.size() < eqLFOs.capacity()) eqLFOs.add(LFOs[LFOs.size() - 1]);
+                else std::cerr << "Maximum number of LFOs reached!" << std::endl;
+            }
+        }
+        
+        if (!pVoice->bEqSupport) {
+            bHasEq = false;
+        } else {
+            suEq1GainOnCC.SetCCs(pRegion->eq1_gain_oncc);
+            suEq2GainOnCC.SetCCs(pRegion->eq2_gain_oncc);
+            suEq3GainOnCC.SetCCs(pRegion->eq3_gain_oncc);
+            suEq1FreqOnCC.SetCCs(pRegion->eq1_freq_oncc);
+            suEq2FreqOnCC.SetCCs(pRegion->eq2_freq_oncc);
+            suEq3FreqOnCC.SetCCs(pRegion->eq3_freq_oncc);
+            suEq1BwOnCC.SetCCs(pRegion->eq1_bw_oncc);
+            suEq2BwOnCC.SetCCs(pRegion->eq2_bw_oncc);
+            suEq3BwOnCC.SetCCs(pRegion->eq3_bw_oncc);
+        
+            bHasEq = pRegion->eq1_gain || pRegion->eq2_gain || pRegion->eq3_gain ||
+                     suEq1GainOnCC.HasCCs() || suEq2GainOnCC.HasCCs() || suEq3GainOnCC.HasCCs() ||
+                     eqEGs.size() > 0 || eqLFOs.size() > 0;
         }
         
         suPitchLFO.suDepthOnCC.SetCCs(pRegion->pitchlfo_depthcc);
@@ -1026,15 +1056,7 @@ namespace LinuxSampler { namespace sfz {
         
         Units.clear();
         
-        Units.add(&suEq1GainOnCC);
-        Units.add(&suEq2GainOnCC);
-        Units.add(&suEq3GainOnCC);
-        Units.add(&suEq1FreqOnCC);
-        Units.add(&suEq2FreqOnCC);
-        Units.add(&suEq3FreqOnCC);
-        Units.add(&suEq1BwOnCC);
-        Units.add(&suEq2BwOnCC);
-        Units.add(&suEq3BwOnCC);
+        EqUnitSupport::ImportUnits(this);
         
         Units.add(&suVolOnCC);
         Units.add(&suPitchOnCC);
@@ -1068,6 +1090,7 @@ namespace LinuxSampler { namespace sfz {
             Units.add(&(EGs[i]->suCutoffOnCC));
             Units.add(&(EGs[i]->suResOnCC));
             Units.add(&(EGs[i]->suPanOnCC));
+            EGs[i]->ImportUnits(this); // class EqUnitSupport
         }
         
         for (int i = 0; i < LFOs.size(); i++) {
@@ -1079,6 +1102,7 @@ namespace LinuxSampler { namespace sfz {
             Units.add(&(LFOs[i]->suPanOnCC));
             Units.add(&(LFOs[i]->suCutoffOnCC));
             Units.add(&(LFOs[i]->suResOnCC));
+            LFOs[i]->ImportUnits(this); // class EqUnitSupport
         }
         
         Units.add(&suEndpoint);
@@ -1102,15 +1126,7 @@ namespace LinuxSampler { namespace sfz {
     }
     
     void SfzSignalUnitRack::Reset() {
-        suEq1GainOnCC.RemoveAllCCs();
-        suEq2GainOnCC.RemoveAllCCs();
-        suEq3GainOnCC.RemoveAllCCs();
-        suEq1FreqOnCC.RemoveAllCCs();
-        suEq2FreqOnCC.RemoveAllCCs();
-        suEq3FreqOnCC.RemoveAllCCs();
-        suEq1BwOnCC.RemoveAllCCs();
-        suEq2BwOnCC.RemoveAllCCs();
-        suEq3BwOnCC.RemoveAllCCs();
+        EqUnitSupport::ResetUnits();
         
         suVolOnCC.RemoveAllCCs();
         suPitchOnCC.RemoveAllCCs();
@@ -1133,6 +1149,7 @@ namespace LinuxSampler { namespace sfz {
             EGs[i]->suCutoffOnCC.RemoveAllCCs();
             EGs[i]->suResOnCC.RemoveAllCCs();
             EGs[i]->suPanOnCC.RemoveAllCCs();
+            EGs[i]->ResetUnits(); // class EqUnitSupport
         }
         
         for (int i = 0; i < LFOs.capacity(); i++) {
@@ -1144,6 +1161,7 @@ namespace LinuxSampler { namespace sfz {
             LFOs[i]->suPanOnCC.RemoveAllCCs();
             LFOs[i]->suCutoffOnCC.RemoveAllCCs();
             LFOs[i]->suResOnCC.RemoveAllCCs();
+            LFOs[i]->ResetUnits(); // class EqUnitSupport
         }
     }
     
@@ -1156,32 +1174,115 @@ namespace LinuxSampler { namespace sfz {
         
         ::sfz::Region* const pRegion = pVoice->pRegion;
         
-        float dB = (suEq1GainOnCC.Active() ? suEq1GainOnCC.GetLevel() : 0) + pRegion->eq1_gain;
-        pEqSupport->SetGain(0, dB);
+        float dB1 = (suEq1GainOnCC.Active() ? suEq1GainOnCC.GetLevel() : 0) + pRegion->eq1_gain;
+        float dB2 = (suEq2GainOnCC.Active() ? suEq2GainOnCC.GetLevel() : 0) + pRegion->eq2_gain;
+        float dB3 = (suEq3GainOnCC.Active() ? suEq3GainOnCC.GetLevel() : 0) + pRegion->eq3_gain;
         
-        dB = (suEq2GainOnCC.Active() ? suEq2GainOnCC.GetLevel() : 0) + pRegion->eq2_gain;
-        pEqSupport->SetGain(1, dB);
+        float freq1 = (suEq1FreqOnCC.Active() ? suEq1FreqOnCC.GetLevel() : 0) + pRegion->eq1_freq;
+        float freq2 = (suEq2FreqOnCC.Active() ? suEq2FreqOnCC.GetLevel() : 0) + pRegion->eq2_freq;
+        float freq3 = (suEq3FreqOnCC.Active() ? suEq3FreqOnCC.GetLevel() : 0) + pRegion->eq3_freq;
         
-        dB = (suEq3GainOnCC.Active() ? suEq3GainOnCC.GetLevel() : 0) + pRegion->eq3_gain;
-        pEqSupport->SetGain(2, dB);
+        float bw1 = (suEq1BwOnCC.Active() ? suEq1BwOnCC.GetLevel() : 0) + pRegion->eq1_bw;
+        float bw2 = (suEq2BwOnCC.Active() ? suEq2BwOnCC.GetLevel() : 0) + pRegion->eq2_bw;
+        float bw3 = (suEq3BwOnCC.Active() ? suEq3BwOnCC.GetLevel() : 0) + pRegion->eq3_bw;
         
-        float freq = (suEq1FreqOnCC.Active() ? suEq1FreqOnCC.GetLevel() : 0) + pRegion->eq1_freq;
-        pEqSupport->SetFreq(0, freq);
+        for (int i = 0; i < eqEGs.size(); i++) {
+            EGv2Unit* eg = eqEGs[i];
+            if (!eg->Active()) continue;
+            
+            float l = eg->GetLevel();
+            dB1 += ((eg->suEq1GainOnCC.Active() ? eg->suEq1GainOnCC.GetLevel() : 0) + eg->pEGInfo->eq1gain) * l;
+            dB2 += ((eg->suEq2GainOnCC.Active() ? eg->suEq2GainOnCC.GetLevel() : 0) + eg->pEGInfo->eq2gain) * l;
+            dB3 += ((eg->suEq3GainOnCC.Active() ? eg->suEq3GainOnCC.GetLevel() : 0) + eg->pEGInfo->eq3gain) * l;
+            
+            freq1 += ((eg->suEq1FreqOnCC.Active() ? eg->suEq1FreqOnCC.GetLevel() : 0) + eg->pEGInfo->eq1freq) * l;
+            freq2 += ((eg->suEq2FreqOnCC.Active() ? eg->suEq2FreqOnCC.GetLevel() : 0) + eg->pEGInfo->eq2freq) * l;
+            freq3 += ((eg->suEq3FreqOnCC.Active() ? eg->suEq3FreqOnCC.GetLevel() : 0) + eg->pEGInfo->eq3freq) * l;
+            
+            bw1 += ((eg->suEq1BwOnCC.Active() ? eg->suEq1BwOnCC.GetLevel() : 0) + eg->pEGInfo->eq1bw) * l;
+            bw2 += ((eg->suEq2BwOnCC.Active() ? eg->suEq2BwOnCC.GetLevel() : 0) + eg->pEGInfo->eq2bw) * l;
+            bw3 += ((eg->suEq3BwOnCC.Active() ? eg->suEq3BwOnCC.GetLevel() : 0) + eg->pEGInfo->eq3bw) * l;
+        }
         
-        freq = (suEq2FreqOnCC.Active() ? suEq2FreqOnCC.GetLevel() : 0) + pRegion->eq2_freq;
-        pEqSupport->SetFreq(1, freq);
+        for (int i = 0; i < eqLFOs.size(); i++) {
+            LFOv2Unit* lfo = eqLFOs[i];
+            if (!lfo->Active()) continue;
+            
+            float l = lfo->GetLevel();
+            dB1 += ((lfo->suEq1GainOnCC.Active() ? lfo->suEq1GainOnCC.GetLevel() : 0) + lfo->pLfoInfo->eq1gain) * l;
+            dB2 += ((lfo->suEq2GainOnCC.Active() ? lfo->suEq2GainOnCC.GetLevel() : 0) + lfo->pLfoInfo->eq2gain) * l;
+            dB3 += ((lfo->suEq3GainOnCC.Active() ? lfo->suEq3GainOnCC.GetLevel() : 0) + lfo->pLfoInfo->eq3gain) * l;
+            
+            freq1 += ((lfo->suEq1FreqOnCC.Active() ? lfo->suEq1FreqOnCC.GetLevel() : 0) + lfo->pLfoInfo->eq1freq) * l;
+            freq2 += ((lfo->suEq2FreqOnCC.Active() ? lfo->suEq2FreqOnCC.GetLevel() : 0) + lfo->pLfoInfo->eq2freq) * l;
+            freq3 += ((lfo->suEq3FreqOnCC.Active() ? lfo->suEq3FreqOnCC.GetLevel() : 0) + lfo->pLfoInfo->eq3freq) * l;
+            
+            bw1 += ((lfo->suEq1BwOnCC.Active() ? lfo->suEq1BwOnCC.GetLevel() : 0) + lfo->pLfoInfo->eq1bw) * l;
+            bw2 += ((lfo->suEq2BwOnCC.Active() ? lfo->suEq2BwOnCC.GetLevel() : 0) + lfo->pLfoInfo->eq2bw) * l;
+            bw3 += ((lfo->suEq3BwOnCC.Active() ? lfo->suEq3BwOnCC.GetLevel() : 0) + lfo->pLfoInfo->eq3bw) * l;
+        }
         
-        freq = (suEq3FreqOnCC.Active() ? suEq3FreqOnCC.GetLevel() : 0) + pRegion->eq3_freq;
-        pEqSupport->SetFreq(2, freq);
+        pEqSupport->SetGain(0, dB1);
+        pEqSupport->SetGain(1, dB2);
+        pEqSupport->SetGain(2, dB3);
         
-        float bw = (suEq1BwOnCC.Active() ? suEq1BwOnCC.GetLevel() : 0) + pRegion->eq1_bw;
-        pEqSupport->SetBandwidth(0, bw);
+        pEqSupport->SetFreq(0, freq1);
+        pEqSupport->SetFreq(1, freq2);
+        pEqSupport->SetFreq(2, freq3);
         
-        bw = (suEq2BwOnCC.Active() ? suEq2BwOnCC.GetLevel() : 0) + pRegion->eq2_bw;
-        pEqSupport->SetBandwidth(1, bw);
-        
-        bw = (suEq3BwOnCC.Active() ? suEq3BwOnCC.GetLevel() : 0) + pRegion->eq3_bw;
-        pEqSupport->SetBandwidth(2, bw);
+        pEqSupport->SetBandwidth(0, bw1);
+        pEqSupport->SetBandwidth(1, bw2);
+        pEqSupport->SetBandwidth(2, bw3);
+    }
+    
+    EqUnitSupport::EqUnitSupport(SfzSignalUnitRack* pRack, Voice* pVoice)
+        : suEq1GainOnCC(pRack), suEq2GainOnCC(pRack), suEq3GainOnCC(pRack),
+          suEq1FreqOnCC(pRack), suEq2FreqOnCC(pRack), suEq3FreqOnCC(pRack),
+          suEq1BwOnCC(pRack), suEq2BwOnCC(pRack), suEq3BwOnCC(pRack)
+    {
+        SetVoice(pVoice);
+    }
+    
+    void EqUnitSupport::SetVoice(Voice* pVoice) {
+        suEq1GainOnCC.pVoice = suEq2GainOnCC.pVoice = suEq3GainOnCC.pVoice = pVoice;
+        suEq1FreqOnCC.pVoice = suEq2FreqOnCC.pVoice = suEq3FreqOnCC.pVoice = pVoice;
+        suEq1BwOnCC.pVoice = suEq2BwOnCC.pVoice = suEq3BwOnCC.pVoice = pVoice;
+    }
+    
+    void EqUnitSupport::ImportUnits(SfzSignalUnitRack* pRack) {
+        if (suEq1GainOnCC.HasCCs()) pRack->Units.add(&suEq1GainOnCC);
+        if (suEq2GainOnCC.HasCCs()) pRack->Units.add(&suEq2GainOnCC);
+        if (suEq3GainOnCC.HasCCs()) pRack->Units.add(&suEq3GainOnCC);
+        if (suEq1FreqOnCC.HasCCs()) pRack->Units.add(&suEq1FreqOnCC);
+        if (suEq2FreqOnCC.HasCCs()) pRack->Units.add(&suEq2FreqOnCC);
+        if (suEq3FreqOnCC.HasCCs()) pRack->Units.add(&suEq3FreqOnCC);
+        if (suEq1BwOnCC.HasCCs()) pRack->Units.add(&suEq1BwOnCC);
+        if (suEq2BwOnCC.HasCCs()) pRack->Units.add(&suEq2BwOnCC);
+        if (suEq3BwOnCC.HasCCs()) pRack->Units.add(&suEq3BwOnCC);
+    }
+    
+    void EqUnitSupport::ResetUnits() {
+        suEq1GainOnCC.RemoveAllCCs();
+        suEq2GainOnCC.RemoveAllCCs();
+        suEq3GainOnCC.RemoveAllCCs();
+        suEq1FreqOnCC.RemoveAllCCs();
+        suEq2FreqOnCC.RemoveAllCCs();
+        suEq3FreqOnCC.RemoveAllCCs();
+        suEq1BwOnCC.RemoveAllCCs();
+        suEq2BwOnCC.RemoveAllCCs();
+        suEq3BwOnCC.RemoveAllCCs();
+    }
+    
+    void EqUnitSupport::InitCCLists(Pool<CCSignalUnit::CC>* pCCPool, Pool<Smoother>* pSmootherPool) {
+        suEq1GainOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq2GainOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq3GainOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq1FreqOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq2FreqOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq3FreqOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq1BwOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq2BwOnCC.InitCCList(pCCPool, pSmootherPool);
+        suEq3BwOnCC.InitCCList(pCCPool, pSmootherPool);
     }
     
 }} // namespace LinuxSampler::sfz

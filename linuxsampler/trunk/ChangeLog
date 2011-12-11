@@ -177,6 +177,21 @@ Version CVS HEAD (?)
       eq1_gainccN, eq2_gainccN, eq3_gainccN
     - implemented opcodes delay, delay_onccN, delay_random,
       delay_samples, delay_samples_onccN
+    - implemented opcodes egN_eq1gain, egN_eq2gain, egN_eq3gain,
+      egN_eq1gain_onccX, egN_eq2gain_onccX, egN_eq3gain_onccX, egN_eq1freq,
+      egN_eq2freq, egN_eq3freq, egN_eq1freq_onccX, egN_eq2freq_onccX,
+      egN_eq3freq_onccX, egN_eq1bw, egN_eq2bw, egN_eq3bw, egN_eq1bw_onccX,
+      egN_eq2bw_onccX, egN_eq3bw_onccX, lfoN_eq1gain, lfoN_eq2gain,
+      lfoN_eq3gain, lfoN_eq1gain_onccX, lfoN_eq2gain_onccX, lfoN_eq3gain_onccX,
+      lfoN_eq1gain_smoothccX, lfoN_eq2gain_smoothccX, lfoN_eq3gain_smoothccX,
+      lfoN_eq1gain_stepccX, lfoN_eq2gain_stepccX, lfoN_eq3gain_stepccX,
+      lfoN_eq1freq, lfoN_eq2freq, lfoN_eq3freq, lfoN_eq1freq_onccX,
+      lfoN_eq2freq_onccX, lfoN_eq3freq_onccX, lfoN_eq1freq_smoothccX,
+      lfoN_eq2freq_smoothccX, lfoN_eq3freq_smoothccX, lfoN_eq1freq_stepccX,
+      lfoN_eq2freq_stepccX, lfoN_eq3freq_stepccX, lfoN_eq1bw, lfoN_eq2bw,
+      lfoN_eq3bw, lfoN_eq1bw_onccX, lfoN_eq2bw_onccX, lfoN_eq3bw_onccX,
+      lfoN_eq1bw_smoothccX, lfoN_eq2bw_smoothccX, lfoN_eq3bw_smoothccX,
+      lfoN_eq1bw_stepccX, lfoN_eq2bw_stepccX, lfoN_eq3bw_stepccX
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

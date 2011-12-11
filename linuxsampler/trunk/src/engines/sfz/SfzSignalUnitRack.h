@@ -104,6 +104,29 @@ namespace LinuxSampler { namespace sfz {
     };
     
     
+    class EqUnitSupport {
+        public:
+            EqUnitSupport(SfzSignalUnitRack* pRack, Voice* pVoice = NULL);
+            
+            SmoothCCUnit suEq1GainOnCC;
+            SmoothCCUnit suEq2GainOnCC;
+            SmoothCCUnit suEq3GainOnCC;
+            
+            SmoothCCUnit suEq1FreqOnCC;
+            SmoothCCUnit suEq2FreqOnCC;
+            SmoothCCUnit suEq3FreqOnCC;
+            
+            SmoothCCUnit suEq1BwOnCC;
+            SmoothCCUnit suEq2BwOnCC;
+            SmoothCCUnit suEq3BwOnCC;
+            
+            void SetVoice(Voice* pVoice);
+            void ImportUnits(SfzSignalUnitRack* pRack);
+            void ResetUnits();
+            void InitCCLists(Pool<CCSignalUnit::CC>* pCCPool, Pool<Smoother>* pSmootherPool);
+    };
+    
+    
     class XFInCCUnit: public CCUnit {
         public:
             XFInCCUnit(SfzSignalUnitRack* rack, Listener* l = NULL): CCUnit(rack, l) { }
@@ -178,7 +201,7 @@ namespace LinuxSampler { namespace sfz {
             EGv1Unit(SfzSignalUnitRack* rack): EGUnit<EGADSR>(rack), depth(0) { }
     };
     
-    class EGv2Unit: public EGUnit< ::LinuxSampler::sfz::EG> {
+    class EGv2Unit: public EGUnit< ::LinuxSampler::sfz::EG>, public EqUnitSupport {
         protected:
             ::sfz::EG egInfo;
         public:
@@ -293,7 +316,7 @@ namespace LinuxSampler { namespace sfz {
             virtual void Trigger();
     };
     
-    class LFOv2Unit: public LFOUnit {
+    class LFOv2Unit: public LFOUnit, public EqUnitSupport {
         protected:
             FixedArray<AbstractLfo*> lfos;
             LfoBase<LFOSigned>                       lfo0; // triangle
@@ -381,7 +404,7 @@ namespace LinuxSampler { namespace sfz {
     };
     
     
-    class SfzSignalUnitRack : public SignalUnitRack {
+    class SfzSignalUnitRack : public SignalUnitRack, public EqUnitSupport {
         private:
             EndpointUnit  suEndpoint;
             AmpEGUnit     suVolEG;
@@ -391,18 +414,6 @@ namespace LinuxSampler { namespace sfz {
             AmpLFOUnit   suAmpLFO;
             PitchLFOUnit suPitchLFO;
             FilLFOUnit   suFilLFO;
-            
-            CCUnit suEq1GainOnCC;
-            CCUnit suEq2GainOnCC;
-            CCUnit suEq3GainOnCC;
-            
-            CCUnit suEq1FreqOnCC;
-            CCUnit suEq2FreqOnCC;
-            CCUnit suEq3FreqOnCC;
-            
-            CCUnit suEq1BwOnCC;
-            CCUnit suEq2BwOnCC;
-            CCUnit suEq3BwOnCC;
             
             // SFZ v2
             
@@ -425,8 +436,11 @@ namespace LinuxSampler { namespace sfz {
             // used for optimization - contains only the ones that are modulating resonance
             FixedArray<EGv2Unit*> resEGs;
             
-            // used for optimization - contains only the ones that are modulating pitch
+            // used for optimization - contains only the ones that are modulating pan
             FixedArray<EGv2Unit*> panEGs;
+            
+            // used for optimization - contains only the ones that are modulating EQ
+            FixedArray<EGv2Unit*> eqEGs;
             
             
             FixedArray<LFOv2Unit*> LFOs;
@@ -445,6 +459,9 @@ namespace LinuxSampler { namespace sfz {
             
             // used for optimization - contains only the ones that are modulating pan
             FixedArray<LFOv2Unit*> panLFOs;
+            
+            // used for optimization - contains only the ones that are modulating EQ
+            FixedArray<LFOv2Unit*> eqLFOs;
             
 
         public:

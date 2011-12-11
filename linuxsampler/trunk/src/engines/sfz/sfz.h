@@ -289,8 +289,60 @@ namespace sfz
         void operator=(const EGNode& egNode) { Copy(egNode); }
         void Copy(const EGNode& egNode);
     };
+    
+    class EqImpl {
+    public:
+        float eq1freq, eq2freq, eq3freq;
+        float eq1bw, eq2bw, eq3bw;
+        float eq1gain, eq2gain, eq3gain;
+        LinuxSampler::ArrayList<CC> eq1freq_oncc;
+        LinuxSampler::ArrayList<CC> eq2freq_oncc;
+        LinuxSampler::ArrayList<CC> eq3freq_oncc;
+        LinuxSampler::ArrayList<CC> eq1bw_oncc;
+        LinuxSampler::ArrayList<CC> eq2bw_oncc;
+        LinuxSampler::ArrayList<CC> eq3bw_oncc;
+        LinuxSampler::ArrayList<CC> eq1gain_oncc;
+        LinuxSampler::ArrayList<CC> eq2gain_oncc;
+        LinuxSampler::ArrayList<CC> eq3gain_oncc;
+        
+        EqImpl();
+        
+        EqImpl(const EqImpl& eq) { Copy(eq); }
+        void Copy(const EqImpl& eq);
+        bool HasEq();
+    };
+    
+    class EqSmoothStepImpl: public EqImpl {
+    public:
+        LinuxSampler::ArrayList<CC> eq1freq_smoothcc;
+        LinuxSampler::ArrayList<CC> eq2freq_smoothcc;
+        LinuxSampler::ArrayList<CC> eq3freq_smoothcc;
+        LinuxSampler::ArrayList<CC> eq1bw_smoothcc;
+        LinuxSampler::ArrayList<CC> eq2bw_smoothcc;
+        LinuxSampler::ArrayList<CC> eq3bw_smoothcc;
+        LinuxSampler::ArrayList<CC> eq1gain_smoothcc;
+        LinuxSampler::ArrayList<CC> eq2gain_smoothcc;
+        LinuxSampler::ArrayList<CC> eq3gain_smoothcc;
+        
+        LinuxSampler::ArrayList<CC> eq1freq_stepcc;
+        LinuxSampler::ArrayList<CC> eq2freq_stepcc;
+        LinuxSampler::ArrayList<CC> eq3freq_stepcc;
+        LinuxSampler::ArrayList<CC> eq1bw_stepcc;
+        LinuxSampler::ArrayList<CC> eq2bw_stepcc;
+        LinuxSampler::ArrayList<CC> eq3bw_stepcc;
+        LinuxSampler::ArrayList<CC> eq1gain_stepcc;
+        LinuxSampler::ArrayList<CC> eq2gain_stepcc;
+        LinuxSampler::ArrayList<CC> eq3gain_stepcc;
+        
+        EqSmoothStepImpl() { }
+        EqSmoothStepImpl(const EqSmoothStepImpl& eq) { Copy(eq); }
+        
+        void Copy(const EqSmoothStepImpl& eq);
+        void copySmoothValues();
+        void copyStepValues();
+    };
 
-    class EG
+    class EG: public EqImpl
     {
     public:
         LinuxSampler::ArrayList<EGNode> node;
@@ -319,7 +371,7 @@ namespace sfz
         void Copy(const EG& eg);
     };
 
-    class LFO
+    class LFO: public EqSmoothStepImpl
     {
     public:
         float delay; // 0 to 100 seconds
@@ -702,6 +754,10 @@ namespace sfz
     class File
     {
     public:
+        static void copyCurves(LinuxSampler::ArrayList<CC>& curves, LinuxSampler::ArrayList<CC>& dest);
+        static void copySmoothValues(LinuxSampler::ArrayList<CC>& smooths, LinuxSampler::ArrayList<CC>& dest);
+        static void copyStepValues(LinuxSampler::ArrayList<CC>& steps, LinuxSampler::ArrayList<CC>& dest);
+        
         /// Load an existing SFZ file
         File(std::string file, SampleManager* pSampleManager = NULL);
         virtual ~File();
@@ -716,9 +772,6 @@ namespace sfz
         EG& eg(int x);
         EGNode& egnode(int x, int y);
         LFO& lfo(int x);
-        void copyCurves(LinuxSampler::ArrayList<CC>& curves, LinuxSampler::ArrayList<CC>& dest);
-        void copySmoothValues(LinuxSampler::ArrayList<CC>& smooths, LinuxSampler::ArrayList<CC>& dest);
-        void copyStepValues(LinuxSampler::ArrayList<CC>& steps, LinuxSampler::ArrayList<CC>& dest);
         
         int   ToInt(const std::string& s) throw(LinuxSampler::Exception);
         float ToFloat(const std::string& s) throw(LinuxSampler::Exception);
