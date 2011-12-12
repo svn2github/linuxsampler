@@ -1041,6 +1041,7 @@ namespace LinuxSampler { namespace sfz {
             suEq3BwOnCC.SetCCs(pRegion->eq3_bw_oncc);
         
             bHasEq = pRegion->eq1_gain || pRegion->eq2_gain || pRegion->eq3_gain ||
+                     pRegion->eq1_vel2gain || pRegion->eq2_vel2gain || pRegion->eq3_vel2gain ||
                      suEq1GainOnCC.HasCCs() || suEq2GainOnCC.HasCCs() || suEq3GainOnCC.HasCCs() ||
                      eqEGs.size() > 0 || eqLFOs.size() > 0;
         }
@@ -1185,6 +1186,16 @@ namespace LinuxSampler { namespace sfz {
         float bw1 = (suEq1BwOnCC.Active() ? suEq1BwOnCC.GetLevel() : 0) + pRegion->eq1_bw;
         float bw2 = (suEq2BwOnCC.Active() ? suEq2BwOnCC.GetLevel() : 0) + pRegion->eq2_bw;
         float bw3 = (suEq3BwOnCC.Active() ? suEq3BwOnCC.GetLevel() : 0) + pRegion->eq3_bw;
+        
+        const float vel = pVoice->MIDIVelocity / 127.0f;
+        
+        dB1 += pRegion->eq1_vel2gain * vel;
+        dB2 += pRegion->eq2_vel2gain * vel;
+        dB3 += pRegion->eq3_vel2gain * vel;
+        
+        freq1 += pRegion->eq1_vel2freq * vel;
+        freq2 += pRegion->eq2_vel2freq * vel;
+        freq3 += pRegion->eq3_vel2freq * vel;
         
         for (int i = 0; i < eqEGs.size(); i++) {
             EGv2Unit* eg = eqEGs[i];

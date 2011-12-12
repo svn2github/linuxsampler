@@ -192,6 +192,8 @@ Version CVS HEAD (?)
       lfoN_eq3bw, lfoN_eq1bw_onccX, lfoN_eq2bw_onccX, lfoN_eq3bw_onccX,
       lfoN_eq1bw_smoothccX, lfoN_eq2bw_smoothccX, lfoN_eq3bw_smoothccX,
       lfoN_eq1bw_stepccX, lfoN_eq2bw_stepccX, lfoN_eq3bw_stepccX
+    - implemented opcodes eq1_vel2freq, eq2_vel2freq,
+      eq3_vel2freq, eq1_vel2gain, eq2_vel2gain, eq3_vel2gain
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
