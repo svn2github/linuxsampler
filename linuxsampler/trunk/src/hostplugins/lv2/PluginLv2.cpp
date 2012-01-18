@@ -42,7 +42,7 @@ namespace {
         MapPath = 0;
         MakePath = 0;
         for (int i = 0 ; Features[i] ; i++) {
-            dmsg(2, ("linuxsampler: host feature: %s\n", Features[i]->URI));
+            dmsg(2, ("linuxsampler: init feature: %s\n", Features[i]->URI));
             if (!strcmp(Features[i]->URI, LV2_URI_MAP_URI)) {
                 UriMap = (LV2_URI_Map_Feature*)Features[i]->data;
             } else if (!strcmp(Features[i]->URI, LV2_STATE_MAP_PATH_URI)) {
@@ -104,8 +104,7 @@ namespace {
 
     String PluginLv2::PathToState(const String& path) {
         if (MapPath) {
-	        char* cstr = MapPath->abstract_path(MapPath->handle,
-                                                path.c_str());
+            char* cstr = MapPath->abstract_path(MapPath->handle, path.c_str());
             const String abstract_path(cstr);
             free(cstr);
             return abstract_path;
@@ -115,8 +114,7 @@ namespace {
 
     String PluginLv2::PathFromState(const String& path) {
         if (MapPath) {
-	        char* cstr = MapPath->absolute_path(MapPath->handle,
-                                                path.c_str());
+            char* cstr = MapPath->absolute_path(MapPath->handle, path.c_str());
             const String abstract_path(cstr);
             free(cstr);
             return abstract_path;
@@ -124,14 +122,33 @@ namespace {
         return path;
     }
 
-    void PluginLv2::Save(LV2_State_Store_Function store, LV2_State_Handle handle) {
-        if (MakePath) {
-	        char* path = MakePath->path(MapPath->handle,
-	                                    "linuxsampler");
-            dmsg(2, ("saving to file %s\n", path));
+    void PluginLv2::SetStateFeatures(const LV2_Feature* const* Features)
+    {
+        for (int i = 0 ; Features[i] ; i++) {
+            dmsg(2, ("linuxsampler: state feature: %s\n", Features[i]->URI));
+            if (!strcmp(Features[i]->URI, LV2_STATE_MAP_PATH_URI)) {
+                MapPath = (LV2_State_Map_Path*)Features[i]->data;
+            } else if (!strcmp(Features[i]->URI, LV2_STATE_MAKE_PATH_URI)) {
+                MakePath = (LV2_State_Make_Path*)Features[i]->data;
+            }
+        }
+    }
 
-            std::ofstream out(path);
+    void PluginLv2::Save(LV2_State_Store_Function store, LV2_State_Handle handle,
+                         uint32_t flags, const LV2_Feature* const* features)
+    {
+        LV2_State_Map_Path*  OldMapPath  = MapPath;
+        LV2_State_Make_Path* OldMakePath = MakePath;
+        SetStateFeatures(features);
+
+        if (MakePath && MapPath) {
+            char* abs_path = MakePath->path(MakePath->handle, "linuxsampler");
+            dmsg(2, ("saving to file %s\n", abs_path));
+
+            std::ofstream out(abs_path);
             out << GetState();
+
+            char* path = MapPath->abstract_path(MapPath->handle, abs_path);
 
             store(handle,
                   uri_to_id(NULL, NS_LS "state-file"),
@@ -139,6 +156,9 @@ namespace {
                   strlen(path) + 1,
                   uri_to_id(NULL, LV2_STATE_PATH_URI),
                   LV2_STATE_IS_PORTABLE);
+
+            free(path);
+            free(abs_path);
         } else {
             dmsg(2, ("saving to string\n"));
 
@@ -153,9 +173,18 @@ namespace {
                   LV2_STATE_IS_POD | LV2_STATE_IS_PORTABLE);
         }
         dmsg(2, ("saving done\n"));
+
+        MapPath  = OldMapPath;
+        MakePath = OldMakePath;
     }
 
-    void PluginLv2::Restore(LV2_State_Retrieve_Function retrieve, LV2_State_Handle handle) {
+    void PluginLv2::Restore(LV2_State_Retrieve_Function retrieve, LV2_State_Handle handle,
+                            uint32_t rflags, const LV2_Feature* const* features)
+    {
+        LV2_State_Map_Path*  OldMapPath  = MapPath;
+        LV2_State_Make_Path* OldMakePath = MakePath;
+        SetStateFeatures(features);
+
         size_t   size;
         uint32_t type;
         uint32_t flags;
@@ -192,6 +221,9 @@ namespace {
         // No valid state found, reset to default state
         dmsg(2, ("linuxsampler: restoring default state\n"));
         SetState(DefaultState);
+
+        MapPath  = OldMapPath;
+        MakePath = OldMakePath;
     }
 
     LV2_Handle instantiate(const LV2_Descriptor* descriptor,
@@ -220,14 +252,18 @@ namespace {
         delete static_cast<PluginLv2*>(instance);
     }
 
-    void save(LV2_Handle handle, LV2_State_Store_Function store, LV2_State_Handle state,
+    void save(LV2_Handle handle, LV2_State_Store_Function store,
+              LV2_State_Handle state,
               uint32_t flags, const LV2_Feature* const* features) {
-        return static_cast<PluginLv2*>(handle)->Save(store, state);
+        return static_cast<PluginLv2*>(handle)->Save(
+            store, state, flags, features);
     }
 
-    void restore(LV2_Handle handle, LV2_State_Retrieve_Function retrieve, LV2_State_Handle state,
+    void restore(LV2_Handle handle, LV2_State_Retrieve_Function retrieve,
+                 LV2_State_Handle state,
                  uint32_t flags, const LV2_Feature* const* features) {
-        return static_cast<PluginLv2*>(handle)->Restore(retrieve, state);
+        return static_cast<PluginLv2*>(handle)->Restore(
+            retrieve, state, flags, features);
     }
 
     PluginInfo PluginInfo::Instance;

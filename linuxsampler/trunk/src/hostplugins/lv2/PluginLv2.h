@@ -38,17 +38,21 @@ namespace {
         void Activate();
         void Run(uint32_t SampleCount);
         void Deactivate();
-        void Save(LV2_State_Store_Function store, void* data);
-        void Restore(LV2_State_Retrieve_Function retrieve, void* data);
+        void Save(LV2_State_Store_Function store, void* data,
+                  uint32_t flags, const LV2_Feature* const* features);
+        void Restore(LV2_State_Retrieve_Function retrieve, void* data,
+                     uint32_t flags, const LV2_Feature* const* features);
 
-	protected:
+    protected:
         virtual String PathToState(const String& string);
         virtual String PathFromState(const String& string);
 
     private:
         uint32_t uri_to_id(const char* map, const char* uri) {
-	        return UriMap->uri_to_id(UriMap->callback_data, map, uri);
+            return UriMap->uri_to_id(UriMap->callback_data, map, uri);
         }
+
+        void SetStateFeatures(const LV2_Feature* const* Features);
 
         float* Out[2];
         LV2_Event_Buffer* MidiBuf;

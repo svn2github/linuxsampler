@@ -1,7 +1,7 @@
 Version CVS HEAD (?)
 
   * plugin changes:
-    - LV2 Persist + Files support (patch by David Robillard)
+    - LV2 "state" extension support (patch by David Robillard)
 
   * packaging changes:
     - fixed building with newer MinGW-w64

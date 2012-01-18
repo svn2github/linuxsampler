@@ -27,7 +27,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "lv2/lv2plug.in/ns/lv2core/lv2.h"
+#include <lv2.h>
 
 #ifdef __cplusplus
 extern "C" {
