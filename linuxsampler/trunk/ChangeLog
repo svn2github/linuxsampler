@@ -43,6 +43,7 @@ Version CVS HEAD (?)
       (as suggested by Alex Stone)
     - implemented sine LFO, pulse LFO and saw LFO
     - experimental support for per voice equalization
+    - added command line option --exec-after-init
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension

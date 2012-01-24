@@ -73,6 +73,7 @@ bool tune = true;
 static bool bShowStackTrace = false;
 unsigned long int lscp_addr;
 unsigned short int lscp_port;
+String ExecAfterInit;
 
 void parse_options(int argc, char **argv);
 void signal_handler(int signal);
@@ -211,6 +212,13 @@ int main(int argc, char **argv) {
     }
 
     printf("LinuxSampler initialization completed. :-)\n\n");
+    
+    if (ExecAfterInit != "") {
+        printf("Executing command: %s\n\n", ExecAfterInit.c_str());
+        if (system(ExecAfterInit.c_str()) == -1) {
+            std::cerr << "Failed to execute the command" << std::endl;
+        }
+    }
 
     while (atomic_read(&running)) {
         if (bPrintStatistics) {
@@ -315,6 +323,7 @@ void parse_options(int argc, char **argv) {
             {"lscp-addr",1,0,0},
             {"lscp-port",1,0,0},
             {"stacktrace",0,0,0},
+            {"exec-after-init",1,0,0},
             {0,0,0,0}
         };
 
@@ -340,6 +349,7 @@ void parse_options(int argc, char **argv) {
                     printf("--instruments-db-location   specifies the instruments DB file\n");
                     printf("--stacktrace                automatically shows stacktrace if crashes\n");
                     printf("                            (broken on most systems at the moment)\n");
+                    printf("--exec-after-init           executes a command after initialization\n");
                     exit(EXIT_SUCCESS);
                     break;
                 case 1: // --version
@@ -431,6 +441,9 @@ void parse_options(int argc, char **argv) {
                 }
                 case 9: // --stacktrace
                     bShowStackTrace = true;
+                    break;
+                case 10: // --exec-after-init
+                    ExecAfterInit = optarg;
                     break;
             }
         }
