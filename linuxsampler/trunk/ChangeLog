@@ -298,6 +298,7 @@ Version CVS HEAD (?)
       project, slightly adjusted)
     - fixed crash when trying to create an effect instance with controls
       which min and/or max values depend on the sample rate
+    - fixed bug #162
 
 Version 1.0.0 (31 July 2009)
 

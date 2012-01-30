@@ -627,7 +627,7 @@ namespace LinuxSampler { namespace gig {
         
         // (try to resolve the audio device context)
         EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
-        Engine* pEngine = dynamic_cast<Engine*>(pEngineChannel->GetEngine());
+        Engine* pEngine = pEngineChannel ? dynamic_cast<Engine*>(pEngineChannel->GetEngine()) : NULL;
         AudioOutputDevice* pDevice = (pEngine) ? pEngine->pAudioOutputDevice : NULL;
         
         uint maxSamplesPerCycle =
