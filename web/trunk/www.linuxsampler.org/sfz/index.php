@@ -113,9 +113,9 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">pitcheg_start</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">pitcheg_attack</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">pitcheg_hold</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">pitcheg_decay</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Could be fine-tuned: sfzplayer uses a linear curve, LS uses an exponential.</td></tr>
+<tr><td class="decocomp">pitcheg_decay</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">pitcheg_sustain</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">pitcheg_release</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">Could be fine-tuned: sfzplayer uses a linear curve, LS uses an exponential.</td></tr>
+<tr><td class="decocomp">pitcheg_release</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">pitcheg_depth<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">pitcheg_vel2delay<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">pitcheg_vel2attack<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
