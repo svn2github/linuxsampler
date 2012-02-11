@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -49,8 +49,9 @@ class EGADSR : public ::LinuxSampler::EG {
          *                          (0 - 1000 permille)
          * @param ReleaseTIme     - Release time for the envelope
          * @param SampleRate      - sample rate of used audio output driver
+         * @param LinearRelease   - true if decay and release is linear
          */
-        void trigger(uint PreAttack, float AttackTime, float HoldTime, float DecayTime, uint SustainLevel, float ReleaseTime, uint SampleRate); //FIXME: we should better use 'float' for SampleRate
+    void trigger(uint PreAttack, float AttackTime, float HoldTime, float DecayTime, uint SustainLevel, float ReleaseTime, uint SampleRate, bool LinearRelease); //FIXME: we should better use 'float' for SampleRate
 
         /**
          * Should be called to inform the EG about an external event and
@@ -78,7 +79,8 @@ class EGADSR : public ::LinuxSampler::EG {
         int       HoldSteps;
         float     DecayTime;
         float     SustainLevel;
-        float     ReleaseSlope;
+        float     ReleaseTime;
+        bool      LinearRelease;
 
         void enterAttackStage(const uint PreAttack, const float AttackTime, const uint SampleRate);
         void enterAttackHoldStage();

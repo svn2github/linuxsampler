@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2011 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -85,10 +85,6 @@ namespace LinuxSampler { namespace sfz {
             virtual int              GetRAMCacheOffset() { return pRegion->pSample->RAMCacheOffset; }
 
         private:
-            EG EG1;
-            EGADSR EGADSR1;
-            EG EG2;
-            EGADSR EGADSR2;
             SfzSignalUnitRack SignalRack;
 
         public: // FIXME: just made public for debugging (sanity check in Engine::RenderAudio()), should be changed to private before the final release

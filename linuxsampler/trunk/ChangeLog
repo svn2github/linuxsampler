@@ -195,6 +195,9 @@ Version CVS HEAD (?)
       lfoN_eq1bw_stepccX, lfoN_eq2bw_stepccX, lfoN_eq3bw_stepccX
     - implemented opcodes eq1_vel2freq, eq2_vel2freq,
       eq3_vel2freq, eq1_vel2gain, eq2_vel2gain, eq3_vel2gain
+    - sfz parser: allow double spaces in sample filenames
+    - sfz parser: allow absolute paths for sample filenames
+    - use linear decay and release for filter and pitch EG
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
@@ -203,6 +206,7 @@ Version CVS HEAD (?)
     - fine-tuned amplitude EG (by switching from gig to sfz EG)
     - initial implementation of Vibrato LFO and Modulation LFO
     - initial implementation of cutoff filter
+    - use linear decay and release for filter and pitch EG
 
   * Gigasampler format engine:
     - bugfix: pitch LFO controller "internal+aftertouch" was broken
@@ -230,6 +234,7 @@ Version CVS HEAD (?)
       the ALSA sequencer client name
     - removed limit of maximum amount of MIDI ports per MIDI device, since
       there is no reason for this limit
+    - MME: fixed memory handling bug found with cppcheck
 
   * audio driver:
     - ASIO driver fixes for newer gcc versions (fix from PortAudio)

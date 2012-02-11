@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -151,8 +151,8 @@ void CALLBACK MidiInputDeviceMme::MidiInputPortMme::win32_midiin_callback(HMIDII
     }
 
     MidiInputDeviceMme::MidiInputPortMme::~MidiInputPortMme() {
-        delete TmpSysExBuf;
-        delete SysExBuf;
+        delete[] TmpSysExBuf;
+        delete[] SysExBuf;
     }
 
 

@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2012 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -189,12 +189,12 @@ namespace {
         uint32_t type;
         uint32_t flags;
 
-        // Attempt to restore from state-file
         const void* value = retrieve(
             handle,
             uri_to_id(NULL, NS_LS "state-file"),
             &size, &type, &flags);
         if (value) {
+            // Restore from state-file
             assert(type == uri_to_id(NULL, LV2_STATE_PATH_URI));
             const String path((const char*)value);
             dmsg(2, ("linuxsampler: restoring from file %s\n", path.c_str()));
@@ -202,25 +202,22 @@ namespace {
             String state;
             std::getline(in, state, '\0');
             SetState(state);
-            return;
-        }
-
-        // Attempt to restore from state-string
-        value = retrieve(
-                handle,
-                uri_to_id(NULL, NS_LS "state-string"),
-                &size, &type, &flags);
-        if (value) {
+        } else if ((value = retrieve(handle,
+                                     uri_to_id(NULL, NS_LS "state-string"),
+                                     &size, &type, &flags))) {
+            // Restore from state-string
             dmsg(2, ("linuxsampler: restoring from string\n"));
             assert(type == uri_to_id(NULL, NS_ATOM "String"));
             String state((const char*)value);
             SetState(state);
-            return;
+        } else {
+            // No valid state found, reset to default state
+            dmsg(2, ("linuxsampler: restoring default state\n"));
+            SetState(DefaultState);
         }
 
-        // No valid state found, reset to default state
-        dmsg(2, ("linuxsampler: restoring default state\n"));
-        SetState(DefaultState);
+        MapPath  = OldMapPath;
+        MakePath = OldMakePath;
 
         MapPath  = OldMapPath;
         MakePath = OldMakePath;

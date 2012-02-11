@@ -2,7 +2,7 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2011 Grigor Iliev                                       *
+ *   Copyright (C) 2011 - 2012 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -54,7 +54,8 @@ namespace LinuxSampler { namespace sf2 {
             pVoice->pRegion->GetEG1Decay(pVoice->pPresetRegion),
             sustain,
             pVoice->pRegion->GetEG1Release(pVoice->pPresetRegion),
-            pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
+            pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE,
+            false
         );
     }
     
@@ -103,7 +104,8 @@ namespace LinuxSampler { namespace sf2 {
             pVoice->pRegion->GetEG2Decay(pVoice->pPresetRegion),
             uint(1000 - pVoice->pRegion->GetEG2Sustain(pVoice->pPresetRegion)),
             pVoice->pRegion->GetEG2Release(pVoice->pPresetRegion),
-            pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
+            pVoice->GetSampleRate() / CONFIG_DEFAULT_SUBFRAGMENT_SIZE,
+            true
         );
     }
     

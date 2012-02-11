@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009-2012 Grigor Iliev                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -96,7 +96,7 @@ namespace LinuxSampler { namespace sfz {
         playbackState.reverse          = false;
         playbackState.loop_cycles_left = 0; // TODO: pRgn->pSample->LoopPlayCount;
 
-        if(pRgn) pSampleManager->SetSampleInUse(pRgn->pSample, pRgn);
+        pSampleManager->SetSampleInUse(pRgn->pSample, pRgn);
 
         LinuxSampler::StreamBase< ::sfz::Region>::Launch (
             hStream, pExportReference, pRgn, info, playbackState, SampleOffset, DoLoop

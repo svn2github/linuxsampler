@@ -2,7 +2,7 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2011 Grigor Iliev                                       *
+ *   Copyright (C) 2011 - 2012 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -177,7 +177,7 @@ namespace LinuxSampler { namespace sfz {
         
         EG.trigger (
             uint(std::min(std::max(0.0f, start), 1000.0f)), attack, hold, decay,
-            uint(std::min(std::max(0.0f, sustain), 1000.0f)), release, GetSampleRate()
+            uint(std::min(std::max(0.0f, sustain), 1000.0f)), release, GetSampleRate(), true
         );
     }
     
@@ -213,7 +213,7 @@ namespace LinuxSampler { namespace sfz {
         
         EG.trigger (
             uint(std::min(std::max(0.0f, start), 1000.0f)), attack, hold, decay,
-            uint(std::min(std::max(0.0f, sustain), 1000.0f)), release, GetSampleRate()
+            uint(std::min(std::max(0.0f, sustain), 1000.0f)), release, GetSampleRate(), true
         );
     }
     
@@ -248,7 +248,7 @@ namespace LinuxSampler { namespace sfz {
         
         EG.trigger (
             uint(std::min(std::max(0.0f, start), 1000.0f)), attack, hold, decay,
-            uint(std::min(std::max(0.0f, sustain), 1000.0f)), release, GetSampleRate()
+            uint(std::min(std::max(0.0f, sustain), 1000.0f)), release, GetSampleRate(), false
         );
     }
     
@@ -287,7 +287,7 @@ namespace LinuxSampler { namespace sfz {
             
             if (f != 0) {
                 suFadeEG.uiDelayTrigger = pLfoInfo->delay * GetSampleRate();
-                suFadeEG.EG.trigger(0, f, 0, 0, 1000, 0, GetSampleRate());
+                suFadeEG.EG.trigger(0, f, 0, 0, 1000, 0, GetSampleRate(), false);
             }
         }
     }

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2008 Anders Dahnielson <anders@dahnielson.com>          *
- *   Copyright (C) 2009 - 2011 Anders Dahnielson and Grigor Iliev          *
+ *   Copyright (C) 2009 - 2012 Anders Dahnielson and Grigor Iliev          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -893,9 +893,11 @@ namespace sfz
 
             // DEFINITION
             std::stringstream linestream(line);
+            linestream >> std::noskipws;
+            int spaces = 0;
             while (linestream >> token)
             {
-                if (token[0] == '<' and token[token.size()-1] == '>')
+                if (token[0] == '<' && token[token.size()-1] == '>')
                 {
                     // HEAD
                     if (!token_string.empty())
@@ -936,8 +938,13 @@ namespace sfz
                 else
                 {
                     // TAIL
-                    token_string.append(" ");
+                    token_string.append(spaces, ' ');
                     token_string.append(token);
+                }
+                spaces = 0;
+                while (isspace(linestream.peek())) {
+                    linestream.ignore();
+                    spaces++;
                 }
             }
 
@@ -1276,10 +1283,13 @@ namespace sfz
         {
             std::string path = default_path + value;
             #ifndef WIN32
-            for (int i = 0; i < path.length(); i++) if( path[i] == '\\') path[i] = '/';
+            for (int i = 0; i < path.length(); i++) if (path[i] == '\\') path[i] = '/';
+            bool absolute = path[0] == '/';
+            #else
+            bool absolute = path[0] == '/' || path[0] == '\\' ||
+                (path.length() >= 2 && isalpha(path[0]) && path[1] == ':');
             #endif
-            path = currentDir + LinuxSampler::File::DirSeparator + path; // TODO: check for absolute path
-
+            if (!absolute) path = currentDir + LinuxSampler::File::DirSeparator + path;
             if(pCurDef) pCurDef->sample = path;
             return;
         }

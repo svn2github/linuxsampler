@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -94,13 +94,14 @@ namespace LinuxSampler { namespace sfz {
         }
     }
 
-    void EGADSR::trigger(uint PreAttack, float AttackTime, float HoldTime, float DecayTime, uint SustainLevel, float ReleaseTime, uint SampleRate) {
+    void EGADSR::trigger(uint PreAttack, float AttackTime, float HoldTime, float DecayTime, uint SustainLevel, float ReleaseTime, uint SampleRate, bool LinearRelease) {
         this->SustainLevel = SustainLevel / 1000.0;
         this->HoldSteps    = int(HoldTime * SampleRate);
         this->DecayTime    = DecayTime;
+        this->LinearRelease = LinearRelease;
 
         if (ReleaseTime < CONFIG_EG_MIN_RELEASE_TIME) ReleaseTime = CONFIG_EG_MIN_RELEASE_TIME;  // to avoid click sounds at the end of the sample playback
-        ReleaseSlope = -9.226 / (ReleaseTime * SampleRate);
+        this->ReleaseTime = ReleaseTime * SampleRate;
         Offset = 0;
         enterFirstStage();
         enterAttackStage(PreAttack, AttackTime, SampleRate);
@@ -129,14 +130,24 @@ namespace LinuxSampler { namespace sfz {
     }
 
     void EGADSR::enterDecayStage(const uint SampleRate) {
-        StepsLeft = (int) (DecayTime * SampleRate);
-        if (StepsLeft && Level > SustainLevel) {
-            Stage   = stage_decay;
-            Segment = segment_exp;
-            const float slope = -9.226 / StepsLeft;
-            Coeff  = exp(slope);
-            StepsLeft = int(log(std::max(SustainLevel, float(CONFIG_EG_BOTTOM)) / Level) / slope);
-            if (StepsLeft > 0) return;
+        if (LinearRelease) {
+            StepsLeft = int(DecayTime * SampleRate * (Level - SustainLevel));
+            if (StepsLeft > 0) {
+                Stage = stage_decay;
+                Segment = segment_lin;
+                Coeff = -1 / (DecayTime * SampleRate);
+                return;
+            }
+        } else {
+            StepsLeft = int(DecayTime * SampleRate);
+            if (StepsLeft && Level > SustainLevel) {
+                Stage   = stage_decay;
+                Segment = segment_exp;
+                const float slope = -9.226 / StepsLeft;
+                Coeff  = exp(slope);
+                StepsLeft = int(log(std::max(SustainLevel, float(CONFIG_EG_BOTTOM)) / Level) / slope);
+                if (StepsLeft > 0) return;
+            }
         }
         Level = SustainLevel;
         enterSustainStage();
@@ -152,9 +163,16 @@ namespace LinuxSampler { namespace sfz {
 
     void EGADSR::enterReleaseStage() {
         Stage     = stage_release;
-        Segment   = segment_exp;
-        StepsLeft = int(log(CONFIG_EG_BOTTOM / Level) / ReleaseSlope);
-        Coeff     = exp(ReleaseSlope);
+        if (LinearRelease) {
+            Segment   = segment_lin;
+            StepsLeft = int(Level * ReleaseTime);
+            Coeff = -1 / ReleaseTime;
+        } else {
+            Segment   = segment_exp;
+            const float slope = -9.226 / ReleaseTime;
+            StepsLeft = int(log(CONFIG_EG_BOTTOM / Level) / slope);
+            Coeff     = exp(slope);
+        }
         if (StepsLeft <= 0) enterFadeOutStage();
     }
 
