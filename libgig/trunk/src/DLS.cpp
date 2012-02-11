@@ -600,8 +600,10 @@ namespace DLS {
         // copy old loops array (skipping given loop)
         for (int i = 0, o = 0; i < SampleLoops; i++) {
             if (&pSampleLoops[i] == pLoopDef) continue;
-            if (o == SampleLoops - 1)
+            if (o == SampleLoops - 1) {
+                delete[] pNewLoops;
                 throw Exception("Could not delete Sample Loop, because it does not exist");
+            }
             pNewLoops[o] = pSampleLoops[i];
             o++;
         }

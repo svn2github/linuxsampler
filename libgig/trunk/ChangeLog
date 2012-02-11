@@ -14,6 +14,7 @@ Version CVS HEAD (?)
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
+    - fixed minor "memory leak on exception" bug found with cppcheck
 
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: avoid calling read() with count 0 when writing a file,
