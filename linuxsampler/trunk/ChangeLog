@@ -304,7 +304,9 @@ Version CVS HEAD (?)
     - fixed crash when trying to create an effect instance with controls
       which min and/or max values depend on the sample rate
     - fixed bug #162
-
+    - bugfix: LADSPA_PATH was not evaluated correctly when containing
+      multiple paths (#165)
+	
 Version 1.0.0 (31 July 2009)
 
   * packaging changes:

@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2010 Christian Schoenebeck
+    Copyright (C) 2010 - 2012 Christian Schoenebeck
 */
 
 #include "LadspaEffect.h"
@@ -7,7 +7,8 @@
 #include "../common/global_private.h"
 #include "../common/File.h"
 #include "../drivers/audio/AudioOutputDevice.h"
-#include <math.h>
+#include <cmath>
+#include <sstream>
 
 namespace LinuxSampler {
 
@@ -375,12 +376,16 @@ std::vector<EffectInfo*> LadspaEffect::AvailableEffects() {
     std::vector<EffectInfo*> v; // will be filled in callback function _foundLadspaDll()
 
     char* pcLadspaPath = getenv("LADSPA_PATH");
-    String ladspaDir = (pcLadspaPath) ? pcLadspaPath : defaultLadspaDir();
+    String ladspaDir = pcLadspaPath ? pcLadspaPath : defaultLadspaDir();
 
     try {
-        DynamicLibrariesSearch(
-            ladspaDir.c_str(), "ladspa_descriptor", _foundLadspaDll, &v
-        );
+        std::istringstream ss(ladspaDir);
+        std::string path;
+        while (std::getline(ss, path, File::PathSeparator)) {
+            if (!path.empty()) {
+                DynamicLibrariesSearch(path.c_str(), "ladspa_descriptor", _foundLadspaDll, &v);
+            }
+        }
     } catch (Exception e) {
         std::cerr << "Could not scan LADSPA effects: " << e.Message()
                   << std::endl << std::flush;

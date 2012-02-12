@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2009 Grigor Iliev, Benno Senoner                 *
+ *   Copyright (C) 2008 - 2012 Grigor Iliev, Benno Senoner                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -37,9 +37,11 @@
 
 namespace LinuxSampler {
 #ifdef WIN32
-    char File::DirSeparator = '\\';
+    const char File::DirSeparator = '\\';
+    const char File::PathSeparator = ';';
 #else
-    char File::DirSeparator = '/';
+    const char File::DirSeparator = '/';
+    const char File::PathSeparator = ':';
 #endif
     Mutex File::DirectoryWalkerMutex;
     std::vector<File::DirectoryWalker*> File::DirectoryWalkers;
