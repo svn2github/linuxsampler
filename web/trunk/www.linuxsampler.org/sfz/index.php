@@ -83,9 +83,9 @@ include '../tmpl/header.php';
 
 <tr><td class="decocomp_header" colspan="3"><b>Performance Parameters</b></td></tr>
 <tr><td class="decocomp_header" colspan="3">Sample Player</td></tr>
-<tr><td class="decocomp">delay</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">delay_random</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">delay_ccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: delay_onccN</td></tr>
+<tr><td class="decocomp">delay</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">delay_random</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">delay_ccN</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">v2-alias: delay_onccN</td></tr>
 <tr><td class="decocomp">offset<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">offset_random</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">offset_ccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: offset_onccN</td></tr>
@@ -242,30 +242,30 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">amplfo_freqpolyaft<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 
 <tr><td class="decocomp_header" colspan="3">Equalizer</td></tr>
-<tr><td class="decocomp">eq1_freq</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq2_freq</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq3_freq</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq1_freqccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: eq1_freq_onccN</td></tr>
-<tr><td class="decocomp">eq2_freqccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: eq2_freq_onccN</td></tr>
-<tr><td class="decocomp">eq3_freqccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: eq3_freq_onccN</td></tr>
-<tr><td class="decocomp">eq1_vel2freq</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq2_vel2freq</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq3_vel2freq</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq1_bw</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq2_bw</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq3_bw</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq1_bwccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: eq1_bw_onccN</td></tr>
-<tr><td class="decocomp">eq2_bwccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: eq2_bw_onccN</td></tr>
-<tr><td class="decocomp">eq3_bwccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: eq3_bq_onccN</td></tr>
-<tr><td class="decocomp">eq1_gain</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq2_gain</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq3_gain</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq1_gainccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: eq1_gain_onccN</td></tr>
-<tr><td class="decocomp">eq2_gainccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: eq2_gain_onccN</td></tr>
-<tr><td class="decocomp">eq3_gainccN</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">v2-alias: eq3_gain_onccN</td></tr>
-<tr><td class="decocomp">eq1_vel2gain</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq2_vel2gain</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">eq3_vel2gain</td><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq1_freq</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">The EQ is implemented by using an external LADSPA plugin, <a href="http://plugin.org.uk/ladspa-swh/docs/ladspa-swh.html#id1204">triplePara</a>.</td></tr>
+<tr><td class="decocomp">eq2_freq</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq3_freq</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq1_freqccN</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">v2-alias: eq1_freq_onccN</td></tr>
+<tr><td class="decocomp">eq2_freqccN</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">v2-alias: eq2_freq_onccN</td></tr>
+<tr><td class="decocomp">eq3_freqccN</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">v2-alias: eq3_freq_onccN</td></tr>
+<tr><td class="decocomp">eq1_vel2freq</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq2_vel2freq</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq3_vel2freq</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq1_bw</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq2_bw</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq3_bw</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq1_bwccN</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">v2-alias: eq1_bw_onccN</td></tr>
+<tr><td class="decocomp">eq2_bwccN</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">v2-alias: eq2_bw_onccN</td></tr>
+<tr><td class="decocomp">eq3_bwccN</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">v2-alias: eq3_bq_onccN</td></tr>
+<tr><td class="decocomp">eq1_gain</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq2_gain</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq3_gain</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq1_gainccN</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">v2-alias: eq1_gain_onccN</td></tr>
+<tr><td class="decocomp">eq2_gainccN</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">v2-alias: eq2_gain_onccN</td></tr>
+<tr><td class="decocomp">eq3_gainccN</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">v2-alias: eq3_gain_onccN</td></tr>
+<tr><td class="decocomp">eq1_vel2gain</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq2_vel2gain</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">eq3_vel2gain</td><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 
 <tr><td class="decocomp_header" colspan="3">Effects</td></tr>
 <tr><td class="decocomp">effect1<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
@@ -351,8 +351,8 @@ include '../tmpl/header.php';
 <tr><td class="decocomp_header" colspan="3">Sample Player</td></tr>
 <tr><td class="decocomp">delay_beats<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">stop_beats<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">delay_samples<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">delay_samples_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">delay_samples<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">delay_samples_onccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">loop_crossfade<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 
 <tr><td class="decocomp_header" colspan="3">Amplifier</td></tr>
@@ -433,24 +433,24 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">egN_cutoff2_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">egN_resonance_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">egN_resonance2_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq1freq<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq2freq<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq3freq<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq1bw<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq2bw<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq3bw<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq1gain<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq2gain<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq3gain<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq1freq_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq2freq_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq3freq_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq1bw_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq2bw_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq3bw_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq1gain_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq2gain_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">egN_eq3gain_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq1freq<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq2freq<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq3freq<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq1bw<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq2bw<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq3bw<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq1gain<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq2gain<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq3gain<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq1freq_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq2freq_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq3freq_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq1bw_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq2bw_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq3bw_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq1gain_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq2gain_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">egN_eq3gain_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">egN_decim<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">egN_bitred<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">egN_rectify<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
@@ -524,42 +524,42 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">lfoN_cutoff2_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_resonance_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_resonance2_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1freq<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2freq<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3freq<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1bw<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2bw<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3bw<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1gain<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2gain<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3gain<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1freq_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2freq_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3freq_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1bw_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2bw_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3bw_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1gain_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2gain_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3gain_onccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1freq_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2freq_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3freq_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1bw_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2bw_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3bw_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1gain_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2gain_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3gain_smoothccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1freq_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2freq_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3freq_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1bw_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2bw_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3bw_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq1gain_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq2gain_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">lfoN_eq3gain_stepccX<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1freq<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2freq<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3freq<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1bw<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2bw<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3bw<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1gain<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2gain<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3gain<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1freq_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2freq_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3freq_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1bw_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2bw_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3bw_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1gain_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2gain_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3gain_onccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1freq_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2freq_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3freq_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1bw_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2bw_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3bw_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1gain_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2gain_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3gain_smoothccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1freq_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2freq_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3freq_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1bw_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2bw_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3bw_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq1gain_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq2gain_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">lfoN_eq3gain_stepccX<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_decim<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_bitred<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">lfoN_noiselevel<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
