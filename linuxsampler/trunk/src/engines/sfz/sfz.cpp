@@ -1021,13 +1021,6 @@ namespace sfz
                         velcurve[v] = v * v / (127.0 * 127.0);
                     }
                 }
-
-                // apply amp_veltrack
-                float offset = -pRegion->amp_veltrack;
-                if (offset <= 0) offset += 100;
-                for (int v = 0 ; v < 128 ; v++) {
-                    velcurve[v] = (offset + pRegion->amp_veltrack * velcurve[v]) / 100;
-                }
             }
         }
 

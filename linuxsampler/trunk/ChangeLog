@@ -198,6 +198,8 @@ Version CVS HEAD (?)
     - sfz parser: allow double spaces in sample filenames
     - sfz parser: allow absolute paths for sample filenames
     - use linear decay and release for filter and pitch EG
+    - bugfix: only the first amp_veltrack definition in a file was
+      used
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
