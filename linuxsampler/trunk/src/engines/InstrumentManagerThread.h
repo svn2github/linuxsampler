@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -48,7 +48,7 @@ namespace LinuxSampler {
             void StartNewLoad(String Filename, uint uiInstrumentIndex, EngineChannel* pEngineChannel);
             void StartSettingMode(InstrumentManager* pManager, const InstrumentManager::instrument_id_t& ID, InstrumentManager::mode_t Mode);
             virtual ~InstrumentManagerThread();
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(WIN32)
             int StopThread();
 #endif
         protected:

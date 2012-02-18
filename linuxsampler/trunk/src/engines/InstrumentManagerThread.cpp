@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -175,6 +175,14 @@ namespace LinuxSampler {
         SignalStopThread(); // send stop signal, but don't wait
         conditionJobsLeft.Set(true); // wake thread
         return Thread::StopThread(); // then wait for it to cancel
+    }
+#endif
+
+#ifdef WIN32
+    int InstrumentManagerThread::StopThread() {
+        int res = Thread::StopThread();
+        conditionJobsLeft.Reset();
+        return res;
     }
 #endif
 

@@ -230,6 +230,8 @@ Version CVS HEAD (?)
     - VST: made it possible to build the VST plugin for Mac
     - AU: link AU plugin dynamically if --disable-shared isn't
       specified
+    - VST bugfix: instrument loading hang and crashed the host when
+      the plugin was loaded a second time (#174)
 
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding

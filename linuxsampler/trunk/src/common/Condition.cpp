@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -368,5 +368,14 @@ void Condition::Set(bool bCondition) {
 bool Condition::GetUnsafe() {
     return bCondition;
 }
+
+#ifdef WIN32
+void Condition::Reset() {
+    __win32_true_condition.waiters_count_ = 0;
+    __win32_true_condition.was_broadcast_ = 0;
+    __win32_false_condition.waiters_count_ = 0;
+    __win32_false_condition.was_broadcast_ = 0;
+}
+#endif
 
 } // namespace LinuxSampler
