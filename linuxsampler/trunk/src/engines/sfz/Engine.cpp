@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Grigor Iliev                                  *
+ *   Copyright (C) 2009-2012 Grigor Iliev                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -88,7 +88,7 @@ namespace LinuxSampler { namespace sfz {
         if (pChannel->pInstrument && cc < 128) {
 
             ::sfz::Query q;
-            q.chan        = pChannel->MidiChannel();
+            q.chan        = itControlChangeEvent->Param.CC.Channel + 1;
             q.key         = 60;
             q.vel         = 127;
             q.bend        = pChannel->Pitch;
@@ -134,7 +134,7 @@ namespace LinuxSampler { namespace sfz {
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
         ::sfz::Query q;
-        q.chan        = pChannel->MidiChannel();
+        q.chan        = itNoteOnEvent->Param.Note.Channel + 1;
         q.key         = itNoteOnEvent->Param.Note.Key;
         q.vel         = itNoteOnEvent->Param.Note.Velocity;
         q.bend        = pChannel->Pitch;
@@ -172,7 +172,7 @@ namespace LinuxSampler { namespace sfz {
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
         ::sfz::Query q;
-        q.chan        = pChannel->MidiChannel();
+        q.chan        = itNoteOffEvent->Param.Note.Channel + 1;
         q.key         = itNoteOffEvent->Param.Note.Key;
 
         // MIDI note-on velocity is used instead of note-off velocity
@@ -225,10 +225,10 @@ namespace LinuxSampler { namespace sfz {
 
         Pool<Voice>::Iterator itNewVoice;
 
-        // no need to process if sample is silent
-        if (!pRgn->GetSample() || !pRgn->GetSample()->GetTotalFrameCount()) return Pool<Voice>::Iterator();
-
         if (HandleKeyGroupConflicts) pChannel->HandleKeyGroupConflicts(pRgn->group, itNoteOnEvent);
+
+        // no need to process if sample is silent
+        if (!pRgn->GetSample(false) || !pRgn->GetSample()->GetTotalFrameCount()) return Pool<Voice>::Iterator();
 
         // allocate a new voice for the key
         itNewVoice = pKey->pActiveVoices->allocAppend();

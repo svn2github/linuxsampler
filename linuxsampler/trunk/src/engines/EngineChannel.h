@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -61,14 +61,14 @@ namespace LinuxSampler {
             virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument) = 0;
             virtual void    LoadInstrument() = 0;
             virtual void    Reset() = 0;
-            virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity) = 0;
-            virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity, int32_t FragmentPos) = 0;
-            virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity) = 0;
-            virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity, int32_t FragmentPos) = 0;
-            virtual void    SendPitchbend(int Pitch) = 0;
-            virtual void    SendPitchbend(int Pitch, int32_t FragmentPos) = 0;
-            virtual void    SendControlChange(uint8_t Controller, uint8_t Value) = 0;
-            virtual void    SendControlChange(uint8_t Controller, uint8_t Value, int32_t FragmentPos) = 0;
+            virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel) = 0;
+            virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel, int32_t FragmentPos) = 0;
+            virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel) = 0;
+            virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel, int32_t FragmentPos) = 0;
+            virtual void    SendPitchbend(int Pitch, uint8_t MidiChannel) = 0;
+            virtual void    SendPitchbend(int Pitch, uint8_t MidiChannel, int32_t FragmentPos) = 0;
+            virtual void    SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel) = 0;
+            virtual void    SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos) = 0;
             virtual void    SendProgramChange(uint8_t Program) = 0;
             virtual bool    StatusChanged(bool bNewStatus = false) = 0;
             virtual float   Volume() = 0;

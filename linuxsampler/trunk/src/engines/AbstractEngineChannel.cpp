@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -278,12 +278,13 @@ namespace LinuxSampler {
      *  @param Key      - MIDI key number of the triggered key
      *  @param Velocity - MIDI velocity value of the triggered key
      */
-    void AbstractEngineChannel::SendNoteOn(uint8_t Key, uint8_t Velocity) {
+    void AbstractEngineChannel::SendNoteOn(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel) {
         if (pEngine) {
             Event event               = pEngine->pEventGenerator->CreateEvent();
             event.Type                = Event::type_note_on;
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
+            event.Param.Note.Channel  = MidiChannel;
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -311,7 +312,7 @@ namespace LinuxSampler {
      *  @param FragmentPos - sample point position in the current audio
      *                       fragment to which this event belongs to
      */
-    void AbstractEngineChannel::SendNoteOn(uint8_t Key, uint8_t Velocity, int32_t FragmentPos) {
+    void AbstractEngineChannel::SendNoteOn(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel, int32_t FragmentPos) {
         if (FragmentPos < 0) {
             dmsg(1,("EngineChannel::SendNoteOn(): negative FragmentPos! Seems MIDI driver is buggy!"));
         }
@@ -320,6 +321,7 @@ namespace LinuxSampler {
             event.Type                = Event::type_note_on;
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
+            event.Param.Note.Channel  = MidiChannel;
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -345,12 +347,13 @@ namespace LinuxSampler {
      *  @param Key      - MIDI key number of the released key
      *  @param Velocity - MIDI release velocity value of the released key
      */
-    void AbstractEngineChannel::SendNoteOff(uint8_t Key, uint8_t Velocity) {
+    void AbstractEngineChannel::SendNoteOff(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel) {
         if (pEngine) {
             Event event               = pEngine->pEventGenerator->CreateEvent();
             event.Type                = Event::type_note_off;
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
+            event.Param.Note.Channel  = MidiChannel;
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -378,7 +381,7 @@ namespace LinuxSampler {
      *  @param FragmentPos - sample point position in the current audio
      *                       fragment to which this event belongs to
      */
-    void AbstractEngineChannel::SendNoteOff(uint8_t Key, uint8_t Velocity, int32_t FragmentPos) {
+    void AbstractEngineChannel::SendNoteOff(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel, int32_t FragmentPos) {
         if (FragmentPos < 0) {
             dmsg(1,("EngineChannel::SendNoteOff(): negative FragmentPos! Seems MIDI driver is buggy!"));
         }
@@ -387,6 +390,7 @@ namespace LinuxSampler {
             event.Type                = Event::type_note_off;
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
+            event.Param.Note.Channel  = MidiChannel;
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -411,11 +415,12 @@ namespace LinuxSampler {
      *
      *  @param Pitch - MIDI pitch value (-8192 ... +8191)
      */
-    void AbstractEngineChannel::SendPitchbend(int Pitch) {
+    void AbstractEngineChannel::SendPitchbend(int Pitch, uint8_t MidiChannel) {
         if (pEngine) {
             Event event             = pEngine->pEventGenerator->CreateEvent();
             event.Type              = Event::type_pitchbend;
             event.Param.Pitch.Pitch = Pitch;
+            event.Param.Pitch.Channel = MidiChannel;
             event.pEngineChannel    = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -432,7 +437,7 @@ namespace LinuxSampler {
      *  @param FragmentPos - sample point position in the current audio
      *                       fragment to which this event belongs to
      */
-    void AbstractEngineChannel::SendPitchbend(int Pitch, int32_t FragmentPos) {
+    void AbstractEngineChannel::SendPitchbend(int Pitch, uint8_t MidiChannel, int32_t FragmentPos) {
         if (FragmentPos < 0) {
             dmsg(1,("AbstractEngineChannel::SendPitchBend(): negative FragmentPos! Seems MIDI driver is buggy!"));
         }
@@ -440,6 +445,7 @@ namespace LinuxSampler {
             Event event             = pEngine->pEventGenerator->CreateEvent(FragmentPos);
             event.Type              = Event::type_pitchbend;
             event.Param.Pitch.Pitch = Pitch;
+            event.Param.Pitch.Channel = MidiChannel;
             event.pEngineChannel    = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -455,12 +461,13 @@ namespace LinuxSampler {
      *  @param Controller - MIDI controller number of the occured control change
      *  @param Value      - value of the control change
      */
-    void AbstractEngineChannel::SendControlChange(uint8_t Controller, uint8_t Value) {
+    void AbstractEngineChannel::SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel) {
         if (pEngine) {
             Event event               = pEngine->pEventGenerator->CreateEvent();
             event.Type                = Event::type_control_change;
             event.Param.CC.Controller = Controller;
             event.Param.CC.Value      = Value;
+            event.Param.CC.Channel    = MidiChannel;
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -478,7 +485,7 @@ namespace LinuxSampler {
      *  @param FragmentPos - sample point position in the current audio
      *                       fragment to which this event belongs to
      */
-    void AbstractEngineChannel::SendControlChange(uint8_t Controller, uint8_t Value, int32_t FragmentPos) {
+    void AbstractEngineChannel::SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos) {
         if (FragmentPos < 0) {
             dmsg(1,("AbstractEngineChannel::SendControlChange(): negative FragmentPos! Seems MIDI driver is buggy!"));
         }
@@ -487,6 +494,7 @@ namespace LinuxSampler {
             event.Type                = Event::type_control_change;
             event.Param.CC.Controller = Controller;
             event.Param.CC.Value      = Value;
+            event.Param.CC.Channel    = MidiChannel;
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -510,6 +518,7 @@ namespace LinuxSampler {
         // import events from pure software MIDI "devices"
         // (e.g. virtual keyboard in instrument editor)
         {
+            const uint8_t channel = MidiChannel() == midi_chan_all ? 0 : MidiChannel();
             const int FragmentPos = 0; // randomly chosen, we don't care about jitter for virtual MIDI devices
             Event event = pEngine->pEventGenerator->CreateEvent(FragmentPos);
             VirtualMidiDevice::event_t devEvent; // the event format we get from the virtual MIDI device
@@ -527,16 +536,19 @@ namespace LinuxSampler {
                             event.Type = Event::type_note_on;
                             event.Param.Note.Key      = devEvent.Arg1;
                             event.Param.Note.Velocity = devEvent.Arg2;
+                            event.Param.Note.Channel  = channel;
                             break;
                         case VirtualMidiDevice::EVENT_TYPE_NOTEOFF:
                             event.Type = Event::type_note_off;
                             event.Param.Note.Key      = devEvent.Arg1;
                             event.Param.Note.Velocity = devEvent.Arg2;
+                            event.Param.Note.Channel  = channel;
                             break;
                         case VirtualMidiDevice::EVENT_TYPE_CC:
                             event.Type = Event::type_control_change;
                             event.Param.CC.Controller = devEvent.Arg1;
                             event.Param.CC.Value      = devEvent.Arg2;
+                            event.Param.CC.Channel    = channel;
                             break;
                         default:
                             std::cerr << "AbstractEngineChannel::ImportEvents() ERROR: unknown event type ("

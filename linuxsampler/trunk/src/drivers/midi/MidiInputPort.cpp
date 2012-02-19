@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -102,13 +102,13 @@ namespace LinuxSampler {
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity, MidiChannel);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity, MidiChannel);
         }
         MidiChannelMapReader.Unlock();
 
@@ -127,13 +127,13 @@ namespace LinuxSampler {
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity, FragmentPos);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity, MidiChannel, FragmentPos);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity, FragmentPos);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity, MidiChannel, FragmentPos);
         }
         MidiChannelMapReader.Unlock();
 
@@ -152,13 +152,13 @@ namespace LinuxSampler {
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity, MidiChannel);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity, MidiChannel);
         }
         MidiChannelMapReader.Unlock();
 
@@ -177,13 +177,13 @@ namespace LinuxSampler {
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity, FragmentPos);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity, MidiChannel, FragmentPos);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity, FragmentPos);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity, MidiChannel, FragmentPos);
         }
         MidiChannelMapReader.Unlock();
 
@@ -202,13 +202,13 @@ namespace LinuxSampler {
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch, MidiChannel);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch, MidiChannel);
         }
         MidiChannelMapReader.Unlock();
     }
@@ -220,13 +220,13 @@ namespace LinuxSampler {
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch, FragmentPos);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch, MidiChannel, FragmentPos);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch, FragmentPos);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch, MidiChannel, FragmentPos);
         }
         MidiChannelMapReader.Unlock();
     }
@@ -238,13 +238,13 @@ namespace LinuxSampler {
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value, MidiChannel);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value, MidiChannel);
         }
         MidiChannelMapReader.Unlock();
         
@@ -263,13 +263,13 @@ namespace LinuxSampler {
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value, FragmentPos);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value, MidiChannel, FragmentPos);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value, FragmentPos);
+            for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value, MidiChannel, FragmentPos);
         }
         MidiChannelMapReader.Unlock();
         

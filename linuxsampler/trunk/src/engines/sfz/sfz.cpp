@@ -108,12 +108,11 @@ namespace sfz
 
     Sample* Region::GetSample(bool create)
     {
-        if(pSample == NULL && create) {
+        if (pSample == NULL && create) {
             uint i = offset ? *offset : 0;
-            int e = end ? *end : -2;
-            Sample* sf = GetInstrument()->GetSampleManager()->FindSample(sample, i, e);
+            Sample* sf = GetInstrument()->GetSampleManager()->FindSample(sample, i, end);
             if (sf != NULL) pSample = sf; // Reuse already created sample
-            else pSample = new Sample(sample, false, i, e);
+            else pSample = new Sample(sample, false, i, end);
             GetInstrument()->GetSampleManager()->AddSampleConsumer(pSample, this);
         }
         return pSample;
@@ -170,9 +169,9 @@ namespace sfz
     }
 
     bool Region::HasLoop() {
-        bool b = loop_mode == ::sfz::LOOP_UNSET ? pSample->GetLoops() :
-            (loop_mode == ::sfz::LOOP_CONTINUOUS || loop_mode == ::sfz::LOOP_SUSTAIN);
-        return b && GetLoopStart() && GetLoopEnd() && GetLoopEnd() > GetLoopStart();
+        bool b = loop_mode == LOOP_UNSET ? pSample->GetLoops() :
+            (loop_mode == LOOP_CONTINUOUS || loop_mode == LOOP_SUSTAIN);
+        return b && GetLoopEnd() > GetLoopStart();
     }
 
     uint Region::GetLoopStart() {
@@ -310,7 +309,7 @@ namespace sfz
         delay.unset(); delay_random.unset();
         delay_beats.unset(); stop_beats.unset();
         delay_samples.unset();
-        end.unset();
+        end = 0;
         loop_crossfade.unset();
         offset.unset(); offset_random.unset();
         loop_mode = LOOP_UNSET;

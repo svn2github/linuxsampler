@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -83,6 +83,7 @@ namespace LinuxSampler {
                 struct _Note {
                     uint8_t Key;         ///< MIDI key number of note-on / note-off event.
                     uint8_t Velocity;    ///< Trigger or release velocity of note-on / note-off event.
+                    uint8_t Channel;     ///< MIDI channel (0..15)
                     int8_t  Layer;       ///< Layer index (usually only used if a note-on event has to be postponed, e.g. due to shortage of free voices).
                     int8_t  ReleaseTrigger; ///< If new voice should be a release triggered voice (actually boolean field and usually only used if a note-on event has to be postponed, e.g. due to shortage of free voices).
                     void*   pRegion;     ///< Engine specific pointer to instrument region
@@ -91,10 +92,12 @@ namespace LinuxSampler {
                 struct _CC {
                     uint8_t Controller;  ///< MIDI controller number of control change event.
                     uint8_t Value;       ///< Controller Value of control change event.
+                    uint8_t Channel;     ///< MIDI channel (0..15)
                 } CC;
                 /// Pitchbend event specifics
                 struct _Pitch {
                     int16_t Pitch;       ///< Pitch value of pitchbend event.
+                    uint8_t Channel;     ///< MIDI channel (0..15)
                 } Pitch;
                 /// MIDI system exclusive event specifics
                 struct _Sysex {

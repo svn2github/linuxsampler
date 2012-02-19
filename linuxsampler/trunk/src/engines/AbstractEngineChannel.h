@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -38,14 +38,14 @@ namespace LinuxSampler {
             // implementation of abstract methods derived from interface class 'LinuxSampler::EngineChannel'
             virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument);
             virtual void    Reset();
-            virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity);
-            virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity, int32_t FragmentPos);
-            virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity);
-            virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity, int32_t FragmentPos);
-            virtual void    SendPitchbend(int Pitch);
-            virtual void    SendPitchbend(int Pitch, int32_t FragmentPos);
-            virtual void    SendControlChange(uint8_t Controller, uint8_t Value);
-            virtual void    SendControlChange(uint8_t Controller, uint8_t Value, int32_t FragmentPos);
+            virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel);
+            virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel, int32_t FragmentPos);
+            virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel);
+            virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel, int32_t FragmentPos);
+            virtual void    SendPitchbend(int Pitch, uint8_t MidiChannel);
+            virtual void    SendPitchbend(int Pitch, uint8_t MidiChannel, int32_t FragmentPos);
+            virtual void    SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel);
+            virtual void    SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos);
             virtual bool    StatusChanged(bool bNewStatus = false);
             virtual float   Volume();
             virtual void    Volume(float f);

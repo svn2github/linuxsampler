@@ -123,7 +123,7 @@ Version CVS HEAD (?)
     - implemented opcodes ampeg_delayccN, ampeg_startccN,
       ampeg_attackccN, ampeg_holdccN, ampeg_decayccN, ampeg_sustainccN,
       ampeg_releaseccN, egN_timeX_onccY, egN_levelX_onccY
-    - lfoN_* and egN_* opcodes defined in group sections 
+    - lfoN_* and egN_* opcodes defined in group sections
       are now taken into account
     - implemented curves
     - implemented opcodes volume_onccN, volume_curveccN
@@ -200,6 +200,11 @@ Version CVS HEAD (?)
     - use linear decay and release for filter and pitch EG
     - bugfix: only the first amp_veltrack definition in a file was
       used
+    - bugfix: looping was disabled if loop_start was set to 0
+    - allow regions with end=-1 to turn off other regions using the
+      group and off_by opcodes (#168)
+    - made end=0 play the whole sample
+    - fixed support for lochan and hichan opcodes (#155)
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
@@ -310,7 +315,7 @@ Version CVS HEAD (?)
     - fixed bug #162
     - bugfix: LADSPA_PATH was not evaluated correctly when containing
       multiple paths (#165)
-	
+
 Version 1.0.0 (31 July 2009)
 
   * packaging changes:

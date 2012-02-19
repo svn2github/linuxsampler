@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2008 Anders Dahnielson <anders@dahnielson.com>          *
- *   Copyright (C) 2009 - 2011 Anders Dahnielson and Grigor Iliev          *
+ *   Copyright (C) 2009 - 2012 Anders Dahnielson and Grigor Iliev          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -56,7 +56,7 @@ namespace sfz
             long TotalFrames;
             
         public:
-            Sample(String File, bool DontClose = false, uint offset = 0, int end = -2 /* -2 means unspecified */)
+            Sample(String File, bool DontClose = false, uint offset = 0, int end = 0 /* 0 means unspecified */)
                   : LinuxSampler::SampleFileBase<Region>(File, DontClose)
             {
                 Offset = offset;
@@ -68,7 +68,7 @@ namespace sfz
                     Offset = 0;
                 }
                 
-                if (End == -2 || End > tfc) TotalFrames = tfc;
+                if (End == 0 || End > tfc) TotalFrames = tfc;
                 else if (End == -1 || End < Offset) TotalFrames = 0;
                 else TotalFrames = End;
             }
@@ -506,7 +506,7 @@ namespace sfz
         optional<float> delay; optional<float> delay_random; Array<optional<float> > delay_oncc;
         optional<int> delay_beats; optional<int> stop_beats;
         optional<int> delay_samples; Array<optional<int> > delay_samples_oncc;
-        optional<int> end;
+        int end;
         optional<float> loop_crossfade;
         optional<uint> offset; optional<int> offset_random; Array<optional<int> > offset_oncc;
         loop_mode_t loop_mode;
