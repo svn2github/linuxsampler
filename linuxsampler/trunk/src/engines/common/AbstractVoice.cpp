@@ -488,11 +488,15 @@ namespace LinuxSampler {
                 if (bLFO2Enabled) fFinalCutoff *= pLFO2->render();
                 if (bLFO3Enabled) finalSynthesisParameters.fFinalPitch *= RTMath::CentsToFreqRatio(pLFO3->render());
             } else {
-                // if the voice was killed in this subfragment, or if the
-                // filter EG is finished, switch EG1 to fade out stage
-                /*if ((itKillEvent && killPos <= iSubFragmentEnd) ||
-                    (SYNTHESIS_MODE_GET_FILTER(SynthesisMode) &&
-                    pEG2->getSegmentType() == EG::segment_end)) {
+                // if the voice was killed in this subfragment, enter fade out stage
+                if (itKillEvent && killPos <= iSubFragmentEnd) {
+                    pSignalUnitRack->EnterFadeOutStage();
+                    itKillEvent = Pool<Event>::Iterator();
+                }
+                
+                // if the filter EG is finished, switch EG1 to fade out stage
+                /*if (SYNTHESIS_MODE_GET_FILTER(SynthesisMode) &&
+                    pEG2->getSegmentType() == EG::segment_end) {
                     pEG1->enterFadeOutStage();
                     itKillEvent = Pool<Event>::Iterator();
                 }*/
