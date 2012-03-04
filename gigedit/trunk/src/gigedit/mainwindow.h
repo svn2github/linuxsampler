@@ -40,6 +40,9 @@
 #include "regionchooser.h"
 #include "dimregionchooser.h"
 #include "dimregionedit.h"
+#ifndef OLD_THREADS
+#include <glibmm/threads.h>
+#endif
 
 class MainWindow;
 
@@ -186,11 +189,11 @@ public:
     gig::File* gig;
 
 private:
-    Glib::Thread* thread;
+    Glib::Threads::Thread* thread;
     void thread_function();
     Glib::Dispatcher finished_dispatcher;
     Glib::Dispatcher progress_dispatcher;
-    Glib::Mutex progressMutex;
+    Glib::Threads::Mutex progressMutex;
     float progress;
 };
 

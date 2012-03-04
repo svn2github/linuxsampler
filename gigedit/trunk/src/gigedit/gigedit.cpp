@@ -19,8 +19,10 @@
 
 #include "gigedit.h"
 
-#include <gtkmm/main.h>
+#include <glibmm/dispatcher.h>
 #include <glibmm/main.h>
+#include <gtkmm/main.h>
+
 #include "mainwindow.h"
 
 #include "global.h"
@@ -48,22 +50,26 @@ private:
     class Cond {
     private:
         bool pred;
-        Glib::Mutex mutex;
-        Glib::Cond cond;
+        Glib::Threads::Mutex mutex;
+        Glib::Threads::Cond cond;
     public:
         Cond() : pred(false) { }
         void signal() {
-            Glib::Mutex::Lock lock(mutex);
+            Glib::Threads::Mutex::Lock lock(mutex);
             pred = true;
             cond.signal();
         }
         void wait() {
-            Glib::Mutex::Lock lock(mutex);
+            Glib::Threads::Mutex::Lock lock(mutex);
             while (!pred) cond.wait(mutex);
         }
     };
 
+#ifdef OLD_THREADS
     static Glib::StaticMutex mutex;
+#else
+    static Glib::Threads::Mutex mutex;
+#endif
     static Glib::Dispatcher* dispatcher;
     static GigEditState* current;
 
@@ -113,9 +119,10 @@ void init_app() {
         textdomain(GETTEXT_PACKAGE);
 #endif // HAVE_GETTEXT
 
+#ifdef OLD_THREADS
         // make sure thread_init() is called once and ONLY once per process
         if (!Glib::thread_supported()) Glib::thread_init();
-
+#endif
         process_initialized = true;
     }
 }
@@ -249,7 +256,11 @@ sigc::signal<void, int/*key*/, int/*velocity*/>& GigEdit::signal_keyboard_key_re
     return keyboard_key_released_signal;
 }
 
+#ifdef OLD_THREADS
 Glib::StaticMutex GigEditState::mutex = GLIBMM_STATIC_MUTEX_INIT;
+#else
+Glib::Threads::Mutex GigEditState::mutex;
+#endif
 Glib::Dispatcher* GigEditState::dispatcher = 0;
 GigEditState* GigEditState::current = 0;
 
@@ -294,7 +305,7 @@ void GigEditState::run(gig::Instrument* pInstrument) {
     static bool main_loop_started = false;
     if (!main_loop_started) {
         Cond initialized;
-        Glib::Thread::create(
+        Glib::Threads::Thread::create(
             sigc::bind(sigc::ptr_fun(&GigEditState::main_loop_run),
                        &initialized),
             false);

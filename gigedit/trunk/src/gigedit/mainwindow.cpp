@@ -20,6 +20,10 @@
 #include <iostream>
 #include <cstring>
 
+#include <glibmm/convert.h>
+#include <glibmm/dispatcher.h>
+#include <glibmm/miscutils.h>
+#include <glibmm/stringutils.h>
 #include <gtkmm/aboutdialog.h>
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/messagedialog.h>
@@ -461,7 +465,7 @@ void loader_progress_callback(gig::progress_t* progress)
 void Loader::progress_callback(float fraction)
 {
     {
-        Glib::Mutex::Lock lock(progressMutex);
+        Glib::Threads::Mutex::Lock lock(progressMutex);
         progress = fraction;
     }
     progress_dispatcher();
@@ -469,7 +473,7 @@ void Loader::progress_callback(float fraction)
 
 void Loader::thread_function()
 {
-    printf("thread_function self=%x\n", Glib::Thread::self());
+    printf("thread_function self=%x\n", Glib::Threads::Thread::self());
     printf("Start %s\n", filename);
     RIFF::File* riff = new RIFF::File(filename);
     gig = new gig::File(riff);
@@ -489,7 +493,7 @@ Loader::Loader(const char* filename)
 
 void Loader::launch()
 {
-    thread = Glib::Thread::create(sigc::mem_fun(*this, &Loader::thread_function), true);
+    thread = Glib::Threads::Thread::create(sigc::mem_fun(*this, &Loader::thread_function), true);
     printf("launch thread=%x\n", thread);
 }
 
@@ -497,7 +501,7 @@ float Loader::get_progress()
 {
     float res;
     {
-        Glib::Mutex::Lock lock(progressMutex);
+        Glib::Threads::Mutex::Lock lock(progressMutex);
         res = progress;
     }
     return res;
@@ -617,7 +621,7 @@ void MainWindow::on_action_file_open()
     if (dialog.run() == Gtk::RESPONSE_OK) {
         std::string filename = dialog.get_filename();
         printf("filename=%s\n", filename.c_str());
-        printf("on_action_file_open self=%x\n", Glib::Thread::self());
+        printf("on_action_file_open self=%x\n", Glib::Threads::Thread::self());
         load_file(filename.c_str());
         current_gig_dir = Glib::path_get_dirname(filename);
     }
@@ -659,7 +663,7 @@ void MainWindow::on_loader_progress()
 void MainWindow::on_loader_finished()
 {
     printf("Loader finished!\n");
-    printf("on_loader_finished self=%x\n", Glib::Thread::self());
+    printf("on_loader_finished self=%x\n", Glib::Threads::Thread::self());
     load_gig(loader->gig, loader->filename);
     load_dialog->hide();
 }

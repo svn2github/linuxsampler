@@ -63,4 +63,22 @@ namespace Gdk {
 }
 #endif
 
+
+// glibmm 2.31.2
+
+#if (GLIBMM_MAJOR_VERSION == 2 && GLIBMM_MINOR_VERSION == 31 && GLIBMM_MICRO_VERSION < 2) || \
+    (GLIBMM_MAJOR_VERSION == 2 && GLIBMM_MINOR_VERSION < 31) || GLIBMM_MAJOR_VERSION < 2
+
+namespace Glib {
+    namespace Threads {
+        using Glib::Thread;
+        using Glib::Mutex;
+        using Glib::Cond;
+    }
+}
+
+#define OLD_THREADS
+
+#endif
+
 #endif
