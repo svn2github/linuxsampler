@@ -237,6 +237,10 @@ Version CVS HEAD (?)
       specified
     - VST bugfix: instrument loading hang and crashed the host when
       the plugin was loaded a second time (#174)
+    - plugin bugfix: instrument loading hang when the plugin was
+      loaded a second time (this time it's for Linux and Mac, previous
+      similar fix was for Windows)
+    - thread safety fixes for the instrument loading thread
 
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding
@@ -244,6 +248,7 @@ Version CVS HEAD (?)
     - removed limit of maximum amount of MIDI ports per MIDI device, since
       there is no reason for this limit
     - MME: fixed memory handling bug found with cppcheck
+    - MME: removed compiler warning
 
   * audio driver:
     - ASIO driver fixes for newer gcc versions (fix from PortAudio)
@@ -315,6 +320,7 @@ Version CVS HEAD (?)
     - fixed bug #162
     - bugfix: LADSPA_PATH was not evaluated correctly when containing
       multiple paths (#165)
+    - thread safety fixes for the instrument loading thread
 
 Version 1.0.0 (31 July 2009)
 

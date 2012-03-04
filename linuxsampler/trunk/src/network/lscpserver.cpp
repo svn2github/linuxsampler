@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -447,6 +447,7 @@ int LSCPServer::Main() {
 	#endif
         // check if some engine channel's parameter / status changed, if so notify the respective LSCP event subscribers
         {
+            EngineChannelFactory::EngineChannelsMutex.Lock();
             std::set<EngineChannel*> engineChannels = EngineChannelFactory::EngineChannelInstances();
             std::set<EngineChannel*>::iterator itEngineChannel = engineChannels.begin();
             std::set<EngineChannel*>::iterator itEnd           = engineChannels.end();
@@ -464,6 +465,7 @@ int LSCPServer::Main() {
                     }
                 }
             }
+            EngineChannelFactory::EngineChannelsMutex.Unlock();
         }
 
         // check if MIDI data arrived on some engine channel

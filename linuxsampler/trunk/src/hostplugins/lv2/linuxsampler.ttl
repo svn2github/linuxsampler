@@ -1,13 +1,12 @@
 @prefix lv2: <http://lv2plug.in/ns/lv2core#> .
 @prefix doap: <http://usefulinc.com/ns/doap#> .
 @prefix ev: <http://lv2plug.in/ns/ext/event#> .
-@prefix guiext: <http://lv2plug.in/ns/extensions/ui#> .
 
 <http://linuxsampler.org/plugins/linuxsampler>
     a lv2:InstrumentPlugin ;
     doap:name "LinuxSampler" ;
     doap:license <http://linuxsampler.org/downloads.html#exception> ;
-    lv2:optionalFeature lv2:hardRtCapable ;
+    lv2:optionalFeature lv2:hardRTCapable ;
     lv2:extensionData <http://lv2plug.in/ns/ext/state#Interface> ;
     lv2:optionalFeature <http://lv2plug.in/ns/ext/state#mapPath> ;
     lv2:optionalFeature <http://lv2plug.in/ns/ext/state#makePath> ;

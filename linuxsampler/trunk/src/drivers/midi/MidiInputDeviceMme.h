@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -92,11 +92,11 @@ namespace LinuxSampler {
                     ~MidiInputPortMme();
                     void ConnectToMmeMidiSource(const char* MidiSource);
                     void CloseMmeMidiPort(void);
-                    void MmeCallbackDispatcher(HMIDIIN handle, UINT uMsg, DWORD dwParam1, DWORD dwParam2);
+                    void MmeCallbackDispatcher(HMIDIIN handle, UINT uMsg, DWORD_PTR dwParam1, DWORD_PTR dwParam2);
                     friend class MidiInputDeviceMme;
                 private:
                     MidiInputDeviceMme* pDevice;
-                    static void CALLBACK win32_midiin_callback(HMIDIIN handle, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2);
+                    static void CALLBACK win32_midiin_callback(HMIDIIN handle, UINT uMsg, DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2);
                     HMIDIIN MidiInHandle;
                     MIDIHDR midiHdr;
                     bool MidiInOpened;

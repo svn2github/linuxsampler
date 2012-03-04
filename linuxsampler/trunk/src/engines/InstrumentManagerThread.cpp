@@ -46,12 +46,11 @@ namespace LinuxSampler {
     void InstrumentManagerThread::StartNewLoad(String Filename, uint uiInstrumentIndex, EngineChannel* pEngineChannel) {
         dmsg(1,("Scheduling '%s' (Index=%d) to be loaded in background (if not loaded yet).\n",Filename.c_str(),uiInstrumentIndex));
 
-        static bool listenerRegistered = false;
-        if (!listenerRegistered) {
-            pEngineChannel->GetSampler()->AddChannelCountListener(&eventHandler);
-            listenerRegistered = true;
-        }
-        
+        // the listener only needs to be registered once in the
+        // Sampler, but as we don't know if Sampler has been
+        // recreated, we simply remove and add every time
+        pEngineChannel->GetSampler()->RemoveChannelCountListener(&eventHandler);
+        pEngineChannel->GetSampler()->AddChannelCountListener(&eventHandler);
         
         command_t cmd;
         cmd.type           = command_t::DIRECT_LOAD;
@@ -102,14 +101,18 @@ namespace LinuxSampler {
             TestCancel();
             #endif
 
-            while (!queue.empty()) {
+            while (true) {
                 command_t cmd;
 
                 // grab a new command from the queue
                 mutex.Lock();
-                cmd = queue.front();
-                queue.pop_front();
+                bool empty = queue.empty();
+                if (!empty) {
+                    cmd = queue.front();
+                    queue.pop_front();
+                }
                 mutex.Unlock();
+                if (empty) break;
 
                 try {
                     switch (cmd.type) {

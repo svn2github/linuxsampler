@@ -29,7 +29,7 @@
 
 namespace LinuxSampler {
 
-void CALLBACK MidiInputDeviceMme::MidiInputPortMme::win32_midiin_callback(HMIDIIN handle, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2) {
+void CALLBACK MidiInputDeviceMme::MidiInputPortMme::win32_midiin_callback(HMIDIIN handle, UINT uMsg, DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2) {
     MidiInputDeviceMme::MidiInputPortMme* p = (MidiInputDeviceMme::MidiInputPortMme*)dwInstance;
     p->MmeCallbackDispatcher(handle, uMsg, dwParam1, dwParam2);
 }
@@ -238,7 +238,7 @@ void MidiInputDeviceMme::MidiInputPortMme::ConnectToMmeMidiSource(const char* Mi
 
 }
 
-void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle, UINT uMsg, DWORD dwParam1, DWORD dwParam2) {
+void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle, UINT uMsg, DWORD_PTR dwParam1, DWORD_PTR dwParam2) {
 
     unsigned char *DataPtr; // pointer to SysEx data
     unsigned char *data;  // pointer to standard MIDI messages which are not sysex data(max 3 bytes long)

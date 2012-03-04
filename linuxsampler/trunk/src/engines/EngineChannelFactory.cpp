@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -89,6 +89,7 @@ namespace LinuxSampler {
     } lockedChannels;
 
     Mutex EngineChannelFactory::LockedChannelsMutex;
+    Mutex EngineChannelFactory::EngineChannelsMutex;
 
     void EngineChannelFactory::SetDeleteEnabled(const EngineChannel* pEngineChannel, bool enable) {
         LockedChannelsMutex.Lock();
@@ -108,29 +109,31 @@ namespace LinuxSampler {
     static std::set<LinuxSampler::EngineChannel*> engineChannels;
 
     LinuxSampler::EngineChannel* EngineChannelFactory::Create(String EngineType) throw (Exception) {
+        LinuxSampler::EngineChannel* pEngineChannel;
         if (!strcasecmp(EngineType.c_str(),"GigEngine") || !strcasecmp(EngineType.c_str(),"gig")) {
-            LinuxSampler::EngineChannel* pEngineChannel = new gig::EngineChannel;
-            engineChannels.insert(pEngineChannel);
-            return pEngineChannel;
+            pEngineChannel = new gig::EngineChannel;
         } else if (!strcasecmp(EngineType.c_str(),"sf2")) {
         #if HAVE_SF2
-            LinuxSampler::EngineChannel* pEngineChannel = new sf2::EngineChannel;
-            engineChannels.insert(pEngineChannel);
-            return pEngineChannel;
+            pEngineChannel = new sf2::EngineChannel;
         #else
             throw Exception("LinuxSampler is not compiled with SF2 support");
         #endif
         } else if (!strcasecmp(EngineType.c_str(),"sfz")) {
-            LinuxSampler::EngineChannel* pEngineChannel = new sfz::EngineChannel;
-            engineChannels.insert(pEngineChannel);
-            return pEngineChannel;
+            pEngineChannel = new sfz::EngineChannel;
+        } else {
+            throw Exception("Unknown engine type");
         }
-        throw Exception("Unknown engine type");
+        EngineChannelsMutex.Lock();
+        engineChannels.insert(pEngineChannel);
+        EngineChannelsMutex.Unlock();
+        return pEngineChannel;
     }
 
     void EngineChannelFactory::Destroy(LinuxSampler::EngineChannel* pEngineChannel) {
         pEngineChannel->RemoveAllFxSendCountListeners();
+        EngineChannelsMutex.Lock();
         engineChannels.erase(pEngineChannel);
+        EngineChannelsMutex.Unlock();
 
         // Postpone the deletion of the specified EngineChannel if needed (bug #113)
         LockedChannelsMutex.Lock();

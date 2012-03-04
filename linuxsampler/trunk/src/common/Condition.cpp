@@ -268,12 +268,26 @@ Condition::~Condition() {
 #endif
 }
 
+#ifndef WIN32
+namespace {
+    // If the thread is cancelled while waiting for the condition
+    // variable, the mutex will be locked. It needs to be unlocked so
+    // the Condition can be reused if the thread is restarted.
+    void condition_cleanup(void* c) {
+        static_cast<Condition*>(c)->Unlock();
+    }
+}
+#endif
+
 int Condition::WaitIf(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeconds) {
     dmsg(7,("Condition::WaitIf: bCondition=%d  TimeoutSeconds=%d  TimeoutNanoSeconds=%d\n",bCondition, TimeoutSeconds, TimeoutNanoSeconds));
     dmsg(7,("Condition::Waitif() -> LOCK()\n"));
     Lock();
     dmsg(7,("Condition::Waitif() -> LOCK() passed\n"));
     int res = 0;
+    #ifndef WIN32
+    pthread_cleanup_push(condition_cleanup, this);
+    #endif
     if (this->bCondition == bCondition) {
         if (bCondition) { // wait until condition turned 'false'
             #if defined(WIN32)
@@ -328,6 +342,9 @@ int Condition::WaitIf(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeco
             #endif
         }
     }
+    #ifndef WIN32
+    pthread_cleanup_pop(0);
+    #endif
     return res;
 }
 
