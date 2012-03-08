@@ -191,6 +191,17 @@ namespace LinuxSampler {
         return (pEngine) ? pEngine->pAudioOutputDevice : NULL;
     }
 
+    /**
+     * Gets thread safe access to the currently connected audio output
+     * device from other threads than the lscp thread.
+     */
+    AudioOutputDevice* AbstractEngineChannel::GetAudioOutputDeviceSafe() {
+        EngineMutex.Lock();
+        AudioOutputDevice* res = GetAudioOutputDevice();
+        EngineMutex.Unlock();
+        return res;
+    }
+
     void AbstractEngineChannel::SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) {
         if (!pEngine || !pEngine->pAudioOutputDevice) throw AudioOutputException("No audio output device connected yet.");
 

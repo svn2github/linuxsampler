@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2011 Grigor Iliev                                *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -34,23 +34,6 @@
 
 
 namespace LinuxSampler { namespace sf2 {
-
-    // data stored as long as an instrument resource exists
-    struct instr_entry_t {
-        InstrumentManager::instrument_id_t ID;
-        ::sf2::File*                       pSf2;
-        uint                               MaxSamplesPerCycle; ///< if some engine requests an already allocated instrument with a higher value, we have to reallocate the instrument
-    };
-
-    // some data needed for the libgig callback function
-    struct progress_callback_arg_t {
-        InstrumentResourceManager*          pManager;
-        InstrumentManager::instrument_id_t* pInstrumentKey;
-    };
-
-    std::vector<InstrumentResourceManager::instrument_id_t> InstrumentResourceManager::Instruments() {
-        return Entries();
-    }
 
     String InstrumentResourceManager::GetInstrumentName(instrument_id_t ID) {
         Lock();
@@ -96,7 +79,7 @@ namespace LinuxSampler { namespace sf2 {
         ::RIFF::File* riff = NULL;
         ::sf2::File*  sf2  = NULL;
         try {
-            if(!loaded) {
+            if (!loaded) {
                 riff = new ::RIFF::File(ID.FileName);
                 sf2 = new ::sf2::File(riff);
                 pInstrument = GetSfInstrument(sf2, ID.Index);
@@ -157,18 +140,19 @@ namespace LinuxSampler { namespace sf2 {
         // cache initial samples points (for actually needed samples)
         dmsg(1,("Caching initial samples..."));
         float regTotal = 0, regCurrent = 0;
-        for(int i = 0 ; i < pInstrument->GetRegionCount(); i++) {
+        for (int i = 0 ; i < pInstrument->GetRegionCount() ; i++) {
             ::sf2::Instrument* sf2Instr = pInstrument->GetRegion(i)->pInstrument;
-            if(sf2Instr) regTotal += sf2Instr->GetRegionCount();
+            if (sf2Instr) regTotal += sf2Instr->GetRegionCount();
         }
-        for(int i = 0 ; i < pInstrument->GetRegionCount(); i++) {
+        uint maxSamplesPerCycle = GetMaxSamplesPerCycle(pConsumer);
+        for (int i = 0 ; i < pInstrument->GetRegionCount() ; i++) {
             ::sf2::Instrument* sf2Instr = pInstrument->GetRegion(i)->pInstrument;
-            if(sf2Instr != NULL) {
+            if (sf2Instr) {
                 // pInstrument is ::sf2::Preset
-                for(int j = 0; j < sf2Instr->GetRegionCount(); j++) {
-                    const float localProgress = regCurrent++ / regTotal;
+                for (int j = 0 ; j < sf2Instr->GetRegionCount() ; j++) {
+                    float localProgress = regCurrent++ / regTotal;
                     DispatchResourceProgressEvent(Key, localProgress);
-                    CacheInitialSamples(sf2Instr->GetRegion(j)->GetSample(), dynamic_cast<AbstractEngineChannel*>(pConsumer));
+                    CacheInitialSamples(sf2Instr->GetRegion(j)->GetSample(), maxSamplesPerCycle);
                 }
             }
         }
@@ -179,44 +163,21 @@ namespace LinuxSampler { namespace sf2 {
         instr_entry_t* pEntry = new instr_entry_t;
         pEntry->ID.FileName   = Key.FileName;
         pEntry->ID.Index      = Key.Index;
-        pEntry->pSf2          = pSf2;
+        pEntry->pFile         = pSf2;
 
-        // (try to resolve the audio device context)
-        EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
-        AudioOutputDevice* pDevice = 
-            (pEngineChannel) ? dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice : NULL;
-        
-        // and we save this to check if we need to reallocate for a engine with higher value of 'MaxSamplesPerSecond'
-        pEntry->MaxSamplesPerCycle =
-            (pDevice) ? pDevice->MaxSamplesPerCycle() : DefaultMaxSamplesPerCycle();
+        // and we save this to check if we need to reallocate for an engine with higher value of 'MaxSamplesPerSecond'
+        pEntry->MaxSamplesPerCycle = maxSamplesPerCycle;
 
         pArg = pEntry;
 
         return pInstrument;
     }
 
-    void InstrumentResourceManager::Destroy( ::sf2::Preset* pResource, void* pArg) {
+    void InstrumentResourceManager::Destroy(::sf2::Preset* pResource, void* pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
         // we don't need the .sf2 file here anymore
-        Sf2s.HandBack(pEntry->pSf2, reinterpret_cast<Sf2Consumer*>(pEntry->ID.Index)); // conversion kinda hackish :/
+        Sf2s.HandBack(pEntry->pFile, reinterpret_cast<Sf2Consumer*>(pEntry->ID.Index)); // conversion kinda hackish :/
         delete pEntry;
-    }
-
-    void InstrumentResourceManager::OnBorrow(::sf2::Preset* pResource, InstrumentConsumer* pConsumer, void*& pArg) {
-        instr_entry_t* pEntry = (instr_entry_t*) pArg;
-        
-        // (try to resolve the audio device context)
-        EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
-        AudioOutputDevice* pDevice = 
-            (pEngineChannel) ? dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice : NULL;
-
-        uint maxSamplesPerCycle =
-            (pDevice) ? pDevice->MaxSamplesPerCycle() : DefaultMaxSamplesPerCycle();
-
-        if (pEntry->MaxSamplesPerCycle < maxSamplesPerCycle) {
-            dmsg(1,("Completely reloading instrument due to insufficient precached samples ...\n"));
-            Update(pResource, pConsumer);
-        }
     }
 
     void InstrumentResourceManager::DeleteRegionIfNotUsed(::sf2::Region* pRegion, region_info_t* pRegInfo) {

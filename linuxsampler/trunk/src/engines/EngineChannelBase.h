@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2011 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -120,7 +120,10 @@ namespace LinuxSampler {
                     if (pEngine->pAudioOutputDevice == pAudioOut) return;
                     DisconnectAudioOutputDevice();
                 }
-                pEngine = AbstractEngine::AcquireEngine(this, pAudioOut);
+                AbstractEngine* newEngine = AbstractEngine::AcquireEngine(this, pAudioOut);
+                EngineMutex.Lock();
+                pEngine = newEngine;
+                EngineMutex.Unlock();
                 ResetInternal();
                 pEvents = new RTList<Event>(pEngine->pEventPool);
 
@@ -192,7 +195,9 @@ namespace LinuxSampler {
                     DeleteGroupEventLists();
 
                     AudioOutputDevice* oldAudioDevice = pEngine->pAudioOutputDevice;
+                    EngineMutex.Lock();
                     pEngine = NULL;
+                    EngineMutex.Unlock();
                     AbstractEngine::FreeEngine(this, oldAudioDevice);
                     AudioDeviceChannelLeft  = -1;
                     AudioDeviceChannelRight = -1;

@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -37,12 +37,12 @@
 // how much initial sample points we need to cache into RAM. If the given
 // sampler channel does not have an audio output device assigned yet
 // though, we simply use this default value.
-#define GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE     128
+#define RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE     128
 
 namespace LinuxSampler {
 
     template <class F /* Instrument File */, class I /* Instrument */, class R /* Regions */, class S /*Sample */>
-    class InstrumentManagerBase : virtual public InstrumentManager, virtual public ResourceManager<InstrumentManager::instrument_id_t, I> {
+    class InstrumentManagerBase : public InstrumentManager, public ResourceManager<InstrumentManager::instrument_id_t, I> {
         public:
             struct region_info_t {
                 int    refCount;
@@ -128,7 +128,16 @@ namespace LinuxSampler {
                 dmsg(2,("InstrumentManagerBase: setting mode for %s (Index=%d) to %d\n",ID.FileName.c_str(),ID.Index,Mode));
                 SetAvailabilityMode(ID, static_cast<typename ResourceManager<instrument_id_t, I>::mode_t>(Mode));
             }
-            
+
+    protected:
+            // data stored as long as an instrument resource exists
+            struct instr_entry_t {
+                InstrumentManager::instrument_id_t ID;
+                F*                                 pFile;
+                uint                               MaxSamplesPerCycle; ///< if some engine requests an already allocated instrument with a higher value, we have to reallocate the instrument
+            };
+
+
             /**
              * Used by the implementing instrument manager descendents in case
              * they don't have a reference to a sampler channel, which in turn
@@ -155,26 +164,19 @@ namespace LinuxSampler {
                     if (pDevice->MaxSamplesPerCycle() > samples)
                         samples = pDevice->MaxSamplesPerCycle();
                 }
-                return (samples != 0) ? samples : 128 /* some fallback default value*/;
+                return (samples != 0) ? samples : RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
             }
 
-        protected:
+            uint GetMaxSamplesPerCycle(InstrumentConsumer* pConsumer) {
+                // try to resolve the audio device context
+                AbstractEngineChannel* pEngineChannel = dynamic_cast<AbstractEngineChannel*>(pConsumer);
+                AudioOutputDevice* pDevice = pEngineChannel ? pEngineChannel->GetAudioOutputDeviceSafe() : 0;
+                return pDevice ? pDevice->MaxSamplesPerCycle() : DefaultMaxSamplesPerCycle();
+            }
+
             Mutex RegionInfoMutex; ///< protects the RegionInfo and SampleRefCount maps from concurrent access by the instrument loader and disk threads
             std::map< R*, region_info_t> RegionInfo; ///< contains dimension regions that are still in use but belong to released instrument
             std::map< S*, int> SampleRefCount; ///< contains samples that are still in use but belong to a released instrument
-
-            /**
-             *  Caches a certain size at the beginning of the given sample in RAM. If the
-             *  sample is very short, the whole sample will be loaded into RAM and thus
-             *  no disk streaming is needed for this sample. Caching an initial part of
-             *  samples is needed to compensate disk reading latency.
-             *
-             *  @param pSample - points to the sample to be cached
-             *  @param pEngine - pointer to Engine which caused this call
-             *                   (may be NULL, in this case default amount of samples
-             *                   will be cached)
-             */
-            virtual void CacheInitialSamples(S* pSample, AbstractEngine* pEngine) = 0;
 
             virtual void DeleteRegionIfNotUsed(R* pRegion, region_info_t* pRegInfo) = 0;
             virtual void DeleteSampleIfNotUsed(S* pSample, region_info_t* pRegInfo) = 0;
@@ -189,15 +191,16 @@ namespace LinuxSampler {
                 for (int i = low; i <= high; i++) bindingsArray[i] = 1;
             }
 
-    };
-
-    template <class F /* Instrument File */, class I /* Instrument */, class R /* Region */, class S /* Sample */>
-    class InstrumentManagerDefaultImpl : public InstrumentManagerBase<F, I, R, S> {
-        public:
-            InstrumentManagerDefaultImpl() { }
-            virtual ~InstrumentManagerDefaultImpl() { }
-        protected:
-            virtual void CacheInitialSamples(S* pSample, AbstractEngine* pEngine)  {
+            /**
+             *  Caches a certain size at the beginning of the given sample in RAM. If the
+             *  sample is very short, the whole sample will be loaded into RAM and thus
+             *  no disk streaming is needed for this sample. Caching an initial part of
+             *  samples is needed to compensate disk reading latency.
+             *
+             *  @param pSample - points to the sample to be cached
+             *  @param maxSamplesPerCycle - max samples per cycle
+             */
+            void CacheInitialSamples(S* pSample, uint maxSamplesPerCycle)  {
                 if (!pSample) {
                     dmsg(4,("InstrumentManagerBase: Skipping sample (pSample == NULL)\n"));
                     return;
@@ -210,9 +213,6 @@ namespace LinuxSampler {
                     // number of '0' samples (silence samples) behind the official buffer
                     // border, to allow the interpolator do it's work even at the end of
                     // the sample.
-                    const uint maxSamplesPerCycle =
-                        (pEngine) ? pEngine->pAudioOutputDevice->MaxSamplesPerCycle()
-                                  : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
                     const uint neededSilenceSamples = (maxSamplesPerCycle << CONFIG_MAX_PITCH) + 3;
                     const uint currentlyCachedSilenceSamples = pSample->GetCache().NullExtensionSize / pSample->GetFrameSize();
                     if (currentlyCachedSilenceSamples < neededSilenceSamples) {
@@ -228,19 +228,21 @@ namespace LinuxSampler {
                 if (!pSample->GetCache().Size) std::cerr << "Unable to cache sample - maybe memory full!" << std::endl << std::flush;
             }
 
-            /**
-             * Just a wrapper around the other @c CacheInitialSamples() method.
-             *
-             *  @param pSample - points to the sample to be cached
-             *  @param pEngine - pointer to Gig Engine Channel which caused this call
-             *                   (may be NULL, in this case default amount of samples
-             *                   will be cached)
-             */
-            virtual void CacheInitialSamples(S* pSample, EngineChannel* pEngineChannel) {
-                 AbstractEngine* pEngine =
-                    (pEngineChannel && pEngineChannel->GetEngine()) ?
-                        dynamic_cast<AbstractEngine*>(pEngineChannel->GetEngine()) : NULL;
-                CacheInitialSamples(pSample, pEngine);
+            // implementation of derived abstract methods from 'InstrumentManager'
+            std::vector<instrument_id_t> Instruments() {
+                return ResourceManager<InstrumentManager::instrument_id_t, I>::Entries();
+            }
+
+            // implementation of derived abstract methods from 'ResourceManager'
+            void OnBorrow(I* pResource, InstrumentConsumer* pConsumer, void*& pArg) {
+                instr_entry_t* pEntry = static_cast<instr_entry_t*>(pArg);
+        
+                uint maxSamplesPerCycle = GetMaxSamplesPerCycle(pConsumer);
+
+                if (pEntry->MaxSamplesPerCycle < maxSamplesPerCycle) {
+                    dmsg(1,("Completely reloading instrument due to insufficient precached samples ...\n"));
+                    Update(pResource, pConsumer);
+                }
             }
     };
 

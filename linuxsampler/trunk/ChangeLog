@@ -321,6 +321,9 @@ Version CVS HEAD (?)
     - bugfix: LADSPA_PATH was not evaluated correctly when containing
       multiple paths (#165)
     - thread safety fixes for the instrument loading thread
+    - bugfix: instrument loading crashed for sfz and sf2 in Ardour
+      (#176)
+    - more thread safety fixes for the instrument loading thread
 
 Version 1.0.0 (31 July 2009)
 

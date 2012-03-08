@@ -266,7 +266,7 @@ namespace {
         Ladspa.Name = "LinuxSampler";
         Ladspa.Maker = "linuxsampler.org";
         Ladspa.Copyright = "(C) 2003,2004 Benno Senoner and Christian Schoenebeck, "
-            "2005-2011 Christian Schoenebeck";
+            "2005-2012 Christian Schoenebeck";
         Ladspa.PortCount = 2;
         Ladspa.ImplementationData = 0;
         Ladspa.PortDescriptors = PortDescriptors;

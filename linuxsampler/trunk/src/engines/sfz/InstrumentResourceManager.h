@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -60,13 +60,12 @@ namespace LinuxSampler { namespace sfz {
      * instrument / file is not needed anymore, then it will be freed from
      * memory.
      */
-    class InstrumentResourceManager : public InstrumentManagerDefaultImpl< ::sfz::File, ::sfz::Instrument, ::sfz::Region, Sample> {
+    class InstrumentResourceManager : public InstrumentManagerBase< ::sfz::File, ::sfz::Instrument, ::sfz::Region, Sample> {
         public:
             InstrumentResourceManager() : Sfzs(this) {}
             virtual ~InstrumentResourceManager() {}
 
             // implementation of derived abstract methods from 'InstrumentManager'
-            virtual std::vector<instrument_id_t> Instruments();
             virtual String GetInstrumentName(instrument_id_t ID);
             virtual std::vector<instrument_id_t> GetInstrumentFileContent(String File) throw (InstrumentManagerException);
             virtual instrument_info_t GetInstrumentInfo(instrument_id_t ID) throw (InstrumentManagerException);
@@ -77,7 +76,6 @@ namespace LinuxSampler { namespace sfz {
             // implementation of derived abstract methods from 'ResourceManager'
             virtual ::sfz::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void               Destroy(::sfz::Instrument* pResource, void* pArg);
-            virtual void               OnBorrow(::sfz::Instrument* pResource, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void               DeleteRegionIfNotUsed(::sfz::Region* pRegion, region_info_t* pRegInfo);
             virtual void               DeleteSampleIfNotUsed(Sample* pSample, region_info_t* pRegInfo);
         private:

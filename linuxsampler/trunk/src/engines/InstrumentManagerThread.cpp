@@ -110,6 +110,10 @@ namespace LinuxSampler {
                 if (!empty) {
                     cmd = queue.front();
                     queue.pop_front();
+
+                    if (cmd.type == command_t::DIRECT_LOAD) {
+                        EngineChannelFactory::SetDeleteEnabled(cmd.pEngineChannel, false);
+                    }
                 }
                 mutex.Unlock();
                 if (empty) break;
@@ -117,7 +121,6 @@ namespace LinuxSampler {
                 try {
                     switch (cmd.type) {
                         case command_t::DIRECT_LOAD:
-                            EngineChannelFactory::SetDeleteEnabled(cmd.pEngineChannel, false);
                             cmd.pEngineChannel->PrepareLoadInstrument(cmd.instrumentId.FileName.c_str(), cmd.instrumentId.Index);
                             cmd.pEngineChannel->LoadInstrument();
                             EngineChannelFactory::SetDeleteEnabled(cmd.pEngineChannel, true);

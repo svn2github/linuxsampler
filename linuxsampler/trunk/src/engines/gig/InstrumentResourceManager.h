@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -67,7 +67,6 @@ namespace LinuxSampler { namespace gig {
             static void OnInstrumentLoadingProgress(::gig::progress_t* pProgress);
 
             // implementation of derived abstract methods from 'InstrumentManager'
-            virtual std::vector<instrument_id_t> Instruments();
             virtual String GetInstrumentName(instrument_id_t ID);
             virtual String GetInstrumentDataStructureName(instrument_id_t ID);
             virtual String GetInstrumentDataStructureVersion(instrument_id_t ID);
@@ -92,12 +91,13 @@ namespace LinuxSampler { namespace gig {
             // implementation of derived abstract methods from 'ResourceManager'
             virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void               Destroy(::gig::Instrument* pResource, void* pArg);
-            virtual void               OnBorrow(::gig::Instrument* pResource, InstrumentConsumer* pConsumer, void*& pArg);
-            virtual void               CacheInitialSamples(::gig::Sample* pSample, AbstractEngine* pEngine);
-            virtual void               CacheInitialSamples(::gig::Sample* pSample, EngineChannel* pEngineChannel);
             virtual void               DeleteRegionIfNotUsed(::gig::DimensionRegion* pRegion, region_info_t* pRegInfo);
             virtual void               DeleteSampleIfNotUsed(::gig::Sample* pSample, region_info_t* pRegInfo);
         private:
+            void                       CacheInitialSamples(::gig::Sample* pSample, AbstractEngine* pEngine);
+            void                       CacheInitialSamples(::gig::Sample* pSample, EngineChannel* pEngineChannel);
+            void                       CacheInitialSamples(::gig::Sample* pSample, uint maxSamplesPerCycle);
+
             typedef ResourceConsumer< ::gig::File> GigConsumer;
 
             class GigResourceManager : public ResourceManager<String, ::gig::File> {

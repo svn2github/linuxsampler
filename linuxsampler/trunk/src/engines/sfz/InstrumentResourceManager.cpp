@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2011 Grigor Iliev                                *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -35,23 +35,6 @@
 
 namespace LinuxSampler { namespace sfz {
 
-    // data stored as long as an instrument resource exists
-    struct instr_entry_t {
-        InstrumentManager::instrument_id_t ID;
-        ::sfz::File*                       pSfz;
-        uint                               MaxSamplesPerCycle; ///< if some engine requests an already allocated instrument with a higher value, we have to reallocate the instrument
-    };
-
-    // some data needed for the libgig callback function
-    struct progress_callback_arg_t {
-        InstrumentResourceManager*          pManager;
-        InstrumentManager::instrument_id_t* pInstrumentKey;
-    };
-
-    std::vector<InstrumentResourceManager::instrument_id_t> InstrumentResourceManager::Instruments() {
-        return Entries();
-    }
-
     String InstrumentResourceManager::GetInstrumentName(instrument_id_t ID) {
         Lock();
         ::sfz::Instrument* pInstrument = Resource(ID, false);
@@ -78,7 +61,7 @@ namespace LinuxSampler { namespace sfz {
 
         ::sfz::File*  sfz  = NULL;
         try {
-            if(!loaded) {
+            if (!loaded) {
                 sfz  = new ::sfz::File(ID.FileName);
                 pInstrument = sfz->GetInstrument();
             }
@@ -129,10 +112,11 @@ namespace LinuxSampler { namespace sfz {
         // cache initial samples points (for actually needed samples)
         dmsg(1,("Caching initial samples..."));
         int regionCount = pInstrument->regions.size();
-        for(int i = 0 ; i < regionCount; i++) {
-            const float localProgress = (float) i / (float) regionCount;
+        uint maxSamplesPerCycle = GetMaxSamplesPerCycle(pConsumer);
+        for (int i = 0 ; i < regionCount ; i++) {
+            float localProgress = (float) i / (float) regionCount;
             DispatchResourceProgressEvent(Key, localProgress);
-            CacheInitialSamples(pInstrument->regions[i]->GetSample(), dynamic_cast<AbstractEngineChannel*>(pConsumer));
+            CacheInitialSamples(pInstrument->regions[i]->GetSample(), maxSamplesPerCycle);
             //pInstrument->regions[i]->GetSample()->Close();
         }
         dmsg(1,("OK\n"));
@@ -142,44 +126,21 @@ namespace LinuxSampler { namespace sfz {
         instr_entry_t* pEntry = new instr_entry_t;
         pEntry->ID.FileName   = Key.FileName;
         pEntry->ID.Index      = Key.Index;
-        pEntry->pSfz          = pSfz;
+        pEntry->pFile         = pSfz;
 
-        // (try to resolve the audio device context)
-        EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
-        AudioOutputDevice* pDevice = 
-            (pEngineChannel) ? dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice : NULL;
-        
-        // and we save this to check if we need to reallocate for a engine with higher value of 'MaxSamplesPerSecond'
-        pEntry->MaxSamplesPerCycle =
-            (pDevice) ? pDevice->MaxSamplesPerCycle() : DefaultMaxSamplesPerCycle();
+        // and we save this to check if we need to reallocate for an engine with higher value of 'MaxSamplesPerSecond'
+        pEntry->MaxSamplesPerCycle = maxSamplesPerCycle;
         
         pArg = pEntry;
 
         return pInstrument;
     }
 
-    void InstrumentResourceManager::Destroy( ::sfz::Instrument* pResource, void* pArg) {
+    void InstrumentResourceManager::Destroy(::sfz::Instrument* pResource, void* pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
         // we don't need the .sfz file here anymore
-        Sfzs.HandBack(pEntry->pSfz, reinterpret_cast<SfzConsumer*>(pEntry->ID.Index)); // conversion kinda hackish :/
+        Sfzs.HandBack(pEntry->pFile, reinterpret_cast<SfzConsumer*>(pEntry->ID.Index)); // conversion kinda hackish :/
         delete pEntry;
-    }
-
-    void InstrumentResourceManager::OnBorrow(::sfz::Instrument* pResource, InstrumentConsumer* pConsumer, void*& pArg) {
-        instr_entry_t* pEntry = (instr_entry_t*) pArg;
-        
-        // (try to resolve the audio device context)
-        EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
-        AudioOutputDevice* pDevice = 
-            (pEngineChannel) ? dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice : NULL;
-        
-        uint maxSamplesPerCycle =
-            (pDevice) ? pDevice->MaxSamplesPerCycle() : DefaultMaxSamplesPerCycle();
-        
-        if (pEntry->MaxSamplesPerCycle < maxSamplesPerCycle) {
-            dmsg(1,("Completely reloading instrument due to insufficient precached samples ...\n"));
-            Update(pResource, pConsumer);
-        }
     }
 
     void InstrumentResourceManager::DeleteRegionIfNotUsed(::sfz::Region* pRegion, region_info_t* pRegInfo) {
@@ -187,7 +148,7 @@ namespace LinuxSampler { namespace sfz {
         if (file == NULL) return;
 
         file->GetInstrument()->DestroyRegion(pRegion);
-        if(file->GetInstrument()->regions.empty()) {
+        if (file->GetInstrument()->regions.empty()) {
             dmsg(2,("No more regions in use - freeing sfz\n"));
             delete file;
         }
@@ -229,7 +190,7 @@ namespace LinuxSampler { namespace sfz {
             }
         }
 
-        if(deleteInstrument) delete pResource;
+        if (deleteInstrument) delete pResource;
         else dmsg(2,("keeping some samples that are in use..."));
 
         dmsg(1,("OK\n"));

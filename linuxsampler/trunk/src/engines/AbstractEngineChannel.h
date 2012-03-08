@@ -63,7 +63,7 @@ namespace LinuxSampler {
             virtual String  InstrumentName();
             virtual int     InstrumentIndex();
             virtual int     InstrumentStatus();
-            virtual LinuxSampler::Engine* GetEngine();
+            virtual Engine* GetEngine();
             virtual String  EngineName();
             virtual FxSend* AddFxSend(uint8_t MidiCtrl, String Name = "") throw (Exception);
             virtual FxSend* GetFxSend(uint FxSendIndex);
@@ -75,6 +75,8 @@ namespace LinuxSampler {
 
             virtual AbstractEngine::Format GetEngineFormat() = 0;
 
+            AudioOutputDevice* GetAudioOutputDeviceSafe();
+
             friend class AbstractVoice;
             friend class AbstractEngine;
             template<class TV, class TRR, class TR, class TD, class TIM, class TI> friend class EngineBase;
@@ -85,6 +87,8 @@ namespace LinuxSampler {
             virtual ~AbstractEngineChannel();
 
             AbstractEngine*           pEngine;
+            Mutex                     EngineMutex; ///< protects the Engine from access by the instrument loader thread when lscp is disconnecting
+
         public: // TODO: should be protected
             AudioChannel*             pChannelLeft;             ///< encapsulates the audio rendering buffer (left)
             AudioChannel*             pChannelRight;            ///< encapsulates the audio rendering buffer (right)

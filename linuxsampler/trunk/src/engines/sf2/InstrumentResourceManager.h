@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -59,13 +59,12 @@ namespace LinuxSampler { namespace sf2 {
      * instrument / file is not needed anymore, then it will be freed from
      * memory.
      */
-    class InstrumentResourceManager : public InstrumentManagerDefaultImpl< ::sf2::File, ::sf2::Preset, ::sf2::Region, ::sf2::Sample> {
+    class InstrumentResourceManager : public InstrumentManagerBase< ::sf2::File, ::sf2::Preset, ::sf2::Region, ::sf2::Sample> {
         public:
             InstrumentResourceManager() : Sf2s(this) {}
             virtual ~InstrumentResourceManager() {}
 
             // implementation of derived abstract methods from 'InstrumentManager'
-            virtual std::vector<instrument_id_t> Instruments();
             virtual String GetInstrumentName(instrument_id_t ID);
             virtual std::vector<instrument_id_t> GetInstrumentFileContent(String File) throw (InstrumentManagerException);
             virtual instrument_info_t GetInstrumentInfo(instrument_id_t ID) throw (InstrumentManagerException);
@@ -74,7 +73,6 @@ namespace LinuxSampler { namespace sf2 {
             // implementation of derived abstract methods from 'ResourceManager'
             virtual ::sf2::Preset*  Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void   Destroy(::sf2::Preset* pResource, void* pArg);
-            virtual void   OnBorrow(::sf2::Preset* pResource, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void   DeleteRegionIfNotUsed(::sf2::Region* pRegion, region_info_t* pRegInfo);
             virtual void   DeleteSampleIfNotUsed(::sf2::Sample* pSample, region_info_t* pRegInfo);
         private:
