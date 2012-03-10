@@ -2,7 +2,7 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2011 Grigor Iliev                                       *
+ *   Copyright (C) 2011 - 2012 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -133,6 +133,7 @@ namespace LinuxSampler {
             virtual EndpointSignalUnit* GetEndpointUnit() = 0;
             
             virtual void EnterFadeOutStage() = 0;
+            virtual void EnterFadeOutStage(int maxFadeOutSteps) = 0;
             
             /**
              * Will be called to increment the time with one sample point.
