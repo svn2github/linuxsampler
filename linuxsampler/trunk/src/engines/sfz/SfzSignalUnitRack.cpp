@@ -1125,7 +1125,14 @@ namespace LinuxSampler { namespace sfz {
             volEGs[i]->EG.enterFadeOutStage();
         }
     }
-    
+
+    void SfzSignalUnitRack::EnterFadeOutStage(int maxFadeOutSteps) {
+        suVolEG.EG.enterFadeOutStage(maxFadeOutSteps);
+        for (int i = 0; i < volEGs.size(); i++) {
+            volEGs[i]->EG.enterFadeOutStage(maxFadeOutSteps);
+        }
+    }
+
     void SfzSignalUnitRack::Reset() {
         EqUnitSupport::ResetUnits();
         
@@ -1163,6 +1170,13 @@ namespace LinuxSampler { namespace sfz {
             LFOs[i]->suCutoffOnCC.RemoveAllCCs();
             LFOs[i]->suResOnCC.RemoveAllCCs();
             LFOs[i]->ResetUnits(); // class EqUnitSupport
+        }
+    }
+
+    void SfzSignalUnitRack::CalculateFadeOutCoeff(float FadeOutTime, float SampleRate) {
+        suVolEG.EG.CalculateFadeOutCoeff(FadeOutTime, SampleRate);
+        for (int i = 0; i < EGs.capacity(); i++) {
+            EGs[i]->EG.CalculateFadeOutCoeff(FadeOutTime, SampleRate);
         }
     }
     

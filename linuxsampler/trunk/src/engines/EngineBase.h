@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2011 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -312,7 +312,7 @@ namespace LinuxSampler {
                     // lower minimum release time
                     const float minReleaseTime = (float) MaxSamplesPerCycle / (float) SampleRate;
                     for (VoiceIterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
-                        iterVoice->pEG1->CalculateFadeOutCoeff(minReleaseTime, SampleRate);
+                        iterVoice->CalculateFadeOutCoeff(minReleaseTime, SampleRate);
                     }
                     pVoicePool->clear();
                 }

@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2011 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -408,7 +408,7 @@ namespace LinuxSampler {
                 if (pSignalUnitRack == NULL) {
                     pEG1->enterFadeOutStage(Samples / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                 } else {
-                    // TODO: 
+                    pSignalUnitRack->EnterFadeOutStage(Samples / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                 }
                 itKillEvent = Pool<Event>::Iterator();
             } else {

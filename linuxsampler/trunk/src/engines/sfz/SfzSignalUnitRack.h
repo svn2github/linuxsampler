@@ -2,7 +2,7 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2011 Grigor Iliev                                       *
+ *   Copyright (C) 2011 - 2012 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -477,12 +477,15 @@ namespace LinuxSampler { namespace sfz {
             
             virtual void Trigger();
             virtual void EnterFadeOutStage();
+            virtual void EnterFadeOutStage(int maxFadeOutSteps);
             
             /** Called when the engine is set and the engine's pools are ready to use. */
             void InitRTLists();
             
             /** Invoked when the voice gone inactive. */
             void Reset();
+
+            void CalculateFadeOutCoeff(float FadeOutTime, float SampleRate);
             
             virtual void UpdateEqSettings(EqSupport* pEqSupport);
             

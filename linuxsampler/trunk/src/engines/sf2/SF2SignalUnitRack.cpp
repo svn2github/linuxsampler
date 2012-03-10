@@ -285,5 +285,12 @@ namespace LinuxSampler { namespace sf2 {
     void SF2SignalUnitRack::EnterFadeOutStage() {
         suVolEG.enterFadeOutStage();
     }
-    
+
+    void SF2SignalUnitRack::EnterFadeOutStage(int maxFadeOutSteps) {
+        suVolEG.enterFadeOutStage(maxFadeOutSteps);
+    }
+
+    void SF2SignalUnitRack::CalculateFadeOutCoeff(float FadeOutTime, float SampleRate) {
+        suVolEG.CalculateFadeOutCoeff(FadeOutTime, SampleRate);
+    }
 }} // namespace LinuxSampler::sf2

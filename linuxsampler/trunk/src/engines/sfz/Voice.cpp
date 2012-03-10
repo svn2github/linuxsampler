@@ -298,4 +298,8 @@ namespace LinuxSampler { namespace sfz {
         }
     }
 
+    void Voice::CalculateFadeOutCoeff(float FadeOutTime, float SampleRate) {
+        SignalRack.CalculateFadeOutCoeff(FadeOutTime, SampleRate);
+    }
+
 }} // namespace LinuxSampler::sfz

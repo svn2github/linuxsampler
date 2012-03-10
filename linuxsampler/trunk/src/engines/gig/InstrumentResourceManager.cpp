@@ -593,7 +593,6 @@ namespace LinuxSampler { namespace gig {
         pEntry->ID.Index      = Key.Index;
         pEntry->pFile         = pGig;
 
-        // (try to resolve the audio device context)
         // and we save this to check if we need to reallocate for an engine with higher value of 'MaxSamplesPerSecond'
         pEntry->MaxSamplesPerCycle = maxSamplesPerCycle;
         

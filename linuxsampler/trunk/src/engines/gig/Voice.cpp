@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2011 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -481,6 +481,10 @@ namespace LinuxSampler { namespace gig {
             // kill the voice fast
             pEG1->enterFadeOutStage();
         }
+    }
+
+    void Voice::CalculateFadeOutCoeff(float FadeOutTime, float SampleRate) {
+        EG1.CalculateFadeOutCoeff(FadeOutTime, SampleRate);
     }
 
 }} // namespace LinuxSampler::gig

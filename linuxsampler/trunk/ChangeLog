@@ -324,6 +324,7 @@ Version CVS HEAD (?)
     - bugfix: instrument loading crashed for sfz and sf2 in Ardour
       (#176)
     - more thread safety fixes for the instrument loading thread
+    - sfz/sf2 engine: fixed crash when using small audio fragment size
 
 Version 1.0.0 (31 July 2009)
 
