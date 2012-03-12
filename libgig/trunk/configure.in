@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LIBGIG_RELEASE_MAJOR=3
 LIBGIG_RELEASE_MINOR=3
-LIBGIG_RELEASE_BUILD=0.svn2
+LIBGIG_RELEASE_BUILD=0.svn3
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to

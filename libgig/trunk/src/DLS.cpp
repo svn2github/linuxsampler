@@ -1432,12 +1432,34 @@ namespace DLS {
         delete pInstrument;
     }
 
+    /**
+     * Returns extension file of given index. Extension files are used
+     * sometimes to circumvent the 2 GB file size limit of the RIFF format and
+     * of certain operating systems in general. In this case, instead of just
+     * using one file, the content is spread among several files with similar
+     * file name scheme. This is especially used by some GigaStudio sound
+     * libraries.
+     *
+     * @param index - index of extension file
+     * @returns sought extension file, NULL if index out of bounds
+     * @see GetFileName()
+     */
+    RIFF::File* File::GetExtensionFile(int index) {
+        if (index < 0 || index >= ExtensionFiles.size()) return NULL;
+        std::list<RIFF::File*>::iterator iter = ExtensionFiles.begin();
+        for (int i = 0; iter != ExtensionFiles.end(); ++iter, ++i)
+            if (i == index) return *iter;
+        return NULL;
+    }
+
     /** @brief File name of this DLS file.
      *
      * This method returns the file name as it was provided when loading
      * the respective DLS file. However in case the File object associates
      * an empty, that is new DLS file, which was not yet saved to disk,
      * this method will return an empty string.
+     *
+     * @see GetExtensionFile()
      */
     String File::GetFileName() {
         return pRIFF->GetFileName();

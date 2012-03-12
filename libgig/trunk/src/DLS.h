@@ -479,6 +479,7 @@ namespace DLS {
             Instrument* GetNextInstrument();  ///< Returns a pointer to the next <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Instrument* AddInstrument();
             void        DeleteInstrument(Instrument* pInstrument);
+            RIFF::File* GetExtensionFile(int index);
             virtual void UpdateChunks();
             virtual void Save(const String& Path);
             virtual void Save();
