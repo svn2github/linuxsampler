@@ -85,7 +85,8 @@ namespace LinuxSampler {
             virtual void    DisconnectMidiInputPort() = 0;
             virtual MidiInputPort* GetMidiInputPort() = 0;
             virtual midi_chan_t MidiChannel() = 0;
-            virtual String  InstrumentFileName() = 0;
+            virtual String  InstrumentFileName() = 0; ///< Returns the file name of the currently loaded instrument. Equivalent as calling InstrumentFileName(0).
+            virtual String  InstrumentFileName(int index);
             virtual String  InstrumentName() = 0;
             virtual int     InstrumentIndex() = 0;
             virtual int     InstrumentStatus() = 0;

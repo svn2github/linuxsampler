@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -76,6 +76,22 @@ namespace LinuxSampler {
 
     EngineChannel::~EngineChannel() {
         delete p;
+    }
+    
+    /**
+     * Sometimes an instrument is splitted over several files. For example
+     * the GigaStudio format may split an instrument over a certain amount
+     * of files like: "Foo.gig", "Foo.gx01", "Foo.gx02", ...
+     * This method allows to retrieve the whole list of files that is used
+     * for the currently loaded instrument on this engine channel.
+     * Calling this method with index 0 is equivalent as calling the equal
+     * named method without any argument.
+     *
+     * @param index - index of sought file name (0, 1, 2, ...)
+     * @returns file name or empty string if index out of bounds
+     */
+    String EngineChannel::InstrumentFileName(int index) {
+        return (index == 0) ? InstrumentFileName() : "";
     }
 
     void EngineChannel::SetMute(int state) throw (Exception) {

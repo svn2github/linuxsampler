@@ -44,6 +44,12 @@ Version CVS HEAD (?)
     - implemented sine LFO, pulse LFO and saw LFO
     - experimental support for per voice equalization
     - added command line option --exec-after-init
+    - Introduced new C++ API method:
+      EngineChannel::InstrumentFileName(int index)
+      allowing to retrieve the whole list of files used for the loaded
+      instrument on an engine channel (a.k.a. part). Some GigaStudio
+      instruments for example are splitted over several files like
+      "Foo.gig", "Foo.gx01", "Foo.gx02", ...
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension

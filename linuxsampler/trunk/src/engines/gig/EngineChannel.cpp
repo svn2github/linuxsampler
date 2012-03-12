@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2011 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -156,6 +156,19 @@ namespace LinuxSampler { namespace gig {
                 CurrentKeyDimension = float(key - pInstrument->DimensionKeyRange.low) /
                     (pInstrument->DimensionKeyRange.high - pInstrument->DimensionKeyRange.low + 1);
         }
+    }
+    
+    String EngineChannel::InstrumentFileName() {
+        return EngineChannelBase<Voice, ::gig::DimensionRegion, ::gig::Instrument>::InstrumentFileName();
+    }
+    
+    String EngineChannel::InstrumentFileName(int index) {
+        if (index == 0) return InstrumentFileName();
+        if (!pInstrument || !pInstrument->GetParent()) return "";
+        DLS::File* pMainFile = dynamic_cast<DLS::File*>(pInstrument->GetParent());
+        if (!pMainFile) return "";
+        RIFF::File* pExtensionFile = pMainFile->GetExtensionFile(index);
+        return (pExtensionFile) ? pExtensionFile->GetFileName() : "";
     }
 
 }} // namespace LinuxSampler::gig

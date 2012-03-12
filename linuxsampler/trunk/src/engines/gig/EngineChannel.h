@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
+ *   Copyright (C) 2005-2012 Christian Schoenebeck                         *
  *   Copyright (C) 2009 Grigor Iliev                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -37,6 +37,8 @@ namespace LinuxSampler { namespace gig {
             virtual void SendProgramChange(uint8_t Program);
             virtual void LoadInstrument();
             virtual void ResetInternal();
+            virtual String InstrumentFileName();
+            virtual String InstrumentFileName(int index);
 
             virtual AbstractEngine::Format GetEngineFormat();
 
