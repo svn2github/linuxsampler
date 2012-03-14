@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2011 Andreas Persson
+ * Copyright (C) 2006-2012 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -493,7 +493,11 @@ Loader::Loader(const char* filename)
 
 void Loader::launch()
 {
-    thread = Glib::Threads::Thread::create(sigc::mem_fun(*this, &Loader::thread_function), true);
+#ifdef OLD_THREADS
+    thread = Glib::Thread::create(sigc::mem_fun(*this, &Loader::thread_function), true);
+#else
+    thread = Glib::Threads::Thread::create(sigc::mem_fun(*this, &Loader::thread_function));
+#endif
     printf("launch thread=%x\n", thread);
 }
 
@@ -915,7 +919,7 @@ void MainWindow::on_action_help_about()
     dialog.set_name("Gigedit");
 #endif
     dialog.set_version(VERSION);
-    dialog.set_copyright("Copyright (C) 2006-2011 Andreas Persson");
+    dialog.set_copyright("Copyright (C) 2006-2012 Andreas Persson");
     dialog.set_comments(_(
         "Released under the GNU General Public License.\n"
         "\n"

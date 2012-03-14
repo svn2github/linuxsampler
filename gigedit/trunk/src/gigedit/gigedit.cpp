@@ -305,10 +305,16 @@ void GigEditState::run(gig::Instrument* pInstrument) {
     static bool main_loop_started = false;
     if (!main_loop_started) {
         Cond initialized;
-        Glib::Threads::Thread::create(
+#ifdef OLD_THREADS
+        Glib::Thread::create(
             sigc::bind(sigc::ptr_fun(&GigEditState::main_loop_run),
                        &initialized),
             false);
+#else
+        Glib::Threads::Thread::create(
+            sigc::bind(sigc::ptr_fun(&GigEditState::main_loop_run),
+                       &initialized));
+#endif
         initialized.wait();
         main_loop_started = true;
     }
