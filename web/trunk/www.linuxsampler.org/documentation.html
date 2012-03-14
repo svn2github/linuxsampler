@@ -444,8 +444,12 @@ CREATE AUDIO_OUTPUT_DEVICE JACK
 # connect to ALSA playback JACK client so we can hear something
 # (you can use 'GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO 0 0 JACK_BINDINGS'
 #  to get all available JACK clients / ports)
-SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 0 JACK_BINDINGS='alsa_pcm:playback_1'
-SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 1 JACK_BINDINGS='alsa_pcm:playback_2'
+SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 0 JACK_BINDINGS='system:playback_1'
+SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 1 JACK_BINDINGS='system:playback_2'
+# Note: above is for JACK2 (a.k.a. jackmp). If you are still using JACK1,
+# you would need to use this instead:
+# SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 0 JACK_BINDINGS='alsa_pcm:playback_1'
+# SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 1 JACK_BINDINGS='alsa_pcm:playback_2'
 
 # load the ALSA MIDI driver
 CREATE MIDI_INPUT_DEVICE ALSA
@@ -472,7 +476,7 @@ QUIT</pre>
 			It shows how to setup a more realistic sampler session, handle routing of MIDI input channels,
 			handle routing of audio channels, it uses JACK again as audio
 			output driver, but creates the JACK client with four output channels instead, it creates two
-			sampler channels, loads two different instrument on those two sampler channels and alters
+			sampler channels, loads two different instruments on those two sampler channels and alters
 			the audio channel routing so that the two output channels of sampler channel 1 are routed to
 			the first two JACK output channels and the two output channels of sampler channel 2 are routed
 			the second pair of the JACK client's output channels. That way you could e.g. record the output
@@ -520,10 +524,12 @@ SET CHANNEL AUDIO_OUTPUT_CHANNEL 1 1 3
 
 # automatic connection between the four 4 ports of LS's Jack client and the
 # ALSA PCM JACK client (assuming your sound card has at least 4 outputs ;-)
-SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 0 JACK_BINDINGS='alsa_pcm:playback_1'
-SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 1 JACK_BINDINGS='alsa_pcm:playback_2'
-SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 2 JACK_BINDINGS='alsa_pcm:playback_3'
-SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 3 JACK_BINDINGS='alsa_pcm:playback_4'
+# (assumimg JACK2 a.k.a. jackmp here, if you are still using JACK1 then
+#  you have to replace "system" by "alsa_pcm" here)
+SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 0 JACK_BINDINGS='system:playback_1'
+SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 1 JACK_BINDINGS='system:playback_2'
+SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 2 JACK_BINDINGS='system:playback_3'
+SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 3 JACK_BINDINGS='system:playback_4'
 
 # not necessary, just to see our setup
 GET CHANNEL INFO 0
