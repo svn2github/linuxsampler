@@ -90,7 +90,7 @@ namespace LinuxSampler {
                     RegionInfo[*i].refCount++;
                     SampleRefCount[(*i)->pSample]++;
                 }
-                HandBack(pResource, pConsumer, true);
+                this->HandBack(pResource, pConsumer, true);
                 RegionInfoMutex.Unlock();
             }
 
@@ -126,7 +126,7 @@ namespace LinuxSampler {
 
             virtual void SetMode(const InstrumentManager::instrument_id_t& ID, InstrumentManager::mode_t Mode) {
                 dmsg(2,("InstrumentManagerBase: setting mode for %s (Index=%d) to %d\n",ID.FileName.c_str(),ID.Index,Mode));
-                SetAvailabilityMode(ID, static_cast<typename ResourceManager<instrument_id_t, I>::mode_t>(Mode));
+                this->SetAvailabilityMode(ID, static_cast<typename ResourceManager<instrument_id_t, I>::mode_t>(Mode));
             }
 
     protected:
@@ -241,7 +241,7 @@ namespace LinuxSampler {
 
                 if (pEntry->MaxSamplesPerCycle < maxSamplesPerCycle) {
                     dmsg(1,("Completely reloading instrument due to insufficient precached samples ...\n"));
-                    Update(pResource, pConsumer);
+                    this->Update(pResource, pConsumer);
                 }
             }
     };

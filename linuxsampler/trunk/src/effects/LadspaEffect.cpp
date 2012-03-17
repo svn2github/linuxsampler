@@ -64,12 +64,12 @@ public:
  */
 class LadspaEffectControl : public EffectControl {
 public:
-    EffectControl::SetDefaultValue;
-    EffectControl::SetMinValue;
-    EffectControl::SetMaxValue;
-    EffectControl::SetType;
-    EffectControl::SetDescription;
-    EffectControl::SetPossibilities;
+    using EffectControl::SetDefaultValue;
+    using EffectControl::SetMinValue;
+    using EffectControl::SetMaxValue;
+    using EffectControl::SetType;
+    using EffectControl::SetDescription;
+    using EffectControl::SetPossibilities;
 };
 
 ////////////////////////////////////////////////////////////////////////////

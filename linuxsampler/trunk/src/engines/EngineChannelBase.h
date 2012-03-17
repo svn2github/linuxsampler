@@ -219,7 +219,7 @@ namespace LinuxSampler {
                 pEvents->clear();
                 // empty MIDI key specific event lists
                 ClearEventListsHandler handler;
-                ProcessActiveVoices(&handler);
+                this->ProcessActiveVoices(&handler);
 
                 // empty exclusive group specific event lists
                 ClearGroupEventLists();
@@ -263,7 +263,7 @@ namespace LinuxSampler {
 
             void RenderActiveVoices(uint Samples) {
                 RenderVoicesHandler handler(this, Samples);
-                ProcessActiveVoices(&handler);
+                this->ProcessActiveVoices(&handler);
 
                 SetVoiceCount(handler.VoiceCount);
                 SetDiskStreamCount(handler.StreamCount);
