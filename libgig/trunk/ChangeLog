@@ -2,6 +2,7 @@ Version CVS HEAD (?)
   * general changes:
     - minor Makefile fix for parallel make
     - Mac OS X: link with CoreFoundation (for the UUID function)
+    - removed gcc 4.7 warnings
 
   * SoundFont file format
     - initial implementation

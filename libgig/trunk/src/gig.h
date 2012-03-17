@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2010 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2012 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -429,11 +429,11 @@ namespace gig {
             uint8_t            DimensionUpperLimits[8];       ///< gig3: defines the upper limit of the dimension values for this dimension region
 
             // derived attributes from DLS::Sampler
-            DLS::Sampler::UnityNote;
-            DLS::Sampler::FineTune;
-            DLS::Sampler::Gain;
-            DLS::Sampler::SampleLoops;
-            DLS::Sampler::pSampleLoops;
+            using DLS::Sampler::UnityNote;
+            using DLS::Sampler::FineTune;
+            using DLS::Sampler::Gain;
+            using DLS::Sampler::SampleLoops;
+            using DLS::Sampler::pSampleLoops;
 
             // own methods
             double GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
@@ -450,8 +450,8 @@ namespace gig {
             void SetVCFVelocityScale(uint8_t scaling);
             Region* GetParent() const;
             // derived methods
-            DLS::Sampler::AddSampleLoop;
-            DLS::Sampler::DeleteSampleLoop;
+            using DLS::Sampler::AddSampleLoop;
+            using DLS::Sampler::DeleteSampleLoop;
             // overridden methods
             virtual void SetGain(int32_t gain);
             virtual void UpdateChunks();
@@ -667,15 +667,15 @@ namespace gig {
     class Instrument : protected DLS::Instrument {
         public:
             // derived attributes from DLS::Resource
-            DLS::Resource::pInfo;
-            DLS::Resource::pDLSID;
+            using DLS::Resource::pInfo;
+            using DLS::Resource::pDLSID;
             // derived attributes from DLS::Instrument
-            DLS::Instrument::IsDrum;
-            DLS::Instrument::MIDIBank;
-            DLS::Instrument::MIDIBankCoarse;
-            DLS::Instrument::MIDIBankFine;
-            DLS::Instrument::MIDIProgram;
-            DLS::Instrument::Regions;
+            using DLS::Instrument::IsDrum;
+            using DLS::Instrument::MIDIBank;
+            using DLS::Instrument::MIDIBankCoarse;
+            using DLS::Instrument::MIDIBankFine;
+            using DLS::Instrument::MIDIProgram;
+            using DLS::Instrument::Regions;
             // own attributes
             int32_t   Attenuation;       ///< in dB
             uint16_t  EffectSend;
@@ -686,7 +686,7 @@ namespace gig {
 
 
             // derived methods from DLS::Resource
-            DLS::Resource::GetParent;
+            using DLS::Resource::GetParent;
             // overridden methods
             Region*   GetFirstRegion();
             Region*   GetNextRegion();
@@ -748,17 +748,17 @@ namespace gig {
             static const DLS::version_t VERSION_3;
 
             // derived attributes from DLS::Resource
-            DLS::Resource::pInfo;
-            DLS::Resource::pDLSID;
+            using DLS::Resource::pInfo;
+            using DLS::Resource::pDLSID;
             // derived attributes from DLS::File
-            DLS::File::pVersion;
-            DLS::File::Instruments;
+            using DLS::File::pVersion;
+            using DLS::File::Instruments;
 
             // derived methods from DLS::Resource
-            DLS::Resource::GetParent;
+            using DLS::Resource::GetParent;
             // derived methods from DLS::File
-            DLS::File::Save;
-            DLS::File::GetFileName;
+            using DLS::File::Save;
+            using DLS::File::GetFileName;
             // overridden  methods
             File();
             File(RIFF::File* pRIFF);
