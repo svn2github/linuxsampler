@@ -38,10 +38,10 @@ namespace {
         void Activate();
         void Run(uint32_t SampleCount);
         void Deactivate();
-        void Save(LV2_State_Store_Function store, void* data,
-                  uint32_t flags, const LV2_Feature* const* features);
-        void Restore(LV2_State_Retrieve_Function retrieve, void* data,
-                     uint32_t flags, const LV2_Feature* const* features);
+        LV2_State_Status Save(LV2_State_Store_Function store, void* data,
+                              uint32_t flags, const LV2_Feature* const* features);
+        LV2_State_Status Restore(LV2_State_Retrieve_Function retrieve, void* data,
+                                 uint32_t flags, const LV2_Feature* const* features);
 
     protected:
         virtual String PathToState(const String& string);
@@ -91,13 +91,13 @@ namespace {
         static void cleanup(LV2_Handle instance);
         static const void* extension_data(const char* uri);
 
-        static void save(LV2_Handle               handle,
-                         LV2_State_Store_Function store,
-                         void*                    data);
+        static LV2_State_Status save(LV2_Handle               handle,
+                                     LV2_State_Store_Function store,
+                                     void*                    data);
 
-        static void restore(LV2_Handle                  handle,
-                            LV2_State_Retrieve_Function retrieve,
-                            void*                       data);
+        static LV2_State_Status restore(LV2_Handle                  handle,
+                                        LV2_State_Retrieve_Function retrieve,
+                                        void*                       data);
     }
 }
 
