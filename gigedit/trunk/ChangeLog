@@ -10,6 +10,7 @@ Version CVS HEAD (?)
     method. This should make them work again in newer gtkmm 3
     environments.
   * added support for new glibmm threads API
+  * gtkmm 3 fix: the WrapLabel custom widget is not needed in gtkmm 3
 
 Version 0.2.0 (2009-07-31)
 

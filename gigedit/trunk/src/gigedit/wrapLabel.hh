@@ -44,10 +44,6 @@ protected:
    virtual void on_size_allocate(Gtk::Allocation &alloc);
    virtual void on_size_request(Gtk::Requisition *req);
 
-   // Gigedit addtion: gtk 3 compatibility
-   virtual void get_preferred_width_vfunc(int& minimum_width, int& natural_width) const;
-   virtual void get_preferred_height_vfunc(int& minimum_height, int& natural_height) const;
-
 private:
    void SetWrapWidth(int width);
 

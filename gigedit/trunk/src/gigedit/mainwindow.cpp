@@ -32,7 +32,9 @@
 #include <gtkmm/main.h>
 #include <gtkmm/radiomenuitem.h>
 #include <gtkmm/toggleaction.h>
+#if GTKMM_MAJOR_VERSION < 3
 #include "wrapLabel.hh"
+#endif
 
 #include "global.h"
 #include "compat.h"
@@ -770,7 +772,12 @@ bool MainWindow::file_save_as()
     descriptionArea.set_spacing(15);
     Gtk::Image warningIcon(Gtk::Stock::DIALOG_WARNING, Gtk::IconSize(Gtk::ICON_SIZE_DIALOG));
     descriptionArea.pack_start(warningIcon, Gtk::PACK_SHRINK);
+#if GTKMM_MAJOR_VERSION < 3
     view::WrapLabel description;
+#else
+    Gtk::Label description;
+    description.set_line_wrap();
+#endif
     description.set_markup(
         _("\n<b>CAUTION:</b> You <b>MUST</b> use the "
           "<span style=\"italic\">\"Save\"</span> dialog instead of "
@@ -1557,7 +1564,7 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
     if (!file) return;
     Gtk::FileChooserDialog dialog(*this, _("Select Folder"),
                                   Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
-    view::WrapLabel description(
+    const char* str = 
         _("This is a very specific function. It tries to replace all samples "
           "in the current gig file by samples located in the chosen "
           "directory.\n\n"
@@ -1571,8 +1578,13 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
           "the sample in the gig file accordingly. If you don't need an "
           "extension, blank the field below. Any gig sample where no "
           "appropriate sample file could be found will be reported and left "
-          "untouched.\n")
-    );
+          "untouched.\n");
+#if GTKMM_MAJOR_VERSION < 3
+    view::WrapLabel description(str);
+#else
+    Gtk::Label description(str);
+    description.set_line_wrap();
+#endif
     Gtk::HBox entryArea;
     Gtk::Label entryLabel( _("Add filename extension: "), Gtk::ALIGN_START);
     Gtk::Entry postfixEntryBox;

@@ -1,6 +1,12 @@
 AM_CPPFLAGS = $(GTKMM_CFLAGS) $(GIG_CFLAGS)
 DEFS = -DLOCALEDIR=\"$(datadir)/locale\" @DEFS@
 
+if HAVE_GTK3
+wraplabel =
+else
+wraplabel = wrapLabel.cc wrapLabel.hh
+endif
+
 pkglib_LTLIBRARIES = libgigedit.la
 libgigedit_la_SOURCES = \
 	global.h \
@@ -12,7 +18,7 @@ libgigedit_la_SOURCES = \
 	dimregionedit.cpp dimregionedit.h \
 	paramedit.cpp paramedit.h \
 	dimensionmanager.cpp dimensionmanager.h \
-	wrapLabel.cc wrapLabel.hh
+	$(wraplabel)
 libgigedit_la_LIBADD = \
 	$(GTKMM_LIBS) $(GIG_LIBS) $(SNDFILE_LIBS)
 libgigedit_la_CXXFLAGS = \

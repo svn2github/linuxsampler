@@ -137,17 +137,6 @@ WrapLabel::on_size_request(Gtk::Requisition *req) // OUT: Our requested size
    req->height = mWrapHeight;
 }
 
-// Gigedit addtion: gtk 3 compatibility
-void WrapLabel::get_preferred_width_vfunc(int& minimum_width, int& natural_width) const
-{
-   minimum_width = natural_width = 0;
-}
-
-// Gigedit addtion: gtk 3 compatibility
-void WrapLabel::get_preferred_height_vfunc(int& minimum_height, int& natural_height) const
-{
-   minimum_height = natural_height = mWrapHeight;
-}
 
 /*
  *-----------------------------------------------------------------------------
