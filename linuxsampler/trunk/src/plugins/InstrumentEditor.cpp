@@ -21,7 +21,6 @@
 #include "InstrumentEditor.h"
 
 #include "../common/global_private.h"
-#include "../common/atomic.h"
 
 #include <algorithm>
 #include <functional>

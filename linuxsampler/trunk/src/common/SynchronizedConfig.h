@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006-2009 Andreas Persson                               *
+ *   Copyright (C) 2006-2012 Andreas Persson                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,7 +28,7 @@
 namespace LinuxSampler {
 
     /**
-     * Thread safe management of configuration data, where the data is
+     * Thread-safe management of configuration data, where the data is
      * updated by a single non real time thread and read by a number
      * of real time threads.
      *
@@ -46,6 +46,14 @@ namespace LinuxSampler {
      * the data to be read, and Unlock() must be called when finished
      * reading the data. (Neither Lock nor Unlock will block the real
      * time thread, or use any system calls.)
+     *
+     * Note that the non real time side isn't safe for concurrent
+     * access, so if there are multiple non real time threads that
+     * update the configuration data, a mutex has to be used.
+     *
+     * Implementation note: the memory order parameters and fences are
+     * very carefully chosen to make the code fast but still safe for
+     * memory access reordering made by the CPU.
      */
     template<class T>
     class SynchronizedConfig {

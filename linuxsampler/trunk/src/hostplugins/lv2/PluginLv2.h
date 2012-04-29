@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2012 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -21,10 +21,17 @@
 #ifndef LS_PLUGINLV2_H
 #define LS_PLUGINLV2_H
 
+#ifdef HAVE_LV2_PACKAGE
+#include <lv2/lv2plug.in/ns/lv2core/lv2.h>
+#include <lv2/lv2plug.in/ns/ext/event/event.h>
+#include <lv2/lv2plug.in/ns/ext/state/state.h>
+#include <lv2/lv2plug.in/ns/ext/uri-map/uri-map.h>
+#else
 #include <lv2.h>
 #include "lv2_event.h"
 #include "lv2_state.h"
 #include "lv2_uri_map.h"
+#endif
 #include "../../drivers/Plugin.h"
 
 namespace {

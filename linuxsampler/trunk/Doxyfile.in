@@ -64,8 +64,10 @@ WARN_LOGFILE           =
 INPUT                  = @top_srcdir@/src/Sampler.h \
                          @top_srcdir@/src/EventListeners.h \
                          @top_srcdir@/src/common/global.h \
+                         @top_srcdir@/src/common/lsatomic.h \
                          @top_srcdir@/src/common/Exception.h \
                          @top_srcdir@/src/common/Thread.h \
+                         @top_srcdir@/src/common/SynchronizedConfig.h \
                          @top_srcdir@/src/drivers/Device.h \
                          @top_srcdir@/src/drivers/DeviceParameter.h \
                          @top_srcdir@/src/drivers/audio/AudioChannel.h \

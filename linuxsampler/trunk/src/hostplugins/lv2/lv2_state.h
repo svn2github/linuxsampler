@@ -26,7 +26,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "lv2/lv2plug.in/ns/lv2core/lv2.h"
+// LinuxSampler modification: use lv2.h instead of
+// lv2/lv2plug.in/ns/lv2core/lv2.h, to support older lv2core packages
+#include <lv2.h>
 
 #define LV2_STATE_URI    "http://lv2plug.in/ns/ext/state"
 #define LV2_STATE_PREFIX LV2_STATE_URI "#"
