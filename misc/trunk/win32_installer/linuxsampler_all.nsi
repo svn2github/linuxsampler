@@ -1,6 +1,6 @@
 ; LinuxSampler Windows installer
 ;
-; Copyright (C) 2007-2011, The LinuxSampler Developers
+; Copyright (C) 2007-2012, The LinuxSampler Developers
 ;
 ; All-in-one Installer for all subprojects / software components of the
 ; LinuxSampler Project.
@@ -40,10 +40,10 @@ OutFile "linuxsampler_${RELEASE_DATE}_setup.exe"
 
 ; Java Runtime Environment, needed for JSampler
 !define JRE_VERSION "1.6"
-; jre-6u31-windows-i586.exe: 
-!define JRE_32_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=62314"
-; jre-6u31-windows-x86.exe:
-!define JRE_64_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=60338"
+; jre-6u32-windows-i586.exe: 
+!define JRE_32_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=63258"
+; jre-6u32-windows-x64.exe:
+!define JRE_64_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=63259"
 
 ; The default installation directory
 InstallDir "$PROGRAMFILES64\LinuxSampler"
@@ -92,7 +92,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "all-in-one installer"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "http://linuxsampler.org"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "The LinuxSampler Project"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" ""
-VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© 2003-2011 The LinuxSampler Project"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© 2003-2012 The LinuxSampler Project"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "LinuxSampler Installer (${RELEASE_DATE})"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "0.0.0"
 
