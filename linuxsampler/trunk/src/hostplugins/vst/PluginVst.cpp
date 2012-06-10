@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2011 Andreas Persson                             *
+ *   Copyright (C) 2008 - 2012 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,6 +24,13 @@
 
 #ifdef WIN32
 #include <tchar.h>
+#else
+#include <cerrno>
+#include <signal.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <sys/stat.h>
 #endif
 
 #include "PluginVst.h"
@@ -72,6 +79,8 @@ namespace {
         dmsg(2, ("-->LinuxSamplerEditor constructor\n"));
 #ifdef WIN32
         ProcessHandle = INVALID_HANDLE_VALUE;
+#else
+        pid = 0;
 #endif
     }
 
@@ -79,13 +88,62 @@ namespace {
         close();
     }
 
+    String LinuxSamplerEditor::FindFantasia() {
+        String fantasia;
+#ifdef WIN32
+        // assume Fantasia is in the same directory or one directory above
+        // the liblinuxsampler dll
+        String lspath = LinuxSampler::Sampler::GetInstallDir();
+        if (!lspath.empty()) {
+            lspath += "\\";
+            WIN32_FIND_DATA fd;
+            HANDLE hFind =
+                FindFirstFile((lspath + "Fantasia*.jar").c_str(), &fd);
+            if (hFind == INVALID_HANDLE_VALUE) {
+                lspath += "..\\";
+                hFind = FindFirstFile((lspath + "Fantasia*.jar").c_str(), &fd);
+            }
+            if (hFind != INVALID_HANDLE_VALUE) {
+                fantasia = fd.cFileName;
+                FindClose(hFind);
+                return lspath + fantasia;
+            }
+        }
+#elif defined(__APPLE__)
+        // look for the java application wrapper
+        const char* cmd =
+            "/Applications/LinuxSampler/Fantasia.app"
+            "/Contents/MacOS/JavaApplicationStub";
+        fantasia = String(getenv("HOME")) + cmd;
+        struct stat buf;
+        if (stat(fantasia.c_str(), &buf) != 0) {
+            fantasia = stat(cmd, &buf) == 0 ? cmd : "";
+        }
+#else
+        // search in <datadir>/java (default: /usr/local/share/java)
+        String path(DATADIR);
+        path += *(path.end() - 1) == '/' ? "java" : "/java";
+        DIR* dir = opendir(path.c_str());
+        if (dir) {
+            while (dirent* d = readdir(dir)) {
+                const char* name = d->d_name;
+                if (strncmp("Fantasia", name, 8) == 0 &&
+                    strcmp(name + strlen(name) - 4, ".jar") == 0) {
+                    fantasia = path + "/" + name;
+                }
+            }
+            closedir(dir);
+        }
+#endif
+        return fantasia;
+    }
+
     bool LinuxSamplerEditor::open(void* ptr) {
         dmsg(2, ("-->LinuxSamplerEditor::open\n"));
         AEffEditor::open(ptr);
 
+        // try to start the JSampler Fantasia GUI as a separate process
 #ifdef WIN32
-        // try to start the JSample Fantasia GUI as a separate process
-
         // first check if it's already running
         if (ProcessHandle != INVALID_HANDLE_VALUE) {
             DWORD exitCode;
@@ -97,53 +155,66 @@ namespace {
             ProcessHandle = INVALID_HANDLE_VALUE;
         }
 
-        // assume Fantasia is in the same directory or one directory above
-        // the liblinuxsampler dll
-        String lspath = LinuxSampler::Sampler::GetInstallDir();
-        if (!lspath.empty()) {
-            lspath += "\\";
-            WIN32_FIND_DATA fd;
-            HANDLE hFind = FindFirstFile((lspath + "Fantasia*.jar").c_str(), &fd);
-            if (hFind == INVALID_HANDLE_VALUE) {
-                lspath += "..\\";
-                hFind = FindFirstFile((lspath + "Fantasia*.jar").c_str(), &fd);
-            }
-            if (hFind != INVALID_HANDLE_VALUE) {
-                String fantasia(fd.cFileName);
-                FindClose(hFind);
+        String fantasia = FindFantasia();
+        if (!fantasia.empty()) {
+            // start a java process
+            String path; // look in PATH first
+            for (int i = 0 ; i < 2 ; i++) { // two tries
+                STARTUPINFO si;
+                PROCESS_INFORMATION pi;
+                ZeroMemory(&si, sizeof(si));
+                si.cb = sizeof(si);
+                ZeroMemory(&pi, sizeof(pi));
 
-                // start a java process
-                String path; // look in PATH first
-                for (int i = 0 ; i < 2 ; i++) { // two tries
-                    STARTUPINFO si;
-                    PROCESS_INFORMATION pi;
-                    ZeroMemory(&si, sizeof(si));
-                    si.cb = sizeof(si);
-                    ZeroMemory(&pi, sizeof(pi));
-
-                    Command = _tcsdup(TEXT((String("\"") + path + "javaw\" -jar \"" +
-                                            lspath + fantasia + "\"").c_str()));
-                    if (CreateProcess(NULL, Command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
-                        ProcessHandle = pi.hProcess;
-                        CloseHandle(pi.hThread);
-                        break;
-                    } else {
-                        free(Command);
-                        if (path.empty()) {
-                            // java wasn't found in PATH, try again
-                            // with an alternative directory
-                            char* windir = getenv("windir");
-                            if (!windir) break;
+                Command = _tcsdup(TEXT((String("\"") + path +
+                                        "javaw\" -jar \"" + fantasia +
+                                        "\"").c_str()));
+                if (CreateProcess(NULL, Command, NULL, NULL, FALSE, 0, NULL,
+                                  NULL, &si, &pi)) {
+                    ProcessHandle = pi.hProcess;
+                    CloseHandle(pi.hThread);
+                    break;
+                } else {
+                    free(Command);
+                    if (path.empty()) {
+                        // java wasn't found in PATH, try again
+                        // with an alternative directory
+                        char* windir = getenv("windir");
+                        if (!windir) break;
 #ifdef _WIN64
-                            // LS plugin is 64 bit - look for 32 bit java
-                            path = String(windir) + "\\SysWOW64\\";
+                        // LS plugin is 64 bit - look for 32 bit java
+                        path = String(windir) + "\\SysWOW64\\";
 #else
-                            // LS plugin is 32 bit - look for 64 bit java
-                            path = String(windir) + "\\Sysnative\\";
+                        // LS plugin is 32 bit - look for 64 bit java
+                        path = String(windir) + "\\Sysnative\\";
 #endif
-                        }
                     }
                 }
+            }
+        }
+#else
+        // first check if it's already running
+        if (pid && waitpid(pid, 0, WNOHANG) == 0) return true;
+
+        String fantasia = FindFantasia();
+        if (!fantasia.empty())
+        {
+            // start a java process
+            pid = fork();
+            if (pid == -1) {
+                dmsg(1, ("fork failed %d %s\n", errno, strerror(errno)));
+                pid = 0;
+            } else if (pid == 0) {
+#ifdef __APPLE__
+                execl(fantasia.c_str(), fantasia.c_str(), (char*)0);
+#else
+                execlp("java", "java", "-jar", fantasia.c_str(), (char*)0);
+#endif
+                dmsg(1, ("exec failed %d %s\n", errno, strerror(errno)));
+
+                // make sure somthing is executed, so the static
+                // destructors copied from the parent don't run
+                execl("/usr/bin/true", "/usr/bin/true", (char*)0);
             }
         }
 #endif
@@ -160,6 +231,12 @@ namespace {
             CloseHandle(ProcessHandle);
             ProcessHandle = INVALID_HANDLE_VALUE;
         }
+#else
+        if (pid) {
+            kill(pid, SIGTERM);
+            waitpid(pid, 0, 0);
+            pid = 0;
+        }
 #endif
     }
 
@@ -167,7 +244,7 @@ namespace {
         ERect* r = new ERect();
         r->top = 0;
         r->left = 0;
-        r->bottom = 0;
+        r->bottom = 1; // 0 makes EnergyXT and Ardour on Linux crash
         r->right = 400;
         *rect = r;
         return true;
@@ -200,17 +277,22 @@ namespace {
 
     void LinuxSamplerVst::resume() {
         dmsg(2, ("-->resume\n"));
-        if (!pAudioDevice) {
-            Init(int(sampleRate), blockSize, CHANNELS);
 
-            if (!SavedChunk.empty()) {
-                SetState(SavedChunk);
-                SavedChunk.clear();
+        // Ardour initially sets blockSize to zero - we postpone the
+        // initialization until we have a blockSize
+        if (blockSize != 0) {
+            if (!pAudioDevice) {
+                Init(int(sampleRate), blockSize, CHANNELS);
+
+                if (!SavedChunk.empty()) {
+                    SetState(SavedChunk);
+                    SavedChunk.clear();
+                } else {
+                    InitState();
+                }
             } else {
-                InitState();
+                Init(int(sampleRate), blockSize, CHANNELS);
             }
-        } else {
-            Init(int(sampleRate), blockSize, CHANNELS);
         }
         AudioEffectX::resume();
         dmsg(2, ("<--resume\n"));

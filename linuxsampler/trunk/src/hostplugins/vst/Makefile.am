@@ -18,7 +18,7 @@ if HAVE_WINDOWS
 LinuxSampler_la_LDFLAGS += -Wl,$(srcdir)/PluginVst.def -Wl,-s
 LinuxSampler_la_LIBADD += -lws2_32
 else
-LinuxSampler_la_CPPFLAGS = -D__cdecl=
+LinuxSampler_la_CPPFLAGS = -D__cdecl= -DDATADIR=\""$(datadir)"\"
 if LINUX
 LinuxSampler_la_LDFLAGS += -Wl,--defsym -Wl,main=VSTPluginMain -Wl,-s
 endif

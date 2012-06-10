@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2012 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -47,7 +47,10 @@ namespace {
 #ifdef WIN32
         HANDLE ProcessHandle;
         LPTSTR Command;
+#else
+        pid_t pid;
 #endif
+        static String FindFantasia();
     };
 
 

@@ -252,6 +252,9 @@ Version CVS HEAD (?)
       similar fix was for Windows)
     - thread safety fixes for the instrument loading thread
     - LV2: use the new lv2 package if present
+    - VST: try to open Fantasia automatically on Linux and Mac too (on
+      Linux, the Fantasia jar should be placed in <prefix>/share/java)
+    - VST: fixed crashes on Linux Ardour and EnergyXT
 
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding
