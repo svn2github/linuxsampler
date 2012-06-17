@@ -23,6 +23,7 @@ SetCompressor lzma
 ;Include Modern UI
 !include "MUI.nsh"
 !include "EnvVarUpdate.nsh"
+!include "WordFunc.nsh"
 
 !define /date RELEASE_DATE "%Y%m%d"
 !searchparse /file bin/686/linuxsampler.pc `Version: ` LINUXSAMPLER_VERSION
@@ -40,10 +41,10 @@ OutFile "linuxsampler_${RELEASE_DATE}_setup.exe"
 
 ; Java Runtime Environment, needed for JSampler
 !define JRE_VERSION "1.6"
-; jre-6u32-windows-i586.exe: 
-!define JRE_32_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=63258"
-; jre-6u32-windows-x64.exe:
-!define JRE_64_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=63259"
+; jre-7u5-windows-i586.exe:
+!define JRE_32_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=64152"
+; jre-7u5-windows-x64.exe:
+!define JRE_64_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=64153"
 
 ; The default installation directory
 InstallDir "$PROGRAMFILES64\LinuxSampler"
@@ -163,8 +164,8 @@ Function GetJRE
 
   DetailPrint "Downloading JRE from: $jreUri"
 
-  MessageBox MB_OK "JSampler requires Java ${JRE_VERSION}, it will now \
-                    be downloaded and installed"
+  MessageBox MB_OK "JSampler requires Java ${JRE_VERSION} or later, \
+                    it will now be downloaded and installed"
 
   StrCpy $2 "$TEMP\Java Runtime Environment.exe"
   nsisdl::download /TIMEOUT=30000 "$jreUri" $2
@@ -180,7 +181,8 @@ FunctionEnd
 Function DetectJRE
   ReadRegStr $2 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" \
              "CurrentVersion"
-  StrCmp $2 ${JRE_VERSION} done
+  ${VersionCompare} $2 ${JRE_VERSION} $R0
+  IntCmp $R0 1 done done
 
   StrCmp $binType BIN_TYPE_64BIT 0 downloadjre
 
@@ -190,7 +192,8 @@ Function DetectJRE
   ReadRegStr $3 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" \
              "CurrentVersion"
   SetRegView 64  ; restore 64 bit view
-  StrCmp $3 ${JRE_VERSION} done
+  ${VersionCompare} $3 ${JRE_VERSION} $R0
+  IntCmp $R0 1 done done
 
   downloadjre:
   Call GetJRE
