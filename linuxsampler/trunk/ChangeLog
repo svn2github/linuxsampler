@@ -339,6 +339,7 @@ Version CVS HEAD (?)
       (#176)
     - more thread safety fixes for the instrument loading thread
     - sfz/sf2 engine: fixed crash when using small audio fragment size
+    - Mac OS X: fixed crash when unloading plugin on 10.7 and later
 
 Version 1.0.0 (31 July 2009)
 
