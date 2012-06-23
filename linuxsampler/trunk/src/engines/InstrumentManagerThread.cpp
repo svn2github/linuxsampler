@@ -23,10 +23,6 @@
 #include "../common/global_private.h"
 #include "EngineChannelFactory.h"
 
-#ifdef __APPLE__
-#include <sys/utsname.h>
-#endif
-
 namespace LinuxSampler {
 
     InstrumentManagerThread::InstrumentManagerThread() : Thread(true, false, 0, -4) {
@@ -178,18 +174,12 @@ namespace LinuxSampler {
         pThread->mutex.Unlock();
     }
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(__x86_64__)
     int InstrumentManagerThread::StopThread() {
-        utsname buf;
-        int osVersion = uname(&buf) ? 0 : atoi(buf.release);
-
-        // This is a fix for Mac OS X 10.6 and earlier, where
-        // SignalStopThread doesn't wake up a thread waiting for a
-        // condition variable.
-        if (osVersion < 11) { // darwin 11 = OS X 10.7
-            SignalStopThread(); // send stop signal, but don't wait
-            conditionJobsLeft.Set(true); // wake thread
-        }
+        // This is a fix for Mac OS X 32 bit, where SignalStopThread
+        // doesn't wake up a thread waiting for a condition variable.
+        SignalStopThread(); // send stop signal, but don't wait
+        conditionJobsLeft.Set(true); // wake thread
         return Thread::StopThread(); // then wait for it to cancel
     }
 #endif

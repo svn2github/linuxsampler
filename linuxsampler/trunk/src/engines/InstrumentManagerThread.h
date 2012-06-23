@@ -48,7 +48,7 @@ namespace LinuxSampler {
             void StartNewLoad(String Filename, uint uiInstrumentIndex, EngineChannel* pEngineChannel);
             void StartSettingMode(InstrumentManager* pManager, const InstrumentManager::instrument_id_t& ID, InstrumentManager::mode_t Mode);
             virtual ~InstrumentManagerThread();
-#if defined(__APPLE__) || defined(WIN32)
+#if (defined(__APPLE__) && !defined(__x86_64__)) || defined(WIN32)
             int StopThread();
 #endif
         protected:
