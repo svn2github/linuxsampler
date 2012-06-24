@@ -379,7 +379,7 @@ namespace LinuxSampler {
         GetFirstEventOnKey(MIDIKey, itNoteEvent);
 
         RTList<Event>::Iterator itGroupEvent;
-        if (pGroupEvents) itGroupEvent = pGroupEvents->first();
+        if (pGroupEvents && !Orphan) itGroupEvent = pGroupEvents->first();
 
         if (itTriggerEvent) { // skip events that happened before this voice was triggered
             while (itCCEvent && itCCEvent->FragmentPos() <= Skip) ++itCCEvent;

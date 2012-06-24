@@ -342,6 +342,8 @@ Version CVS HEAD (?)
     - Mac OS X: fixed crash when unloading plugin on 10.7 and later
     - Mac OS X: fixed process hang when unloading 32-bit plugin (bug
       introduced in previous fix)
+    - fixed crash when a channel received a program change while
+      playing a note in a key group
 
 Version 1.0.0 (31 July 2009)
 

@@ -222,7 +222,10 @@ namespace LinuxSampler {
                 this->ProcessActiveVoices(&handler);
 
                 // empty exclusive group specific event lists
-                ClearGroupEventLists();
+                // (pInstrument == 0 could mean that LoadInstrument is
+                // building new group event lists, so we must check
+                // for that)
+                if (pInstrument) ClearGroupEventLists();
             }
 
             // implementation of abstract methods derived from interface class 'InstrumentConsumer'
