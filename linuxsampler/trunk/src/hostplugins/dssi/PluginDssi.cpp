@@ -27,6 +27,7 @@
 #include "PluginDssi.h"
 
 #include "../../engines/AbstractEngineChannel.h"
+#include "../../engines/EngineChannelFactory.h"
 
 namespace {
 
@@ -47,8 +48,6 @@ namespace {
         Out[0] = 0;
         Out[1] = 0;
 
-        uint outputChannel = 0;
-        uint midiPort = 0;
         if (!plugin) {
             plugin = new PluginDssi(SampleRate);
         }
@@ -57,31 +56,52 @@ namespace {
         pChannel = plugin->global->pSampler->AddSamplerChannel();
         pChannel->SetEngineType("gig");
         pChannel->SetAudioOutputDevice(plugin->pAudioDevice);
-        pPort = plugin->pMidiDevice->CreateMidiPort();
-        pPort->Connect(pChannel->GetEngineChannel(), LinuxSampler::midi_chan_all);
 
+        if (plugin->RefCount > 1) {
+            plugin->pMidiDevice->AddMidiPort();
+            plugin->pAudioDevice->AddChannels(2);
+        }
+
+        int i = plugin->RefCount - 1;
+
+        pChannel->SetMidiInput(plugin->pMidiDevice, i, LinuxSampler::midi_chan_all);
         LinuxSampler::AbstractEngineChannel* engineChannel =
             static_cast<LinuxSampler::AbstractEngineChannel*>(pChannel->GetEngineChannel());
-        // TODO: pChannelLeft and pChannelRight are meant to be
-        // protected
-        engineChannel->pChannelLeft = new LinuxSampler::AudioChannel(0, 0, 0);
-        engineChannel->pChannelRight = new LinuxSampler::AudioChannel(1, 0, 0);
+        engineChannel->SetOutputChannel(0, i * 2);
+        engineChannel->SetOutputChannel(1, i * 2 + 1);
+
+        pPort = plugin->pMidiDevice->GetPort(i);
+        pChannelLeft = plugin->pAudioDevice->Channel(i * 2);
+        pChannelRight = plugin->pAudioDevice->Channel(i * 2 + 1);
     }
 
     PluginInstance::~PluginInstance() {
-        LinuxSampler::AbstractEngineChannel* engineChannel =
-            static_cast<LinuxSampler::AbstractEngineChannel*>(pChannel->GetEngineChannel());
-        delete engineChannel->pChannelLeft;
-        delete engineChannel->pChannelRight;
-
         if (--plugin->RefCount == 0) {
             delete plugin;
             plugin = 0;
         } else {
-            plugin->global->pSampler->RemoveSamplerChannel(pChannel);
-        }
+            LinuxSampler::AbstractEngineChannel* engineChannel =
+                static_cast<LinuxSampler::AbstractEngineChannel*>(pChannel->GetEngineChannel());
+            int oldChannelNumber = engineChannel->OutputChannel(0);
 
-        LinuxSampler::MidiInputDevicePlugin::DeleteMidiPort(pPort);
+            plugin->global->pSampler->RemoveSamplerChannel(pChannel);
+            plugin->pMidiDevice->RemoveMidiPort(pPort);
+            plugin->pAudioDevice->RemoveChannel(pChannelLeft);
+            plugin->pAudioDevice->RemoveChannel(pChannelRight);
+
+            const std::set<LinuxSampler::EngineChannel*>& engineChannels =
+                LinuxSampler::EngineChannelFactory::EngineChannelInstances();
+            for (std::set<LinuxSampler::EngineChannel*>::iterator i = engineChannels.begin();
+                 i != engineChannels.end() ; ++i) {
+                if ((*i)->GetAudioOutputDevice() == plugin->pAudioDevice) {
+                    int channelNumber = (*i)->OutputChannel(0);
+                    if (channelNumber > oldChannelNumber) {
+                        (*i)->SetOutputChannel(0, channelNumber - 2);
+                        (*i)->SetOutputChannel(1, channelNumber - 1);
+                    }
+                }
+            }
+        }
     }
 
     void PluginInstance::ConnectPort(unsigned long Port, LADSPA_Data* DataLocation) {
@@ -135,9 +155,7 @@ namespace {
 
             for (unsigned long i = 0 ; i < InstanceCount ; i++) {
                 PluginInstance* instance = static_cast<PluginInstance*>(Instances[i]);
-                LinuxSampler::EngineChannel* engineChannel =
-                    instance->pChannel->GetEngineChannel();
-                LinuxSampler::MidiInputPort* port = engineChannel->GetMidiInputPort();
+                LinuxSampler::MidiInputPort* port = instance->pPort;
 
                 snd_seq_event_t* events = Events[i];
                 unsigned& eventPos = eventPosArr[i];
@@ -181,19 +199,8 @@ namespace {
                     }
                 }
 
-                LinuxSampler::AbstractEngineChannel* abstractEngineChannel =
-                    static_cast<LinuxSampler::AbstractEngineChannel*>(engineChannel);
-                abstractEngineChannel->pChannelLeft->SetBuffer(instance->Out[0] + samplePos);
-                abstractEngineChannel->pChannelRight->SetBuffer(instance->Out[1] + samplePos);
-                if (i) {
-                    abstractEngineChannel->pChannelLeft->Clear(samples);
-                    abstractEngineChannel->pChannelRight->Clear(samples);
-                } else {
-                    // the buffer set in the audio device is cleared
-                    // by Render
-                    audioDevice->Channel(0)->SetBuffer(instance->Out[0] + samplePos);
-                    audioDevice->Channel(1)->SetBuffer(instance->Out[1] + samplePos);
-                }
+                instance->pChannelLeft->SetBuffer(instance->Out[0] + samplePos);
+                instance->pChannelRight->SetBuffer(instance->Out[1] + samplePos);
             }
 
             audioDevice->Render(samples);
@@ -205,7 +212,7 @@ namespace {
 
     void PluginInstance::Activate() {
         dmsg(2, ("linuxsampler: activate instance=%p\n", static_cast<void*>(this)));
-        pChannel->GetEngineChannel()->GetMidiInputPort()->DispatchControlChange(123, 0, 0, 0); // all sound off
+        pPort->DispatchControlChange(123, 0, 0, 0); // all sound off
     }
 
 

@@ -55,6 +55,7 @@ namespace LinuxSampler {
             ParameterPortsPlugin() : ParameterPorts() { }
             ParameterPortsPlugin(String s) : ParameterPorts(s) { }
             virtual bool Fix() { return true; }
+            void ForceSetValue(int ports);
         };
 
         // derived abstract methods from class 'MidiInputDevice'
@@ -77,7 +78,8 @@ namespace LinuxSampler {
             return Ports[0];
         }
 
-        static void DeleteMidiPort(MidiInputPort* pPort);
+        void AddMidiPort();
+        void RemoveMidiPort(MidiInputPort* pPort);
     };
 }
 

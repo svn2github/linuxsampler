@@ -89,10 +89,9 @@ namespace LinuxSampler {
             AbstractEngine*           pEngine;
             Mutex                     EngineMutex; ///< protects the Engine from access by the instrument loader thread when lscp is disconnecting
 
-        public: // TODO: should be protected
+        protected:
             AudioChannel*             pChannelLeft;             ///< encapsulates the audio rendering buffer (left)
             AudioChannel*             pChannelRight;            ///< encapsulates the audio rendering buffer (right)
-        protected:
             int                       AudioDeviceChannelLeft;   ///< audio device channel number to which the left channel is connected to
             int                       AudioDeviceChannelRight;  ///< audio device channel number to which the right channel is connected to
             MidiInputPort*            pMidiInputPort;           ///< Points to the connected MIDI input port or NULL if none assigned.

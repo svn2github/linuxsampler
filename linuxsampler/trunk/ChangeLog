@@ -255,6 +255,8 @@ Version CVS HEAD (?)
     - VST: try to open Fantasia automatically on Linux and Mac too (on
       Linux, the Fantasia jar should be placed in <prefix>/share/java)
     - VST: fixed crashes on Linux Ardour and EnergyXT
+    - DSSI bugfix: it wasn't possible to change engine type. The MIDI
+      port and audio channel routing for DSSI plugins are now visible.
 
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding

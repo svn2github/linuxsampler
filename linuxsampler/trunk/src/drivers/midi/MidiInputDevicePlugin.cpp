@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "MidiInputDevicePlugin.h"
+#include "../../common/global_private.h"
 
 namespace LinuxSampler {
 
@@ -32,13 +33,22 @@ namespace LinuxSampler {
 
 
 
+// *************** ParameterPortsPlugin  ***************
+// *
+
+    void MidiInputDevicePlugin::ParameterPortsPlugin::ForceSetValue(int ports) {
+        OnSetValue(ports);
+        iVal = ports;
+    }
+
+
 // *************** MidiInputDevicePlugin ***************
 // *
 
     MidiInputDevicePlugin::MidiInputDevicePlugin(std::map<String, DeviceCreationParameter*> Parameters,
                                                  void* pSampler) :
         MidiInputDevice(Parameters, pSampler) {
-        AcquirePorts(1);
+        AcquirePorts(((DeviceCreationParameterInt*)Parameters["PORTS"])->ValueAsInt());
     }
 
     MidiInputDevicePlugin::~MidiInputDevicePlugin() {
@@ -76,8 +86,30 @@ namespace LinuxSampler {
         return new MidiInputPortPlugin(this, Ports.size());
     }
 
-    void MidiInputDevicePlugin::DeleteMidiPort(MidiInputPort* pPort) {
-        delete (MidiInputPortPlugin*)pPort;
+    void MidiInputDevicePlugin::AddMidiPort() {
+        static_cast<ParameterPortsPlugin*>(
+            Parameters["PORTS"])->ForceSetValue(Ports.size() + 1);
+    }
+
+    void MidiInputDevicePlugin::RemoveMidiPort(MidiInputPort* pPort) {
+        // reorder map so pPort is last
+        int portNumber = 0;
+        std::map<int, MidiInputPort*>::iterator i = Ports.begin();
+        for ( ; i != Ports.end(); ++i, portNumber++) {
+            if (i->second == pPort) break;
+        }
+        std::map<int, MidiInputPort*>::iterator previ = i;
+        for (++i ; i != Ports.end(); ++i, portNumber++) {
+            previ->second = i->second;
+            static_cast<MidiInputPortPlugin*>(previ->second)->portNumber = portNumber;
+            previ->second->PortParameters()["NAME"]->SetValue("Port " + ToString(portNumber));
+            previ = i;
+        }
+        previ->second = pPort;
+
+        // delete the last port
+        static_cast<ParameterPortsPlugin*>(
+            Parameters["PORTS"])->ForceSetValue(Ports.size() - 1);
     }
 
     bool MidiInputDevicePlugin::isAutonomousDevice() {

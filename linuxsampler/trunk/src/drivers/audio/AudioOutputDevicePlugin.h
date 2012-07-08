@@ -55,6 +55,7 @@ namespace LinuxSampler {
             ParameterChannelsPlugin() : ParameterChannels() { }
             ParameterChannelsPlugin(String s) : ParameterChannels(s) { }
             virtual bool Fix() { return true; }
+            void ForceSetValue(int channels);
         };
 
         /**
@@ -102,6 +103,9 @@ namespace LinuxSampler {
          *          engine
          */
         int Render(uint Samples) { return RenderAudio(Samples); }
+
+        void AddChannels(int newChannels);
+        void RemoveChannel(AudioChannel* pChannel);
 
     private:
         uint uiSampleRate;

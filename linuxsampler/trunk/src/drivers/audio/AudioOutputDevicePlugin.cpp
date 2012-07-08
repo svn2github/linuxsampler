@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include "AudioOutputDevicePlugin.h"
+#include "../../common/global_private.h"
+#include <algorithm>
 
 namespace LinuxSampler {
 
@@ -27,6 +29,15 @@ namespace LinuxSampler {
 
     AudioOutputDevicePlugin::AudioChannelPlugin::AudioChannelPlugin(uint ChannelNr) :
         AudioChannel(ChannelNr, 0, 0) {
+    }
+
+
+// *************** ParameterChannelsPlugin  ***************
+// *
+
+    void AudioOutputDevicePlugin::ParameterChannelsPlugin::ForceSetValue(int channels) {
+        OnSetValue(channels);
+        iVal = channels;
     }
 
 
@@ -141,5 +152,25 @@ namespace LinuxSampler {
 
     bool AudioOutputDevicePlugin::isAutonomousDriver() {
         return false;
+    }
+
+
+    void AudioOutputDevicePlugin::AddChannels(int newChannels) {
+        static_cast<ParameterChannelsPlugin*>(
+            Parameters["CHANNELS"])->ForceSetValue(Channels.size() + newChannels);
+    }
+
+    void AudioOutputDevicePlugin::RemoveChannel(AudioChannel* pChannel) {
+        std::vector<AudioChannel*>::iterator i = find(Channels.begin(), Channels.end(), pChannel);
+        int channelNumber = i - Channels.begin();
+        delete *i;
+        Channels.erase(i);
+
+        for ( ; channelNumber < Channels.size() ; channelNumber++) {
+            static_cast<AudioChannelPlugin*>(Channels[channelNumber])->ChannelNr = channelNumber;
+            Channels[channelNumber]->ChannelParameters()["NAME"]->SetValue("Channel " + ToString(channelNumber));
+        }
+        static_cast<ParameterChannelsPlugin*>(
+            Parameters["CHANNELS"])->ForceSetValue(Channels.size());
     }
 }
