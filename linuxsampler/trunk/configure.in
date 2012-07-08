@@ -512,14 +512,7 @@ AC_CHECK_HEADERS(dssi.h,
 AM_CONDITIONAL(HAVE_DSSI, test $config_have_dssi = "yes")
 
 # LV2
-PKG_CHECK_MODULES(LV2, lv2,
-  [config_have_lv2="yes"
-  AC_DEFINE(HAVE_LV2_PACKAGE, 1,
-            [Define to 1 if you have the lv2 package installed.])],
-  [config_have_lv2="no"
-  PKG_CHECK_MODULES(LV2, lv2core, config_have_lv2="yes",
-    [AC_CHECK_HEADER(lv2.h, config_have_lv2="yes")])])
-
+PKG_CHECK_MODULES(LV2, lv2 >= 1.0.0, config_have_lv2="yes", config_have_lv2="no")
 AC_SUBST(LV2_CFLAGS)
 AC_SUBST(LV2_LIBS)
 AM_CONDITIONAL(HAVE_LV2, test $config_have_lv2 = "yes")

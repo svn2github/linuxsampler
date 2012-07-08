@@ -21,18 +21,12 @@
 #ifndef LS_PLUGINLV2_H
 #define LS_PLUGINLV2_H
 
-#ifdef HAVE_LV2_PACKAGE
-#include <lv2/lv2plug.in/ns/lv2core/lv2.h>
-#include <lv2/lv2plug.in/ns/ext/event/event.h>
-#include <lv2/lv2plug.in/ns/ext/state/state.h>
-#include <lv2/lv2plug.in/ns/ext/uri-map/uri-map.h>
-#else
-#include <lv2.h>
-#include "lv2_event.h"
-#include "lv2_state.h"
-#include "lv2_uri_map.h"
-#endif
 #include "../../drivers/Plugin.h"
+
+#include <lv2/lv2plug.in/ns/lv2core/lv2.h>
+#include <lv2/lv2plug.in/ns/ext/atom/atom.h>
+#include <lv2/lv2plug.in/ns/ext/state/state.h>
+#include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 
 namespace {
 
@@ -41,6 +35,7 @@ namespace {
         PluginLv2(const LV2_Descriptor* Descriptor,
                   double SampleRate, const char* BundlePath,
                   const LV2_Feature* const* Features);
+        ~PluginLv2();
         void ConnectPort(uint32_t Port, void* DataLocation);
         void Activate();
         void Run(uint32_t SampleCount);
@@ -55,15 +50,16 @@ namespace {
         virtual String PathFromState(const String& string);
 
     private:
-        uint32_t uri_to_id(const char* map, const char* uri) {
-            return UriMap->uri_to_id(UriMap->callback_data, map, uri);
+        LV2_URID uri_to_id(const char* uri) {
+            return UriMap->map(UriMap->handle, uri);
         }
 
         void SetStateFeatures(const LV2_Feature* const* Features);
 
-        float* Out[2];
-        LV2_Event_Buffer* MidiBuf;
-        LV2_URI_Map_Feature* UriMap;
+        float** Out;
+        LV2_Atom_Sequence* MidiBuf;
+        LV2_URID_Map* UriMap;
+        LV2_URID MidiEventType;
         LV2_State_Map_Path* MapPath;
         LV2_State_Make_Path* MakePath;
 
@@ -98,13 +94,15 @@ namespace {
         static void cleanup(LV2_Handle instance);
         static const void* extension_data(const char* uri);
 
-        static LV2_State_Status save(LV2_Handle               handle,
+        static LV2_State_Status save(LV2_Handle handle,
                                      LV2_State_Store_Function store,
-                                     void*                    data);
+                                     LV2_State_Handle state, uint32_t flags,
+                                     const LV2_Feature* const* features);
 
-        static LV2_State_Status restore(LV2_Handle                  handle,
+        static LV2_State_Status restore(LV2_Handle handle,
                                         LV2_State_Retrieve_Function retrieve,
-                                        void*                       data);
+                                        LV2_State_Handle state, uint32_t flags,
+                                        const LV2_Feature* const* features);
     }
 }
 

@@ -257,6 +257,11 @@ Version CVS HEAD (?)
     - VST: fixed crashes on Linux Ardour and EnergyXT
     - DSSI bugfix: it wasn't possible to change engine type. The MIDI
       port and audio channel routing for DSSI plugins are now visible.
+    - LV2: use urid and atom extensions instead of deprecated uri-map
+      and event
+    - LV2: lv2 package 1.0 is now required to build the LV2 plugin
+    - LV2: changed number of output channels to 16 stereo, just like
+      the VST and AU plugins
 
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding

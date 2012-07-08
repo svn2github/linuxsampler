@@ -28,23 +28,29 @@
 
 #include "PluginLv2.h"
 
-#define NS_ATOM "http://lv2plug.in/ns/ext/atom#"
+#include <lv2/lv2plug.in/ns/ext/atom/util.h>
+#include <lv2/lv2plug.in/ns/ext/midi/midi.h>
+
 #define NS_LS   "http://linuxsampler.org/schema#"
+
+#define CHANNELS 32
 
 namespace {
 
     PluginLv2::PluginLv2(const LV2_Descriptor* Descriptor,
                          double SampleRate, const char* BundlePath,
                          const LV2_Feature* const* Features) {
-        Out[0] = 0;
-        Out[1] = 0;
+        Out = new float*[CHANNELS];
+        for (int i = 0 ; i < CHANNELS ; i++) {
+            Out[i] = 0;
+        }
         UriMap = 0;
         MapPath = 0;
         MakePath = 0;
         for (int i = 0 ; Features[i] ; i++) {
             dmsg(2, ("linuxsampler: init feature: %s\n", Features[i]->URI));
-            if (!strcmp(Features[i]->URI, LV2_URI_MAP_URI)) {
-                UriMap = (LV2_URI_Map_Feature*)Features[i]->data;
+            if (!strcmp(Features[i]->URI, LV2_URID__map)) {
+                UriMap = (LV2_URID_Map*)Features[i]->data;
             } else if (!strcmp(Features[i]->URI, LV2_STATE__mapPath)) {
                 MapPath = (LV2_State_Map_Path*)Features[i]->data;
             } else if (!strcmp(Features[i]->URI, LV2_STATE__makePath)) {
@@ -52,18 +58,24 @@ namespace {
             }
         }
 
-        Init(SampleRate, 128);
+        MidiEventType = uri_to_id(LV2_MIDI__MidiEvent);
+
+        Init(SampleRate, 128, CHANNELS);
 
         InitState();
 
         DefaultState = GetState();
     }
 
+    PluginLv2::~PluginLv2() {
+        delete[] Out;
+    }
+
     void PluginLv2::ConnectPort(uint32_t Port, void* DataLocation) {
-        if (Port == 2) {
-            MidiBuf = static_cast<LV2_Event_Buffer*>(DataLocation);
-        } else if (Port < 2) {
-            Out[Port] = static_cast<float*>(DataLocation);
+        if (Port == 0) {
+            MidiBuf = static_cast<LV2_Atom_Sequence*>(DataLocation);
+        } else if (Port < CHANNELS + 1) {
+            Out[Port - 1] = static_cast<float*>(DataLocation);
         }
     }
 
@@ -73,24 +85,28 @@ namespace {
 
     void PluginLv2::Run(uint32_t SampleCount) {
         int samplePos = 0;
-        uint8_t* events = MidiBuf->data;
-        int eventCount = MidiBuf->event_count;
+
+        LV2_Atom_Event* ev = lv2_atom_sequence_begin(&MidiBuf->body);
+
         while (SampleCount) {
             int samples = std::min(SampleCount, 128U);
 
-            for ( ; eventCount ; eventCount--) {
-                LV2_Event* event = reinterpret_cast<LV2_Event*>(events);
+            for ( ; !lv2_atom_sequence_is_end(&MidiBuf->body,
+                                              MidiBuf->atom.size, ev) ;
+                  ev = lv2_atom_sequence_next(ev)) {
+                if (ev->body.type == MidiEventType) {
 
-                int time = event->frames - samplePos;
-                if (time >= samples) break;
+                    int time = ev->time.frames - samplePos;
+                    if (time >= samples) break;
 
-                uint8_t* data = events + sizeof(LV2_Event);
-                events += (sizeof(LV2_Event) + event->size + 7) & ~7;
+                    uint8_t* data = reinterpret_cast<uint8_t*>(ev + 1);
 
-                pMidiDevice->Port()->DispatchRaw(data, time);
+                    pMidiDevice->Port()->DispatchRaw(data, time);
+                }
             }
-            pAudioDevice->Channel(0)->SetBuffer(Out[0] + samplePos);
-            pAudioDevice->Channel(1)->SetBuffer(Out[1] + samplePos);
+            for (int i = 0 ; i < CHANNELS ; i++) {
+                pAudioDevice->Channel(i)->SetBuffer(Out[i] + samplePos);
+            }
             pAudioDevice->Render(samples);
 
             samplePos += samples;
@@ -135,8 +151,8 @@ namespace {
     }
 
     LV2_State_Status PluginLv2::Save(
-	    LV2_State_Store_Function store, LV2_State_Handle handle,
-	    uint32_t flags, const LV2_Feature* const* features)
+        LV2_State_Store_Function store, LV2_State_Handle handle,
+        uint32_t flags, const LV2_Feature* const* features)
     {
         LV2_State_Map_Path*  OldMapPath  = MapPath;
         LV2_State_Make_Path* OldMakePath = MakePath;
@@ -152,10 +168,10 @@ namespace {
             char* path = MapPath->abstract_path(MapPath->handle, abs_path);
 
             store(handle,
-                  uri_to_id(NULL, NS_LS "state-file"),
+                  uri_to_id(NS_LS "state-file"),
                   path,
                   strlen(path) + 1,
-                  uri_to_id(NULL, NS_ATOM "Path"),
+                  uri_to_id(LV2_ATOM__Path),
                   LV2_STATE_IS_PORTABLE);
 
             free(path);
@@ -167,10 +183,10 @@ namespace {
             out << GetState();
 
             store(handle,
-                  uri_to_id(NULL, NS_LS "state-string"),
+                  uri_to_id(NS_LS "state-string"),
                   out.str().c_str(),
                   out.str().length() + 1,
-                  uri_to_id(NULL, NS_ATOM "String"),
+                  uri_to_id(LV2_ATOM__String),
                   LV2_STATE_IS_POD | LV2_STATE_IS_PORTABLE);
         }
         dmsg(2, ("saving done\n"));
@@ -182,8 +198,8 @@ namespace {
     }
 
     LV2_State_Status PluginLv2::Restore(
-	    LV2_State_Retrieve_Function retrieve, LV2_State_Handle handle,
-	    uint32_t rflags, const LV2_Feature* const* features)
+        LV2_State_Retrieve_Function retrieve, LV2_State_Handle handle,
+        uint32_t rflags, const LV2_Feature* const* features)
     {
         LV2_State_Map_Path*  OldMapPath  = MapPath;
         LV2_State_Make_Path* OldMakePath = MakePath;
@@ -195,11 +211,11 @@ namespace {
 
         const void* value = retrieve(
             handle,
-            uri_to_id(NULL, NS_LS "state-file"),
+            uri_to_id(NS_LS "state-file"),
             &size, &type, &flags);
         if (value) {
             // Restore from state-file
-            assert(type == uri_to_id(NULL, NS_ATOM "Path"));
+            assert(type == uri_to_id(LV2_ATOM__Path));
             const String path((const char*)value);
             dmsg(2, ("linuxsampler: restoring from file %s\n", path.c_str()));
             std::ifstream in(path.c_str());
@@ -207,11 +223,11 @@ namespace {
             std::getline(in, state, '\0');
             SetState(state);
         } else if ((value = retrieve(handle,
-                                     uri_to_id(NULL, NS_LS "state-string"),
+                                     uri_to_id(NS_LS "state-string"),
                                      &size, &type, &flags))) {
             // Restore from state-string
             dmsg(2, ("linuxsampler: restoring from string\n"));
-            assert(type == uri_to_id(NULL, NS_ATOM "String"));
+            assert(type == uri_to_id(LV2_ATOM__String));
             String state((const char*)value);
             SetState(state);
         } else {
