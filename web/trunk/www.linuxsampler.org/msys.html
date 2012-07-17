@@ -10,16 +10,16 @@
 <body>
 <h2 align="center">Windows Build Instructions &nbsp; <img src="gfx/logos/msys.png" alt="msys logo"> &nbsp; HOWTO by Andreas Persson</h2>
 <br>
-<center>January&nbsp;31th,&nbsp;2010</center><br>
+<center>July&nbsp;17th,&nbsp;2012</center><br>
 <div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
 <a href="#intro">1.&nbsp; Introduction</a><br>
 <a href="#mingw">2.&nbsp; MinGW</a><br>
-<a href="#pkg">3.&nbsp; pkg-config and gtkmm</a><br>
-<a href="#msys">4.&nbsp; MSYS</a><br>
-<a href="#asio">5.&nbsp; ASIO SDK</a><br>
-<a href="#vst">6.&nbsp; VST SDK</a><br>
-<a href="#intl">7.&nbsp; intltool</a><br>
-<a href="#perl">8.&nbsp; Perl</a><br>
+<a href="#gcc">3.&nbsp; gcc</a><br>
+<a href="#pkg">4.&nbsp; pkg-config</a><br>
+<a href="#gtkmm">5.&nbsp; gtkmm</a><br>
+<a href="#asio">6.&nbsp; ASIO SDK</a><br>
+<a href="#vst">7.&nbsp; VST SDK</a><br>
+<a href="#intl">8.&nbsp; intltool</a><br>
 <a href="#xslt">9.&nbsp; xsltproc</a><br>
 <a href="#setup">10.&nbsp; MSYS setup</a><br>
 <a href="#sqlite">11.&nbsp; Building SQLite</a><br>
@@ -46,130 +46,83 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 
 <h3><a name="intro">1.&nbsp; Introduction</a></h3>
 
-<p>These are instructions for building libgig, linuxsampler and
-gigedit on Windows (32 bit) with help of MinGW and MSYS. After the
-MinGW and MSYS environment and the other prerequisites are installed,
-the build procedure will be the same as in Linux, that is, basically:
+<p>This page contains instructions for building libgig, linuxsampler
+and gigedit on Windows with help of MinGW and MSYS. After the MinGW
+and MSYS environment and the other prerequisites are installed, the
+build procedure will be the same as in Linux, that is, basically:
 ./configure ; make ; make install.</p>
 
-<p>The versions of the files to download are just the ones I used
-before updating this text. You can probably use later ones if
+<p>The versions of the files to download are just the ones I used when
+last updating this text. You can probably use later ones if
 available.</p>
 
-<p>Some of the instructions below are marked with ** and ***:</p>
-
-<p>** = only needed if you are going to build from CVS, not if you are
-     using the tar file releases</p>
+<p>Some of the instructions below are marked with ***:</p>
 
 <p>*** = only needed if you are going to build gigedit</p>
 
 
 <h3><a name="mingw">2.&nbsp; MinGW</a></h3>
 
-<p>Download the MinGW installer, MinGW-5.1.6.exe,
-from <a href="http://www.mingw.org">www.mingw.org</a>, "Automated
-MinGW Installer / MinGW 5.1.6", and run it. The installer will
-automatically download and install further packages. Choose the base
-tools and the g++ compiler.</p>
+<p>Download the MinGW installer, mingw-get-inst-20120426.exe,
+from <a href="http://www.mingw.org">www.mingw.org</a>, "Installer /
+mingw-get-inst", and run it. The installer will automatically download
+and install further packages. Choose the C Compiler, C++ Compiler and
+MinGW Developer ToolKit.</p>
 
 
-<h3><a name="pkg">3.&nbsp; pkg-config and gtkmm</a></h3>
+<h3><a name="gcc">3.&nbsp; gcc ***</a></h3>
 
+<p>If you're going to build gigedit, it's important to have a gcc
+version that is compatible with the libraries in the gtkmm package. I
+couldn't get gigedit working with the gcc bundled in MinGW. The
+MinGW-w64 project (which has compilers for both 32 and 64 bit Windows)
+has one that works better. Download
+from <a href="http://mingw-w64.sourceforge.net/">http://mingw-w64.sourceforge.net/</a>,
+WIN32 Downloads, Personal Builds, rubenvb, release:
+i686-w64-mingw32-gcc-4.5.3-release-win32_rubenvb.7z, and extract in a
+directory of your choice. Add the bin directory first in PATH, for
+example:</p>
+<pre>export PATH=/c/MinGW-w64/mingw32/bin:$PATH</pre>
+
+
+<h3><a name="pkg">4.&nbsp; pkg-config</a></h3>
+
+<p>(You can skip this step if you're going to build gigedit, as
+pkg-config is included in gtkmm.)</p>
 <p>The pkg-config tool is needed by the configure script in all the
-LinuxSampler packages. pkg-config is included in gtkmm, which is
-needed by gigedit. (If you are not going to build gigedit, you can
-download just GLib and pkg-config
-from <a href="http://www.gtk.org">www.gtk.org</a>.)</p>
+LinuxSampler packages. Download both the Tool and the Dev package
+from <a href="http://www.gtk.org">www.gtk.org</a>. Extract
+pkg-config_0.26-1_win32.zip and pkg-config-dev_0.26-1_win32.zip to
+C:\MinGW.</p>
+
+
+<h3><a name="gtkmm">5.&nbsp; gtkmm ***</a></h3>
 
 <p>Download the gtkmm windows installer,
-gtkmm-win32-devel-2.16.0-4.exe,
-from <a href="http://www.gtkmm.org">www.gtkmm.org</a>, and run it. Let
-the installer adjust the PATH variable as it wants.</p>
+gtkmm-win32-devel-2.16.0-4.exe (2.16 seems to have less bugs than
+2.22), from <a href="http://www.gtkmm.org">www.gtkmm.org</a>, and run
+it. Let the installer adjust the PATH variable as it wants.</p>
 
 
-<h3><a name="msys">4.&nbsp; MSYS</a></h3>
-
-<p>Download from "MSYS / BaseSystem / msys-1.0.11":</p>
-<pre>MSYS-1.0.11.exe</pre>
-
-<p>Run the installer.</p>
-
-<p>Download from "MSYS / bison / bison-2.4.1-1":</p>
-<pre>bison-2.4.1-1-msys-1.0.11-bin.tar.lzma **</pre>
-
-<p>From "MSYS / crypt / crypt-1.1_1-2":</p>
-<pre>libcrypt-1.1_1-2-msys-1.0.11-dll-0.tar.lzma **</pre>
-
-<p>From "MSYS / cvs / cvs-1.12.13-1":</p>
-<pre>cvs-1.12.13-1-msys-1.0.11-bin.tar.lzma **</pre>
-
-<p>From "MSYS / perl / perl-5.6.1_2-1":</p>
-<pre>perl-5.6.1_2-1-msys-1.0.11-bin.tar.lzma **</pre>
-
-<p>From "MSYS / m4 / m4-1.4.13-1":</p>
-<pre>m4-1.4.13-1-msys-1.0.11-bin.tar.lzma **</pre>
-
-<p>Extract these files to the msys root directory, by starting msys, do
-"cd /" followed by "tar -x --lzma -f <i>filename</i>".</p>
-
-<p>Download from "MinGW / autoconf / autoconf2.5 / autoconf2.5-2.64-1":</p>
-<pre>autoconf2.5-2.64-1-mingw32-bin.tar.lzma **</pre>
-
-<p>From "MinGW / autoconf / wrapper / autoconf-7-1":</p>
-<pre>autoconf-7-1-mingw32-bin.tar.lzma **</pre>
-
-<p>From "MinGW / automake / automake1.11 / automake1.11-1.11-1":</p>
-<pre>automake1.11-1.11-1-mingw32-bin.tar.lzma **</pre>
-
-<p>From "MinGW / automake / wrapper / automake-4-1":</p>
-<pre>automake-4-1-mingw32-bin.tar.lzma **</pre>
-
-<p>From "MinGW / gettext / gettext-0.17-1":</p>
-<pre>gettext-0.17.1-1-mingw32-dev.tar.lzma ***
-libgettextpo-0.17-1-mingw32-dll-0.tar.lzma ***
-libintl-0.17-1-mingw32-dll-8.tar.lzma ***</pre>
-
-<p>From "MinGW / libiconv / libiconv-1.13.1-1":</p>
-<pre>libiconv-1.13.1-1-mingw32-dll-2.tar.lzma ***</pre>
-
-<p>From "MinGW / BaseSystem / GCC / Version4 / Previous Release gcc-4.4.0":</p>
-<pre>gcc-core-4.4.0-mingw32-dll.tar.gz ***</pre>
-
-<p>From "MinGW / libtool / libtool-2.2.7a-1":</p>
-<pre>libtool-2.2.7a-1-mingw32-bin.tar.lzma</pre>
-
-<p>Extract all these files to the MinGW directory, by starting msys, do
-"cd /mingw" followed by "tar -x --lzma -f <i>filename</i>" for the
-.tar.lzma files and "tar xaf <i>filename</i>" for the .tar.gz file.</p>
-
-
-<h3><a name="asio">5.&nbsp; ASIO SDK</a></h3>
+<h3><a name="asio">6.&nbsp; ASIO SDK</a></h3>
 
 <p>Download asiosdk2.2.zip from Steinberg. Extract it to your msys
 $HOME.</p>
 
 
-<h3><a name="vst">6.&nbsp; VST SDK</a></h3>
+<h3><a name="vst">7.&nbsp; VST SDK</a></h3>
 
 <p>If you want to build the LinuxSampler VST plugin, download
 vst_sdk2_4_rev2.zip from Steinberg (note that you should not choose
 version 3). Extract it to msys $HOME.</p>
 
 
-<h3><a name="intl">7.&nbsp; intltool ***</a></h3>
+<h3><a name="intl">8.&nbsp; intltool ***</a></h3>
 
 <p>Download intltool_0.40.4-1_win32.zip from
 <a href="http://ftp.gnome.org/pub/GNOME/binaries/win32/intltool">http://ftp.gnome.org/pub/GNOME/binaries/win32/intltool</a></p>
 
 <p>Unzip this into the gtkmm directory (C:\Program Files\gtkmm)</p>
-
-
-<h3><a name="perl">8.&nbsp; Perl ***</a></h3>
-
-<p>The perl in MSYS is lacking an XML parser which is needed by
-intltool. Download ActivePerl
-from <a href="http://www.activestate.com">www.activestate.com</a> and
-install it.</p>
 
 
 <h3><a name="xslt">9.&nbsp; xsltproc ***</a></h3>
@@ -189,18 +142,19 @@ for example:</p>
 
 <h3><a name="setup">10.&nbsp; MSYS setup</a></h3>
 
-<p>Add the gtkmm aclocal directory to the list of extra directories
+<p>*** Add the gtkmm aclocal directory to the list of extra directories
 used by autoconf. (Make sure the gtkmm path is the one where you
 installed it. The space in "Program Files" causes problems, so the
 short file name form is used here):</p>
 
 <pre>echo "/c/Progra~1/gtkmm/share/aclocal" >> /mingw/share/aclocal/dirlist</pre>
 
-<p>Add the gtkmm bin directory first in your PATH (the installer has
+<p>*** Add the gtkmm bin directory first in your PATH (the installer has
 already added gtkmm to the PATH, but it may have used "Program Files"
 with a space in it, which causes configure to fail):</p>
 
 <pre>export PATH=/c/Progra~1/gtkmm/bin:$PATH</pre>
+
 
 <p>Make sure pkg-config will find the libraries you build:</p>
 
@@ -208,22 +162,13 @@ with a space in it, which causes configure to fail):</p>
 
 
 <p>*** The intltool scripts expect perl to be in /opt/perl/bin, so
-make a link to the ActivePerl installation. Also add ActivePerl to
-PATH:</p>
+make a link to the real perl.exe:</p>
 
 <pre>mkdir -p /opt/perl/bin
-ln -s /c/Perl/bin/perl.exe /opt/perl/bin
-export PATH=/c/Perl/bin:$PATH</pre>
+ln -s /bin/perl.exe /opt/perl/bin</pre>
 
 
-<p>*** MinGW gettext and gtkmm both include libintl. We want the gtkmm
-version. Remove the MinGW files so the gettext configure tools don't
-choose the wrong version:</p>
-
-<pre>rm /mingw/include/libintl.h /mingw/lib/libintl*</pre>
-
-
-<p>*** The gettext configure tools also need:</p>
+<p>*** The gettext configure tools need:</p>
 
 <pre>export CPPFLAGS="-I/c/Progra~1/gtkmm/include"
 export LDFLAGS="-L/c/Progra~1/gtkmm/lib"</pre>
@@ -233,37 +178,35 @@ export LDFLAGS="-L/c/Progra~1/gtkmm/lib"</pre>
 
 <p>The windows precompiled version of SQLite doesn't include the
 neccessary development files, so it's best to build SQLite yourself.
-Download sqlite-amalgamation-3.6.22.tar.gz
-from <a href="http://www.sqlite.org">www.sqlite.org</a>
-and extract it to your $HOME:</p>
+Download sqlite-autoconf-3071300.tar.gz
+from <a href="http://www.sqlite.org">www.sqlite.org</a> and extract it
+to your $HOME:</p>
 
 <pre>cd
-tar xzf sqlite-amalgamation-3.6.22.tar.gz</pre>
+tar xf sqlite-autoconf-3071300.tar.gz</pre>
 
 <p>Build and install:</p>
 
-<pre>cd sqlite-3.6.22
-CFLAGS=-O2 ./configure
+<pre>cd sqlite-autoconf-3071300
+./configure
 make
 make install</pre>
 
-<p>(Without CFLAGS=-O2, the build will fail. The MinGW compiler has
-some problems with creating the debug info for some reason.)</p>
 
 <h3><a name="sndfile">12.&nbsp; Building libsndfile</a></h3>
 
 <p>The windows precompiled version of libsndfile doesn't include the
 neccessary pkg-config file, so it's best to build libsndfile
-yourself. Download libsndfile-1.0.21.tar.gz
+yourself. Download libsndfile-1.0.25.tar.gz
 from <a href="http://www.mega-nerd.com/libsndfile/">www.mega-nerd.com</a> and
 extract it to your $HOME:</p>
 
 <pre>cd
-tar xzf libsndfile-1.0.21.tar.gz</pre>
+tar xf libsndfile-1.0.25.tar.gz</pre>
 
 <p>Build and install:</p>
 
-<pre>cd libsndfile-1.0.21
+<pre>cd libsndfile-1.0.25
 ./configure
 make
 make install</pre>
@@ -273,7 +216,7 @@ make install</pre>
 
 <p>Just use the same commands as you would in linux:</p>
 
-<pre>make -f Makefile.cvs    (if you build from CVS)
+<pre>make -f Makefile.cvs    (if you build from Subversion)
 ./configure             (add any configuration parameters as you wish)
 make
 make install</pre>
@@ -281,7 +224,7 @@ make install</pre>
 
 <h3><a name="ls">14.&nbsp; Building linuxsampler</a></h3>
 
-<pre>make -f Makefile.cvs    (if you build from CVS)
+<pre>make -f Makefile.cvs    (if you build from Subversion)
 ./configure --enable-asiosdk-dir=$HOME --enable-vstsdk-dir=$HOME/vstsdk2.4
 make
 make install</pre>
@@ -289,7 +232,7 @@ make install</pre>
 
 <h3><a name="gigedit">15.&nbsp; Building gigedit</a></h3>
 
-<pre>make -f Makefile.cvs    (if you build from CVS)
+<pre>make -f Makefile.cvs    (if you build from Subversion)
 ./configure
 make
 make install</pre>
