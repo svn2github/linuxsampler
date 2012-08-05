@@ -72,7 +72,13 @@ PKG_CHECK_EXISTS(gtkmm-3.0 >= 2.99,
         [PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.8 gthread-2.0 cairomm-1.0)])
 AM_CONDITIONAL(HAVE_GTK3, [test "$have_gtk3" = "yes"])
 
+PKG_CHECK_MODULES(SIGC, sigc++-2.0)
+AC_SUBST(SIGC_CFLAGS)
+AC_SUBST(SIGC_LIBS)
+
 PKG_CHECK_MODULES(GIG, gig >= 3.3.0)
+AC_SUBST(GIG_CFLAGS)
+AC_SUBST(GIG_LIBS)
 
 # check for presence of libsndfile
 PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.2)
