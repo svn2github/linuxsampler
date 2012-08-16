@@ -212,7 +212,7 @@ namespace {
 #endif
                 dmsg(1, ("exec failed %d %s\n", errno, strerror(errno)));
 
-                // make sure somthing is executed, so the static
+                // make sure something is executed, so the static
                 // destructors copied from the parent don't run
                 execl("/usr/bin/true", "/usr/bin/true", (char*)0);
             }

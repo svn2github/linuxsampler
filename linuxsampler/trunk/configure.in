@@ -45,6 +45,9 @@ AM_PROG_LIBTOOL
 AC_SUBST(SHLIB_VERSION_ARG)
 AC_SUBST(SHARED_VERSION_INFO)
 
+module=yes eval LIB_EXT=$shrext_cmds
+AC_SUBST(LIB_EXT)
+
 AC_C_BIGENDIAN
 AC_CANONICAL_HOST
 
@@ -1338,6 +1341,7 @@ AC_OUTPUT( \
     src/hostplugins/Makefile \
     src/hostplugins/dssi/Makefile \
     src/hostplugins/lv2/Makefile \
+    src/hostplugins/lv2/manifest.ttl \
     src/hostplugins/vst/Makefile \
     src/hostplugins/au/Makefile \
     linuxsampler.spec \

@@ -262,6 +262,8 @@ Version CVS HEAD (?)
     - LV2: lv2 package 1.0 is now required to build the LV2 plugin
     - LV2: changed number of output channels to 16 stereo, just like
       the VST and AU plugins
+    - LV2: fixed save/restore of SFZ state (patch by David Robillard)
+    - LV2: made LV2 plugin buildable on Windows and Mac
 
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding
