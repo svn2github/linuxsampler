@@ -215,6 +215,7 @@ Version CVS HEAD (?)
       group and off_by opcodes (#168)
     - made end=0 play the whole sample
     - fixed support for lochan and hichan opcodes (#155)
+    - fixed crash when using lochan/hichan opcodes (#187)
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
