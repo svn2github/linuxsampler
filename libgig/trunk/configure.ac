@@ -1,11 +1,13 @@
-AC_INIT(configure.in)
-
 #------------------------------------------------------------------------------------
 # Library's "official" release version:
 
-LIBGIG_RELEASE_MAJOR=3
-LIBGIG_RELEASE_MINOR=3
-LIBGIG_RELEASE_BUILD=0.svn3
+m4_define(libgig_release_major, 3)
+m4_define(libgig_release_minor, 3)
+m4_define(libgig_release_build, 0.svn3)
+
+
+AC_INIT([libgig],[libgig_release_major.libgig_release_minor.libgig_release_build])
+AC_CONFIG_SRCDIR([configure.in])
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -30,18 +32,18 @@ LIBGIG_LT_AGE=4
 SHARED_VERSION_INFO="$LIBGIG_LT_CURRENT:$LIBGIG_LT_REVISION:$LIBGIG_LT_AGE"
 
 
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 AC_PROG_CXX
 AC_LIBTOOL_WIN32_DLL
-AM_PROG_LIBTOOL
+AC_PROG_LIBTOOL
 
 AC_C_BIGENDIAN
 
 AC_SUBST(SHLIB_VERSION_ARG)
 AC_SUBST(SHARED_VERSION_INFO)
-AC_SUBST(LIBGIG_RELEASE_MAJOR)
-AC_SUBST(LIBGIG_RELEASE_MINOR)
-AC_SUBST(LIBGIG_RELEASE_BUILD)
+AC_SUBST(LIBGIG_RELEASE_MAJOR, libgig_release_major)
+AC_SUBST(LIBGIG_RELEASE_MINOR, libgig_release_minor)
+AC_SUBST(LIBGIG_RELEASE_BUILD, libgig_release_build)
 
 have_audio_file_lib="false"
 
@@ -101,10 +103,10 @@ if test "$ac_cv_func_uuid_generate" = no -a "$mac" = no -a "$win32" = no; then
 *** uuid-dev, libext2fs2-devel or e2fsprogs-devel.])
 fi
 
-AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(libgig, "$LIBGIG_RELEASE_MAJOR.$LIBGIG_RELEASE_MINOR.$LIBGIG_RELEASE_BUILD")
+AC_CONFIG_HEADERS([config.h])
+AM_INIT_AUTOMAKE
 
-AC_OUTPUT( \
+AC_CONFIG_FILES([\
     Doxyfile \
     gig.pc \
     libgig.spec \
@@ -122,4 +124,5 @@ AC_OUTPUT( \
     osx/libgig.xcodeproj/Makefile \
     win32/Makefile \
     win32/libgig.dev \
-)
+])
+AC_OUTPUT

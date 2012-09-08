@@ -1,6 +1,6 @@
 all:	configure
 
-configure:	configure.in Makefile.am \
+configure:	configure.ac Makefile.am \
 		src/Makefile.am man/Makefile.am doc/Makefile.am
 	@aclocal
 	@libtoolize --force --copy
