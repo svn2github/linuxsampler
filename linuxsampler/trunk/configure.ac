@@ -7,7 +7,7 @@ m4_define(linuxsampler_release_build, 0.svn18)
 
 
 AC_INIT([linuxsampler],[linuxsampler_release_major.linuxsampler_release_minor.linuxsampler_release_build])
-AC_CONFIG_SRCDIR([configure.in])
+AC_CONFIG_SRCDIR([configure.ac])
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
