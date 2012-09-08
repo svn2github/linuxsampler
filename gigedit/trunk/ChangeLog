@@ -12,6 +12,7 @@ Version CVS HEAD (?)
   * added support for new glibmm threads API
   * gtkmm 3 fix: the WrapLabel custom widget is not needed in gtkmm 3
   * fixed building on Debian testing (#186)
+  * modernized configure script
 
 Version 0.2.0 (2009-07-31)
 

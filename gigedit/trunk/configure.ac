@@ -1,13 +1,15 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(configure.ac)
-AC_CONFIG_AUX_DIR([.])
 
 #------------------------------------------------------------------------------------
 # The following is the current, official release version of gigedit:
 
-GIGEDIT_VER_MAJOR=0
-GIGEDIT_VER_MINOR=2
-GIGEDIT_VER_RELEASE=0
+m4_define(gigedit_ver_major, 0)
+m4_define(gigedit_ver_minor, 2)
+m4_define(gigedit_ver_release, 0)
+
+AC_INIT([gigedit], [gigedit_ver_major.gigedit_ver_minor.gigedit_ver_release])
+AC_CONFIG_SRCDIR([configure.ac])
+AC_CONFIG_AUX_DIR([.])
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -31,15 +33,15 @@ LIBGIGEDIT_LT_REVISION=0
 LIBGIGEDIT_LT_AGE=0
 
 SHARED_VERSION_INFO="$LIBGIGEDIT_LT_CURRENT:$LIBGIGEDIT_LT_REVISION:$LIBGIGEDIT_LT_AGE"
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 AC_PROG_CXX
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 AC_SUBST(SHLIB_VERSION_ARG)
 AC_SUBST(SHARED_VERSION_INFO)
-AC_SUBST(GIGEDIT_VER_MAJOR)
-AC_SUBST(GIGEDIT_VER_MINOR)
-AC_SUBST(GIGEDIT_VER_RELEASE)
+AC_SUBST(GIGEDIT_VER_MAJOR, gigedit_ver_major)
+AC_SUBST(GIGEDIT_VER_MINOR, gigedit_ver_minor)
+AC_SUBST(GIGEDIT_VER_RELEASE, gigedit_ver_release)
 
 # configure checks for the following file's existence to make sure that
 # the directory that it is told contains the source code in fact does.
@@ -150,15 +152,14 @@ AC_DEFINE_UNQUOTED(
 have_ls_vmidi=0
 if test $have_linuxsampler = "1"; then
     AC_MSG_CHECKING([whether LinuxSampler supports virtual MIDI devices])
-    AC_LANG_SAVE
-    AC_LANG_CPLUSPLUS
+    AC_LANG_PUSH([C++])
     LIBS="$LINUXSAMPLER_LIBS $LIBS"
     CFLAGS="$CFLAGS $LINUXSAMPLER_CFLAGS"
     CXXFLAGS="$CXXFLAGS $CFLAGS"
-    AC_TRY_COMPILE([
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
             #include <linuxsampler/drivers/midi/VirtualMidiDevice.h>
             using namespace LinuxSampler;
-        ], [
+        ]], [[
             bool (VirtualMidiDevice::*ptr1)(uint8_t, uint8_t) = 0;
             bool (VirtualMidiDevice::*ptr2)() = 0;
             bool (VirtualMidiDevice::*ptr3)(uint8_t) = 0;
@@ -167,10 +168,10 @@ if test $have_linuxsampler = "1"; then
             ptr2 = &VirtualMidiDevice::NotesChanged;
             ptr3 = &VirtualMidiDevice::NoteChanged;
             ptr4 = &VirtualMidiDevice::NoteOffVelocity;
-        ], [
+        ]])],[
             AC_MSG_RESULT(yes)
             have_ls_vmidi=1
-        ], [
+        ],[
             AC_MSG_RESULT(no)
             echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
             echo "! Support for the virtual MIDI keyboard in gigedit will"
@@ -180,9 +181,8 @@ if test $have_linuxsampler = "1"; then
             echo "! Update LinuxSampler and recompile gigedit if you want"
             echo "! this feature."
             echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        ]
-    )
-    AC_LANG_RESTORE
+    ])
+    AC_LANG_POP([C++])
 fi
 AC_DEFINE_UNQUOTED(
     HAVE_LINUXSAMPLER_VIRTUAL_MIDI_DEVICE, $have_ls_vmidi,
@@ -190,7 +190,7 @@ AC_DEFINE_UNQUOTED(
 )
 
 AC_CONFIG_HEADERS(config.h)
-AM_INIT_AUTOMAKE(gigedit, "$GIGEDIT_VER_MAJOR.$GIGEDIT_VER_MINOR.$GIGEDIT_VER_RELEASE")
+AM_INIT_AUTOMAKE
 
 AC_CONFIG_FILES([
 	Makefile
