@@ -1,11 +1,13 @@
-AC_INIT(configure.in)
-
 #------------------------------------------------------------------------------------
 # LinuxSampler's / liblinuxsampler's "official" release version:
 
-LINUXSAMPLER_RELEASE_MAJOR=1
-LINUXSAMPLER_RELEASE_MINOR=0
-LINUXSAMPLER_RELEASE_BUILD=0.svn18
+m4_define(linuxsampler_release_major, 1)
+m4_define(linuxsampler_release_minor, 0)
+m4_define(linuxsampler_release_build, 0.svn18)
+
+
+AC_INIT([linuxsampler],[linuxsampler_release_major.linuxsampler_release_minor.linuxsampler_release_build])
+AC_CONFIG_SRCDIR([configure.in])
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -40,7 +42,7 @@ AC_DEFINE_UNQUOTED(LSCP_RELEASE_MINOR, ${LSCP_RELEASE_MINOR}, [LSCP spec minor v
 
 AC_PROG_CXX
 AC_LIBTOOL_WIN32_DLL
-AM_PROG_LIBTOOL
+AC_PROG_LIBTOOL
 
 AC_SUBST(SHLIB_VERSION_ARG)
 AC_SUBST(SHARED_VERSION_INFO)
@@ -104,9 +106,8 @@ AC_CHECK_HEADERS(
 AM_CONDITIONAL(HAVE_WINDOWS, test $have_windows = "1")
 
 AC_MSG_CHECKING([whether UNIX98 compatible])
-AC_LANG_SAVE
-AC_LANG_C
-AC_TRY_RUN([
+AC_LANG_PUSH([C])
+AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
@@ -118,18 +119,18 @@ exit(0); /* UNIX98 compatible */
 exit(-1); /* not UNIX98 compatible */
 #endif
 }
-],
+]])],
 have_unix98="yes",
 have_unix98="no",
 have_unix98="no"
 )
-AC_LANG_RESTORE
+AC_LANG_POP([C])
 AC_MSG_RESULT([$have_unix98])
-if test "$have_unix98" = "no" -a "have_windows" = "0"; then
+if test "$have_unix98" = "no" -a "$have_windows" = "0"; then
     if test "x$HAVE_UNIX98" = "x"; then
         echo "LinuxSampler only runs on UNIX98 compatible systems, which is mandatory for"
-        echo "pthread_mutexattr_settype() call in Mutex.cpp. You may want to run
-        echo "./configure with environment variable HAVE_UNIX98=1 in case you think you
+        echo "pthread_mutexattr_settype() call in Mutex.cpp. You may want to run"
+        echo "./configure with environment variable HAVE_UNIX98=1 in case you think you"
         echo "have a UNIX98 compatible system."
         exit -1;
     fi
@@ -215,9 +216,8 @@ if test "$config_alsa_driver" = "yes"; then
     fi
 
     echo -n "checking Alsa version... "
-    AC_LANG_SAVE
-    AC_LANG_C
-    AC_TRY_RUN([
+    AC_LANG_PUSH([C])
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
         #include <alsa/asoundlib.h>
         void main(void) {
             /* ensure backward compatibility */
@@ -226,12 +226,12 @@ if test "$config_alsa_driver" = "yes"; then
             #endif
             exit(SND_LIB_MAJOR);
         }
-    ],
+    ]])],
     alsa_major=0,
     alsa_major=$?,
     alsa_major=0
     )
-    AC_TRY_RUN([
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
         #include <alsa/asoundlib.h>
         void main(void) {
             /* ensure backward compatibility */
@@ -240,12 +240,12 @@ if test "$config_alsa_driver" = "yes"; then
             #endif
             exit(SND_LIB_MINOR);
         }
-    ],
+    ]])],
     alsa_minor=0,
     alsa_minor=$?,
     alsa_minor=0
     )
-    AC_TRY_RUN([
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
         #include <alsa/asoundlib.h>
         void main(void) {
             /* ensure backward compatibility */
@@ -254,12 +254,12 @@ if test "$config_alsa_driver" = "yes"; then
             #endif
             exit(SND_LIB_SUBMINOR);
         }
-    ],
+    ]])],
     alsa_subminor=0,
     alsa_subminor=$?,
     alsa_subminor=0
     )
-    AC_LANG_RESTORE
+    AC_LANG_POP([C])
     echo "$alsa_major.$alsa_minor.$alsa_subminor";
     AC_DEFINE_UNQUOTED(ALSA_MAJOR,$alsa_major,[Define to the major version number of your Alsa installation.])
     AC_DEFINE_UNQUOTED(ALSA_MINOR,$alsa_minor,[Define to the minor version number of your Alsa installation.])
@@ -1222,20 +1222,19 @@ AC_SUBST(config_default_instruments_db_file)
 ###########################################################################
 # Automatic Benchmarks (to detect the best algorithms for the system)
 
-AC_LANG_SAVE
-
 if test "$config_signed_triang_algo" = "benchmark"; then
     echo -n "benchmarking for the best (signed) triangular oscillator algorithm... "
-    AC_LANG_CPLUSPLUS
-    AC_TRY_RUN([
+    AC_LANG_PUSH([C++])
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
             #define SIGNED 1
             #define SILENT 1
             #include "${srcdir}/benchmarks/triang.cpp"
-        ],
+        ]])],
         triang_signed=0,
         triang_signed=$?,
         triang_signed=0
     )
+    AC_LANG_POP([C++])
     if test "$triang_signed" = "2"; then
         config_signed_triang_algo="intmath"
         echo "integer math"
@@ -1266,16 +1265,17 @@ AC_DEFINE_UNQUOTED(CONFIG_SIGNED_TRIANG_ALGO, ${triang_signed}, [Define signed t
 
 if test "$config_unsigned_triang_algo" = "benchmark"; then
     echo -n "benchmarking for the best (unsigned) triangular oscillator algorithm... "
-    AC_LANG_CPLUSPLUS
-    AC_TRY_RUN([
+    AC_LANG_PUSH([C++])
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
             #define SIGNED 0
             #define SILENT 1
             #include "${srcdir}/benchmarks/triang.cpp"
-        ],
+        ]])],
         triang_unsigned=0,
         triang_unsigned=$?,
         triang_unsigned=0
     )
+    AC_LANG_POP([C++])
     if test "$triang_unsigned" = "2"; then
         config_unsigned_triang_algo="intmath"
         echo "integer math"
@@ -1304,22 +1304,20 @@ else
 fi
 AC_DEFINE_UNQUOTED(CONFIG_UNSIGNED_TRIANG_ALGO, ${triang_unsigned}, [Define unsigned triangular wave algorithm to be used.])
 
-AC_LANG_RESTORE
-
 
 ###########################################################################
 # Create Build Files
 
-AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(linuxsampler, "$LINUXSAMPLER_RELEASE_MAJOR.$LINUXSAMPLER_RELEASE_MINOR.$LINUXSAMPLER_RELEASE_BUILD")
+AC_CONFIG_HEADERS([config.h])
+AM_INIT_AUTOMAKE
 
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 
 # autoconf 2.59/libtool 1.5.12 bug? work-around. Without a check like
 # this, the dlfcn.h check in am_prog_libtool may fail.
 AC_CHECK_HEADER(stdlib.h)
 
-AC_OUTPUT( \
+AC_CONFIG_FILES([\
     Makefile \
     man/Makefile \
     man/linuxsampler.1 \
@@ -1355,7 +1353,8 @@ AC_OUTPUT( \
     Documentation/Engines/gig/Makefile \
     linuxsampler.pc \
     Doxyfile \
-)
+])
+AC_OUTPUT
 
 # resolve all nested variables in '${config_plugin_dir}'
 # (merely for providing a human readable summary below)
@@ -1371,7 +1370,7 @@ echo ""
 echo "#####################################################################"
 echo "# LinuxSampler Configuration                                        #"
 echo "#-------------------------------------------------------------------#"
-echo "# Release Version: ${LINUXSAMPLER_RELEASE_MAJOR}.${LINUXSAMPLER_RELEASE_MINOR}.${LINUXSAMPLER_RELEASE_BUILD}"
+echo "# Release Version: ${VERSION}"
 echo "# LSCP Version: ${LSCP_RELEASE_MAJOR}.${LSCP_RELEASE_MINOR}"
 echo "#-------------------------------------------------------------------"
 echo "# Assembly Optimizations: ${config_asm}"

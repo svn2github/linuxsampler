@@ -4,7 +4,7 @@ default: all
 
 all: configure
 
-configure: configure.in m4/arts.m4 m4/nptl_bug.m4 m4/pthread.m4
+configure: configure.ac m4/arts.m4 m4/nptl_bug.m4 m4/pthread.m4
 	@aclocal -I m4
 	@libtoolize --force --copy
 	@autoheader
