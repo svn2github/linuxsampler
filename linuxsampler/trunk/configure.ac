@@ -126,7 +126,7 @@ have_unix98="no"
 )
 AC_LANG_POP([C])
 AC_MSG_RESULT([$have_unix98])
-if test "$have_unix98" = "no" -a "$have_windows" = "0"; then
+if test "$have_unix98" = "no" -a "$have_windows" = "0" -a "$mac" = "no" ; then
     if test "x$HAVE_UNIX98" = "x"; then
         echo "LinuxSampler only runs on UNIX98 compatible systems, which is mandatory for"
         echo "pthread_mutexattr_settype() call in Mutex.cpp. You may want to run"
