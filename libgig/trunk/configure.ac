@@ -7,7 +7,7 @@ m4_define(libgig_release_build, 0.svn3)
 
 
 AC_INIT([libgig],[libgig_release_major.libgig_release_minor.libgig_release_build])
-AC_CONFIG_SRCDIR([configure.in])
+AC_CONFIG_SRCDIR([configure.ac])
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
