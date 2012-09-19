@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2004, 2005 Grame                                        *
- *   Copyright (C) 2007 Christian Schoenebeck                              *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -66,6 +66,23 @@ namespace LinuxSampler {
                         protected:
                             MidiInputPortCoreMidi* pPort;
                     };
+				
+					/** MIDI Port Parameter 'AUTO_BIND'
+					 *
+					 * If enabled, the port will automatically be connected to all
+					 * CoreMIDI source endpoints at present and future.
+					 */
+					class ParameterAutoBind : public DeviceRuntimeParameterBool {
+						public:
+							ParameterAutoBind(MidiInputPortCoreMidi* pPort);
+							virtual String Description();
+							virtual bool Fix();
+							virtual void OnSetValue(bool b) throw (Exception);
+						protected:
+							MidiInputPortCoreMidi* pPort;
+					};
+				
+					void ProcessMidiEvents(const MIDIPacketList *pktlist);
 
 					static void ReadProc(const MIDIPacketList *pktlist, void *refCon, void *connRefCon);
 					static int pPortID;
@@ -73,10 +90,15 @@ namespace LinuxSampler {
                 protected:
                     MidiInputPortCoreMidi(MidiInputDeviceCoreMidi* pDevice) throw (MidiInputException);
                     ~MidiInputPortCoreMidi();
+					void connectToSource(MIDIEndpointRef source);
+					void connectToAllSources();
+					void onNewSourceAppeared(MIDIEndpointRef source);
+					void onNewSourceDisappeared(MIDIEndpointRef source);
                     friend class MidiInputDeviceCoreMidi;
                 private:
-                    MidiInputPortCoreMidi* pDevice;
+                    MidiInputDeviceCoreMidi* pDevice;
 					MIDIEndpointRef pDestination;
+					std::vector<MIDIEndpointRef> bindings; //TODO: shall probably be protected by a mutex (since the CoreMIDI notification callback thread might also modify it when new sources appear or disappear)
 
                     friend class ParameterName;
                     friend class ParameterCoreMidiBindings;
@@ -100,6 +122,7 @@ namespace LinuxSampler {
 
         private:
 			MIDIClientRef   hCoreMidiClient;
+			MIDIPortRef pBridge;
     };
 }
 

@@ -274,6 +274,12 @@ Version CVS HEAD (?)
       there is no reason for this limit
     - MME: fixed memory handling bug found with cppcheck
     - MME: removed compiler warning
+    - CoreMIDI: implemented driver specific port parameter "CORE_MIDI_BINDINGS",
+      which allows to retrieve the list of CoreMIDI clients / ports and to connect
+      to them a la JACK, via the usual sampler APIs
+    - CoreMIDI: added driver specific port parameter "AUTO_BIND", if enabled
+      the driver will automatically connect to other CoreMIDI clients' ports
+      (e.g. external MIDI devices being attached to the Mac)
 
   * audio driver:
     - ASIO driver fixes for newer gcc versions (fix from PortAudio)
