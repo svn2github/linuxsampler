@@ -29,13 +29,6 @@
 
 namespace {
 
-    class LinuxSamplerVstProgram {
-    public:
-        LinuxSamplerVstProgram();
-        char name[kVstMaxProgNameLen + 1];
-    };
-
-
     class LinuxSamplerEditor : public AEffEditor {
     public:
         LinuxSamplerEditor(AudioEffect* effect);
@@ -83,10 +76,6 @@ namespace {
         VstInt32 setChunk(void* data, VstInt32 byteSize, bool isPreset);
 
     private:
-        static const int NbPrograms = 128;
-
-        LinuxSamplerVstProgram* Programs;
-
         char* StateBuf;
         String SavedChunk;
     };

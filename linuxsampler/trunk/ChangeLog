@@ -1,8 +1,5 @@
 Version CVS HEAD (?)
 
-  * plugin changes:
-    - LV2 "state" extension support (patch by David Robillard)
-
   * packaging changes:
     - fixed building with newer MinGW-w64
     - Mac OS X: support the new dir for Core Audio SDK
@@ -233,7 +230,7 @@ Version CVS HEAD (?)
     - filter performance fix (an unnecessary copy was made of the
       filter parameters in each sub fragment)
 
-  * Host plugins:
+  * Host plugins (VST, AU, LV2, DSSI):
     - AU bugfix: failed to destroy its audio/MIDI devices
     - Listen to all interfaces on Mac OS X (INADDR_ANY)
     - VST bugfix: If the host called resume() before and after
@@ -247,6 +244,7 @@ Version CVS HEAD (?)
     - VST: made it possible to build the VST plugin for Mac
     - AU: link AU plugin dynamically if --disable-shared isn't
       specified
+    - LV2 "state" extension support (patch by David Robillard)
     - VST bugfix: instrument loading hang and crashed the host when
       the plugin was loaded a second time (#174)
     - plugin bugfix: instrument loading hang when the plugin was
@@ -266,6 +264,8 @@ Version CVS HEAD (?)
       the VST and AU plugins
     - LV2: fixed save/restore of SFZ state (patch by David Robillard)
     - LV2: made LV2 plugin buildable on Windows and Mac
+    - VST: implemented retrieval and switching of programs using the
+      sampler's internal MIDI instrument mapping system
 
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding

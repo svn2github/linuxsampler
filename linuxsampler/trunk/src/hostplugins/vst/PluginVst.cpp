@@ -34,10 +34,19 @@
 #endif
 
 #include "PluginVst.h"
+#include "../../drivers/midi/MidiInstrumentMapper.h"
 
 #ifndef CHANNELS
 #define CHANNELS 32
 #endif
+
+// the sampler can actually hold up a very huge amount of programs
+// (2^32 [maps] * 2^16 [banks MSB + LSB] * 2^8 [programs per bank]  =  2^56 [total programs] )
+// however I am not sure if we might crash some VST host with a number
+// here that is too huge, however this should be enough in most cases ...
+#define MAX_VST_PROGRAMS (128*128)
+
+using namespace LinuxSampler;
 
 namespace {
 
@@ -61,14 +70,6 @@ namespace {
 #undef dmsg
 #define dmsg(debuglevel,x) log x;
 #endif
-
-
-// *************** LinuxSamplerVstProgram ***************
-// *
-
-    LinuxSamplerVstProgram::LinuxSamplerVstProgram() {
-        vst_strncpy(name, "Basic", kVstMaxProgNameLen);
-    }
 
 
 // *************** LinuxSamplerEditor ***************
@@ -255,12 +256,11 @@ namespace {
 // *
 
     LinuxSamplerVst::LinuxSamplerVst(audioMasterCallback audioMaster) :
-        AudioEffectX(audioMaster, NbPrograms, 0),
+        AudioEffectX(audioMaster, MAX_VST_PROGRAMS, 0),
         StateBuf(0)
     {
         dmsg(2, ("-->constructor\n"));
 
-        Programs = new LinuxSamplerVstProgram[NbPrograms];
         setProgram(0);
         setNumInputs(0);
         setNumOutputs(CHANNELS);
@@ -300,26 +300,95 @@ namespace {
 
     LinuxSamplerVst::~LinuxSamplerVst() {
         dmsg(2, ("-->destructor\n"));
-        delete[] Programs;
         if (StateBuf) free(StateBuf);
         dmsg(2, ("<--destructor\n"));
     }
 
 
     void LinuxSamplerVst::setProgram(VstInt32 program) {
-        if (program < 0 || program >= NbPrograms) return;
-
-        curProgram = program;
+        if (program < 0 || program >= MAX_VST_PROGRAMS ||
+            !pMidiDevice || !pMidiDevice->Port()) return;
+        
+        int i = 0;
+        const std::vector<int> maps = MidiInstrumentMapper::Maps();
+        for (int iMap = 0; iMap < maps.size(); ++iMap) {
+            const int mapID = maps[iMap];
+            const std::map<midi_prog_index_t, MidiInstrumentMapper::entry_t> mappings =
+                MidiInstrumentMapper::Entries(maps[mapID]);
+            for (std::map<midi_prog_index_t, MidiInstrumentMapper::entry_t>::const_iterator iter = mappings.begin();
+                 iter != mappings.end(); ++iter, ++i)
+            {
+                if (i == program) {
+                    //TODO: switch MIDI instrument map before sending bank select and program change
+                    
+                    const uint iMIDIChannel = 0;
+                    pMidiDevice->Port()->DispatchBankSelectMsb(iter->first.midi_bank_msb, iMIDIChannel);
+                    pMidiDevice->Port()->DispatchBankSelectLsb(iter->first.midi_bank_lsb, iMIDIChannel);
+                    pMidiDevice->Port()->DispatchProgramChange(iter->first.midi_prog, iMIDIChannel);
+                    
+                    curProgram = program;
+                    
+                    return;
+                }
+            }
+        }
     }
-
 
     void LinuxSamplerVst::setProgramName(char* name) {
-        vst_strncpy(Programs[curProgram].name, name, kVstMaxProgNameLen);
+        int i = 0;
+        const std::vector<int> maps = MidiInstrumentMapper::Maps();
+        for (int iMap = 0; iMap < maps.size(); ++iMap) {
+            const int mapID = maps[iMap];
+            const std::map<midi_prog_index_t, MidiInstrumentMapper::entry_t> mappings =
+                MidiInstrumentMapper::Entries(maps[mapID]);
+            for (std::map<midi_prog_index_t, MidiInstrumentMapper::entry_t>::const_iterator iter = mappings.begin();
+                 iter != mappings.end(); ++iter, ++i)
+            {
+                if (i == curProgram) {
+                    char buf[kVstMaxProgNameLen + 1] = {};
+                    vst_strncpy(buf, name, kVstMaxProgNameLen);
+                    MidiInstrumentMapper::entry_t entry = iter->second;
+                    entry.Name = buf;
+                    try {
+                        MidiInstrumentMapper::AddOrReplaceEntry(
+                            mapID, iter->first, entry, false/*bInBackground*/
+                        );
+                    } catch (Exception e) {
+                        e.PrintMessage();
+                    }
+                    return;
+                }
+            }
+        }
     }
 
-
     void LinuxSamplerVst::getProgramName(char* name) {
-        vst_strncpy(name, Programs[curProgram].name, kVstMaxProgNameLen);
+        if (!getProgramNameIndexed(0 /*dont care*/, curProgram, name)) {
+            vst_strncpy(name, "unknown", kVstMaxProgNameLen);
+        }
+    }
+
+    bool LinuxSamplerVst::getProgramNameIndexed(VstInt32 /*category*/, VstInt32 index,
+                                                char* text)
+    {
+        //NOTE: parameter 'category' is unused in VST 2.4
+        
+        int i = 0;
+        const std::vector<int> maps = MidiInstrumentMapper::Maps();
+        for (int iMap = 0; iMap < maps.size(); ++iMap) {
+            const int mapID = maps[iMap];
+            const std::map<midi_prog_index_t, MidiInstrumentMapper::entry_t> mappings =
+                MidiInstrumentMapper::Entries(maps[mapID]);
+            for (std::map<midi_prog_index_t, MidiInstrumentMapper::entry_t>::const_iterator iter = mappings.begin();
+                 iter != mappings.end(); ++iter, ++i)
+            {
+                if (i == index) {
+                    vst_strncpy(text, iter->second.Name.c_str(), kVstMaxProgNameLen);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 
@@ -328,16 +397,6 @@ namespace {
         if (index < CHANNELS) {
             sprintf(properties->label, "LS %d", index + 1);
             properties->flags = kVstPinIsActive | kVstPinIsStereo;
-            return true;
-        }
-        return false;
-    }
-
-
-    bool LinuxSamplerVst::getProgramNameIndexed(VstInt32 category, VstInt32 index,
-                                                char* text) {
-        if (index < NbPrograms) {
-            vst_strncpy(text, Programs[index].name, kVstMaxProgNameLen);
             return true;
         }
         return false;
@@ -369,9 +428,20 @@ namespace {
 
     VstInt32 LinuxSamplerVst::canDo(char* text) {
         dmsg(2, ("canDo %s\n", text));
+        
+        // supported features
         if (strcmp(text, "receiveVstEvents") == 0 ||
-            strcmp(text, "receiveVstMidiEvent") == 0) return 1;
-        return -1;
+            strcmp(text, "receiveVstMidiEvent") == 0 ||
+            strcmp(text, "midiProgramNames") == 0) return 1;
+        
+        // not supported features
+        if (strcmp(text, "sendVstEvents") == 0 ||
+            strcmp(text, "sendVstMidiEvent") == 0 ||
+            strcmp(text, "receiveVstTimeInfo") == 0 ||
+            strcmp(text, "offline") == 0 ||
+            strcmp(text, "bypass") == 0) return -1;
+        
+        return 0; // "don't know", never heard of this feature
     }
 
     void LinuxSamplerVst::setSampleRate(float sampleRate) {
