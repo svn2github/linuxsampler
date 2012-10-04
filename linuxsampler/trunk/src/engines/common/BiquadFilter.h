@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -120,7 +120,7 @@ namespace LinuxSampler {
                 return y;
             }
 
-            inline bq_t Apply(biquad_param_t* param, const bq_t x) {
+            inline bq_t Apply(const biquad_param_t* __restrict param, const bq_t x) {
                 bq_t y;
 
                 y = param->b0 * x + param->b1 * this->x1 + param->b2 * this->x2 +
@@ -238,7 +238,7 @@ namespace LinuxSampler {
                 return y;
             }
 
-            inline bq_t ApplyFB(biquad_param_t* param, bq_t x, const bq_t fb) {
+            inline bq_t ApplyFB(const biquad_param_t* __restrict param, bq_t x, const bq_t fb) {
                 bq_t y;
 
                 x += this->y1 * fb * 0.98;
@@ -474,7 +474,7 @@ namespace LinuxSampler {
                 this->a2 = a0r * (alpha - 1.0);
             }
 
-            inline void SetParameters(biquad_param_t* param, bq_t fc, bq_t bw, bq_t fs) {
+            inline void SetParameters(biquad_param_t* __restrict param, bq_t fc, bq_t bw, bq_t fs) {
                 bq_t omega = 2.0 * M_PI * fc / fs;
                 bq_t sn    = sin(omega);
                 bq_t cs    = cos(omega);
@@ -511,7 +511,7 @@ namespace LinuxSampler {
                 this->a2 = a0r * (alpha - 1.0);
             }
 
-            inline void SetParameters(biquad_param_t* param, bq_t fc, bq_t bw, bq_t fs) {
+            inline void SetParameters(biquad_param_t* __restrict param, bq_t fc, bq_t bw, bq_t fs) {
                 bq_t omega = 2.0 * M_PI * fc / fs;
                 bq_t sn    = sin(omega);
                 bq_t cs    = cos(omega);
@@ -548,7 +548,7 @@ namespace LinuxSampler {
                 this->a2 = a0r * (alpha - 1.0);
             }
 
-            inline void SetParameters(biquad_param_t* param, bq_t fc, bq_t bw, bq_t fs) {
+            inline void SetParameters(biquad_param_t* __restrict param, bq_t fc, bq_t bw, bq_t fs) {
                 bq_t omega = 2.0 * M_PI * fc / fs;
                 bq_t sn    = sin(omega);
                 bq_t cs    = cos(omega);

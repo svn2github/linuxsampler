@@ -56,6 +56,7 @@ Version CVS HEAD (?)
     - Added new C++ API method Sampler::GetGlobalMaxStreams().
     - Added new C++ API method Sampler::SetGlobalMaxVoices().
     - Added new C++ API method Sampler::SetGlobalMaxStreams().
+    - Various "const" and "restrict" optimizations.
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension

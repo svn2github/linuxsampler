@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -55,7 +55,7 @@ namespace LinuxSampler {
     template<bool INTERPOLATE,bool BITDEPTH24>
     class Resampler {
         public:
-            inline static float GetNextSampleMonoCPP(sample_t* pSrc, double* Pos, float& Pitch) {
+            inline static float GetNextSampleMonoCPP(sample_t* __restrict pSrc, double* __restrict Pos, float& Pitch) {
                 if (INTERPOLATE) return Interpolate1StepMonoCPP(pSrc, Pos, Pitch);
                 else { // no pitch, so no interpolation necessary
                     int pos_int = (int) *Pos;
@@ -64,7 +64,7 @@ namespace LinuxSampler {
                 }
             }
 
-            inline static stereo_sample_t GetNextSampleStereoCPP(sample_t* pSrc, double* Pos, float& Pitch) {
+            inline static stereo_sample_t GetNextSampleStereoCPP(sample_t* __restrict pSrc, double* __restrict Pos, float& Pitch) {
                 if (INTERPOLATE) return Interpolate1StepStereoCPP(pSrc, Pos, Pitch);
                 else { // no pitch, so no interpolation necessary
                     int pos_int = (int) *Pos;
@@ -149,7 +149,7 @@ namespace LinuxSampler {
 
         protected:
 
-            inline static int32_t getSample(sample_t* src, int pos) {
+            inline static int32_t getSample(sample_t* __restrict src, int pos) {
                 if (BITDEPTH24) {
                     pos *= 3;
                     #if WORDS_BIGENDIAN
@@ -165,7 +165,7 @@ namespace LinuxSampler {
                 }
             }
 
-            inline static float Interpolate1StepMonoCPP(sample_t* pSrc, double* Pos, float& Pitch) {
+            inline static float Interpolate1StepMonoCPP(sample_t* __restrict pSrc, double* __restrict Pos, float& Pitch) {
                 int   pos_int   = (int) *Pos;     // integer position
                 float pos_fract = *Pos - pos_int; // fractional part of position
 
@@ -188,7 +188,7 @@ namespace LinuxSampler {
                 return samplePoint;
             }
 
-            inline static stereo_sample_t Interpolate1StepStereoCPP(sample_t* pSrc, double* Pos, float& Pitch) {
+            inline static stereo_sample_t Interpolate1StepStereoCPP(sample_t* __restrict pSrc, double* __restrict Pos, float& Pitch) {
                 int   pos_int   = (int) *Pos;  // integer position
                 float pos_fract = *Pos - pos_int;     // fractional part of position
                 pos_int <<= 1;

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -115,7 +115,7 @@ namespace LinuxSampler {
      * @param Samples - amount of sample points to be copied
      */
     void AudioChannel::CopyTo(AudioChannel* pDst, const uint Samples) {
-        memcpy(pDst->Buffer(), Buffer(), Samples * sizeof(float));
+        memcpy((float* __restrict)pDst->Buffer(), (const float* __restrict)Buffer(), Samples * sizeof(float));
     }
 
     /**
@@ -133,13 +133,19 @@ namespace LinuxSampler {
     void AudioChannel::CopyTo(AudioChannel* pDst, const uint Samples, const float fLevel) {
         if (fLevel == 1.0f) CopyTo(pDst, Samples);
         else {
-            float* pSrcBuf = Buffer();
-            float* pDstBuf = pDst->Buffer();
+            const float* __restrict pSrcBuf = Buffer();
+            float* __restrict pDstBuf = pDst->Buffer();
             #if HAVE_GCC_VECTOR_EXTENSIONS
             if ((size_t)pSrcBuf % 16 == 0 && (size_t)pDstBuf % 16 == 0) {
                 const v4sf vcoeff = { fLevel, fLevel, fLevel, fLevel };
-                const v4sf* src = static_cast<v4sf*>((void*)Buffer());
-                v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
+                const v4sf* __restrict src =
+                    static_cast<const v4sf* __restrict>(
+                        (const void* __restrict)pSrcBuf
+                    );
+                v4sf* __restrict dst =
+                     static_cast<v4sf* __restrict>(
+                         (void* __restrict)pDstBuf
+                     );
                 const int cells = Samples / 4;
                 for (int i = 0; i < cells; ++i)
                     dst[i] = src[i] * vcoeff;
@@ -161,12 +167,18 @@ namespace LinuxSampler {
      * @param Samples - amount of sample points to be mixed over
      */
     void AudioChannel::MixTo(AudioChannel* pDst, const uint Samples) {
-        float* pSrcBuf = Buffer();
-        float* pDstBuf = pDst->Buffer();
+        const float* __restrict pSrcBuf = Buffer();
+        float* __restrict pDstBuf = pDst->Buffer();
         #if HAVE_GCC_VECTOR_EXTENSIONS
         if ((size_t)pSrcBuf % 16 == 0 && (size_t)pDstBuf % 16 == 0) {
-            const v4sf* src = static_cast<v4sf*>((void*)Buffer());
-            v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
+            const v4sf* __restrict src =
+                static_cast<const v4sf* __restrict>(
+                    (const void* __restrict)pSrcBuf
+                );
+            v4sf* __restrict dst =
+                static_cast<v4sf* __restrict>(
+                    (void* __restrict)pDstBuf
+                );
             const int cells = Samples / 4;
             for (int i = 0; i < cells; ++i)
                 dst[i] += src[i];
@@ -191,13 +203,19 @@ namespace LinuxSampler {
     void AudioChannel::MixTo(AudioChannel* pDst, const uint Samples, const float fLevel) {
         if (fLevel == 1.0f) MixTo(pDst, Samples);
         else {
-            float* pSrcBuf = Buffer();
-            float* pDstBuf = pDst->Buffer();
+            const float* __restrict pSrcBuf = Buffer();
+            float* __restrict pDstBuf = pDst->Buffer();
             #if HAVE_GCC_VECTOR_EXTENSIONS
             if ((size_t)pSrcBuf % 16 == 0 && (size_t)pDstBuf % 16 == 0) {
                 const v4sf vcoeff = { fLevel, fLevel, fLevel, fLevel };
-                const v4sf* src = static_cast<v4sf*>((void*)Buffer());
-                v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
+                const v4sf* __restrict src =
+                    static_cast<const v4sf* __restrict>(
+                        (const void* __restrict)pSrcBuf
+                    );
+                v4sf* __restrict dst =
+                    static_cast<v4sf* __restrict>(
+                        (void* __restrict)pDstBuf
+                    );
                 const int cells = Samples / 4;
                 for (int i = 0; i < cells; ++i)
                     dst[i] += src[i] * vcoeff;
