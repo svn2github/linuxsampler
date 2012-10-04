@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -455,6 +455,36 @@ namespace LinuxSampler {
              * @returns The current number of all active voices.
              */
             int GetVoiceCount();
+
+            /**
+             * @see SetGlobalMaxVoices()
+             */
+            int GetGlobalMaxVoices();
+
+            /**
+             * @see SetGlobalMaxStreams()
+             */
+            int GetGlobalMaxStreams();
+
+            /**
+             * Sets the global maximum amount limit of voices.
+             *
+             * Note that this voice limit can also be altered for
+             * each sampler engine instance individually instead.
+             *
+             * @throws Exception  if \a n is invalid
+             */
+            void SetGlobalMaxVoices(int n) throw (Exception);
+
+            /**
+             * Sets the global maximum amount limit of disk streams.
+             *
+             * Note that this stream limit can also be altered for
+             * each sampler engine instance individually instead.
+			 *
+             * @throws Exception  if \a n is invalid
+             */
+            void SetGlobalMaxStreams(int n) throw (Exception);
 
             /**
              * Reset the whole sampler. Destroy all engines, sampler

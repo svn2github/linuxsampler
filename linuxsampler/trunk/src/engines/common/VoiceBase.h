@@ -138,7 +138,7 @@ namespace LinuxSampler {
                                 // check if the disk thread created our ordered disk stream in the meantime
                                 DiskStreamRef.pStream = pDiskThread->AskForCreatedStream(DiskStreamRef.OrderID);
                                 if (!DiskStreamRef.pStream) {
-                                    std::cout << stderr << "Disk stream not available in time!" << std::endl << std::flush;
+                                    std::cerr << "Disk stream not available in time!\n" << std::flush;
                                     KillImmediately();
                                     return;
                                 }

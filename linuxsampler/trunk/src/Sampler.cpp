@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -678,6 +678,40 @@ namespace LinuxSampler {
         }
 
         return count;
+    }
+
+    int Sampler::GetGlobalMaxVoices() {
+        return GLOBAL_MAX_VOICES; // see common/global_private.cpp
+    }
+
+    int Sampler::GetGlobalMaxStreams() {
+        return GLOBAL_MAX_STREAMS; // see common/global_private.cpp
+    }
+
+    void Sampler::SetGlobalMaxVoices(int n) throw (Exception) {
+        if (n < 1) throw Exception("Maximum voices may not be less than 1");
+        GLOBAL_MAX_VOICES = n; // see common/global_private.cpp
+        const std::set<Engine*>& engines = EngineFactory::EngineInstances();
+        if (engines.size() > 0) {
+            std::set<Engine*>::iterator iter = engines.begin();
+            std::set<Engine*>::iterator end  = engines.end();
+            for (; iter != end; ++iter) {
+                (*iter)->SetMaxVoices(n);
+            }
+        }
+    }
+
+    void Sampler::SetGlobalMaxStreams(int n) throw (Exception) {
+        if (n < 0) throw Exception("Maximum disk streams may not be negative");
+        GLOBAL_MAX_STREAMS = n; // see common/global_private.cpp
+        const std::set<Engine*>& engines = EngineFactory::EngineInstances();
+        if (engines.size() > 0) {
+            std::set<Engine*>::iterator iter = engines.begin();
+            std::set<Engine*>::iterator end  = engines.end();
+            for (; iter != end; ++iter) {
+                (*iter)->SetMaxDiskStreams(n);
+            }
+        }
     }
 
     void Sampler::Reset() {

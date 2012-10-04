@@ -52,6 +52,10 @@ Version CVS HEAD (?)
       instrument on an engine channel (a.k.a. part). Some GigaStudio
       instruments for example are splitted over several files like
       "Foo.gig", "Foo.gx01", "Foo.gx02", ...
+    - Added new C++ API method Sampler::GetGlobalMaxVoices().
+    - Added new C++ API method Sampler::GetGlobalMaxStreams().
+    - Added new C++ API method Sampler::SetGlobalMaxVoices().
+    - Added new C++ API method Sampler::SetGlobalMaxStreams().
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension
@@ -361,6 +365,8 @@ Version CVS HEAD (?)
       introduced in previous fix)
     - fixed crash when a channel received a program change while
       playing a note in a key group
+    - fixed erroneous error message piping in VoiceBase.h
+      (labelled "Disk stream not available in time")
 
 Version 1.0.0 (31 July 2009)
 

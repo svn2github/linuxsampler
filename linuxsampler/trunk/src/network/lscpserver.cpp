@@ -3063,7 +3063,7 @@ String LSCPServer::GetTotalVoiceCount() {
 String LSCPServer::GetTotalVoiceCountMax() {
     dmsg(2,("LSCPServer: GetTotalVoiceCountMax()\n"));
     LSCPResultSet result;
-    result.Add(EngineFactory::EngineInstances().size() * GLOBAL_MAX_VOICES);
+    result.Add(EngineFactory::EngineInstances().size() * pSampler->GetGlobalMaxVoices());
     return result.Produce();
 }
 
@@ -3074,7 +3074,7 @@ String LSCPServer::GetTotalVoiceCountMax() {
 String LSCPServer::GetGlobalMaxVoices() {
     dmsg(2,("LSCPServer: GetGlobalMaxVoices()\n"));
     LSCPResultSet result;
-    result.Add(GLOBAL_MAX_VOICES);
+    result.Add(pSampler->GetGlobalMaxVoices());
     return result.Produce();
 }
 
@@ -3086,17 +3086,10 @@ String LSCPServer::SetGlobalMaxVoices(int iVoices) {
     dmsg(2,("LSCPServer: SetGlobalMaxVoices(%d)\n", iVoices));
     LSCPResultSet result;
     try {
-        if (iVoices < 1) throw Exception("Maximum voices may not be less than 1");
-        GLOBAL_MAX_VOICES = iVoices; // see common/global_private.cpp
-        const std::set<Engine*>& engines = EngineFactory::EngineInstances();
-        if (engines.size() > 0) {
-            std::set<Engine*>::iterator iter = engines.begin();
-            std::set<Engine*>::iterator end  = engines.end();
-            for (; iter != end; ++iter) {
-                (*iter)->SetMaxVoices(iVoices);
-            }
-        }
-        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_global_info, "VOICES", GLOBAL_MAX_VOICES));
+        pSampler->SetGlobalMaxVoices(iVoices);
+        LSCPServer::SendLSCPNotify(
+            LSCPEvent(LSCPEvent::event_global_info, "VOICES", pSampler->GetGlobalMaxVoices())
+        );
     } catch (Exception e) {
         result.Error(e);
     }
@@ -3110,7 +3103,7 @@ String LSCPServer::SetGlobalMaxVoices(int iVoices) {
 String LSCPServer::GetGlobalMaxStreams() {
     dmsg(2,("LSCPServer: GetGlobalMaxStreams()\n"));
     LSCPResultSet result;
-    result.Add(GLOBAL_MAX_STREAMS);
+    result.Add(pSampler->GetGlobalMaxStreams());
     return result.Produce();
 }
 
@@ -3122,17 +3115,10 @@ String LSCPServer::SetGlobalMaxStreams(int iStreams) {
     dmsg(2,("LSCPServer: SetGlobalMaxStreams(%d)\n", iStreams));
     LSCPResultSet result;
     try {
-        if (iStreams < 0) throw Exception("Maximum disk streams may not be negative");
-        GLOBAL_MAX_STREAMS = iStreams; // see common/global_private.cpp
-        const std::set<Engine*>& engines = EngineFactory::EngineInstances();
-        if (engines.size() > 0) {
-            std::set<Engine*>::iterator iter = engines.begin();
-            std::set<Engine*>::iterator end  = engines.end();
-            for (; iter != end; ++iter) {
-                (*iter)->SetMaxDiskStreams(iStreams);
-            }
-        }
-        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_global_info, "STREAMS", GLOBAL_MAX_STREAMS));
+        pSampler->SetGlobalMaxStreams(iStreams);
+        LSCPServer::SendLSCPNotify(
+            LSCPEvent(LSCPEvent::event_global_info, "STREAMS", pSampler->GetGlobalMaxStreams())
+        );
     } catch (Exception e) {
         result.Error(e);
     }

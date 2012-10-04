@@ -206,7 +206,11 @@ namespace LinuxSampler {
 	}
 	
 	void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::onNewSourceDisappeared(MIDIEndpointRef source) {
-		//TODO: remove source from 'bindings' list eventually
+		std::vector<MIDIEndpointRef>::iterator iter = std::find(bindings.begin(), bindings.end(), source);
+		if (iter != bindings.end()) {
+			dmsg(1,("CoreMIDI source '%s' disappeared, disconnecting it.\n", _getDisplayName(source).c_str()));
+			bindings.erase(iter);
+		}
 	}
 
 
