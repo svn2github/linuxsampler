@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -197,7 +197,7 @@ namespace LinuxSampler { namespace gig {
             case 0x1e: return (void*) SynthesizeFragment_mode1e;
             case 0x1f: return (void*) SynthesizeFragment_mode1f;
             default: {
-                printf("gig::Synthesizer: Invalid Synthesis Mode: %d\n", SynthesisMode);
+                std::cerr << "gig::Synthesizer: Invalid Synthesis Mode: " << SynthesisMode << std::endl << std::flush;
                 exit(-1);
             }
         }
