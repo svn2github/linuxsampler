@@ -81,6 +81,10 @@ table th {
 	padding-bottom: 3px;
 }
 
+.btcaddr {
+    font-size: 9.0px;
+}
+
 table {
     font-size: 13.33px;
     font-family: sans-serif,Arial,Helvetica;
