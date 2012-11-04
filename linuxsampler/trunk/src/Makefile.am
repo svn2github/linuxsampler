@@ -1,6 +1,12 @@
 # set the include path found by configure
 INCLUDES= $(all_includes) $(GIG_CFLAGS) $(SQLITE3_CFLAGS)
 
+if HAVE_WINDOWS
+system_libs =
+else
+system_libs = -lpthread -ldl
+endif
+
 if HAVE_COREMIDI
 coremidi_ldflags = -framework CoreAudio \
 	-framework CoreMIDI \
@@ -44,7 +50,9 @@ liblinuxsampler_la_LIBADD = \
 	$(top_builddir)/src/drivers/midi/liblinuxsamplermididriver.la \
 	$(top_builddir)/src/plugins/liblinuxsamplerplugins.la \
 	$(top_builddir)/src/effects/liblinuxsamplereffects.la \
-	$(top_builddir)/src/common/liblinuxsamplercommon.la
+	$(top_builddir)/src/common/liblinuxsamplercommon.la \
+	$(system_libs)
+
 liblinuxsampler_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@ -no-undefined
 
 bin_PROGRAMS = linuxsampler

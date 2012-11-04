@@ -20,6 +20,8 @@ Version CVS HEAD (?)
     - lsatomic.h: use gcc provided atomic functions if building with
       gcc 4.7 and C++11
     - modernized configure script
+    - fixed linkage error when building with
+      LDFLAGS="-Wl,--no-undefined" (#190)
 	
   * general changes:
     - Refactoring: moved the independent code from
