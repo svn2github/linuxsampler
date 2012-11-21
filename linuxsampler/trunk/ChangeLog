@@ -287,6 +287,7 @@ Version CVS HEAD (?)
     - CoreMIDI: added driver specific port parameter "AUTO_BIND", if enabled
       the driver will automatically connect to other CoreMIDI clients' ports
       (e.g. external MIDI devices being attached to the Mac)
+    - added support for MIDI note on velocity filter
 
   * audio driver:
     - ASIO driver fixes for newer gcc versions (fix from PortAudio)

@@ -77,7 +77,9 @@ namespace LinuxSampler {
     MidiInputPort::MidiInputPort(MidiInputDevice* pDevice, int portNumber)
         : MidiChannelMapReader(MidiChannelMap),
           SysexListenersReader(SysexListeners),
-          virtualMidiDevicesReader(virtualMidiDevices) {
+          virtualMidiDevicesReader(virtualMidiDevices),
+          noteOnVelocityFilterReader(noteOnVelocityFilter)
+    {
         this->pDevice = pDevice;
         this->portNumber = portNumber;
         Parameters["NAME"] = new ParameterName(this);
@@ -97,6 +99,12 @@ namespace LinuxSampler {
 
     void MidiInputPort::DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
         if (Key > 127 || Velocity > 127 || MidiChannel > 16) return;
+        
+        // apply velocity filter (if any)
+        const std::vector<uint8_t>& velocityFilter = noteOnVelocityFilterReader.Lock();
+        if (!velocityFilter.empty()) Velocity = velocityFilter[Velocity];
+        noteOnVelocityFilterReader.Unlock();
+        
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
@@ -122,6 +130,12 @@ namespace LinuxSampler {
 
     void MidiInputPort::DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel, int32_t FragmentPos) {
         if (Key > 127 || Velocity > 127 || MidiChannel > 16) return;
+        
+        // apply velocity filter (if any)
+        const std::vector<uint8_t>& velocityFilter = noteOnVelocityFilterReader.Lock();
+        if (!velocityFilter.empty()) Velocity = velocityFilter[Velocity];
+        noteOnVelocityFilterReader.Unlock();
+        
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
@@ -428,6 +442,32 @@ namespace LinuxSampler {
             DispatchPitchbend((pData[1] | pData[2] << 7) - 8192, channel, FragmentPos);
             break;
         }
+    }
+    
+    void MidiInputPort::SetNoteOnVelocityFilter(const std::vector<uint8_t>& filter) {
+        if (filter.size() != 128 && filter.size() != 0)
+            throw MidiInputException("Note on velocity filter must be either of size 128 or 0");
+        
+        // check the value range of the filter
+        if (!filter.empty())
+            for (int i = 0; i < 128; i++)
+                if (filter[i] > 127)
+                    throw MidiInputException("Invalid note on velocity filter, values must be in range 0 .. 127");
+        
+        // apply new filter ...
+        noteOnVelocityFilterMutex.Lock();
+        // double buffer ... double work ...
+        {
+            std::vector<uint8_t>& config =
+                noteOnVelocityFilter.GetConfigForUpdate();
+            config = filter;
+        }
+        {
+            std::vector<uint8_t>& config =
+                noteOnVelocityFilter.SwitchConfig();
+            config = filter;
+        }
+        noteOnVelocityFilterMutex.Unlock();
     }
 
     void MidiInputPort::Connect(EngineChannel* pEngineChannel, midi_chan_t MidiChannel) {

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -133,6 +133,29 @@ namespace LinuxSampler {
              * Disconnect the previously connected virtual MIDI device.
              */
             void Disconnect(VirtualMidiDevice* pDevice);
+            
+            /**
+             * Registers the given @a filter to be applied against all note on
+             * events, adjusting their MIDI velocity data. The vector supplied
+             * here must exactly be either of size 128 or 0. In case the given
+             * vector is of size 128, it will be used as lookup table by this
+             * MIDI inpurt port to remap any incoming MIDI note on velocity
+             * data to the respective value in that vector, or exactly:
+             * @code
+             * velocity = filter[velocity];
+             * @endcode
+             * Accordingly the values in the vector have to be in the range
+             * 0..127, however note that a value 0 should actually never be
+             * used, since by MIDI specification, a note on with velocity 0 is
+             * interpreted as note off event instead!
+             *
+             * If a vector of size 0 is supplied, this note on velocity filter
+             * mechanism will be disabled.
+             *
+             * @param filter - lookup table in the format described above
+             * @throws MidiInputException - if filter is in invalid format
+             */
+            void SetNoteOnVelocityFilter(const std::vector<uint8_t>& filter);
 
 
             /////////////////////////////////////////////////////////////////
@@ -341,6 +364,9 @@ namespace LinuxSampler {
             SynchronizedConfig<std::vector<VirtualMidiDevice*> > virtualMidiDevices;
             SynchronizedConfig<std::vector<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader;
             Mutex virtualMidiDevicesMutex;
+            SynchronizedConfig<std::vector<uint8_t> > noteOnVelocityFilter;
+            SynchronizedConfig<std::vector<uint8_t> >::Reader noteOnVelocityFilterReader;
+            Mutex noteOnVelocityFilterMutex;
 
             /**
              * Constructor
