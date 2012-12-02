@@ -1813,7 +1813,7 @@ namespace sfz
             else if ("volume_curve" == key_cc) pCurDef->volume_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
             else if ("volume_smooth" == key_cc) pCurDef->volume_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
             else if ("volume_step" == key_cc) pCurDef->volume_stepcc.add( CC(num_cc, 0, -1, 0, check(key, -20.0f, 20.0f, ToFloat(value))) );
-            else if ("pan" == key_cc) pCurDef->pan_oncc.add( CC(num_cc, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("pan" == key_cc) pCurDef->pan_oncc.add( CC(num_cc, check(key, -200.0f, 200.0f, ToFloat(value))) );
             else if ("pan_curve" == key_cc) pCurDef->pan_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
             else if ("pan_smooth" == key_cc) pCurDef->pan_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
             else if ("pan_step" == key_cc) pCurDef->pan_stepcc.add( CC(num_cc, 0, -1, 0, check(key, -100.0f, 100.0f, ToFloat(value))) );

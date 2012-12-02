@@ -968,8 +968,6 @@ namespace LinuxSampler {
                     }
                     case 10: { // panpot
                         //TODO: not sample accurate yet
-                        pChannel->GlobalPanLeft  = PanCurve[128 - itControlChangeEvent->Param.CC.Value];
-                        pChannel->GlobalPanRight = PanCurve[itControlChangeEvent->Param.CC.Value];
                         pChannel->iLastPanRequest = itControlChangeEvent->Param.CC.Value;
                         break;
                     }

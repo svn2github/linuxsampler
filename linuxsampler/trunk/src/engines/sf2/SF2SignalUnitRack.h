@@ -103,7 +103,7 @@ namespace LinuxSampler { namespace sf2 {
             virtual float GetPitch();
             virtual float GetResonance();
             virtual float GetPan() { return 0; }
-            virtual uint8_t CaluclatePan(uint8_t pan) { return pan; }
+            virtual uint8_t CalculatePan(uint8_t pan) { return pan; }
     };
     
     class SF2SignalUnitRack : public SignalUnitRack {

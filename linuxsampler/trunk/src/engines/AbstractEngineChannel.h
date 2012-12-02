@@ -105,8 +105,6 @@ namespace LinuxSampler {
             int                       InstrumentStat;
             double                    GlobalVolume;             ///< Master volume factor set through the C++ API / LSCP (a value < 1.0 means attenuation, a value > 1.0 means amplification)
             double                    MidiVolume;               ///< Volume factor altered by MIDI CC#7 (a value < 1.0 means attenuation, a value > 1.0 means amplification)
-            float                     GlobalPanLeft;
-            float                     GlobalPanRight;
             int                       Pitch;                    ///< Current (absolute) MIDI pitch value.
             float                     CurrentKeyDimension;      ///< Current value (0-1.0) for the keyboard dimension, altered by pressing a keyswitching key.
             bool                      PortamentoMode;           ///< in Portamento Mode we slide the pitch from the last note to the current note.

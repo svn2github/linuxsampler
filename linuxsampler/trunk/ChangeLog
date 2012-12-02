@@ -22,7 +22,7 @@ Version CVS HEAD (?)
     - modernized configure script
     - fixed linkage error when building with
       LDFLAGS="-Wl,--no-undefined" (#190)
-	
+
   * general changes:
     - Refactoring: moved the independent code from
       the Gigasampler format engine to base classes
@@ -59,6 +59,9 @@ Version CVS HEAD (?)
     - Added new C++ API method Sampler::SetGlobalMaxVoices().
     - Added new C++ API method Sampler::SetGlobalMaxStreams().
     - Various "const" and "restrict" optimizations.
+    - all engines: add pan CC value to instrument pan parameter before
+      applying panning, instead of using two separate pan functions in
+      series (#182)
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension
@@ -66,6 +69,12 @@ Version CVS HEAD (?)
       dimension zones is not a power of two
     - made round robin use a counter for each region instead of each
       key
+    - bugfix: pitch LFO controller "internal+aftertouch" was broken
+    - bugfix: filter keyboard tracking was broken
+    - filter performance fix (an unnecessary copy was made of the
+      filter parameters in each sub fragment)
+    - handle special case when pan parameter in gig file has max or
+      min value
 
   * SFZ format engine:
     - Initial implementation (not usable yet)
@@ -221,6 +230,7 @@ Version CVS HEAD (?)
     - made end=0 play the whole sample
     - fixed support for lochan and hichan opcodes (#155)
     - fixed crash when using lochan/hichan opcodes (#187)
+    - sfz parser: allow -200 to 200 for pan_oncc opcode (#182)
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
@@ -230,12 +240,6 @@ Version CVS HEAD (?)
     - initial implementation of Vibrato LFO and Modulation LFO
     - initial implementation of cutoff filter
     - use linear decay and release for filter and pitch EG
-
-  * Gigasampler format engine:
-    - bugfix: pitch LFO controller "internal+aftertouch" was broken
-    - bugfix: filter keyboard tracking was broken
-    - filter performance fix (an unnecessary copy was made of the
-      filter parameters in each sub fragment)
 
   * Host plugins (VST, AU, LV2, DSSI):
     - AU bugfix: failed to destroy its audio/MIDI devices
@@ -288,6 +292,7 @@ Version CVS HEAD (?)
       the driver will automatically connect to other CoreMIDI clients' ports
       (e.g. external MIDI devices being attached to the Mac)
     - added support for MIDI note on velocity filter
+    - CoreMIDI: fixed memory deallocation error
 
   * audio driver:
     - ASIO driver fixes for newer gcc versions (fix from PortAudio)

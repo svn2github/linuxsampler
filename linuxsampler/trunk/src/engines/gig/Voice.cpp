@@ -487,4 +487,16 @@ namespace LinuxSampler { namespace gig {
         EG1.CalculateFadeOutCoeff(FadeOutTime, SampleRate);
     }
 
+    int Voice::CalculatePan(uint8_t pan) {
+        int p;
+        // Gst behaviour: -64 and 63 are special cases
+        if (RgnInfo.Pan == -64)     p = pan * 2 - 127;
+        else if (RgnInfo.Pan == 63) p = pan * 2;
+        else                        p = pan + RgnInfo.Pan;
+
+        if (p < 0) return 0;
+        if (p > 127) return 127;
+        return p;
+    }
+
 }} // namespace LinuxSampler::gig

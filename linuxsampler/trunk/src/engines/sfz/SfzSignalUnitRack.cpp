@@ -771,9 +771,6 @@ namespace LinuxSampler { namespace sfz {
             pan += lfo->GetLevel() * (lfo->pLfoInfo->pan + f);
         }
         
-        if(pan < -100) return -100;
-        if(pan >  100) return  100;
-        
         return pan;
     }
     

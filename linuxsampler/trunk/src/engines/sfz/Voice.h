@@ -84,6 +84,7 @@ namespace LinuxSampler { namespace sfz {
             virtual void             ProcessGroupEvent(RTList<Event>::Iterator& itEvent);
             virtual void             SetSampleStartOffset();
             virtual int              GetRAMCacheOffset() { return pRegion->pSample->RAMCacheOffset; }
+            virtual int              CalculatePan(uint8_t pan);
 
         private:
             SfzSignalUnitRack SignalRack;

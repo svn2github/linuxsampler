@@ -302,4 +302,10 @@ namespace LinuxSampler { namespace sfz {
         SignalRack.CalculateFadeOutCoeff(FadeOutTime, SampleRate);
     }
 
+    int Voice::CalculatePan(uint8_t pan) {
+        // the value isn't limited to [0, 127] here, as this is done
+        // later in SignalUnit.CalculatePan
+        return pan + RgnInfo.Pan;
+    }
+
 }} // namespace LinuxSampler::sfz

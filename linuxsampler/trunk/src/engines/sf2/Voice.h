@@ -81,6 +81,7 @@ namespace LinuxSampler { namespace sf2 {
             virtual double           GetSampleAttenuation();
             virtual void             ProcessGroupEvent(RTList<Event>::Iterator& itEvent);
             virtual void             AboutToTrigger();
+            virtual int              CalculatePan(uint8_t pan);
 
         private:
             ::sf2::Region* pPresetRegion;

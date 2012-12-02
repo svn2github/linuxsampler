@@ -112,8 +112,6 @@ namespace LinuxSampler {
         Type            = VoiceType;
         MIDIKey         = itNoteOnEvent->Param.Note.Key;
         MIDIVelocity    = itNoteOnEvent->Param.Note.Velocity;
-        MIDIPan         = pEngineChannel->ControllerTable[10];
-        if (MIDIPan == 0 && pEngineChannel->GlobalPanRight == 1) MIDIPan = 64; // workaround used to determine whether the MIDI pan has not been set
         PlaybackState   = playback_state_init; // mark voice as triggered, but no audio rendered yet
         Delay           = itNoteOnEvent->FragmentPos();
         itTriggerEvent  = itNoteOnEvent;
@@ -126,6 +124,8 @@ namespace LinuxSampler {
         RgnInfo    = GetRegionInfo();
         InstrInfo  = GetInstrumentInfo();
         
+        MIDIPan    = CalculatePan(pEngineChannel->iLastPanRequest);
+
         AboutToTrigger();
 
         // calculate volume
@@ -141,14 +141,12 @@ namespace LinuxSampler {
         // get starting crossfade volume level
         float crossfadeVolume = CalculateCrossfadeVolume(itNoteOnEvent->Param.Note.Velocity);
 
-        VolumeLeft  = volume * pKeyInfo->PanLeft  * AbstractEngine::PanCurve[64 - RgnInfo.Pan];
-        VolumeRight = volume * pKeyInfo->PanRight * AbstractEngine::PanCurve[64 + RgnInfo.Pan];
+        VolumeLeft  = volume * pKeyInfo->PanLeft;
+        VolumeRight = volume * pKeyInfo->PanRight;
 
         float subfragmentRate = GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
         CrossfadeSmoother.trigger(crossfadeVolume, subfragmentRate);
         VolumeSmoother.trigger(pEngineChannel->MidiVolume, subfragmentRate);
-        PanLeftSmoother.trigger(pEngineChannel->GlobalPanLeft, subfragmentRate);
-        PanRightSmoother.trigger(pEngineChannel->GlobalPanRight, subfragmentRate);
 
         // Check if the sample needs disk streaming or is too short for that
         long cachedsamples = GetSampleCacheSize() / SmplInfo.FrameSize;
@@ -204,6 +202,11 @@ namespace LinuxSampler {
             pSignalUnitRack->Trigger();
         }
 
+        uint8_t pan = MIDIPan;
+        if (pSignalUnitRack) pan = pSignalUnitRack->GetEndpointUnit()->CalculatePan(MIDIPan);
+        PanLeftSmoother.trigger(AbstractEngine::PanCurve[128 - pan], subfragmentRate);
+        PanRightSmoother.trigger(AbstractEngine::PanCurve[pan], subfragmentRate);
+
 #ifdef CONFIG_INTERPOLATE_VOLUME
         // setup initial volume in synthesis parameters
     #ifdef CONFIG_PROCESS_MUTED_CHANNELS
@@ -221,8 +224,8 @@ namespace LinuxSampler {
                 finalVolume = pEngineChannel->MidiVolume * crossfadeVolume * pSignalUnitRack->GetEndpointUnit()->GetVolume();
             }
 
-            finalSynthesisParameters.fFinalVolumeLeft  = finalVolume * VolumeLeft  * pEngineChannel->GlobalPanLeft;
-            finalSynthesisParameters.fFinalVolumeRight = finalVolume * VolumeRight * pEngineChannel->GlobalPanRight;
+            finalSynthesisParameters.fFinalVolumeLeft  = finalVolume * VolumeLeft  * PanLeftSmoother.render();
+            finalSynthesisParameters.fFinalVolumeRight = finalVolume * VolumeRight * PanRightSmoother.render();
         }
     #endif
 #endif
@@ -427,7 +430,7 @@ namespace LinuxSampler {
             // process MIDI control change and pitchbend events for this subfragment
             processCCEvents(itCCEvent, iSubFragmentEnd);
             uint8_t pan = MIDIPan;
-            if (pSignalUnitRack != NULL) pan = pSignalUnitRack->GetEndpointUnit()->CaluclatePan(pan);
+            if (pSignalUnitRack != NULL) pan = pSignalUnitRack->GetEndpointUnit()->CalculatePan(MIDIPan);
             
             PanLeftSmoother.update(AbstractEngine::PanCurve[128 - pan]);
             PanRightSmoother.update(AbstractEngine::PanCurve[pan]);
@@ -637,7 +640,7 @@ namespace LinuxSampler {
                 if (itEvent->Param.CC.Controller == 7) { // volume
                     VolumeSmoother.update(AbstractEngine::VolumeCurve[itEvent->Param.CC.Value]);
                 } else if (itEvent->Param.CC.Controller == 10) { // panpot
-                    MIDIPan = itEvent->Param.CC.Value;
+                    MIDIPan = CalculatePan(itEvent->Param.CC.Value);
                 }
             } else if (itEvent->Type == Event::type_pitchbend) { // if pitch bend event
                 processPitchEvent(itEvent);

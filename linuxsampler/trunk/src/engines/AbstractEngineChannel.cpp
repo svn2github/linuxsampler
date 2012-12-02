@@ -112,8 +112,6 @@ namespace LinuxSampler {
         Pitch          = 0;
         GlobalVolume   = 1.0f;
         MidiVolume     = 1.0;
-        GlobalPanLeft  = 1.0f;
-        GlobalPanRight = 1.0f;
         iLastPanRequest = 64;
         GlobalTranspose = 0;
         // set all MIDI controller values to zero
@@ -182,8 +180,6 @@ namespace LinuxSampler {
         int iMidiPan = int(f * 64.0f) + 64;
         if (iMidiPan > 127) iMidiPan = 127;
         else if (iMidiPan < 0) iMidiPan = 0;
-        GlobalPanLeft  = AbstractEngine::PanCurve[128 - iMidiPan];
-        GlobalPanRight = AbstractEngine::PanCurve[iMidiPan];
         iLastPanRequest = iMidiPan;
     }
 

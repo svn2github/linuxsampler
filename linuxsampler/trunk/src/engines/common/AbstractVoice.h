@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2011 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -84,7 +84,7 @@ namespace LinuxSampler {
             type_t       Type;         ///< Voice Type (bit field, a voice may have several types)
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
             uint8_t      MIDIVelocity; ///< MIDI velocity of the key that triggered the voice
-            uint8_t      MIDIPan;      ///< the current MIDI pan value
+            int          MIDIPan;      ///< the current MIDI pan value plus the value from RegionInfo
             
             SignalUnitRack* const pSignalUnitRack;
 
@@ -300,6 +300,8 @@ namespace LinuxSampler {
 
             virtual void    ProcessGroupEvent(RTList<Event>::Iterator& itEvent) = 0;
             void            EnterReleaseStage();
+
+            virtual int     CalculatePan(uint8_t pan) = 0;
     };
 } // namespace LinuxSampler
 

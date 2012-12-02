@@ -43,11 +43,11 @@ namespace LinuxSampler {
 		char* buf = new char[256];
 		if (!CFStringGetCString(name, buf, 256, kCFStringEncodingUTF8)) {
 			dmsg(1,("CoreMIDI: could not convert display name string\n"));
-			delete buf;
+			delete[] buf;
 			return "";
 		}
 		String result = buf;
-		delete buf;
+		delete[] buf;
 		return result;
 	}
 	

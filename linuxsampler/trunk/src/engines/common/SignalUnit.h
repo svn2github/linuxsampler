@@ -2,7 +2,7 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2011 Grigor Iliev                                       *
+ *   Copyright (C) 2011 - 2012 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -316,7 +316,7 @@ namespace LinuxSampler {
             }
             
             /** Should return value in the range [0, 127] (L <-> R) */
-            virtual uint8_t CaluclatePan(uint8_t pan) {
+            virtual uint8_t CalculatePan(int pan) {
                 int p = pan + GetPan() * 0.63;
                 if (p < 0) return 0;
                 if (p > 127) return 127;
