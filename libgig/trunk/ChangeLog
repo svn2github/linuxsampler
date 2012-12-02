@@ -9,6 +9,7 @@ Version CVS HEAD (?)
     - initial implementation
     - changed region lookup API to avoid malloc in RT threads
     - fixed GetEG1Sustain which didn't return correct value
+    - bugfix: GetPan always returned -1, 0 or 1
 
   * src/gig.cpp:
     - bugfix: VCF velocity dynamic range and VCF velocity curve

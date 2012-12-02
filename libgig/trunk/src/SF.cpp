@@ -377,8 +377,7 @@ namespace sf2 {
             case PAN:
                 pan = Gen.GenAmount.shAmount;
                 CheckRange("pan", -500, 500, pan);
-                pan * 64; pan /= 500;
-                if (pan < -64) pan = -64;
+                pan = pan * 64 / 500;
                 if (pan >  63) pan =  63;
                 break;
             case DELAY_MOD_LFO:
