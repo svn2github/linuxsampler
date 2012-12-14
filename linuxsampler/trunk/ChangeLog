@@ -295,6 +295,7 @@ Version CVS HEAD (?)
     - CoreMIDI: fixed memory deallocation error
     - Fixed variable underflow in VirtualMidiDevice, which caused graphical
       virtual keyboards in frontends / instrument editors being stuck.
+    - Bugfix in VirtualMidiDevice: process note on with velocity 0 as note off.
 
   * audio driver:
     - ASIO driver fixes for newer gcc versions (fix from PortAudio)

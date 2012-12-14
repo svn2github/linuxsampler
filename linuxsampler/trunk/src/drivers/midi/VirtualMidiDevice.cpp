@@ -57,6 +57,9 @@ namespace LinuxSampler {
 
     bool VirtualMidiDevice::SendNoteOnToSampler(uint8_t Key, uint8_t Velocity) {
         if (Key >= MIDI_KEYS || Velocity > 127) return false;
+        if (Velocity == 0) {
+            return SendNoteOffToSampler(Key, Velocity);
+        }
         event_t ev = { EVENT_TYPE_NOTEON, Key, Velocity };
         if (p->events.write_space() <= 0) return false;
         p->events.push(&ev);
@@ -125,6 +128,10 @@ namespace LinuxSampler {
 
     void VirtualMidiDevice::SendNoteOnToDevice(uint8_t Key, uint8_t Velocity) {
         if (Key >= MIDI_KEYS) return;
+        if (Velocity == 0) {
+            SendNoteOffToDevice(Key, Velocity);
+            return;
+        }
         atomic_set( &(p->pNoteOnVelocity)[Key], Velocity );
         atomic_inc( &(p->pNoteIsActive)[Key] );
         atomic_inc( &(p->pNoteChanged)[Key] );
