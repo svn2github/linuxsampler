@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2008 - 2009 Christian Schoenebeck
+    Copyright (C) 2008 - 2012 Christian Schoenebeck
  */
 
 #include "VirtualMidiDevice.h"
@@ -49,6 +49,10 @@ namespace LinuxSampler {
 
     VirtualMidiDevice::~VirtualMidiDevice() {
         delete p;
+    }
+    
+    void VirtualMidiDevice::SetMaxEvents(int n) {
+        p->events.resize(n);
     }
 
     bool VirtualMidiDevice::SendNoteOnToSampler(uint8_t Key, uint8_t Velocity) {
@@ -130,7 +134,8 @@ namespace LinuxSampler {
     void VirtualMidiDevice::SendNoteOffToDevice(uint8_t Key, uint8_t Velocity) {
         if (Key >= MIDI_KEYS) return;
         atomic_set( &(p->pNoteOffVelocity)[Key], Velocity );
-        atomic_dec( &(p->pNoteIsActive)[Key] );
+        if (atomic_read( &(p->pNoteIsActive)[Key] )) // only decrement if not zero
+            atomic_dec( &(p->pNoteIsActive)[Key] );
         atomic_inc( &(p->pNoteChanged)[Key] );
         atomic_inc( &p->notesChanged );
     }

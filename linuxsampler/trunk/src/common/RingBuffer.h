@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -68,24 +68,31 @@ class RingBuffer
 {
 public:
     RingBuffer (int sz, int wrap_elements = DEFAULT_WRAP_ELEMENTS) :
-        write_ptr(0), read_ptr(0) {
-            int power_of_two;
-
-            this->wrap_elements = wrap_elements;
-
-            // the write-with-wrap functions need wrap_elements extra
-            // space in the buffer to be able to copy the wrap space
-            sz += wrap_elements;
-
-            for (power_of_two = 1;
-                 1<<power_of_two < sz;
-                 power_of_two++);
-
-            size = 1<<power_of_two;
-            size_mask = size;
-            size_mask -= 1;
-            buf = new T[size + wrap_elements];
-    };
+        write_ptr(0), read_ptr(0)
+    {
+        _allocBuffer(sz, wrap_elements);
+    }
+    
+    /**
+     * Resize this ring buffer to the given size. This operation
+     * is not thread safe! Any operations using this RingBuffer
+     * have to be stopped before calling this method.
+     *
+     * @param sz - new size (amount of elements)
+     * @param wrap_elements - (optional) if supplied, the new amount
+     *                        of wrap elements to be used beyond
+     *                        official buffer end, if not provided
+     *                        the amount wrap_elements remains as it was
+     *                        before
+     */
+    void resize(int sz, int wrap_elements = -1) {
+        if (wrap_elements == -1)
+            wrap_elements = this->wrap_elements;
+        
+        delete [] buf;
+        
+        _allocBuffer(sz, wrap_elements);
+    }
 
     virtual ~RingBuffer() {
             delete [] buf;
@@ -430,6 +437,24 @@ public:
      * \a pSrc to the buffer given by \a pDst.
      */
     inline static void copy(T* pDst, T* pSrc, int n);
+    
+    void _allocBuffer(int sz, int wrap_elements) {
+        this->wrap_elements = wrap_elements;
+            
+        // the write-with-wrap functions need wrap_elements extra
+        // space in the buffer to be able to copy the wrap space
+        sz += wrap_elements;
+
+        int power_of_two;
+        for (power_of_two = 1;
+             1<<power_of_two < sz;
+             power_of_two++);
+
+        size = 1<<power_of_two;
+        size_mask = size;
+        size_mask -= 1;
+        buf = new T[size + wrap_elements];   
+    }
 
     friend class _NonVolatileReader<T,T_DEEP_COPY>;
 };

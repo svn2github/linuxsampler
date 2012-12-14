@@ -293,6 +293,8 @@ Version CVS HEAD (?)
       (e.g. external MIDI devices being attached to the Mac)
     - added support for MIDI note on velocity filter
     - CoreMIDI: fixed memory deallocation error
+    - Fixed variable underflow in VirtualMidiDevice, which caused graphical
+      virtual keyboards in frontends / instrument editors being stuck.
 
   * audio driver:
     - ASIO driver fixes for newer gcc versions (fix from PortAudio)

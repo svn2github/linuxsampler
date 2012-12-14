@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2008 - 2009 Christian Schoenebeck
+    Copyright (C) 2008 - 2012 Christian Schoenebeck
  */
 
 #ifndef LS_VIRTUALMIDIDEVICE_H
@@ -169,6 +169,19 @@ public:
      * @returns true on success, false if no event pending
      */
     bool GetMidiEventFromDevice(event_t& Event);
+    
+    /////////////////////////////////////////////////////////////////
+    // General Purpose Methods
+    
+    /**
+     * Adjusts the internal event buffer to cover at least the given
+     * amount of MIDI events. This might be useful, since the internal
+     * event buffer is by default quite small (i.e. just 12 events).
+     *
+     * This method is not thread safe! Any operations upon this device
+     * have to be stopped before calling this method!
+     */
+    void SetMaxEvents(int n);
 
     /**
      * Constructor
