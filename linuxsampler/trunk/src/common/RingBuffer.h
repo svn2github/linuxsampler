@@ -327,6 +327,17 @@ public:
             inline void operator--(int) {
                 --*this;
             }
+    
+            /**
+             * "Increment assign" operator, for advancing NonVolatileReader's
+             * read position by @a n elements.
+             *
+             * @param n - amount of elements to advance read position
+             */
+            inline void operator+=(int n) {
+                if (read_space() < n) return;
+                read_ptr = (read_ptr+n) & pBuf->size_mask;
+            }
 
             /**
              * Returns pointer to the RingBuffer data of current
