@@ -22,6 +22,7 @@ Version CVS HEAD (?)
     - modernized configure script
     - fixed linkage error when building with
       LDFLAGS="-Wl,--no-undefined" (#190)
+    - fixed compilation with Clang 3.2
 
   * general changes:
     - Refactoring: moved the independent code from

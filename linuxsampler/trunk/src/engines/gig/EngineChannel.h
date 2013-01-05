@@ -2,9 +2,9 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2012 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2009 - 2013 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -32,6 +32,8 @@
 #include <gig.h>
 
 namespace LinuxSampler { namespace gig {
+    class Voice;
+
     class EngineChannel: public LinuxSampler::EngineChannelBase<Voice, ::gig::DimensionRegion, ::gig::Instrument> {
         public:
             virtual void SendProgramChange(uint8_t Program);
