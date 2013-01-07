@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2012 Andreas Persson
+ * Copyright (C) 2006-2013 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -926,7 +926,7 @@ void MainWindow::on_action_help_about()
     dialog.set_name("Gigedit");
 #endif
     dialog.set_version(VERSION);
-    dialog.set_copyright("Copyright (C) 2006-2012 Andreas Persson");
+    dialog.set_copyright("Copyright (C) 2006-2013 Andreas Persson");
     dialog.set_comments(_(
         "Released under the GNU General Public License.\n"
         "\n"

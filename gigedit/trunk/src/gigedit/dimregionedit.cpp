@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2011 Andreas Persson
+ * Copyright (C) 2006-2013 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,7 +22,96 @@
 #include "global.h"
 #include "compat.h"
 
+VelocityCurve::VelocityCurve(double (gig::DimensionRegion::*getter)(uint8_t)) :
+    getter(getter), dimreg(0) {
+    set_size_request(80, 80);
+}
+
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
+bool VelocityCurve::on_expose_event(GdkEventExpose* e) {
+    const Cairo::RefPtr<Cairo::Context>& cr =
+        get_window()->create_cairo_context();
+#if 0
+}
+#endif
+#else
+bool VelocityCurve::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
+#endif
+    if (dimreg) {
+        int w = get_width();
+        int h = get_height();
+
+        for (int pass = 0 ; pass < 2 ; pass++) {
+            for (int x = 0 ; x < w ; x++) {
+                int vel = int(x * 126.0 / w + 1.5);
+                int y = int((1 - (dimreg->*getter)(vel)) * (h - 1));
+
+                if (x == 0) {
+                    cr->move_to(x, y);
+                } else {
+                    cr->line_to(x, y);
+                }
+            }
+            if (pass == 0) {
+                cr->line_to(w - 1, h - 1);
+                cr->line_to(0, h - 1);
+                cr->set_source_rgba(0.5, 0.44, 1.0, 0.2);
+                cr->fill();
+            } else {
+                cr->set_line_width(3);
+                cr->set_source_rgb(0.5, 0.44, 1.0);
+                cr->stroke();
+            }
+        }
+    }
+    return true;
+}
+
+
+CrossfadeCurve::CrossfadeCurve() : dimreg(0) {
+    set_size_request(280, 80);
+}
+
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
+bool CrossfadeCurve::on_expose_event(GdkEventExpose* e) {
+    const Cairo::RefPtr<Cairo::Context>& cr =
+        get_window()->create_cairo_context();
+#if 0
+}
+#endif
+#else
+bool CrossfadeCurve::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
+#endif
+    if (dimreg && dimreg->Crossfade.out_end) {
+        int w = get_width();
+        int h = get_height();
+        
+        for (int pass = 0 ; pass < 2 ; pass++) {
+            cr->move_to(dimreg->Crossfade.in_start / 127.0 * (w - 4) + 2, h);
+            cr->line_to(dimreg->Crossfade.in_end / 127.0 * (w - 4) + 2, 2);
+            cr->line_to(dimreg->Crossfade.out_start / 127.0 * (w - 4) + 2, 2);
+            cr->line_to(dimreg->Crossfade.out_end / 127.0 * (w - 4) + 2, h);
+
+            if (pass == 0) {
+                cr->line_to(dimreg->Crossfade.in_start / 127.0 * (w - 4) + 2,
+                            h);
+                cr->set_source_rgba(0.5, 0.44, 1.0, 0.2);
+                cr->fill();
+            } else {
+                cr->set_line_width(3);
+                cr->set_source_rgb(0.5, 0.44, 1.0);
+                cr->stroke();
+            }
+        }
+    }
+    return true;
+}
+
+
 DimRegionEdit::DimRegionEdit() :
+    velocity_curve(&gig::DimensionRegion::GetVelocityAttenuation),
+    release_curve(&gig::DimensionRegion::GetVelocityRelease),
+    cutoff_curve(&gig::DimensionRegion::GetVelocityCutoff),
     eEG1PreAttack(_("Pre-attack"), 0, 100, 2),
     eEG1Attack(_("Attack"), 0, 60, 3),
     eEG1Decay1(_("Decay 1"), 0.005, 60, 3),
@@ -345,6 +434,21 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eCrossfade_out_start);
     addProp(eCrossfade_out_end);
 
+    Gtk::Frame* frame = new Gtk::Frame;
+    frame->add(crossfade_curve);
+    table[pageno]->attach(*frame, 1, 3, rowno, rowno + 1,
+                          Gtk::SHRINK, Gtk::SHRINK);
+    rowno++;
+
+    eCrossfade_in_start.signal_value_changed().connect(
+        sigc::mem_fun(crossfade_curve, &CrossfadeCurve::queue_draw));
+    eCrossfade_in_end.signal_value_changed().connect(
+        sigc::mem_fun(crossfade_curve, &CrossfadeCurve::queue_draw));
+    eCrossfade_out_start.signal_value_changed().connect(
+        sigc::mem_fun(crossfade_curve, &CrossfadeCurve::queue_draw));
+    eCrossfade_out_end.signal_value_changed().connect(
+        sigc::mem_fun(crossfade_curve, &CrossfadeCurve::queue_draw));
+
     nextPage();
 
     addHeader(_("General Filter Settings"));
@@ -395,6 +499,22 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eVCFVelocityCurve);
     addProp(eVCFVelocityScale);
     addProp(eVCFVelocityDynamicRange);
+
+    eVCFCutoffController.signal_value_changed().connect(
+        sigc::mem_fun(cutoff_curve, &VelocityCurve::queue_draw));
+    eVCFVelocityCurve.signal_value_changed().connect(
+        sigc::mem_fun(cutoff_curve, &VelocityCurve::queue_draw));
+    eVCFVelocityScale.signal_value_changed().connect(
+        sigc::mem_fun(cutoff_curve, &VelocityCurve::queue_draw));
+    eVCFVelocityDynamicRange.signal_value_changed().connect(
+        sigc::mem_fun(cutoff_curve, &VelocityCurve::queue_draw));
+
+    frame = new Gtk::Frame;
+    frame->add(cutoff_curve);
+    table[pageno]->attach(*frame, 1, 3, rowno, rowno + 1,
+                          Gtk::SHRINK, Gtk::SHRINK);
+    rowno++;
+
     addProp(eVCFResonance);
     addProp(eVCFResonanceDynamic);
     {
@@ -477,14 +597,41 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
+    addHeader(_("Velocity Reponse"));
     eVelocityResponseCurve.set_choices(curve_type_texts, curve_type_values);
     addProp(eVelocityResponseCurve);
     addProp(eVelocityResponseDepth);
     addProp(eVelocityResponseCurveScaling);
+
+    eVelocityResponseCurve.signal_value_changed().connect(
+        sigc::mem_fun(velocity_curve, &VelocityCurve::queue_draw));
+    eVelocityResponseDepth.signal_value_changed().connect(
+        sigc::mem_fun(velocity_curve, &VelocityCurve::queue_draw));
+    eVelocityResponseCurveScaling.signal_value_changed().connect(
+        sigc::mem_fun(velocity_curve, &VelocityCurve::queue_draw));
+
+    frame = new Gtk::Frame;
+    frame->add(velocity_curve);
+    table[pageno]->attach(*frame, 1, 3, rowno, rowno + 1,
+                          Gtk::SHRINK, Gtk::SHRINK);
+    rowno++;
+
+    addHeader(_("Release Velocity Reponse"));
     eReleaseVelocityResponseCurve.set_choices(curve_type_texts,
                                               curve_type_values);
     addProp(eReleaseVelocityResponseCurve);
     addProp(eReleaseVelocityResponseDepth);
+
+    eReleaseVelocityResponseCurve.signal_value_changed().connect(
+        sigc::mem_fun(release_curve, &VelocityCurve::queue_draw));
+    eReleaseVelocityResponseDepth.signal_value_changed().connect(
+        sigc::mem_fun(release_curve, &VelocityCurve::queue_draw));
+    frame = new Gtk::Frame;
+    frame->add(release_curve);
+    table[pageno]->attach(*frame, 1, 3, rowno, rowno + 1,
+                          Gtk::SHRINK, Gtk::SHRINK);
+    rowno++;
+
     addProp(eReleaseTriggerDecay);
     {
         const char* choices[] = { _("none"), _("effect4depth"), _("effect5depth"), 0 };
@@ -635,6 +782,10 @@ void DimRegionEdit::addProp(LabelWidget& prop)
 void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
 {
     dimregion = d;
+    velocity_curve.set_dim_region(d);
+    release_curve.set_dim_region(d);
+    cutoff_curve.set_dim_region(d);
+    crossfade_curve.set_dim_region(d);
 
     set_sensitive(d);
     if (!d) return;

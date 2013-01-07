@@ -13,6 +13,7 @@ Version CVS HEAD (?)
   * gtkmm 3 fix: the WrapLabel custom widget is not needed in gtkmm 3
   * fixed building on Debian testing (#186)
   * modernized configure script
+  * added graphical curves for velocity response and crossfade
 
 Version 0.2.0 (2009-07-31)
 

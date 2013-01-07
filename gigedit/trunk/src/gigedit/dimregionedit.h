@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2010 Andreas Persson
+ * Copyright (C) 2006-2013 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,6 +22,7 @@
 
 #include <gig.h>
 
+#include <gtkmm/drawingarea.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/label.h>
 #include <gtkmm/notebook.h>
@@ -30,6 +31,39 @@
 #include <set>
 
 #include "paramedit.h"
+
+class VelocityCurve : public Gtk::DrawingArea {
+public:
+    VelocityCurve(double (gig::DimensionRegion::*getter)(uint8_t));
+    void set_dim_region(gig::DimensionRegion* d) { dimreg = d; }
+
+protected:
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
+    bool on_expose_event(GdkEventExpose* e);
+#else
+    bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
+#endif
+
+private:
+    double (gig::DimensionRegion::* const getter)(uint8_t);
+    gig::DimensionRegion* dimreg;
+};
+
+class CrossfadeCurve : public Gtk::DrawingArea {
+public:
+    CrossfadeCurve();
+    void set_dim_region(gig::DimensionRegion* d) { dimreg = d; }
+
+protected:
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
+    bool on_expose_event(GdkEventExpose* e);
+#else
+    bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
+#endif
+
+private:
+    gig::DimensionRegion* dimreg;
+};
 
 class DimRegionEdit : public Gtk::Notebook
 {
@@ -60,6 +94,11 @@ protected:
     Gtk::Table* table[7];
 
     Gtk::Label* lSample;
+
+    VelocityCurve velocity_curve;
+    VelocityCurve release_curve;
+    VelocityCurve cutoff_curve;
+    CrossfadeCurve crossfade_curve;
 
     NumEntryPermille eEG1PreAttack;
     NumEntryTemp<double> eEG1Attack;
