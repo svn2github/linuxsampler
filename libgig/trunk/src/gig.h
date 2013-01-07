@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2012 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -455,6 +455,7 @@ namespace gig {
             // overridden methods
             virtual void SetGain(int32_t gain);
             virtual void UpdateChunks();
+            virtual void CopyAssign(const DimensionRegion* orig);
         protected:
             uint8_t* VelocityTable; ///< For velocity dimensions with custom defined zone ranges only: used for fast converting from velocity MIDI value to dimension bit number.
             DimensionRegion(Region* pParent, RIFF::List* _3ewl);
@@ -628,6 +629,7 @@ namespace gig {
             // overridden methods
             virtual void     SetKeyRange(uint16_t Low, uint16_t High);
             virtual void     UpdateChunks();
+            virtual void     CopyAssign(const Region* orig);
         protected:
             Region(Instrument* pInstrument, RIFF::List* rgnList);
             void LoadDimensionRegions(RIFF::List* rgn);
@@ -693,6 +695,7 @@ namespace gig {
             Region*   AddRegion();
             void      DeleteRegion(Region* pRegion);
             virtual void UpdateChunks();
+            virtual void CopyAssign(const Instrument* orig);
             // own methods
             Region*   GetRegion(unsigned int Key);
             MidiRule* GetMidiRule(int i);
@@ -770,6 +773,7 @@ namespace gig {
             Instrument* GetNextInstrument();  ///< Returns a pointer to the next <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetInstrument(uint index, progress_t* pProgress = NULL);
             Instrument* AddInstrument();
+            Instrument* AddDuplicateInstrument(const Instrument* orig);
             void        DeleteInstrument(Instrument* pInstrument);
             Group*      GetFirstGroup(); ///< Returns a pointer to the first <i>Group</i> object of the file, <i>NULL</i> otherwise.
             Group*      GetNextGroup();  ///< Returns a pointer to the next <i>Group</i> object of the file, <i>NULL</i> otherwise.

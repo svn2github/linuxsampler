@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2010 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -270,6 +270,7 @@ namespace DLS {
             Articulation* GetFirstArticulation();
             Articulation* GetNextArticulation();
             virtual void  UpdateChunks();
+            virtual void  CopyAssign(const Articulator* orig);
         protected:
             typedef std::list<Articulation*> ArticulationList;
             RIFF::List*                 pParentList;
@@ -311,6 +312,7 @@ namespace DLS {
             void SetFixedStringLengths(const string_length_t* lengths);
             virtual ~Info();
             virtual void UpdateChunks();
+            virtual void CopyAssign(const Info* orig);
         private:
             RIFF::List*            pResourceListChunk;
             const string_length_t* pFixedStringLengths; ///< List of IDs and string lengths for strings that should be stored in a fixed length format. This is used for gig files, not for ordinary DLS files.
@@ -328,6 +330,7 @@ namespace DLS {
             Resource* GetParent() { return pParent; }
             virtual void UpdateChunks();
             void GenerateDLSID();
+            virtual void CopyAssign(const Resource* orig);
         protected:
             Resource* pParent;
             RIFF::List* pResourceList;
@@ -351,6 +354,7 @@ namespace DLS {
             void DeleteSampleLoop(sample_loop_t* pLoopDef);
             virtual void SetGain(int32_t gain);
             virtual void UpdateChunks();
+            virtual void CopyAssign(const Sampler* orig);
         protected:
             RIFF::List*    pParentList;
             uint32_t       uiHeaderSize;
@@ -415,6 +419,7 @@ namespace DLS {
             void        SetSample(Sample* pSample);
             virtual void SetKeyRange(uint16_t Low, uint16_t High);
             virtual void UpdateChunks();
+            virtual void CopyAssign(const Region* orig);
         protected:
             RIFF::List* pCkRegion;
             uint32_t    WavePoolTableIndex; // index in the wave pool table to the sample wave this region is linked to
@@ -442,6 +447,7 @@ namespace DLS {
             Region*  AddRegion();
             void     DeleteRegion(Region* pRegion);
             virtual void UpdateChunks();
+            virtual void CopyAssign(const Instrument* orig);
         protected:
             typedef std::list<Region*> RegionList;
             struct midi_locale_t {
@@ -454,6 +460,7 @@ namespace DLS {
             RegionList::iterator RegionsIterator;
 
             Instrument(File* pFile, RIFF::List* insList);
+            void CopyAssignCore(const Instrument* orig);
             virtual void LoadRegions();
             virtual ~Instrument();
             friend class File;

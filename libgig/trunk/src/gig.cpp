@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -1581,6 +1581,7 @@ namespace {
      */
     DimensionRegion::DimensionRegion(RIFF::List* _3ewl, const DimensionRegion& src) : DLS::Sampler(_3ewl) {
         Instances++;
+        //NOTE: I think we cannot call CopyAssign() here (in a constructor) as long as its a virtual method
         *this = src; // default memberwise shallow copy of all parameters
         pParentList = _3ewl; // restore the chunk pointer
 
@@ -1594,6 +1595,41 @@ namespace {
             pSampleLoops = new DLS::sample_loop_t[src.SampleLoops];
             for (int k = 0 ; k < src.SampleLoops ; k++)
                 pSampleLoops[k] = src.pSampleLoops[k];
+        }
+    }
+    
+    /**
+     * Make a (semi) deep copy of the DimensionRegion object given by @a orig
+     * and assign it to this object.
+     *
+     * Note that all sample pointers referenced by @a orig are simply copied as
+     * memory address. Thus the respective samples are shared, not duplicated!
+     *
+     * @param orig - original DimensionRegion object to be copied from
+     */
+    void DimensionRegion::CopyAssign(const DimensionRegion* orig) {
+        // delete all allocated data first
+        if (VelocityTable) delete [] VelocityTable;
+        if (pSampleLoops) delete [] pSampleLoops;
+        
+        // backup parent list pointer
+        RIFF::List* p = pParentList;
+        
+        //NOTE: copy code copied from assignment constructor above, see comment there as well
+        
+        *this = *orig; // default memberwise shallow copy of all parameters
+        pParentList = p; // restore the chunk pointer
+
+        // deep copy of owned structures
+        if (orig->VelocityTable) {
+            VelocityTable = new uint8_t[128];
+            for (int k = 0 ; k < 128 ; k++)
+                VelocityTable[k] = orig->VelocityTable[k];
+        }
+        if (orig->pSampleLoops) {
+            pSampleLoops = new DLS::sample_loop_t[orig->SampleLoops];
+            for (int k = 0 ; k < orig->SampleLoops ; k++)
+                pSampleLoops[k] = orig->pSampleLoops[k];
         }
     }
 
@@ -2925,6 +2961,40 @@ namespace {
         }
         return NULL;
     }
+    
+    /**
+     * Make a (semi) deep copy of the Region object given by @a orig
+     * and assign it to this object.
+     *
+     * Note that all sample pointers referenced by @a orig are simply copied as
+     * memory address. Thus the respective samples are shared, not duplicated!
+     *
+     * @param orig - original Region object to be copied from
+     */
+    void Region::CopyAssign(const Region* orig) {
+        // handle base classes
+        DLS::Region::CopyAssign(orig);
+        
+        // handle own member variables
+        for (int i = Dimensions - 1; i >= 0; --i) {
+            DeleteDimension(&pDimensionDefinitions[i]);
+        }
+        Layers = 0; // just to be sure
+        for (int i = 0; i < orig->Dimensions; i++) {
+            // we need to copy the dim definition here, to avoid the compiler
+            // complaining about const-ness issue
+            dimension_def_t def = orig->pDimensionDefinitions[i];
+            AddDimension(&def);
+        }
+        for (int i = 0; i < 256; i++) {
+            if (pDimensionRegions[i] && orig->pDimensionRegions[i]) {
+                pDimensionRegions[i]->CopyAssign(
+                    orig->pDimensionRegions[i]
+                );
+            }
+        }
+        Layers = orig->Layers;
+    }
 
 
 // *************** MidiRule ***************
@@ -3166,6 +3236,52 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
      */
     MidiRule* Instrument::GetMidiRule(int i) {
         return pMidiRules[i];
+    }
+    
+    /**
+     * Make a (semi) deep copy of the Instrument object given by @a orig
+     * and assign it to this object.
+     *
+     * Note that all sample pointers referenced by @a orig are simply copied as
+     * memory address. Thus the respective samples are shared, not duplicated!
+     *
+     * @param orig - original Instrument object to be copied from
+     */
+    void Instrument::CopyAssign(const Instrument* orig) {
+        // handle base class
+        // (without copying DLS region stuff)
+        DLS::Instrument::CopyAssignCore(orig);
+        
+        // handle own member variables
+        Attenuation = orig->Attenuation;
+        EffectSend = orig->EffectSend;
+        FineTune = orig->FineTune;
+        PitchbendRange = orig->PitchbendRange;
+        PianoReleaseMode = orig->PianoReleaseMode;
+        DimensionKeyRange = orig->DimensionKeyRange;
+        
+        // free old midi rules
+        for (int i = 0 ; pMidiRules[i] ; i++) {
+            delete pMidiRules[i];
+        }
+        //TODO: MIDI rule copying
+        pMidiRules[0] = NULL;
+        
+        // delete all old regions
+        while (Regions) DeleteRegion(GetFirstRegion());
+        // create new regions and copy them from original
+        {
+            RegionList::const_iterator it = orig->pRegions->begin();
+            for (int i = 0; i < orig->Regions; ++i, ++it) {
+                Region* dstRgn = AddRegion();
+                //NOTE: Region does semi-deep copy !
+                dstRgn->CopyAssign(
+                    static_cast<gig::Region*>(*it)
+                );
+            }
+        }
+
+        UpdateRegionKeyTable();
     }
 
 
@@ -3565,6 +3681,27 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
 
        pInstruments->push_back(pInstrument);
        return pInstrument;
+    }
+    
+    /** @brief Add a duplicate of an existing instrument.
+     *
+     * Duplicates the instrument definition given by @a orig and adds it
+     * to this file. This allows in an instrument editor application to
+     * easily create variations of an instrument, which will be stored in
+     * the same .gig file, sharing i.e. the same samples.
+     *
+     * Note that all sample pointers referenced by @a orig are simply copied as
+     * memory address. Thus the respective samples are shared, not duplicated!
+     *
+     * You have to call Save() to make this persistent to the file.
+     *
+     * @param orig - original instrument to be copied
+     * @returns duplicated copy of the given instrument
+     */
+    Instrument* File::AddDuplicateInstrument(const Instrument* orig) {
+        Instrument* instr = AddInstrument();
+        instr->CopyAssign(orig);
+        return instr;
     }
 
     /** @brief Delete an instrument.

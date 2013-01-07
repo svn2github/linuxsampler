@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -227,6 +227,15 @@ namespace DLS {
             }
         }
     }
+    
+    /**
+     * Not yet implemented in this version, since the .gig format does
+     * not need to copy DLS articulators and so far nobody used pure
+     * DLS instrument AFAIK.
+     */
+    void Articulator::CopyAssign(const Articulator* orig) {
+        //TODO: implement deep copy assignment for this class
+    }
 
 
 
@@ -383,6 +392,34 @@ namespace DLS {
         SaveString(CHUNK_ID_ISRF, lstINFO, SourceForm, String(""));
         SaveString(CHUNK_ID_ITCH, lstINFO, Technician, String(""));
     }
+    
+    /**
+     * Make a deep copy of the Info object given by @a orig and assign it to
+     * this object.
+     *
+     * @param orig - original Info object to be copied from
+     */
+    void Info::CopyAssign(const Info* orig) {
+        Name = orig->Name;
+        ArchivalLocation = orig->ArchivalLocation;
+        CreationDate = orig->CreationDate;
+        Comments = orig->Comments;
+        Product = orig->Product;
+        Copyright = orig->Copyright;
+        Artists = orig->Artists;
+        Genre = orig->Genre;
+        Keywords = orig->Keywords;
+        Engineer = orig->Engineer;
+        Technician = orig->Technician;
+        Software = orig->Software;
+        Medium = orig->Medium;
+        Source = orig->Source;
+        SourceForm = orig->SourceForm;
+        Commissioned = orig->Commissioned;
+        Subject = orig->Subject;
+        //FIXME: hmm, is copying this pointer a good idea?
+        pFixedStringLengths = orig->pFixedStringLengths;
+    }
 
 
 
@@ -486,6 +523,16 @@ namespace DLS {
         memcpy(pDLSID->abData, &uuid[8], 8);
 #endif
 #endif
+    }
+    
+    /**
+     * Make a deep copy of the Resource object given by @a orig and assign it
+     * to this object.
+     *
+     * @param orig - original Resource object to be copied from
+     */
+    void Resource::CopyAssign(const Resource* orig) {
+        pInfo->CopyAssign(orig->pInfo);
     }
 
 
@@ -612,7 +659,28 @@ namespace DLS {
         pSampleLoops = pNewLoops;
         SampleLoops--;
     }
-
+    
+    /**
+     * Make a deep copy of the Sampler object given by @a orig and assign it
+     * to this object.
+     *
+     * @param orig - original Sampler object to be copied from
+     */
+    void Sampler::CopyAssign(const Sampler* orig) {
+        // copy trivial scalars
+        UnityNote = orig->UnityNote;
+        FineTune = orig->FineTune;
+        Gain = orig->Gain;
+        NoSampleDepthTruncation = orig->NoSampleDepthTruncation;
+        NoSampleCompression = orig->NoSampleCompression;
+        SamplerOptions = orig->SamplerOptions;
+        
+        // copy sample loops
+        if (SampleLoops) delete[] pSampleLoops;
+        pSampleLoops = new sample_loop_t[orig->SampleLoops];
+        memcpy(pSampleLoops, orig->pSampleLoops, orig->SampleLoops * sizeof(sample_loop_t));
+        SampleLoops = orig->SampleLoops;
+    }
 
 
 // *************** Sample ***************
@@ -1029,7 +1097,38 @@ namespace DLS {
         store32(&pData[4], Channel);
         store32(&pData[8], WavePoolTableIndex);
     }
-
+    
+    /**
+     * Make a (semi) deep copy of the Region object given by @a orig and assign
+     * it to this object.
+     *
+     * Note that the sample pointer referenced by @a orig is simply copied as
+     * memory address. Thus the respective sample is shared, not duplicated!
+     *
+     * @param orig - original Region object to be copied from
+     */
+    void Region::CopyAssign(const Region* orig) {
+        // handle base classes
+        Resource::CopyAssign(orig);
+        Articulator::CopyAssign(orig);
+        Sampler::CopyAssign(orig);
+        // handle actual own attributes of this class
+        // (the trivial ones)
+        VelocityRange = orig->VelocityRange;
+        KeyGroup = orig->KeyGroup;
+        Layer = orig->Layer;
+        SelfNonExclusive = orig->SelfNonExclusive;
+        PhaseMaster = orig->PhaseMaster;
+        PhaseGroup = orig->PhaseGroup;
+        MultiChannel = orig->MultiChannel;
+        Channel = orig->Channel;
+        WavePoolTableIndex = orig->WavePoolTableIndex;
+        pSample = orig->pSample;
+        FormatOptionFlags = orig->FormatOptionFlags;
+        WaveLinkOptionFlags = orig->WaveLinkOptionFlags;
+        // handle the last, a bit sensible attribute
+        SetKeyRange(orig->KeyRange.low, orig->KeyRange.high);
+    }
 
 
 // *************** Instrument ***************
@@ -1180,7 +1279,43 @@ namespace DLS {
         RIFF::List* pParent = pCkInstrument->GetParent();
         pParent->DeleteSubChunk(pCkInstrument);
     }
-
+    
+    void Instrument::CopyAssignCore(const Instrument* orig) {
+        // handle base classes
+        Resource::CopyAssign(orig);
+        Articulator::CopyAssign(orig);
+        // handle actual own attributes of this class
+        // (the trivial ones)
+        IsDrum = orig->IsDrum;
+        MIDIBank = orig->MIDIBank;
+        MIDIBankCoarse = orig->MIDIBankCoarse;
+        MIDIBankFine = orig->MIDIBankFine;
+        MIDIProgram = orig->MIDIProgram;
+    }
+    
+    /**
+     * Make a (semi) deep copy of the Instrument object given by @a orig and assign
+     * it to this object.
+     *
+     * Note that all sample pointers referenced by @a orig are simply copied as
+     * memory address. Thus the respective samples are shared, not duplicated!
+     *
+     * @param orig - original Instrument object to be copied from
+     */
+    void Instrument::CopyAssign(const Instrument* orig) {
+        CopyAssignCore(orig);
+        // delete all regions first
+        while (Regions) DeleteRegion(GetFirstRegion());
+        // now recreate and copy regions
+        {
+            RegionList::const_iterator it = orig->pRegions->begin();
+            for (int i = 0; i < orig->Regions; ++i, ++it) {
+                Region* dstRgn = AddRegion();
+                //NOTE: Region does semi-deep copy !
+                dstRgn->CopyAssign(*it);
+            }
+        }
+    }
 
 
 // *************** File ***************

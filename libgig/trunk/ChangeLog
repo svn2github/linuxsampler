@@ -14,6 +14,7 @@ Version CVS HEAD (?)
   * src/gig.cpp:
     - bugfix: VCF velocity dynamic range and VCF velocity curve
       weren't saved correctly
+    - implemented File::AddDuplicateInstrument()
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
