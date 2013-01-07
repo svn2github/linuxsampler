@@ -14,6 +14,7 @@ Version CVS HEAD (?)
   * fixed building on Debian testing (#186)
   * modernized configure script
   * added graphical curves for velocity response and crossfade
+  * added "Duplicate Instrument" function
 
 Version 0.2.0 (2009-07-31)
 

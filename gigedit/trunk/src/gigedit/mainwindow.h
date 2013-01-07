@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006 - 2008 Andreas Persson
+ * Copyright (C) 2006 - 2013 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -345,6 +345,7 @@ protected:
     void on_action_remove_sample();
 
     void on_action_add_instrument();
+    void on_action_duplicate_instrument();
     void on_action_remove_instrument();
 
     LoadDialog* load_dialog;

@@ -179,6 +179,10 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_action_add_instrument)
     );
     actionGroup->add(
+        Gtk::Action::create("DupInstrument", _("_Duplicate Instrument")),
+        sigc::mem_fun(*this, &MainWindow::on_action_duplicate_instrument)
+    );
+    actionGroup->add(
         Gtk::Action::create("RemoveInstrument", Gtk::Stock::REMOVE),
         sigc::mem_fun(*this, &MainWindow::on_action_remove_instrument)
     );
@@ -236,6 +240,7 @@ MainWindow::MainWindow() :
         "  <popup name='PopupMenu'>"
         "    <menuitem action='InstrProperties'/>"
         "    <menuitem action='AddInstrument'/>"
+        "    <menuitem action='DupInstrument'/>"
         "    <separator/>"
         "    <menuitem action='RemoveInstrument'/>"
         "  </popup>"
@@ -1325,6 +1330,31 @@ void MainWindow::on_action_add_instrument() {
     Gtk::TreeModel::Row rowInstr = *iterInstr;
     rowInstr[m_Columns.m_col_name] = instrument->pInfo->Name.c_str();
     rowInstr[m_Columns.m_col_instr] = instrument;
+    file_changed();
+}
+
+void MainWindow::on_action_duplicate_instrument() {
+    if (!file) return;
+    
+    // retrieve the currently selected instrument
+    // (being the original instrument to be duplicated)
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeView.get_selection();
+    Gtk::TreeModel::iterator itSelection = sel->get_selected();
+    if (!itSelection) return;
+    Gtk::TreeModel::Row row = *itSelection;
+    gig::Instrument* instrOrig = row[m_Columns.m_col_instr];
+    if (!instrOrig) return;
+    
+    // duplicate the orginal instrument
+    gig::Instrument* instrNew = file->AddDuplicateInstrument(instrOrig);
+    instrNew->pInfo->Name =
+        instrOrig->pInfo->Name + " (" + _("Copy") + ")";
+        
+    // update instrument tree view
+    Gtk::TreeModel::iterator iterInstr = m_refTreeModel->append();
+    Gtk::TreeModel::Row rowInstr = *iterInstr;
+    rowInstr[m_Columns.m_col_name] = instrNew->pInfo->Name.c_str();
+    rowInstr[m_Columns.m_col_instr] = instrNew;
     file_changed();
 }
 
