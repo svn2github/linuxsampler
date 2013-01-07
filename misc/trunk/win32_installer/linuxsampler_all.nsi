@@ -512,7 +512,14 @@ Section "libgig 3.3.0" Seclibgig
   File bin\64\libstdc++-6.dll
 
   ; shall we install the 32 bit version as well?
-  StrCmp $installing32BitToo "1" libgig686sse done
+  StrCmp $installing32BitToo "1" libgig686sse
+  StrCmp $installingQSampler "1" libgigForQsampler done
+
+  ; QSampler needs the 32 bit libgig dll
+  libgigForQsampler:
+  SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
+  File bin\686sse\libgig-6.dll
+  Goto done
 
   libgig686sse:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
