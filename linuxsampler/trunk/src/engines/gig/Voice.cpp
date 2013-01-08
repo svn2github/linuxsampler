@@ -474,8 +474,14 @@ namespace LinuxSampler { namespace gig {
         // TODO: The SustainPedal condition could be wrong, maybe the
         // check should be if this Voice is in release stage or is a
         // release sample instead. Need to test this in GSt.
-        if (itEvent->Param.Note.Key != MIDIKey ||
-            !GetGigEngineChannel()->SustainPedal) {
+        // -- Andreas
+        //
+        // Commented sustain pedal check out. I don't think voices of the same
+        // note should be stopped at all, because it doesn't sound naturally
+        // with a drumkit.
+        // -- Christian, 2013-01-08
+        if (itEvent->Param.Note.Key != MIDIKey /*||
+            !GetGigEngineChannel()->SustainPedal*/) {
             dmsg(4,("Voice %x - kill", this));
 
             // kill the voice fast

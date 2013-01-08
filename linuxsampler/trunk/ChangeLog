@@ -76,6 +76,8 @@ Version CVS HEAD (?)
       filter parameters in each sub fragment)
     - handle special case when pan parameter in gig file has max or
       min value
+    - Exclusive Groups: don't ever stop voices of the same note,
+      doesn't sound naturally with a drumkit
 
   * SFZ format engine:
     - Initial implementation (not usable yet)
