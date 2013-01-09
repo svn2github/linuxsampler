@@ -42,19 +42,19 @@ bool VelocityCurve::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
         int h = get_height();
 
         for (int pass = 0 ; pass < 2 ; pass++) {
-            for (int x = 0 ; x < w ; x++) {
-                int vel = int(x * 126.0 / w + 1.5);
-                int y = int((1 - (dimreg->*getter)(vel)) * (h - 1));
+            for (double x = 0 ; x <= w ; x++) {
+                int vel = int(x * (127 - 1e-10) / w + 1);
+                double y = (1 - (dimreg->*getter)(vel)) * (h - 3) + 1.5;
 
-                if (x == 0) {
+                if (x < 1e-10) {
                     cr->move_to(x, y);
                 } else {
                     cr->line_to(x, y);
                 }
             }
             if (pass == 0) {
-                cr->line_to(w - 1, h - 1);
-                cr->line_to(0, h - 1);
+                cr->line_to(w, h);
+                cr->line_to(0, h);
                 cr->set_source_rgba(0.5, 0.44, 1.0, 0.2);
                 cr->fill();
             } else {
@@ -86,15 +86,14 @@ bool CrossfadeCurve::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
         int w = get_width();
         int h = get_height();
         
+        cr->translate(1.5, 0);
         for (int pass = 0 ; pass < 2 ; pass++) {
-            cr->move_to(dimreg->Crossfade.in_start / 127.0 * (w - 4) + 2, h);
-            cr->line_to(dimreg->Crossfade.in_end / 127.0 * (w - 4) + 2, 2);
-            cr->line_to(dimreg->Crossfade.out_start / 127.0 * (w - 4) + 2, 2);
-            cr->line_to(dimreg->Crossfade.out_end / 127.0 * (w - 4) + 2, h);
+            cr->move_to(dimreg->Crossfade.in_start / 127.0 * (w - 3), h);
+            cr->line_to(dimreg->Crossfade.in_end / 127.0 * (w - 3), 1.5);
+            cr->line_to(dimreg->Crossfade.out_start / 127.0 * (w - 3), 1.5);
+            cr->line_to(dimreg->Crossfade.out_end / 127.0 * (w - 3), h);
 
             if (pass == 0) {
-                cr->line_to(dimreg->Crossfade.in_start / 127.0 * (w - 4) + 2,
-                            h);
                 cr->set_source_rgba(0.5, 0.44, 1.0, 0.2);
                 cr->fill();
             } else {
