@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2011 Grigor Iliev                                *
+ *   Copyright (C) 2009 - 2013 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -80,6 +80,9 @@ namespace LinuxSampler {
             SNDFILE* pSndFile;
 
             buffer_t RAMCache;        ///< Buffers samples (already uncompressed) in RAM.
+
+            int* pConvertBuffer;
+
             long SetPos(unsigned long FrameCount, int Whence);
     };
 

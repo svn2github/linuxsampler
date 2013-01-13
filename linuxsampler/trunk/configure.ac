@@ -627,10 +627,10 @@ fi
 AC_SUBST(SNDFILE_CFLAGS)
 AC_SUBST(SNDFILE_LIBS)
 
-# Check for Vorbis support in libsndfile
+# Check for Vorbis and FLAC support in libsndfile
 linuxsampler_save_CFLAGS=$CFLAGS
 CFLAGS="$SNDFILE_CFLAGS $CFLAGS"
-AC_CHECK_DECLS([SF_FORMAT_VORBIS], [], [], [[#include <sndfile.h>]])
+AC_CHECK_DECLS([SF_FORMAT_VORBIS, SF_FORMAT_FLAC], [], [], [[#include <sndfile.h>]])
 
 # Check for loop functionality in libsndfile
 AC_CHECK_MEMBERS([SF_INSTRUMENT.loops],,

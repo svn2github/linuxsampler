@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2011 Grigor Iliev                                *
+ *   Copyright (C) 2009 - 2013 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,6 +27,8 @@
 
 #include <cstring>
 
+#define CONVERT_BUFFER_SIZE 4096
+
 namespace LinuxSampler {
     #if CONFIG_DEVMODE
     int SampleFile_OpenFilesCount = 0;
@@ -35,6 +37,7 @@ namespace LinuxSampler {
     SampleFile::SampleFile(String File, bool DontClose) {
         this->File      = File;
         this->pSndFile  = NULL;
+        pConvertBuffer  = NULL;
 
         SF_INFO sfInfo;
         sfInfo.format = 0;
@@ -82,11 +85,19 @@ namespace LinuxSampler {
 #endif
         }
         if(!DontClose) Close();
+
+#if HAVE_DECL_SF_FORMAT_FLAC
+        if (FrameSize == 3 * ChannelCount &&
+            (Format & SF_FORMAT_TYPEMASK) == SF_FORMAT_FLAC) {
+            pConvertBuffer = new int[CONVERT_BUFFER_SIZE];
+        }
+#endif
     }
 
     SampleFile::~SampleFile() {
         Close();
         ReleaseSampleData();
+        delete[] pConvertBuffer;
     }
 
     void SampleFile::Open() {
@@ -170,20 +181,51 @@ namespace LinuxSampler {
         
         if (GetPos() + FrameCount > GetTotalFrameCount()) FrameCount = GetTotalFrameCount() - GetPos(); // For the cases where a different sample end is specified (not the end of the file)
 
-        // ogg files must be read with sf_readf, not sf_read_raw. On
-        // big endian machines, sf_readf_short is also used for 16 bit
-        // wav files, to get automatic endian conversion (for 24 bit
-        // samples this is handled in Synthesize::GetSample instead).
+        // ogg and flac files must be read with sf_readf, not
+        // sf_read_raw. On big endian machines, sf_readf_short is also
+        // used for 16 bit wav files, to get automatic endian
+        // conversion (for 24 bit samples this is handled in
+        // Synthesize::GetSample instead).
 
-#if WORDS_BIGENDIAN || HAVE_DECL_SF_FORMAT_VORBIS
+#if WORDS_BIGENDIAN || HAVE_DECL_SF_FORMAT_VORBIS || HAVE_DECL_SF_FORMAT_FLAC
         if (
 #if WORDS_BIGENDIAN
             FrameSize == 2 * ChannelCount
 #else
-            (Format & SF_FORMAT_SUBMASK) == SF_FORMAT_VORBIS
+#if HAVE_DECL_SF_FORMAT_VORBIS
+            ((Format & SF_FORMAT_SUBMASK) == SF_FORMAT_VORBIS)
+#if HAVE_DECL_SF_FORMAT_FLAC
+            ||
+#endif
+#endif
+#if HAVE_DECL_SF_FORMAT_FLAC
+            (FrameSize == 2 * ChannelCount &&
+             (Format & SF_FORMAT_TYPEMASK) == SF_FORMAT_FLAC)
+#endif
 #endif
             ) {
             return sf_readf_short(pSndFile, static_cast<short*>(pBuffer), FrameCount);
+#if HAVE_DECL_SF_FORMAT_FLAC
+        } else if (FrameSize == 3 * ChannelCount &&
+                   (Format & SF_FORMAT_TYPEMASK) == SF_FORMAT_FLAC) {
+            // 24 bit flac needs to be converted from the 32 bit
+            // integers returned by libsndfile
+            int j = 0;
+            sf_count_t count = FrameCount;
+            const sf_count_t bufsize = CONVERT_BUFFER_SIZE / ChannelCount;
+            unsigned char* const dst = static_cast<unsigned char*>(pBuffer);
+            while (count > 0) {
+                int n = sf_readf_int(pSndFile, pConvertBuffer, std::min(count, bufsize));
+                if (n <= 0) break;
+                for (int i = 0 ; i < n * ChannelCount ; i++) {
+                    dst[j++] = pConvertBuffer[i] >> 8;
+                    dst[j++] = pConvertBuffer[i] >> 16;
+                    dst[j++] = pConvertBuffer[i] >> 24;
+                }
+                count -= n;
+            }
+            return FrameCount - count;
+#endif            
         } else
 #endif
         {
