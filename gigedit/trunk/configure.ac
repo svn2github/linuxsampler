@@ -83,19 +83,9 @@ AC_SUBST(GIG_CFLAGS)
 AC_SUBST(GIG_LIBS)
 
 # check for presence of libsndfile
-PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.2)
+PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.11)
 AC_SUBST(SNDFILE_CFLAGS)
 AC_SUBST(SNDFILE_LIBS)
-
-# check for loop functionality in libsndfile
-gigedit_save_CXXFLAGS=$CXXFLAGS
-CXXFLAGS="$SNDFILE_CFLAGS $CXXFLAGS"
-AC_CHECK_MEMBERS([SF_INSTRUMENT.loops],,
-		 [AC_MSG_WARN([Your version of libsndfile does not support
-    reading of loop information. Gigedit will not be able to
-    extract loop information from sample files.])],
-		 [#include <sndfile.h>])
-CXXFLAGS=$gigedit_save_CXXFLAGS
 
 # check for (optional) presence of liblinuxsampler
 liblinuxsampler_version="0.5.0"

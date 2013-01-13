@@ -15,6 +15,7 @@ Version CVS HEAD (?)
   * modernized configure script
   * added graphical curves for velocity response and crossfade
   * added "Duplicate Instrument" function
+  * fixed import of 32 bit float wav files
 
 Version 0.2.0 (2009-07-31)
 

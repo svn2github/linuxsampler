@@ -834,6 +834,7 @@ void MainWindow::__import_queued_samples() {
         SF_INFO info;
         info.format = 0;
         SNDFILE* hFile = sf_open((*iter).sample_path.c_str(), SFM_READ, &info);
+        sf_command(hFile, SFC_SET_SCALE_FLOAT_INT_READ, 0, SF_TRUE);
         try {
             if (!hFile) throw std::string(_("could not open file"));
             // determine sample's bit depth
@@ -1531,7 +1532,6 @@ void MainWindow::on_action_add_sample() {
                 {
                     sample->MIDIUnityNote = instrument.basenote;
 
-#if HAVE_SF_INSTRUMENT_LOOPS
                     if (instrument.loop_count && instrument.loops[0].mode != SF_LOOP_NONE) {
                         sample->Loops = 1;
 
@@ -1551,7 +1551,6 @@ void MainWindow::on_action_add_sample() {
                         sample->LoopPlayCount = instrument.loops[0].count;
                         sample->LoopSize = sample->LoopEnd - sample->LoopStart + 1;
                     }
-#endif
                 }
 
                 // schedule resizing the sample (which will be done
