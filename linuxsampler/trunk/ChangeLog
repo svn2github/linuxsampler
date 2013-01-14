@@ -234,7 +234,7 @@ Version CVS HEAD (?)
     - fixed support for lochan and hichan opcodes (#155)
     - fixed crash when using lochan/hichan opcodes (#187)
     - sfz parser: allow -200 to 200 for pan_oncc opcode (#182)
-    - added FLAC support (#192)
+    - added FLAC support (#191)
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
