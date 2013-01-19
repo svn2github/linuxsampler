@@ -1433,7 +1433,7 @@ namespace {
                                                         : vcf_res_ctrl_none;
             uint16_t eg3depth = _3ewa->ReadUint16();
             EG3Depth = (eg3depth <= 1200) ? eg3depth /* positives */
-                                        : (-1) * (int16_t) ((eg3depth ^ 0xffff) + 1); /* binary complementary for negatives */
+                                        : (-1) * (int16_t) ((eg3depth ^ 0xfff) + 1); /* binary complementary for negatives */
             _3ewa->ReadInt16(); // unknown
             ChannelOffset = _3ewa->ReadUint8() / 4;
             uint8_t regoptions = _3ewa->ReadUint8();
@@ -1873,7 +1873,7 @@ namespace {
         }
 
         const uint16_t eg3depth = (EG3Depth >= 0) ? EG3Depth
-                                                  : uint16_t(((-EG3Depth) - 1) ^ 0xffff); /* binary complementary for negatives */
+                                                  : uint16_t(((-EG3Depth) - 1) ^ 0xfff); /* binary complementary for negatives */
         store16(&pData[116], eg3depth);
 
         // next 2 bytes unknown
