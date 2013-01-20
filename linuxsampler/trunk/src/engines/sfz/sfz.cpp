@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2008 Anders Dahnielson <anders@dahnielson.com>          *
- *   Copyright (C) 2009 - 2012 Anders Dahnielson and Grigor Iliev          *
+ *   Copyright (C) 2009 - 2013 Anders Dahnielson and Grigor Iliev          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -322,6 +322,7 @@ namespace sfz
         volume_curvecc.clear();
         volume_smoothcc.clear();
         volume_stepcc.clear();
+        amplitude = 100;
         pan = 0;
         pan_oncc.clear();
         pan_curvecc.clear();
@@ -638,6 +639,7 @@ namespace sfz
         region->volume_curvecc = volume_curvecc;
         region->volume_smoothcc = volume_smoothcc;
         region->volume_stepcc = volume_stepcc;
+        region->amplitude = amplitude;
         region->pan = pan;
         region->pan_oncc = pan_oncc;
         region->pan_curvecc = pan_curvecc;
@@ -892,10 +894,10 @@ namespace sfz
 
             // DEFINITION
             std::stringstream linestream(line);
-            linestream >> std::noskipws;
             int spaces = 0;
             while (linestream >> token)
             {
+                linestream >> std::noskipws;
                 if (token[0] == '<' && token[token.size()-1] == '>')
                 {
                     // HEAD
@@ -1395,6 +1397,7 @@ namespace sfz
 
         // amplifier
         else if ("volume"   == key) pCurDef->volume = ToFloat(value);
+        else if ("amplitude" == key) pCurDef->amplitude = ToFloat(value);
         else if ("pan"      == key) pCurDef->pan = ToFloat(value);
         else if ("width"    == key) pCurDef->width = ToFloat(value);
         else if ("position" == key) pCurDef->position = ToFloat(value);

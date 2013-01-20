@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2008 Anders Dahnielson <anders@dahnielson.com>          *
- *   Copyright (C) 2009 - 2012 Anders Dahnielson and Grigor Iliev          *
+ *   Copyright (C) 2009 - 2013 Anders Dahnielson and Grigor Iliev          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -516,6 +516,7 @@ namespace sfz
 
         // amplifier
         float volume;
+        float amplitude;
         float pan;
         float width;
         float position;

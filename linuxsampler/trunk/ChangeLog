@@ -235,6 +235,8 @@ Version CVS HEAD (?)
     - fixed crash when using lochan/hichan opcodes (#187)
     - sfz parser: allow -200 to 200 for pan_oncc opcode (#182)
     - added FLAC support (#191)
+    - sfz parser bugfix: lines starting with whitespace were ignored
+    - added amplitude opcode
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

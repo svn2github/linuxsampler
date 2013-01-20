@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2013 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -134,7 +134,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     double Voice::GetSampleAttenuation() {
-        return exp(LN_10_DIV_20 * pRegion->volume);
+        return exp(LN_10_DIV_20 * pRegion->volume) * pRegion->amplitude / 100;
     }
 
     double Voice::GetVelocityAttenuation(uint8_t MIDIKeyVelocity) {
