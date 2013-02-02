@@ -306,6 +306,10 @@ Version CVS HEAD (?)
 
   * audio driver:
     - ASIO driver fixes for newer gcc versions (fix from PortAudio)
+    - JACK audio: react on sample rate changes.
+    - JACK audio: react on buffer size changes.
+    - JACK audio: jack_port_get_buffer() was cached and called outside
+      RT context.
 
   * LSCP server:
     - added support for sending MIDI CC messages via LSCP command
