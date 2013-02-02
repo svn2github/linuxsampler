@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2013 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -181,9 +181,15 @@ namespace LinuxSampler { namespace gig {
     Voice::EGInfo Voice::CalculateEG1ControllerInfluence(double eg1ControllerValue) {
         EGInfo eg;
         // (eg1attack is different from the others)
-        eg.Attack  = (pRegion->EG1ControllerAttackInfluence)  ?
-            1 + 0.031 * (double) (pRegion->EG1ControllerAttackInfluence == 1 ?
-                                  1 : 1 << pRegion->EG1ControllerAttackInfluence) * eg1ControllerValue : 1.0;
+        if (pRegion->EG1Attack < 1e-8 && // attack in gig == 0
+            (pRegion->EG1ControllerAttackInfluence == 0 ||
+             eg1ControllerValue <= 10)) { // strange GSt special case
+            eg.Attack = 0; // this will force the attack to be 0 in the call to EG1.trigger
+        } else {
+            eg.Attack  = (pRegion->EG1ControllerAttackInfluence)  ?
+                1 + 0.031 * (double) (pRegion->EG1ControllerAttackInfluence == 1 ?
+                                      1 : 1 << pRegion->EG1ControllerAttackInfluence) * eg1ControllerValue : 1.0;
+        }
         eg.Decay   = (pRegion->EG1ControllerDecayInfluence)   ? 1 + 0.00775 * (double) (1 << pRegion->EG1ControllerDecayInfluence)   * eg1ControllerValue : 1.0;
         eg.Release = (pRegion->EG1ControllerReleaseInfluence) ? 1 + 0.00775 * (double) (1 << pRegion->EG1ControllerReleaseInfluence) * eg1ControllerValue : 1.0;
 
@@ -444,13 +450,13 @@ namespace LinuxSampler { namespace gig {
 
     void Voice::TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) {
         EG1.trigger(pRegion->EG1PreAttack,
-                    pRegion->EG1Attack * egInfo.Attack,
+                    RTMath::Max(pRegion->EG1Attack, 0.0316) * egInfo.Attack,
                     pRegion->EG1Hold,
                     pRegion->EG1Decay1 * egInfo.Decay * velrelease,
                     pRegion->EG1Decay2 * egInfo.Decay * velrelease,
                     pRegion->EG1InfiniteSustain,
                     pRegion->EG1Sustain,
-                    pRegion->EG1Release * egInfo.Release * velrelease,
+                    RTMath::Max(pRegion->EG1Release * velrelease, 0.014) * egInfo.Release,
                     velocityAttenuation,
                     sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
     }

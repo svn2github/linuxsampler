@@ -78,6 +78,7 @@ Version CVS HEAD (?)
       min value
     - Exclusive Groups: don't ever stop voices of the same note,
       doesn't sound naturally with a drumkit
+    - fixed EG1 modulation when attack or release is zero
 
   * SFZ format engine:
     - Initial implementation (not usable yet)

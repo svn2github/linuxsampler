@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -172,11 +172,11 @@ namespace LinuxSampler { namespace gig {
         Stage   = stage_attack;
         Segment = segment_lin;
 
-        if (AttackTime >= 0.0005f) {
+        if (AttackTime >= 1e-8) {
             // Measurements of GSt output shows that the real attack time
             // is about 65.5% of the value specified in the gig file.
-            // The minimum attack value used is 0.032.
-            StepsLeft = int(0.655f * RTMath::Max(AttackTime, 0.032f) * SampleRate);
+            // The minimum attack value used is 0.0316.
+            StepsLeft = int(0.655f * RTMath::Max(AttackTime, 0.0316f) * SampleRate);
             Level = (float) PreAttack / 1000.0;
             Coeff = 0.896f * (1.0f - Level) / StepsLeft; // max level is a bit lower if attack != 0
         } else { // attack is zero - immediately jump to the next stage
