@@ -75,6 +75,13 @@ namespace LinuxSampler {
              * the same InstrumentManager object.
              */
             virtual InstrumentManager* GetInstrumentManager() = 0;
+        
+            /**
+             * Will be called by audio output drivers in case some
+             * fundamental audio driver parameter like sample rate or
+             * max. samples per cycle changed.
+             */
+            virtual void ReconnectAudioOutputDevice() = 0;
 
         protected:
             virtual ~Engine() {}; // MUST only be destroyed by EngineFactory

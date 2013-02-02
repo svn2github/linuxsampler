@@ -240,6 +240,18 @@ namespace LinuxSampler {
             //pEngine->DisconnectAudioOutputDevice();
         }
     }
+    
+    void AudioOutputDevice::ReconnectAll() {
+        // copy by value, not by reference here !
+        std::set<Engine*> engines = Engines.GetConfigForUpdate();
+        {
+            std::set<Engine*>::iterator iterEngine = engines.begin();
+            std::set<Engine*>::iterator end        = engines.end();
+            for (; iterEngine != end; iterEngine++) {
+                (*iterEngine)->ReconnectAudioOutputDevice();
+            }
+        }
+    }
 
     AudioChannel* AudioOutputDevice::Channel(uint ChannelIndex) {
         return (ChannelIndex < Channels.size()) ? Channels[ChannelIndex] : NULL;
@@ -314,6 +326,10 @@ namespace LinuxSampler {
     // TODO: to be removed
     uint AudioOutputDevice::MasterEffectChainCount() const {
         return SendEffectChainCount();
+    }
+    
+    float AudioOutputDevice::latency() {
+        return float(MaxSamplesPerCycle()) / float(SampleRate());
     }
 
     int AudioOutputDevice::RenderAudio(uint Samples) {

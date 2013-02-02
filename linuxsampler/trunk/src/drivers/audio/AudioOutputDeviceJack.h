@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -86,6 +86,7 @@ namespace LinuxSampler {
                 protected:
                     AudioChannelJack(uint ChannelNr, AudioOutputDeviceJack* pDevice) throw (AudioOutputException);
                     ~AudioChannelJack();
+                    void UpdateJackBuffer(uint size);
                     friend class AudioOutputDeviceJack;
                 private:
                     AudioOutputDeviceJack* pDevice;
@@ -121,7 +122,7 @@ namespace LinuxSampler {
             virtual uint MaxSamplesPerCycle();
             virtual uint SampleRate();
             virtual AudioChannel* CreateChannel(uint ChannelNr);
-
+            virtual float latency();
 
             static String Name();
 
@@ -131,6 +132,7 @@ namespace LinuxSampler {
             static String Version();
 
             int Process(uint Samples);  // FIXME: should be private
+            void UpdateJackBuffers(uint size);
         protected:
             AudioOutputDeviceJack(String* AutoConnectPortIDs = NULL, uint AutoConnectPorts = 0);
         private:
@@ -182,6 +184,10 @@ namespace LinuxSampler {
 
             JackClient(String Name);
             ~JackClient();
+        
+            // Callback functions for the libjack API
+            static int libjackSampleRateCallback(jack_nframes_t nframes, void *arg);
+            static int libjackBufferSizeCallback(jack_nframes_t nframes, void *arg);
     };
 }
 

@@ -181,6 +181,23 @@ namespace LinuxSampler {
              * AcquireChannels(). Each driver must implement it.
              */
             virtual AudioChannel* CreateChannel(uint ChannelNr) = 0;
+        
+            /**
+             * Might be optionally implemented by the deriving driver. If
+             * implemented, this method will return the current audio
+             * latency in seconds. The driver might measure the actual
+             * latency with timing functions to return the real latency.
+             *
+             * If this method is not implemented / overridden by the
+             * descending driver, it will simply return the theoretical
+             * latency, that is MaxSamplesPerCycle() / SampleRate().
+             *
+             * Currently this method is not used by the sampler itself.
+             * It can be used however for GUIs built on top of the sampler
+             * for example, to i.e. display the user the currently
+             * effective audio latency in real-time.
+             */
+            virtual float latency();
 
 
 
@@ -206,6 +223,20 @@ namespace LinuxSampler {
              * @param pEngine - sampler engine
              */
             void Disconnect(Engine* pEngine);
+        
+            /**
+             * This method can or should be called by the deriving driver in
+             * case some fundamental parameter changed, especially if the
+             * values returned by MaxSamplesPerCycle() and SamplerRate() have
+             * changed, those are values which the sampler engines assume to be
+             * constant for the life time of an audio device !
+             *
+             * By forcing a re-connection with this method, the sampler engines
+             * are forced to update those informations metntioned above as well,
+             * avoiding crashes or other undesired misbehaviors in such
+             * circumstances.
+             */
+            void ReconnectAll();
 
             /**
              * Returns audio channel with index \a ChannelIndex or NULL if

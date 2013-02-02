@@ -368,6 +368,13 @@ namespace LinuxSampler {
                 pDedicatedVoiceChannelLeft  = new AudioChannel(0, MaxSamplesPerCycle);
                 pDedicatedVoiceChannelRight = new AudioChannel(1, MaxSamplesPerCycle);
             }
+        
+            // Implementattion for abstract method derived from Engine.
+            virtual void ReconnectAudioOutputDevice() {
+                SuspendAll();
+                if (pAudioOutputDevice) Connect(pAudioOutputDevice);
+                ResumeAll();
+            }
 
             /**
              * Similar to @c Disable() but this method additionally kills all voices

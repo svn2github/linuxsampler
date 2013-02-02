@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -120,6 +120,12 @@ namespace LinuxSampler {
         if (!hJackPort) throw AudioOutputException("Jack: Cannot register Jack output port.");
         return (float*) jack_port_get_buffer(hJackPort, pDevice->uiMaxSamplesPerCycle);
     }
+    
+    void AudioOutputDeviceJack::AudioChannelJack::UpdateJackBuffer(uint size) {
+        SetBuffer(
+           (float*)jack_port_get_buffer(hJackPort, size)
+        );
+    }
 
 
 
@@ -203,6 +209,11 @@ namespace LinuxSampler {
      */
     int AudioOutputDeviceJack::Process(uint Samples) {
         int res;
+        
+        // in recent versions of JACK2 and JACk1, we are forced to
+        // re-retrieve the audio buffer pointers in each process period
+        UpdateJackBuffers(Samples);
+        
         if (csIsPlaying.Pop()) {
             // let all connected engines render 'Samples' sample points
             res = RenderAudio(Samples);
@@ -213,6 +224,18 @@ namespace LinuxSampler {
         }
         csIsPlaying.RttDone();
         return res;
+    }
+    
+    void AudioOutputDeviceJack::UpdateJackBuffers(uint size) {
+        for (int i = 0; i < Channels.size(); ++i)
+            static_cast<AudioChannelJack*>(Channels[i])->UpdateJackBuffer(size);
+    }
+    
+    float AudioOutputDeviceJack::latency() {
+        if (!hJackClient) return -1;
+        const float size = jack_get_buffer_size(hJackClient);
+        const float rate = jack_get_sample_rate(hJackClient);
+        return size / rate;
     }
 
     void AudioOutputDeviceJack::Play() {
@@ -271,6 +294,27 @@ namespace LinuxSampler {
         static_cast<JackClient*>(arg)->Stop();
         fprintf(stderr, "Jack: Jack server shutdown, exiting.\n");
     }
+    
+    int JackClient::libjackSampleRateCallback(jack_nframes_t nframes, void *arg) {
+        JackClient* client = static_cast<JackClient*>(arg);
+        const config_t& config = client->ConfigReader.Lock();
+        if (config.AudioDevice)
+            config.AudioDevice->ReconnectAll();
+        client->ConfigReader.Unlock();
+        return 0;
+    }
+    
+    int JackClient::libjackBufferSizeCallback(jack_nframes_t nframes, void *arg) {
+        dmsg(1,("libjackBufferSizeCallback(%d)\n",nframes));
+        JackClient* client = static_cast<JackClient*>(arg);
+        const config_t& config = client->ConfigReader.Lock();
+        if (config.AudioDevice) {
+            config.AudioDevice->UpdateJackBuffers(nframes);
+            config.AudioDevice->ReconnectAll();
+        }
+        client->ConfigReader.Unlock();
+        return 0;
+    }
 
     std::map<String, JackClient*> JackClient::Clients;
 
@@ -317,6 +361,9 @@ namespace LinuxSampler {
             throw Exception("Seems Jack server is not running.");
         jack_set_process_callback(hJackClient, linuxsampler_libjack_process_callback, this);
         jack_on_shutdown(hJackClient, linuxsampler_libjack_shutdown_callback, this);
+        jack_set_buffer_size_callback(hJackClient, libjackBufferSizeCallback, this);
+        jack_set_sample_rate_callback(hJackClient, libjackSampleRateCallback, this);
+        
         if (jack_activate(hJackClient))
             throw Exception("Jack: Cannot activate Jack client.");
     }
