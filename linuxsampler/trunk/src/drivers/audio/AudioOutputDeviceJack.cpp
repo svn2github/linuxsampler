@@ -80,7 +80,7 @@ namespace LinuxSampler {
         // disconnect all current bindings first
         for (int i = 0; i < Bindings.size(); i++) {
             String dst_name = Bindings[i];
-            int res = jack_disconnect(pChannel->pDevice->hJackClient, src_name.c_str(), dst_name.c_str());
+            /*int res =*/ jack_disconnect(pChannel->pDevice->hJackClient, src_name.c_str(), dst_name.c_str());
         }
         // connect new bindings
         for (int i = 0; i < vS.size(); i++) {
@@ -184,7 +184,7 @@ namespace LinuxSampler {
      * @see AcquireChannels()
      */
     AudioOutputDeviceJack::AudioOutputDeviceJack(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(Parameters) {
-        JackClient* pJackClient = JackClient::CreateAudio(((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString());
+        pJackClient = JackClient::CreateAudio(((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString());
         existingJackDevices++;
         pJackClient->SetAudioOutputDevice(this);
         hJackClient = pJackClient->hJackClient;
@@ -237,6 +237,10 @@ namespace LinuxSampler {
         const float rate = jack_get_sample_rate(hJackClient);
         return size / rate;
     }
+    
+    jack_client_t* AudioOutputDeviceJack::jackClientHandle() {
+        return hJackClient;
+    }
 
     void AudioOutputDeviceJack::Play() {
         csIsPlaying.PushAndUnlock(true);
@@ -260,6 +264,10 @@ namespace LinuxSampler {
 
     uint AudioOutputDeviceJack::SampleRate() {
         return jack_get_sample_rate(hJackClient);
+    }
+    
+    void AudioOutputDeviceJack::addListener(JackListener* listener) {
+        pJackClient->addListener(listener);
     }
 
     String AudioOutputDeviceJack::Name() {
@@ -290,9 +298,14 @@ namespace LinuxSampler {
         return static_cast<JackClient*>(arg)->Process(nframes);
     }
 
-    void linuxsampler_libjack_shutdown_callback(void* arg) {
-        static_cast<JackClient*>(arg)->Stop();
+    void JackClient::libjackShutdownCallback(void* arg) {
+        JackClient* jackClient = static_cast<JackClient*>(arg);
+        jackClient->Stop();
         fprintf(stderr, "Jack: Jack server shutdown, exiting.\n");
+        for (int i = 0; i < jackClient->jackListeners.size(); ++i) {
+            JackListener* listener = jackClient->jackListeners[i];
+            listener->onJackShutdown();
+        }
     }
     
     int JackClient::libjackSampleRateCallback(jack_nframes_t nframes, void *arg) {
@@ -314,6 +327,10 @@ namespace LinuxSampler {
         }
         client->ConfigReader.Unlock();
         return 0;
+    }
+    
+    void JackClient::addListener(JackListener* listener) {
+        jackListeners.push_back(listener);
     }
 
     std::map<String, JackClient*> JackClient::Clients;
@@ -360,7 +377,7 @@ namespace LinuxSampler {
         if (!hJackClient)
             throw Exception("Seems Jack server is not running.");
         jack_set_process_callback(hJackClient, linuxsampler_libjack_process_callback, this);
-        jack_on_shutdown(hJackClient, linuxsampler_libjack_shutdown_callback, this);
+        jack_on_shutdown(hJackClient, libjackShutdownCallback, this);
         jack_set_buffer_size_callback(hJackClient, libjackBufferSizeCallback, this);
         jack_set_sample_rate_callback(hJackClient, libjackSampleRateCallback, this);
         

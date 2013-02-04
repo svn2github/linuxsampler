@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008, 2010 Christian Schoenebeck                        *
+ *   Copyright (C) 2008, 2010, 2013 Christian Schoenebeck                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -64,6 +64,12 @@ public:
      *
      * This is the perfect place to create the required audio input and
      * output channels! ;-)
+     *
+     * CAUTION: InitEffect() might be called several times! For example it
+     * will be called again if some audio context parameter of the audio
+     * output driver in use, has been changed, like particulary sample rate
+     * changes and max. samples per cycle (period size) changes. So take
+     * care not to create memory leaks due to this circumstance.
      *
      * @param pDevice - audio output device which is going to play the signal
      * @throws Exception - if effect could not be initialized successfully

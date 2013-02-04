@@ -40,6 +40,9 @@
 #endif
 
 namespace LinuxSampler {
+    
+    class JackClient;
+    class JackListener;
 
     /** JACK audio output driver
      *
@@ -133,18 +136,19 @@ namespace LinuxSampler {
 
             int Process(uint Samples);  // FIXME: should be private
             void UpdateJackBuffers(uint size);
+            void addListener(JackListener* listener);
+            jack_client_t* jackClientHandle();
         protected:
             AudioOutputDeviceJack(String* AutoConnectPortIDs = NULL, uint AutoConnectPorts = 0);
         private:
             ConditionServer csIsPlaying;
             uint            uiMaxSamplesPerCycle;
             jack_client_t*  hJackClient;
+            JackClient* pJackClient;
     };
 
     // Callback functions for the libjack API
     int  linuxsampler_libjack_process_callback(jack_nframes_t nframes, void* arg);
-    void linuxsampler_libjack_shutdown_callback(void* arg);
-
 
     /** JACK client
      *
@@ -166,10 +170,12 @@ namespace LinuxSampler {
             #if HAVE_JACK_MIDI
             void SetMidiInputDevice(MidiInputDeviceJack* device);
             #endif
+            void addListener(JackListener* listener);
 
             jack_client_t* hJackClient;
 
         private:
+            std::vector<JackListener*> jackListeners;
             static std::map<String, JackClient*> Clients;
             struct config_t {
                 AudioOutputDeviceJack* AudioDevice;
@@ -186,8 +192,22 @@ namespace LinuxSampler {
             ~JackClient();
         
             // Callback functions for the libjack API
+            static void libjackShutdownCallback(void* arg);
             static int libjackSampleRateCallback(jack_nframes_t nframes, void *arg);
             static int libjackBufferSizeCallback(jack_nframes_t nframes, void *arg);
+    };
+    
+    /**
+     * Currently not derived / instantiated by the sampler itself, however this
+     * class can be subclassed and used i.e. by a GUI build on top of the sampler,
+     * to react on JACK events. Because registering JACK callback functions through
+     * the general JACK API is not possible after the JACK client has been activated,
+     * and the latter is already the case as soon as an AudioOutputDeviceJack object
+     * has been instantiated.
+     */
+    class JackListener {
+    public:
+        virtual void onJackShutdown() = 0;
     };
 }
 

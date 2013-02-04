@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2008 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -39,7 +39,7 @@ public:
      * Constructor.
      *
      * @param pDevice - audio output context for the effects, providing
-     *                  informations like samplerate
+     *                  informations like samplerate and buffer size
      * @param iEffectChainId - (optional) numerical ID of the effect chain,
      *                         intended for master effect chains, unique among
      *                         all master effect chains which share the same
@@ -97,6 +97,18 @@ public:
      * Whether the given effect is currently enabled.
      */
     bool IsEffectActive(int iChainPos) const;
+    
+    /**
+     * Should / will be called whenever the effect chaing is moving to
+     * another audio output device and also when an important audio
+     * parameter like sample rate or buffer size has been changed.
+     * Calling this method will cause all effects to inform about this
+     * change and prepare them for the new given audio output device.
+     *
+     * @param pDevice - audio output context for the effects, providing
+     *                  informations like samplerate and buffer size
+     */
+    void Reconnect(AudioOutputDevice* pDevice);
 
     /**
      * Clears the audio input and output channels of all effects in the chain.

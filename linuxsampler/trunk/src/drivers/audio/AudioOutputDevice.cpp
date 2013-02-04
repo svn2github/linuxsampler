@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -250,6 +250,14 @@ namespace LinuxSampler {
             for (; iterEngine != end; iterEngine++) {
                 (*iterEngine)->ReconnectAudioOutputDevice();
             }
+        }
+        
+        // update all effects as well
+        for (std::vector<EffectChain*>::iterator it = vEffectChains.begin();
+             it != vEffectChains.end(); ++it)
+        {
+            EffectChain* pChain = *it;
+            pChain->Reconnect(this);
         }
     }
 
