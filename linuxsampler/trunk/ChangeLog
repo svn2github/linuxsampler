@@ -390,6 +390,8 @@ Version CVS HEAD (?)
       playing a note in a key group
     - fixed erroneous error message piping in VoiceBase.h
       (labelled "Disk stream not available in time")
+    - Update effects on sample rate & period size changes (to avoid
+      crashes and noise on such transitions).
 
 Version 1.0.0 (31 July 2009)
 
