@@ -23,6 +23,7 @@ Version CVS HEAD (?)
     - fixed linkage error when building with
       LDFLAGS="-Wl,--no-undefined" (#190)
     - fixed compilation with Clang 3.2
+    - removed usage of deprecated Automake variable INCLUDES
 
   * general changes:
     - Refactoring: moved the independent code from
@@ -310,6 +311,7 @@ Version CVS HEAD (?)
     - JACK audio: react on buffer size changes.
     - JACK audio: jack_port_get_buffer() was cached and called outside
       RT context.
+    - ASIO driver: removed compiler warnings
 
   * LSCP server:
     - added support for sending MIDI CC messages via LSCP command

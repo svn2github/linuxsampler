@@ -1,5 +1,5 @@
 # set the include path found by configure
-INCLUDES= $(all_includes) $(GIG_CFLAGS) $(SQLITE3_CFLAGS)
+AM_CPPFLAGS= $(all_includes) $(GIG_CFLAGS) $(SQLITE3_CFLAGS)
 
 if HAVE_WINDOWS
 system_libs =

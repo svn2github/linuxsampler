@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -89,7 +89,7 @@ namespace LinuxSampler { //
                     ParameterSampleRate(String s);
                     virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
                     virtual optional<int> DefaultAsInt(std::map<String,String> Parameters);
-					virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
             };
 
             /** Device Parameters 'CHANNELS'
@@ -129,9 +129,9 @@ namespace LinuxSampler { //
 
             };
 
-			// make protected method public
-			AudioOutputDevice::RenderAudio;
-            AudioOutputDevice::Channels;
+            // make protected methods public
+            using AudioOutputDevice::RenderAudio;
+            using AudioOutputDevice::Channels;
 
 
         protected:
@@ -141,7 +141,7 @@ namespace LinuxSampler { //
             uint                 uiAsioChannels;
             uint                 uiSamplerate;
             uint                 FragmentSize;
-   			bool asioIsPlaying;
+            bool asioIsPlaying;
 
             static void bufferSwitch(long index, ASIOBool processNow);
             static ASIOTime* bufferSwitchTimeInfo(ASIOTime *timeInfo, long index, ASIOBool processNow);

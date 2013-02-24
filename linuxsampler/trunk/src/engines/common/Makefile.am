@@ -1,4 +1,4 @@
-INCLUDES = $(all_includes) $(SNDFILE_CFLAGS) $(GIG_CFLAGS)
+AM_CPPFLAGS = $(all_includes) $(SNDFILE_CFLAGS) $(GIG_CFLAGS)
 METASOURCES = AUTO
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)

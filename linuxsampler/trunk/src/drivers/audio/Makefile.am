@@ -57,7 +57,7 @@ liblinuxsampleraudiodriverinclude_HEADERS = \
 	AudioChannel.h \
 	AudioOutputDevice.h
 
-INCLUDES = $(all_includes) $(arts_includes) $(asio_includes) $(jack_includes)
+AM_CPPFLAGS = $(all_includes) $(arts_includes) $(asio_includes) $(jack_includes)
 
 noinst_LTLIBRARIES = liblinuxsampleraudiodriver.la
 liblinuxsampleraudiodriver_la_SOURCES = \

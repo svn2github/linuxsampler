@@ -1,4 +1,4 @@
-INCLUDES = $(all_includes) $(GIG_CFLAGS) $(LIB_SF2)
+AM_CPPFLAGS = $(all_includes) $(GIG_CFLAGS) $(LIB_SF2)
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH) -DCONFIG_PLUGIN_DIR=\"$(config_plugin_dir)\"
 METASOURCES = AUTO
 SUBDIRS = gig sf2 sfz common

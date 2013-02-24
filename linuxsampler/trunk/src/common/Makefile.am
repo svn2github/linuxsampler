@@ -1,4 +1,4 @@
-INCLUDES = $(all_includes)
+AM_CPPFLAGS = $(all_includes)
 METASOURCES = AUTO
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
