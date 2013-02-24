@@ -4,7 +4,7 @@ plugindir = $(libdir)/au
 examples_dir = $(DEVELOPER_EXTRAS_DIR)
 au_public_dir = $(examples_dir)/CoreAudio/AudioUnits/AUPublic
 ca_public_dir = $(examples_dir)/CoreAudio/PublicUtility
-AM_CPPFLAGS = -I$(au_public_dir)/AUBase -I$(au_public_dir)/OtherBases \
+LinuxSamplerAU_CPPFLAGS = -I$(au_public_dir)/AUBase -I$(au_public_dir)/OtherBases \
     -I$(au_public_dir)/Utility -I$(ca_public_dir) $(GIG_CFLAGS) $(SQLITE3_CFLAGS) $(SNDFILE_CFLAGS)
 
 noinst_PROGRAMS = LinuxSamplerAU
@@ -62,7 +62,7 @@ else
 AUFLAGS = $(GIG_LIBS) $(JACK_LIBS) $(SQLITE3_LIBS) $(SNDFILE_LIBS)
 endif
 
-LinuxSamplerAU_CPPFLAGS = $(debug_messages)
+LinuxSamplerAU_CPPFLAGS += $(debug_messages)
 LinuxSamplerAU_LDFLAGS = -bundle $(AUFLAGS) \
     -exported_symbols_list $(srcdir)/PluginAU.exp \
     -framework CoreServices -framework CoreMIDI -framework CoreAudio \
