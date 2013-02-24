@@ -1,4 +1,4 @@
-INCLUDES = $(all_includes)
+AM_CPPFLAGS = $(all_includes)
 
 EXTRA_PROGRAMS = libgigtests
 libgigtests_SOURCES = \

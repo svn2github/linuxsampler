@@ -4,6 +4,7 @@ Version CVS HEAD (?)
     - Mac OS X: link with CoreFoundation (for the UUID function)
     - removed gcc 4.7 warnings
     - modernized configure script
+    - removed usage of deprecated Automake variable INCLUDES
 
   * SoundFont file format
     - initial implementation
