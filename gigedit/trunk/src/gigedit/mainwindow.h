@@ -46,24 +46,12 @@
 
 class MainWindow;
 
-class Table : public Gtk::Table
-{
-public:
-    Table(int x, int y);
-    void add(BoolEntry& boolentry);
-    void add(BoolEntryPlus6& boolentry);
-    void add(LabelWidget& labelwidget);
-private:
-    int rowno;
-};
-
-class PropDialog : public Gtk::Window {
+class PropDialog : public Gtk::Window,
+                   public PropEditor<DLS::Info> {
 public:
     PropDialog();
     void set_info(DLS::Info* info);
-    sigc::signal<void>& signal_info_changed();
 protected:
-    sigc::signal<void> info_changed;
     StringEntry eName;
     StringEntry eCreationDate;
     StringEntryMultiLine eComments;
@@ -84,71 +72,17 @@ protected:
     Gtk::HButtonBox buttonBox;
     Gtk::Button quitButton;
     Table table;
-    int update_model;
-    DLS::Info* info;
-
-    template<typename T>
-    void set_member(T value, T DLS::Info::* member) {
-        if (update_model == 0) {
-            info->*member = value;
-            info_changed();
-        }
-    }
-
-    template<typename C, typename T>
-    void connect(C& widget, T DLS::Info::* member) {
-        widget.signal_value_changed().connect(
-            sigc::compose(
-                sigc::bind(sigc::mem_fun(*this, &PropDialog::set_member<T>), member),
-                sigc::mem_fun(widget, &C::get_value)));
-    }
 };
 
-class InstrumentProps : public Gtk::Window {
+class InstrumentProps : public Gtk::Window,
+                        public PropEditor<gig::Instrument> {
 public:
     InstrumentProps();
     void set_instrument(gig::Instrument* instrument);
-    sigc::signal<void>& signal_instrument_changed();
 protected:
-    gig::Instrument* instrument;
-    int update_model;
-
-    template<typename T>
-    void set_value(T value, sigc::slot<void, InstrumentProps*, T> setter) {
-        if (update_model == 0) {
-            setter(this, value);
-            instrument_changed();
-        }
-    }
-
-    template<typename C, typename T>
-    void connect(C& widget, T gig::Instrument::* member) {
-        widget.signal_value_changed().connect(
-            sigc::compose(
-                sigc::bind(sigc::mem_fun(*this, &InstrumentProps::set_value<T>),
-                           sigc::bind(sigc::mem_fun(&InstrumentProps::set_member<T>), member)),
-                sigc::mem_fun(widget, &C::get_value)));
-    }
-
-    template<typename C, typename T>
-    void connect(C& widget, void (InstrumentProps::*setter)(T)) {
-        widget.signal_value_changed().connect(
-            sigc::compose(
-                sigc::bind(sigc::mem_fun(*this, &InstrumentProps::set_value<T>),
-                           sigc::mem_fun(setter)),
-                sigc::mem_fun(widget, &C::get_value)));
-    }
-
-    template<typename T>
-    void set_member(T value, T gig::Instrument::* member) {
-        instrument->*member = value;
-    }
-
     void set_IsDrum(bool value);
     void set_MIDIBank(uint16_t value);
     void set_MIDIProgram(uint32_t value);
-    void set_DimensionKeyRange_low(uint8_t value);
-    void set_DimensionKeyRange_high(uint8_t value);
 
     Gtk::VBox vbox;
     Gtk::HButtonBox buttonBox;
@@ -166,7 +100,6 @@ protected:
     BoolEntry ePianoReleaseMode;
     NoteEntry eDimensionKeyRangeLow;
     NoteEntry eDimensionKeyRangeHigh;
-    sigc::signal<void> instrument_changed;
 };
 
 class LoadDialog : public Gtk::Dialog {
@@ -313,7 +246,6 @@ protected:
     Gtk::CheckButton dimreg_stereo;
     DimRegionEdit dimreg_edit;
 
-    Gtk::Notebook m_Notebook;
     Gtk::Notebook m_TreeViewNotebook;
 
     struct SampleImportItem {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2011 Andreas Persson
+ * Copyright (C) 2006-2013 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -86,6 +86,7 @@ NumEntry::NumEntry(const char* labelText, double lower, double upper,
     scale(adjust),
     spinbutton(adjust)
 {
+    scale.set_size_request(70);
     spinbutton.set_digits(decimals);
     spinbutton.set_value(0);
     scale.set_draw_value(false);
@@ -188,6 +189,7 @@ void NumEntryPermille::set_value(uint16_t value)
 NoteEntry::NoteEntry(const char* labelText) :
     NumEntryTemp<uint8_t>(labelText)
 {
+    spinbutton.set_width_chars(4);
     spinbutton.signal_input().connect(
         sigc::mem_fun(*this, &NoteEntry::on_input));
     spinbutton.signal_output().connect(
@@ -353,4 +355,30 @@ void StringEntryMultiLine::set_value(gig::String value)
     for (int i = 0 ; (i = value.find("\x0d\x0a", i, 2)) >= 0 ; i++)
         value.replace(i, 2, "\x0a");
     text_buffer->set_text(value);
+}
+
+
+Table::Table(int x, int y) : Gtk::Table(x, y), rowno(0) {  }
+
+void Table::add(BoolEntry& boolentry)
+{
+    attach(boolentry.widget, 0, 2, rowno, rowno + 1,
+           Gtk::FILL, Gtk::SHRINK);
+    rowno++;
+}
+
+void Table::add(BoolEntryPlus6& boolentry)
+{
+    attach(boolentry.widget, 0, 2, rowno, rowno + 1,
+           Gtk::FILL, Gtk::SHRINK);
+    rowno++;
+}
+
+void Table::add(LabelWidget& prop)
+{
+    attach(prop.label, 1, 2, rowno, rowno + 1,
+           Gtk::FILL, Gtk::SHRINK);
+    attach(prop.widget, 2, 3, rowno, rowno + 1,
+           Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK);
+    rowno++;
 }

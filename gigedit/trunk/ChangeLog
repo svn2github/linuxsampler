@@ -16,6 +16,12 @@ Version CVS HEAD (?)
   * added graphical curves for velocity response and crossfade
   * added "Duplicate Instrument" function
   * fixed import of 32 bit float wav files
+  * code refactoring: created a PropEdit class for property editor
+    windows, moved Table class from mainwindow to paramedit
+  * minor gui tweaks: made note entry fields a bit wider, set a
+    minimum width for scales
+  * bug fix: avoid stale information in the instrument properties
+    window when a new file is loaded or the instrument is removed
 
 Version 0.2.0 (2009-07-31)
 

@@ -53,30 +53,6 @@ template<class T> inline std::string ToString(T o) {
     return ss.str();
 }
 
-Table::Table(int x, int y) : Gtk::Table(x, y), rowno(0) {  }
-
-void Table::add(BoolEntry& boolentry)
-{
-    attach(boolentry.widget, 0, 2, rowno, rowno + 1,
-           Gtk::FILL, Gtk::SHRINK);
-    rowno++;
-}
-
-void Table::add(BoolEntryPlus6& boolentry)
-{
-    attach(boolentry.widget, 0, 2, rowno, rowno + 1,
-           Gtk::FILL, Gtk::SHRINK);
-    rowno++;
-}
-
-void Table::add(LabelWidget& prop)
-{
-    attach(prop.label, 1, 2, rowno, rowno + 1,
-           Gtk::FILL, Gtk::SHRINK);
-    attach(prop.widget, 2, 3, rowno, rowno + 1,
-           Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK);
-    rowno++;
-}
 
 MainWindow::MainWindow() :
     dimreg_label(_("Changes apply to:")),
@@ -322,9 +298,9 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::file_changed));
     m_DimRegionChooser.signal_region_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
-    instrumentProps.signal_instrument_changed().connect(
+    instrumentProps.signal_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
-    propDialog.signal_info_changed().connect(
+    propDialog.signal_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
 
     dimreg_edit.signal_dimreg_to_be_changed().connect(
@@ -965,8 +941,7 @@ PropDialog::PropDialog()
       eCommissioned(_("Commissioned")),
       eSubject(_("Subject")),
       quitButton(Gtk::Stock::CLOSE),
-      table(2, 1),
-      update_model(0)
+      table(2, 1)
 {
     set_title(_("File Properties"));
     eName.set_width_chars(50);
@@ -1026,79 +1001,40 @@ PropDialog::PropDialog()
 
 void PropDialog::set_info(DLS::Info* info)
 {
-    this->info = info;
-    update_model++;
-    eName.set_value(info->Name);
-    eCreationDate.set_value(info->CreationDate);
-    eComments.set_value(info->Comments);
-    eProduct.set_value(info->Product);
-    eCopyright.set_value(info->Copyright);
-    eArtists.set_value(info->Artists);
-    eGenre.set_value(info->Genre);
-    eKeywords.set_value(info->Keywords);
-    eEngineer.set_value(info->Engineer);
-    eTechnician.set_value(info->Technician);
-    eSoftware.set_value(info->Software);
-    eMedium.set_value(info->Medium);
-    eSource.set_value(info->Source);
-    eSourceForm.set_value(info->SourceForm);
-    eCommissioned.set_value(info->Commissioned);
-    eSubject.set_value(info->Subject);
-    update_model--;
+    update(info);
 }
 
-sigc::signal<void>& PropDialog::signal_info_changed()
-{
-    return info_changed;
-}
 
 void InstrumentProps::set_IsDrum(bool value)
 {
-    instrument->IsDrum = value;
+    m->IsDrum = value;
 }
 
 void InstrumentProps::set_MIDIBank(uint16_t value)
 {
-    instrument->MIDIBank = value;
+    m->MIDIBank = value;
 }
 
 void InstrumentProps::set_MIDIProgram(uint32_t value)
 {
-    instrument->MIDIProgram = value;
+    m->MIDIProgram = value;
 }
 
-void InstrumentProps::set_DimensionKeyRange_low(uint8_t value)
-{
-    instrument->DimensionKeyRange.low = value;
-    if (value > instrument->DimensionKeyRange.high) {
-        eDimensionKeyRangeHigh.set_value(value);
-    }
-}
-
-void InstrumentProps::set_DimensionKeyRange_high(uint8_t value)
-{
-    instrument->DimensionKeyRange.high = value;
-    if (value < instrument->DimensionKeyRange.low) {
-        eDimensionKeyRangeLow.set_value(value);
-    }
-}
-
-InstrumentProps::InstrumentProps()
-    : update_model(0),
-      quitButton(Gtk::Stock::CLOSE),
-      table(2,1),
-      eName(_("Name")),
-      eIsDrum(_("Is drum")),
-      eMIDIBank(_("MIDI bank"), 0, 16383),
-      eMIDIProgram(_("MIDI program")),
-      eAttenuation(_("Attenuation"), 0, 96, 0, 1),
-      eGainPlus6(_("Gain +6dB"), eAttenuation, -6),
-      eEffectSend(_("Effect send"), 0, 65535),
-      eFineTune(_("Fine tune"), -8400, 8400),
-      ePitchbendRange(_("Pitchbend range"), 0, 12),
-      ePianoReleaseMode(_("Piano release mode")),
-      eDimensionKeyRangeLow(_("Keyswitching range low")),
-      eDimensionKeyRangeHigh(_("Keyswitching range high"))
+InstrumentProps::InstrumentProps() :
+    quitButton(Gtk::Stock::CLOSE),
+    table(2,1),
+    eName(_("Name")),
+    eIsDrum(_("Is drum")),
+    eMIDIBank(_("MIDI bank"), 0, 16383),
+    eMIDIProgram(_("MIDI program")),
+    eAttenuation(_("Attenuation"), 0, 96, 0, 1),
+    eGainPlus6(_("Gain +6dB"), eAttenuation, -6),
+    eEffectSend(_("Effect send"), 0, 65535),
+    eFineTune(_("Fine tune"), -8400, 8400),
+    ePitchbendRange(_("Pitchbend range"), 0, 12),
+    ePianoReleaseMode(_("Piano release mode")),
+    eDimensionKeyRangeLow(_("Keyswitching range low")),
+    eDimensionKeyRangeHigh(_("Keyswitching range high"))
 {
     set_title(_("Instrument Properties"));
 
@@ -1120,10 +1056,8 @@ InstrumentProps::InstrumentProps()
     connect(eFineTune, &gig::Instrument::FineTune);
     connect(ePitchbendRange, &gig::Instrument::PitchbendRange);
     connect(ePianoReleaseMode, &gig::Instrument::PianoReleaseMode);
-    connect(eDimensionKeyRangeLow,
-            &InstrumentProps::set_DimensionKeyRange_low);
-    connect(eDimensionKeyRangeHigh,
-            &InstrumentProps::set_DimensionKeyRange_high);
+    connect(eDimensionKeyRangeLow, eDimensionKeyRangeHigh,
+            &gig::Instrument::DimensionKeyRange);
 
     table.set_col_spacings(5);
 
@@ -1162,28 +1096,15 @@ InstrumentProps::InstrumentProps()
 
 void InstrumentProps::set_instrument(gig::Instrument* instrument)
 {
-    this->instrument = instrument;
+    update(instrument);
 
     update_model++;
-    eName.set_value(instrument->pInfo->Name);
     eIsDrum.set_value(instrument->IsDrum);
     eMIDIBank.set_value(instrument->MIDIBank);
     eMIDIProgram.set_value(instrument->MIDIProgram);
-    eAttenuation.set_value(instrument->Attenuation);
-    eGainPlus6.set_value(instrument->Attenuation);
-    eEffectSend.set_value(instrument->EffectSend);
-    eFineTune.set_value(instrument->FineTune);
-    ePitchbendRange.set_value(instrument->PitchbendRange);
-    ePianoReleaseMode.set_value(instrument->PianoReleaseMode);
-    eDimensionKeyRangeLow.set_value(instrument->DimensionKeyRange.low);
-    eDimensionKeyRangeHigh.set_value(instrument->DimensionKeyRange.high);
     update_model--;
 }
 
-sigc::signal<void>& InstrumentProps::signal_instrument_changed()
-{
-    return instrument_changed;
-}
 
 void MainWindow::file_changed()
 {
@@ -1255,6 +1176,11 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
     // select the first instrument
     Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
     tree_sel_ref->select(Gtk::TreePath("0"));
+
+    gig::Instrument* instrument = get_instrument();
+    if (instrument) {
+        instrumentProps.set_instrument(instrument);
+    }
 }
 
 void MainWindow::show_instr_props()
@@ -1383,6 +1309,13 @@ void MainWindow::on_action_remove_instrument() {
             // remove respective row from instruments tree view
             m_refTreeModel->erase(it);
             file_changed();
+
+            instr = get_instrument();
+            if (instr) {
+                instrumentProps.set_instrument(instr);
+            } else {
+                instrumentProps.hide();
+            }
         } catch (RIFF::Exception e) {
             Gtk::MessageDialog msg(*this, e.Message.c_str(), false, Gtk::MESSAGE_ERROR);
             msg.run();

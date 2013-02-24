@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2011 Andreas Persson
+ * Copyright (C) 2006-2013 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -33,6 +33,7 @@
 #include <gtkmm/label.h>
 #include <gtkmm/scale.h>
 #include <gtkmm/spinbutton.h>
+#include <gtkmm/table.h>
 #include <gtkmm/textview.h>
 
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 12) || GTKMM_MAJOR_VERSION < 2
@@ -302,5 +303,141 @@ public:
     void set_value(gig::String value);
 };
 
+
+/**
+ * Container widget for LabelWidgets.
+ */
+class Table : public Gtk::Table
+{
+public:
+    Table(int x, int y);
+    void add(BoolEntry& boolentry);
+    void add(BoolEntryPlus6& boolentry);
+    void add(LabelWidget& labelwidget);
+private:
+    int rowno;
+};
+
+
+/**
+ * Base class for editor components that use LabelWidgets to edit
+ * member variables of the same class. By connecting the widgets to
+ * members of the model class, the model is automatically kept
+ * updated.
+ */
+template<class M>
+class PropEditor {
+public:
+    sigc::signal<void>& signal_changed() {
+        return sig_changed;
+    }
+protected:
+    M* m;
+    int update_model; // to prevent infinite update loops
+    PropEditor() : update_model(0) { }
+    sigc::signal<void> sig_changed;
+
+    template<class C, typename T>
+    void connect(C& widget, T M::* member) {
+        // gcc 4.1.2 needs this temporary variable to resolve the
+        // address
+        void (PropEditor::*f)(const C* w, T M::* member) =
+            &PropEditor::set_member;
+        widget.signal_value_changed().connect(
+            sigc::bind(sigc::mem_fun(*this, f), &widget, member));
+
+        void (PropEditor::*g)(C* w, T M::* member) =
+            &PropEditor::get_member;
+        sig.connect(
+            sigc::bind(sigc::mem_fun(*this, g), &widget, member));
+    }
+
+    template<class C, class S, typename T>
+    void connect(C& widget, void (S::*setter)(T)) {
+        void (PropEditor::*f)(const C* w, void (S::*setter)(T)) =
+            &PropEditor<M>::call_setter;
+        widget.signal_value_changed().connect(
+            sigc::bind(sigc::mem_fun(*this, f), &widget, setter));
+    }
+
+    void connect(NoteEntry& eKeyRangeLow, NoteEntry& eKeyRangeHigh,
+                 gig::range_t M::* range) {
+        eKeyRangeLow.signal_value_changed().connect(
+            sigc::bind(
+                sigc::mem_fun(*this, &PropEditor::key_range_low_changed),
+                &eKeyRangeLow, &eKeyRangeHigh, range));
+        eKeyRangeHigh.signal_value_changed().connect(
+            sigc::bind(
+                sigc::mem_fun(*this, &PropEditor::key_range_high_changed),
+                &eKeyRangeLow, &eKeyRangeHigh, range));
+        sig.connect(
+            sigc::bind(sigc::mem_fun(*this, &PropEditor::get_key_range),
+                       &eKeyRangeLow, &eKeyRangeHigh, range));
+    }
+
+    void update(M* m) {
+        update_model++;
+        this->m = m;
+        sig.emit();
+        update_model--;
+    }
+
+private:
+    sigc::signal<void> sig;
+
+    void key_range_low_changed(NoteEntry* eKeyRangeLow,
+                               NoteEntry* eKeyRangeHigh,
+                               gig::range_t M::* range) {
+        if (update_model == 0) {
+            uint8_t value = eKeyRangeLow->get_value();
+            (m->*range).low = value;
+            if (value > (m->*range).high) {
+                eKeyRangeHigh->set_value(value);
+            }
+            sig_changed();
+        }
+    }
+
+    void key_range_high_changed(NoteEntry* eKeyRangeLow,
+                                NoteEntry* eKeyRangeHigh,
+                                gig::range_t M::* range) {
+        if (update_model == 0) {
+            uint8_t value = eKeyRangeHigh->get_value();
+            (m->*range).high = value;
+            if (value < (m->*range).low) {
+                eKeyRangeLow->set_value(value);
+            }
+            sig_changed();
+        }
+    }
+
+    template<class C, typename T>
+    void set_member(const C* w, T M::* member) {
+        if (update_model == 0) {
+            m->*member = w->get_value();
+            sig_changed();
+        }
+    }
+
+    template<class C, typename T>
+    void get_member(C* w, T M::* member) {
+        w->set_value(m->*member);
+    }
+
+    void get_key_range(NoteEntry* eKeyRangeLow,
+                       NoteEntry* eKeyRangeHigh,
+                       gig::range_t M::* range) {
+        eKeyRangeLow->set_value((m->*range).low);
+        eKeyRangeHigh->set_value((m->*range).high);
+    }
+
+    template<class C, class S, typename T>
+    void call_setter(const C* w, void (S::*setter)(T)) {
+        if (update_model == 0) {
+            (static_cast<S*>(this)->*setter)(w->get_value());
+            sig_changed();
+        }
+    }
+};
 
 #endif
