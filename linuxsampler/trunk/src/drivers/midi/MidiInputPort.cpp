@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -82,6 +82,7 @@ namespace LinuxSampler {
     {
         this->pDevice = pDevice;
         this->portNumber = portNumber;
+        runningStatusBuf[0] = 0;
         Parameters["NAME"] = new ParameterName(this);
     }
 
@@ -377,8 +378,46 @@ namespace LinuxSampler {
         }
         MidiChannelMapReader.Unlock();
     }
+    
+    /**
+     * Handles the so called MIDI "running status" mode, which allows devices
+     * to reduce bandwidth (data reduction).
+     *
+     * If the passed in MIDI data is regular MIDI data, this method will simply
+     * return the original data pointer and just stores the status byte for
+     * potential "running status" event eventually coming next.
+     *
+     * If the passed in MIDI data however seems to be in "running status" mode,
+     * this method will return another buffer, which allows the MIDI parser
+     * to handle the MIDI data as usually with "normal" MIDI data.
+     */
+    uint8_t* MidiInputPort::handleRunningStatus(uint8_t* pData) {
+        if ((pData[0] & 0x80) || !runningStatusBuf[0]) {
+            // store status byte for eventual "running status" in next event
+            if (pData[0] & 0x80) {
+                if (pData[0] < 0xf0) {
+                    // "running status" is only allowed for channel messages
+                    runningStatusBuf[0] = pData[0];
+                } else if (pData[0] < 0xf8) {
+                    // "system common" messages (0xf0..0xf7) shall reset any running
+                    // status, however "realtime" messages (0xf8..0xff) shall be
+                    // ignored here
+                    runningStatusBuf[0] = 0;
+                }
+            }
+            // it's either a regular status byte, or some invalid "running status"
+            return pData;
+        } else { // "running status" mode ...
+            const uint8_t type = runningStatusBuf[0] & 0xf0;
+            const int size = (type == 0xc0 || type == 0xd0) ? 1 : 2; // only program change & channel pressure have 1 data bytes
+            memcpy(&runningStatusBuf[1], pData, size);
+            return runningStatusBuf;
+        }
+    }
 
     void MidiInputPort::DispatchRaw(uint8_t* pData) {
+        pData = handleRunningStatus(pData);
+        
         uint8_t channel = pData[0] & 0x0f;
         switch (pData[0] & 0xf0) {
         case 0x80:
@@ -412,6 +451,8 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchRaw(uint8_t* pData, int32_t FragmentPos) {
+        pData = handleRunningStatus(pData);
+        
         uint8_t channel = pData[0] & 0x0f;
         switch (pData[0] & 0xf0) {
         case 0x80:

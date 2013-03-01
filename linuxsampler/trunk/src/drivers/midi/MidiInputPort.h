@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -338,7 +338,7 @@ namespace LinuxSampler {
              * Helper function for MIDI input devices that have the
              * MIDI data as raw bytes.
              *
-             * @param pData       - pointer to the raw MIDI data
+             * @param pData - pointer to the raw MIDI data
              */
             void DispatchRaw(uint8_t* pData);
 
@@ -367,6 +367,7 @@ namespace LinuxSampler {
             SynchronizedConfig<std::vector<uint8_t> > noteOnVelocityFilter;
             SynchronizedConfig<std::vector<uint8_t> >::Reader noteOnVelocityFilterReader;
             Mutex noteOnVelocityFilterMutex;
+            uint8_t runningStatusBuf[3];
 
             /**
              * Constructor
@@ -380,8 +381,10 @@ namespace LinuxSampler {
 
             friend class MidiInputDevice;
 
-        private:
+        private:            
             static SynchronizedConfig<std::set<Engine*> > SysexListeners; ///< All engines that are listening to sysex messages.
+            
+            uint8_t* handleRunningStatus(uint8_t* pData);
     };
 
 } // namsepace LinuxSampler

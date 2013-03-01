@@ -246,9 +246,11 @@ void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle,
     data = (unsigned char *)&dwParam1;
 
     switch(uMsg) {
-        case MIM_DATA:
-            DispatchRaw(data);
+        case MIM_DATA: {
+            int32_t timeStamp = (dwParam2) ? *dwParam2 : 0;
+            DispatchRaw(data, timeStamp);
             break;
+        }
 
         case MIM_LONGDATA:
             if(!ExitFlag) {
