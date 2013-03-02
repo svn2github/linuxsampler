@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 Christian Schoenebeck, Grigor Iliev                *
+ *   Copyright (C) 2007 - 2013 Christian Schoenebeck, Grigor Iliev         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,10 +27,10 @@ namespace LinuxSampler {
     WorkerThread::WorkerThread() : Thread(true, false, 0, -4) { }
 
     void WorkerThread::Execute(Runnable* pJob) {
-        mutex.Lock();
-        queue.push_back(pJob);
-        mutex.Unlock();
-
+        {
+            LockGuard lock(mutex);
+            queue.push_back(pJob);
+        }
         StartThread(); // ensure thread is running
         conditionJobsLeft.Set(true); // wake up thread
     }
@@ -39,16 +39,20 @@ namespace LinuxSampler {
     int WorkerThread::Main() {
         while (true) {
 
-	#if CONFIG_PTHREAD_TESTCANCEL
-			TestCancel();
-	#endif
-            while (!queue.empty()) {
+            #if CONFIG_PTHREAD_TESTCANCEL
+            TestCancel();
+            #endif
+            while (true) {
                 Runnable* pJob;
 
                 // grab a new job from the queue
-                mutex.Lock();
-                pJob = queue.front();
-                mutex.Unlock();
+                {
+                    LockGuard lock(mutex);
+                    if (queue.empty()) break;
+
+                    pJob = queue.front();
+                    queue.pop_front();
+                }
 
                 try {
                     pJob->Run();
@@ -58,11 +62,6 @@ namespace LinuxSampler {
                     std::cerr << "WorkerThread: an exception occured, could not finish the job";
                     std::cerr << std::endl << std::flush;
                 }
-
-                // remove processed job from the queue
-                mutex.Lock();
-                queue.pop_front();
-                mutex.Unlock();
 
                 delete pJob;
             }

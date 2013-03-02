@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2006 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -128,12 +128,12 @@ namespace LinuxSampler {
                 Entry.Volume,Entry.LoadMode)
             );
         }
-        midiMapsMutex.Lock();
-        if (midiMaps.empty()) {
-            midiMapsMutex.Unlock();
-            throw Exception("There is no MIDI instrument map, you have to add one first.");
+        {
+            LockGuard lock(midiMapsMutex);
+            if (midiMaps.empty()) {
+                throw Exception("There is no MIDI instrument map, you have to add one first.");
+            }
         }
-        midiMapsMutex.Unlock();
         if (!Entry.InstrumentFile.size())
             throw Exception("No instrument file name given");
         // TODO: an easy one - we should check here if given file exists and throw an exception if it doesn't
@@ -166,21 +166,22 @@ namespace LinuxSampler {
 
         bool Replaced = false;
         int InstrCount = 0;
-
-        midiMapsMutex.Lock();
-        std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
-        if (iterMap != midiMaps.end()) { // map found
-            Replaced = (iterMap->second.find(Index) != iterMap->second.end());
-            iterMap->second[Index] = privateEntry;
-            InstrCount = iterMap->second.size();
-        } else { // no such map
-            midiMapsMutex.Unlock();
-            EngineFactory::Destroy(pEngine);
+        bool MapFound = false;
+        {
+            LockGuard lock(midiMapsMutex);
+            std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
+            if (iterMap != midiMaps.end()) { // map found
+                MapFound = true;
+                Replaced = (iterMap->second.find(Index) != iterMap->second.end());
+                iterMap->second[Index] = privateEntry;
+                InstrCount = iterMap->second.size();
+            }
+        }
+        EngineFactory::Destroy(pEngine);
+        if (!MapFound) {
             throw Exception("There is no MIDI instrument map " + ToString(Map));
         }
-        midiMapsMutex.Unlock();
-        EngineFactory::Destroy(pEngine);
-        
+
         if (Replaced) {
             int Bank = (int(Index.midi_bank_msb) << 7) | int(Index.midi_bank_lsb);
             fireMidiInstrumentInfoChanged(Map, Bank, Index.midi_prog);
@@ -210,10 +211,10 @@ namespace LinuxSampler {
     }
 
     MidiInstrumentMapper::entry_t MidiInstrumentMapper::GetEntry(int Map, uint MidiBank, uint MidiProg) {
-        midiMapsMutex.Lock();
+        LockGuard lock(midiMapsMutex);
+
         std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
         if (iterMap == midiMaps.end()) { // no such map
-            midiMapsMutex.Unlock();
             throw Exception("There is no MIDI instrument map " + ToString(Map));
         }
 
@@ -224,7 +225,6 @@ namespace LinuxSampler {
 
         std::map<midi_prog_index_t,private_entry_t>::iterator iterEntry = iterMap->second.find(idx);
         if (iterEntry == iterMap->second.end()) {
-            midiMapsMutex.Unlock();
             throw Exception("There is no map entry with that index");
         }
 
@@ -238,25 +238,23 @@ namespace LinuxSampler {
         try {
             SetLoadMode(&entry);
         } catch(Exception e) {
-            midiMapsMutex.Unlock();
             throw e;
         }
 
-        midiMapsMutex.Unlock();
-        
         return entry;
     }
 
     void MidiInstrumentMapper::RemoveEntry(int Map, midi_prog_index_t Index) {
         int InstrCount = -1;
+        {
+            LockGuard lock(midiMapsMutex);
 
-        midiMapsMutex.Lock();
-        std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
-        if (iterMap != midiMaps.end()) { // map found
-            iterMap->second.erase(Index); // remove entry
-            InstrCount = iterMap->second.size();
+            std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
+            if (iterMap != midiMaps.end()) { // map found
+                iterMap->second.erase(Index); // remove entry
+                InstrCount = iterMap->second.size();
+            }
         }
-        midiMapsMutex.Unlock();
         
         if (InstrCount != -1) {
             fireMidiInstrumentCountChanged(Map, InstrCount);
@@ -265,14 +263,15 @@ namespace LinuxSampler {
 
     void MidiInstrumentMapper::RemoveAllEntries(int Map) {
         int InstrCount = -1;
+        {
+            LockGuard lock(midiMapsMutex);
 
-        midiMapsMutex.Lock();
-        std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
-        if (iterMap != midiMaps.end()) { // map found
-            iterMap->second.clear(); // clear that map
-            InstrCount = 0;
+            std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
+            if (iterMap != midiMaps.end()) { // map found
+                iterMap->second.clear(); // clear that map
+                InstrCount = 0;
+            }
         }
-        midiMapsMutex.Unlock();
         
         if (InstrCount != -1) {
             fireMidiInstrumentCountChanged(Map, InstrCount);
@@ -283,24 +282,25 @@ namespace LinuxSampler {
         std::map<midi_prog_index_t,entry_t> result;
 
         // copy the internal map first
-        midiMapsMutex.Lock();
-        std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
-        if (iterMap == midiMaps.end()) { // no such map
-            midiMapsMutex.Unlock();
-            throw Exception("There is no MIDI instrument map " + ToString(Map));
-        }
-        for (std::map<midi_prog_index_t,private_entry_t>::iterator iterEntry = iterMap->second.begin();
-             iterEntry != iterMap->second.end(); iterEntry++)
         {
-            entry_t entry;
-            entry.EngineName      = iterEntry->second.EngineName;
-            entry.InstrumentFile  = iterEntry->second.InstrumentFile;
-            entry.InstrumentIndex = iterEntry->second.InstrumentIndex;
-            entry.Volume          = iterEntry->second.Volume;
-            entry.Name            = iterEntry->second.Name;
-            result[iterEntry->first] = entry;
+            LockGuard lock(midiMapsMutex);
+
+            std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
+            if (iterMap == midiMaps.end()) { // no such map
+                throw Exception("There is no MIDI instrument map " + ToString(Map));
+            }
+            for (std::map<midi_prog_index_t,private_entry_t>::iterator iterEntry = iterMap->second.begin();
+                 iterEntry != iterMap->second.end(); iterEntry++)
+            {
+                entry_t entry;
+                entry.EngineName      = iterEntry->second.EngineName;
+                entry.InstrumentFile  = iterEntry->second.InstrumentFile;
+                entry.InstrumentIndex = iterEntry->second.InstrumentIndex;
+                entry.Volume          = iterEntry->second.Volume;
+                entry.Name            = iterEntry->second.Name;
+                result[iterEntry->first] = entry;
+            }
         }
-        midiMapsMutex.Unlock();
 
         // complete it with current LoadMode of each entry
         for (std::map<midi_prog_index_t,entry_t>::iterator iter = result.begin();
@@ -318,52 +318,46 @@ namespace LinuxSampler {
 
     std::vector<int> MidiInstrumentMapper::Maps() {
         std::vector<int> result;
-        midiMapsMutex.Lock();
+        LockGuard lock(midiMapsMutex);
         for (std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.begin();
              iterMap != midiMaps.end(); iterMap++)
         {
             result.push_back(iterMap->first);
         }
-        midiMapsMutex.Unlock();
         return result;
     }
 
     int MidiInstrumentMapper::GetMapCount() {
-        midiMapsMutex.Lock();
-        int i = midiMaps.size();
-        midiMapsMutex.Unlock();
-        return i;
+        LockGuard lock(midiMapsMutex);
+        return midiMaps.size();
     }
 
     int MidiInstrumentMapper::GetInstrumentCount(int Map) {
-        midiMapsMutex.Lock();
+        LockGuard lock(midiMapsMutex);
         std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
         if (iterMap == midiMaps.end()) { // no such map
-            midiMapsMutex.Unlock();
             throw Exception("There is no MIDI instrument map " + ToString(Map));
         }
 
-        int i = iterMap->second.size();
-        midiMapsMutex.Unlock();
-        return i;
+        return iterMap->second.size();
     }
 
     int MidiInstrumentMapper::GetInstrumentCount() {
         int count = 0;
 
-        midiMapsMutex.Lock();
+        LockGuard lock(midiMapsMutex);
         std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.begin();
         for (;iterMap != midiMaps.end(); iterMap++) {
             count += iterMap->second.size();
         }
-        midiMapsMutex.Unlock();
 
         return count;
     }
 
     int MidiInstrumentMapper::AddMap(String MapName) throw (Exception) {
         int ID;
-        midiMapsMutex.Lock();
+        LockGuard lock(midiMapsMutex);
+
         if (midiMaps.empty()) ID = 0;
         else {
             // get the highest existing map ID
@@ -387,72 +381,69 @@ namespace LinuxSampler {
         fireMidiInstrumentMapCountChanged(Maps().size());
         // If there were no maps until now we must set a default map.
         if (midiMaps.size() == 1) SetDefaultMap(ID);
-        midiMapsMutex.Unlock();
         
         return ID;
     }
 
     String MidiInstrumentMapper::MapName(int Map) throw (Exception) {
-        String result;
-        midiMapsMutex.Lock();
+        LockGuard lock(midiMapsMutex);
         std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
         if (iterMap == midiMaps.end()) {
-            midiMapsMutex.Unlock();
             throw Exception("There is no MIDI instrument map " + ToString(Map));
         }
-        result = iterMap->second.name;
-        midiMapsMutex.Unlock();
-        return result;
+        return iterMap->second.name;
     }
 
     void MidiInstrumentMapper::RenameMap(int Map, String NewName) throw (Exception) {
-        midiMapsMutex.Lock();
-        std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
-        if (iterMap == midiMaps.end()) {
-            midiMapsMutex.Unlock();
-            throw Exception("There is no MIDI instrument map " + ToString(Map));
+        {
+            LockGuard lock(midiMapsMutex);
+            std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
+            if (iterMap == midiMaps.end()) {
+                throw Exception("There is no MIDI instrument map " + ToString(Map));
+            }
+            iterMap->second.name = NewName;
         }
-        iterMap->second.name = NewName;
-        midiMapsMutex.Unlock();
         fireMidiInstrumentMapInfoChanged(Map);
     }
 
     void MidiInstrumentMapper::RemoveMap(int Map) {
-        midiMapsMutex.Lock();
+        LockGuard lock(midiMapsMutex);
+        
         midiMaps.erase(Map);
-        if(Map == GetDefaultMap()) {
+        if (Map == GetDefaultMap()) {
             SetDefaultMap(midiMaps.empty() ? -1 : (*(midiMaps.begin())).first);
         }
         fireMidiInstrumentMapCountChanged(Maps().size());
-        midiMapsMutex.Unlock();
     }
 
     void MidiInstrumentMapper::RemoveAllMaps() {
-        midiMapsMutex.Lock();
+        LockGuard lock(midiMapsMutex);
+
         midiMaps.clear();
         SetDefaultMap(-1);
         fireMidiInstrumentMapCountChanged(Maps().size());
-        midiMapsMutex.Unlock();
     }
 
     int MidiInstrumentMapper::GetDefaultMap() {
-        midiMapsMutex.Lock();
-        int i = DefaultMap;
-        midiMapsMutex.Unlock();
-        return i;
+        LockGuard lock(midiMapsMutex);
+
+        return DefaultMap;
     }
 
     void MidiInstrumentMapper::SetDefaultMap(int MapId) {
-        midiMapsMutex.Lock();
-        DefaultMap = MapId;
-        midiMapsMutex.Unlock();
+        {
+            LockGuard lock(midiMapsMutex);
+
+            DefaultMap = MapId;
+        }
         
         if (MapId != -1) fireMidiInstrumentMapInfoChanged(MapId);
     }
 
     optional<MidiInstrumentMapper::entry_t> MidiInstrumentMapper::GetEntry(int Map, midi_prog_index_t Index) {
         optional<entry_t> result;
-        midiMapsMutex.Lock();
+        LockGuard lock(midiMapsMutex);
+
         std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
         if (iterMap != midiMaps.end()) { // map found
             std::map<midi_prog_index_t,private_entry_t>::iterator iterEntry = iterMap->second.find(Index);
@@ -466,7 +457,6 @@ namespace LinuxSampler {
                 result = entry;
             }
         }
-        midiMapsMutex.Unlock();
         return result;
     }
 

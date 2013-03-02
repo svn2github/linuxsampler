@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -97,15 +97,15 @@ static String _escapeLscpResponse(String txt) {
  */
 fd_set LSCPServer::fdSet;
 int LSCPServer::currentSocket = -1;
-std::vector<yyparse_param_t> LSCPServer::Sessions = std::vector<yyparse_param_t>();
-std::vector<yyparse_param_t>::iterator itCurrentSession = std::vector<yyparse_param_t>::iterator();
-std::map<int,String> LSCPServer::bufferedNotifies = std::map<int,String>();
-std::map<int,String> LSCPServer::bufferedCommands = std::map<int,String>();
-std::map< LSCPEvent::event_t, std::list<int> > LSCPServer::eventSubscriptions = std::map< LSCPEvent::event_t, std::list<int> >();
-Mutex LSCPServer::NotifyMutex = Mutex();
-Mutex LSCPServer::NotifyBufferMutex = Mutex();
-Mutex LSCPServer::SubscriptionMutex = Mutex();
-Mutex LSCPServer::RTNotifyMutex = Mutex();
+std::vector<yyparse_param_t> LSCPServer::Sessions;
+std::vector<yyparse_param_t>::iterator itCurrentSession;
+std::map<int,String> LSCPServer::bufferedNotifies;
+std::map<int,String> LSCPServer::bufferedCommands;
+std::map< LSCPEvent::event_t, std::list<int> > LSCPServer::eventSubscriptions;
+Mutex LSCPServer::NotifyMutex;
+Mutex LSCPServer::NotifyBufferMutex;
+Mutex LSCPServer::SubscriptionMutex;
+Mutex LSCPServer::RTNotifyMutex;
 
 LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Thread(true, false, 0, -4), eventHandler(this) {
     SocketAddress.sin_family      = AF_INET;
@@ -447,7 +447,7 @@ int LSCPServer::Main() {
 	#endif
         // check if some engine channel's parameter / status changed, if so notify the respective LSCP event subscribers
         {
-            EngineChannelFactory::EngineChannelsMutex.Lock();
+            LockGuard lock(EngineChannelFactory::EngineChannelsMutex);
             std::set<EngineChannel*> engineChannels = EngineChannelFactory::EngineChannelInstances();
             std::set<EngineChannel*>::iterator itEngineChannel = engineChannels.begin();
             std::set<EngineChannel*>::iterator itEnd           = engineChannels.end();
@@ -465,7 +465,6 @@ int LSCPServer::Main() {
                     }
                 }
             }
-            EngineChannelFactory::EngineChannelsMutex.Unlock();
         }
 
         // check if MIDI data arrived on some engine channel
@@ -517,17 +516,18 @@ int LSCPServer::Main() {
             }
         }
 
-	//Now let's deliver late notifies (if any)
-	NotifyBufferMutex.Lock();
-	for (std::map<int,String>::iterator iterNotify = bufferedNotifies.begin(); iterNotify != bufferedNotifies.end(); iterNotify++) {
+        //Now let's deliver late notifies (if any)
+        {
+            LockGuard lock(NotifyBufferMutex);
+            for (std::map<int,String>::iterator iterNotify = bufferedNotifies.begin(); iterNotify != bufferedNotifies.end(); iterNotify++) {
 #ifdef MSG_NOSIGNAL
-		send(iterNotify->first, iterNotify->second.c_str(), iterNotify->second.size(), MSG_NOSIGNAL);
+                send(iterNotify->first, iterNotify->second.c_str(), iterNotify->second.size(), MSG_NOSIGNAL);
 #else
-		send(iterNotify->first, iterNotify->second.c_str(), iterNotify->second.size(), 0);
+                send(iterNotify->first, iterNotify->second.c_str(), iterNotify->second.size(), 0);
 #endif
-	}
-        bufferedNotifies.clear();
-	NotifyBufferMutex.Unlock();
+            }
+            bufferedNotifies.clear();
+        }
 
         fd_set selectSet = fdSet;
         timeout.tv_sec  = 0;
@@ -624,12 +624,14 @@ void LSCPServer::CloseConnection( std::vector<yyparse_param_t>::iterator iter ) 
 	LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_misc, "Client connection terminated on socket", socket));
 	Sessions.erase(iter);
 	FD_CLR(socket,  &fdSet);
-	SubscriptionMutex.Lock(); //Must unsubscribe this socket from all events (if any)
-	for (std::map< LSCPEvent::event_t, std::list<int> >::iterator iter = eventSubscriptions.begin(); iter != eventSubscriptions.end(); iter++) {
-		iter->second.remove(socket);
-	}
-	SubscriptionMutex.Unlock();
-	NotifyMutex.Lock();
+	{
+            LockGuard lock(SubscriptionMutex);
+            // Must unsubscribe this socket from all events (if any)
+            for (std::map< LSCPEvent::event_t, std::list<int> >::iterator iter = eventSubscriptions.begin(); iter != eventSubscriptions.end(); iter++) {
+                iter->second.remove(socket);
+            }
+        }
+	LockGuard lock(NotifyMutex);
 	bufferedCommands.erase(socket);
 	bufferedNotifies.erase(socket);
 	#if defined(WIN32)
@@ -637,7 +639,6 @@ void LSCPServer::CloseConnection( std::vector<yyparse_param_t>::iterator iter ) 
 	#else
 	close(socket);
 	#endif
-	NotifyMutex.Unlock();
 }
 
 void LSCPServer::CloseAllConnections() {
@@ -648,30 +649,21 @@ void LSCPServer::CloseAllConnections() {
     }
 }
 
-void LSCPServer::LockRTNotify() {
-    RTNotifyMutex.Lock();
-}
-
-void LSCPServer::UnlockRTNotify() {
-    RTNotifyMutex.Unlock();
-}
-
 int LSCPServer::EventSubscribers( std::list<LSCPEvent::event_t> events ) {
 	int subs = 0;
-	SubscriptionMutex.Lock();
+	LockGuard lock(SubscriptionMutex);
 	for( std::list<LSCPEvent::event_t>::iterator iter = events.begin();
 			iter != events.end(); iter++)
 	{
 		subs += eventSubscriptions.count(*iter);
 	}
-	SubscriptionMutex.Unlock();
 	return subs;
 }
 
 void LSCPServer::SendLSCPNotify( LSCPEvent event ) {
-	SubscriptionMutex.Lock();
+	LockGuard lock(SubscriptionMutex);
 	if (eventSubscriptions.count(event.GetType()) == 0) {
-		SubscriptionMutex.Unlock();	//Nobody is subscribed to this event
+		// Nobody is subscribed to this event
 		return;
 	}
 	std::list<int>::iterator iter = eventSubscriptions[event.GetType()].begin();
@@ -697,7 +689,6 @@ void LSCPServer::SendLSCPNotify( LSCPEvent event ) {
 			}
 		}
 	}
-	SubscriptionMutex.Unlock();
 }
 
 extern int GetLSCPCommand( void *buf, int max_size ) {
@@ -812,13 +803,12 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 void LSCPServer::AnswerClient(String ReturnMessage) {
     dmsg(2,("LSCPServer::AnswerClient(ReturnMessage=%s)", ReturnMessage.c_str()));
     if (currentSocket != -1) {
-	    NotifyMutex.Lock();
+	    LockGuard lock(NotifyMutex);
 #ifdef MSG_NOSIGNAL
 	    send(currentSocket, ReturnMessage.c_str(), ReturnMessage.size(), MSG_NOSIGNAL);
 #else
 	    send(currentSocket, ReturnMessage.c_str(), ReturnMessage.size(), 0);
 #endif
-	    NotifyMutex.Unlock();
     }
 }
 
@@ -968,10 +958,9 @@ String LSCPServer::SetEngineType(String EngineName, uint uiSamplerChannel) {
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-	LockRTNotify();
+	LockGuard lock(RTNotifyMutex);
         pSamplerChannel->SetEngineType(EngineName);
         if(HasSoloChannel()) pSamplerChannel->GetEngineChannel()->SetMute(-1);
-	UnlockRTNotify();
     }
     catch (Exception e) {
          result.Error(e);
@@ -1011,9 +1000,11 @@ String LSCPServer::ListChannels() {
  */
 String LSCPServer::AddChannel() {
     dmsg(2,("LSCPServer: AddChannel()\n"));
-    LockRTNotify();
-    SamplerChannel* pSamplerChannel = pSampler->AddSamplerChannel();
-    UnlockRTNotify();
+    SamplerChannel* pSamplerChannel;
+    {
+        LockGuard lock(RTNotifyMutex);
+        pSamplerChannel = pSampler->AddSamplerChannel();
+    }
     LSCPResultSet result(pSamplerChannel->Index());
     return result.Produce();
 }
@@ -1024,9 +1015,10 @@ String LSCPServer::AddChannel() {
 String LSCPServer::RemoveChannel(uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: RemoveChannel(SamplerChannel=%d)\n", uiSamplerChannel));
     LSCPResultSet result;
-    LockRTNotify();
-    pSampler->RemoveSamplerChannel(uiSamplerChannel);
-    UnlockRTNotify();
+    {
+        LockGuard lock(RTNotifyMutex);
+        pSampler->RemoveSamplerChannel(uiSamplerChannel);
+    }
     return result.Produce();
 }
 
@@ -1069,17 +1061,18 @@ String LSCPServer::ListAvailableEngines() {
 String LSCPServer::GetEngineInfo(String EngineName) {
     dmsg(2,("LSCPServer: GetEngineInfo(EngineName=%s)\n", EngineName.c_str()));
     LSCPResultSet result;
-    LockRTNotify();
-    try {
-        Engine* pEngine = EngineFactory::Create(EngineName);
-        result.Add("DESCRIPTION", _escapeLscpResponse(pEngine->Description()));
-        result.Add("VERSION",     pEngine->Version());
-        EngineFactory::Destroy(pEngine);
+    {
+        LockGuard lock(RTNotifyMutex);
+        try {
+            Engine* pEngine = EngineFactory::Create(EngineName);
+            result.Add("DESCRIPTION", _escapeLscpResponse(pEngine->Description()));
+            result.Add("VERSION",     pEngine->Version());
+            EngineFactory::Destroy(pEngine);
+        }
+        catch (Exception e) {
+            result.Error(e);
+        }
     }
-    catch (Exception e) {
-         result.Error(e);
-    }
-    UnlockRTNotify();
     return result.Produce();
 }
 
@@ -1728,58 +1721,60 @@ String LSCPServer::SetAudioOutputChannel(uint ChannelAudioOutputChannel, uint Au
 String LSCPServer::SetAudioOutputDevice(uint AudioDeviceId, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetAudiotOutputDevice(AudioDeviceId=%d, SamplerChannel=%d)\n",AudioDeviceId,uiSamplerChannel));
     LSCPResultSet result;
-    LockRTNotify();
-    try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
-        if (!devices.count(AudioDeviceId)) throw Exception("There is no audio output device with index " + ToString(AudioDeviceId));
-        AudioOutputDevice* pDevice = devices[AudioDeviceId];
-        pSamplerChannel->SetAudioOutputDevice(pDevice);
+    {
+        LockGuard lock(RTNotifyMutex);
+        try {
+            SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+            if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+            std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+            if (!devices.count(AudioDeviceId)) throw Exception("There is no audio output device with index " + ToString(AudioDeviceId));
+            AudioOutputDevice* pDevice = devices[AudioDeviceId];
+            pSamplerChannel->SetAudioOutputDevice(pDevice);
+        }
+        catch (Exception e) {
+            result.Error(e);
+        }
     }
-    catch (Exception e) {
-         result.Error(e);
-    }
-    UnlockRTNotify();
     return result.Produce();
 }
 
 String LSCPServer::SetAudioOutputType(String AudioOutputDriver, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetAudioOutputType(String AudioOutputDriver=%s, SamplerChannel=%d)\n",AudioOutputDriver.c_str(),uiSamplerChannel));
     LSCPResultSet result;
-    LockRTNotify();
-    try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        // Driver type name aliasing...
-        if (AudioOutputDriver == "Alsa") AudioOutputDriver = "ALSA";
-        if (AudioOutputDriver == "Jack") AudioOutputDriver = "JACK";
-        // Check if there's one audio output device already created
-        // for the intended audio driver type (AudioOutputDriver)...
-        AudioOutputDevice *pDevice = NULL;
-        std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
-        std::map<uint, AudioOutputDevice*>::iterator iter = devices.begin();
-        for (; iter != devices.end(); iter++) {
-            if ((iter->second)->Driver() == AudioOutputDriver) {
-                pDevice = iter->second;
-                break;
+    {
+        LockGuard lock(RTNotifyMutex);
+        try {
+            SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+            if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+            // Driver type name aliasing...
+            if (AudioOutputDriver == "Alsa") AudioOutputDriver = "ALSA";
+            if (AudioOutputDriver == "Jack") AudioOutputDriver = "JACK";
+            // Check if there's one audio output device already created
+            // for the intended audio driver type (AudioOutputDriver)...
+            AudioOutputDevice *pDevice = NULL;
+            std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+            std::map<uint, AudioOutputDevice*>::iterator iter = devices.begin();
+            for (; iter != devices.end(); iter++) {
+                if ((iter->second)->Driver() == AudioOutputDriver) {
+                    pDevice = iter->second;
+                    break;
+                }
             }
+            // If it doesn't exist, create a new one with default parameters...
+            if (pDevice == NULL) {
+                std::map<String,String> params;
+                pDevice = pSampler->CreateAudioOutputDevice(AudioOutputDriver, params);
+            }
+            // Must have a device...
+            if (pDevice == NULL)
+                throw Exception("Internal error: could not create audio output device.");
+            // Set it as the current channel device...
+            pSamplerChannel->SetAudioOutputDevice(pDevice);
         }
-        // If it doesn't exist, create a new one with default parameters...
-        if (pDevice == NULL) {
-            std::map<String,String> params;
-            pDevice = pSampler->CreateAudioOutputDevice(AudioOutputDriver, params);
+        catch (Exception e) {
+            result.Error(e);
         }
-        // Must have a device...
-        if (pDevice == NULL)
-            throw Exception("Internal error: could not create audio output device.");
-        // Set it as the current channel device...
-        pSamplerChannel->SetAudioOutputDevice(pDevice);
     }
-    catch (Exception e) {
-         result.Error(e);
-    }
-    UnlockRTNotify();
     return result.Produce();
 }
 
@@ -3322,9 +3317,10 @@ void LSCPServer::VerifyFile(String Filename) {
 String LSCPServer::SubscribeNotification(LSCPEvent::event_t type) {
     dmsg(2,("LSCPServer: SubscribeNotification(Event=%s)\n", LSCPEvent::Name(type).c_str()));
     LSCPResultSet result;
-    SubscriptionMutex.Lock();
-    eventSubscriptions[type].push_back(currentSocket);
-    SubscriptionMutex.Unlock();
+    {
+        LockGuard lock(SubscriptionMutex);
+        eventSubscriptions[type].push_back(currentSocket);
+    }
     return result.Produce();
 }
 
@@ -3335,9 +3331,10 @@ String LSCPServer::SubscribeNotification(LSCPEvent::event_t type) {
 String LSCPServer::UnsubscribeNotification(LSCPEvent::event_t type) {
     dmsg(2,("LSCPServer: UnsubscribeNotification(Event=%s)\n", LSCPEvent::Name(type).c_str()));
     LSCPResultSet result;
-    SubscriptionMutex.Lock();
-    eventSubscriptions[type].remove(currentSocket);
-    SubscriptionMutex.Unlock();
+    {
+        LockGuard lock(SubscriptionMutex);
+        eventSubscriptions[type].remove(currentSocket);
+    }
     return result.Produce();
 }
 

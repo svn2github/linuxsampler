@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -58,9 +58,10 @@ namespace LinuxSampler {
         cmd.instrumentId.Index = uiInstrumentIndex;
         cmd.instrumentId.FileName = Filename;
 
-        mutex.Lock();
-        queue.push_back(cmd);
-        mutex.Unlock();
+        {
+            LockGuard lock(mutex);
+            queue.push_back(cmd);
+        }
 
         StartThread(); // ensure thread is running
         conditionJobsLeft.Set(true); // wake up thread
@@ -85,9 +86,10 @@ namespace LinuxSampler {
         cmd.instrumentId = ID;
         cmd.mode         = Mode;
 
-        mutex.Lock();
-        queue.push_back(cmd);
-        mutex.Unlock();
+        {
+            LockGuard lock(mutex);
+            queue.push_back(cmd);
+        }
 
         StartThread(); // ensure thread is running
         conditionJobsLeft.Set(true); // wake up thread
@@ -105,9 +107,10 @@ namespace LinuxSampler {
                 command_t cmd;
 
                 // grab a new command from the queue
-                mutex.Lock();
-                bool empty = queue.empty();
-                if (!empty) {
+                {
+                    LockGuard lock(mutex);
+                    if (queue.empty()) break;
+
                     cmd = queue.front();
                     queue.pop_front();
 
@@ -115,8 +118,6 @@ namespace LinuxSampler {
                         EngineChannelFactory::SetDeleteEnabled(cmd.pEngineChannel, false);
                     }
                 }
-                mutex.Unlock();
-                if (empty) break;
 
                 try {
                     switch (cmd.type) {
@@ -159,7 +160,7 @@ namespace LinuxSampler {
            Removing from the queue an eventual scheduled loading of an instrument
            to a sampler channel which is going to be removed.
         */
-        pThread->mutex.Lock();
+        LockGuard lock(pThread->mutex);
         std::list<command_t>::iterator it;
         for (it = pThread->queue.begin(); it != pThread->queue.end();){
             if ((*it).type != command_t::DIRECT_LOAD) { ++it; continue; }
@@ -171,7 +172,6 @@ namespace LinuxSampler {
                 ++it;
             }
         } 
-        pThread->mutex.Unlock();
     }
 
 #if defined(__APPLE__) && !defined(__x86_64__)

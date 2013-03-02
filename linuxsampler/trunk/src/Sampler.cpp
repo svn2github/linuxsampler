@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -769,7 +769,7 @@ namespace LinuxSampler {
 
         if (LSCPServer::EventSubscribers(events))
         {
-            LSCPServer::LockRTNotify();
+            LockGuard lock(LSCPServer::RTNotifyMutex);
             std::map<uint,SamplerChannel*> channels = GetSamplerChannels();
             std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
             for (; iter != channels.end(); iter++) {
@@ -785,8 +785,6 @@ namespace LinuxSampler {
 
             fireTotalStreamCountChanged(GetDiskStreamCount());
             fireTotalVoiceCountChanged(GetVoiceCount());
-
-            LSCPServer::UnlockRTNotify();
         }
     }
 

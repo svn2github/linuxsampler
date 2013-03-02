@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -88,14 +88,27 @@ class Mutex {
          * Lock() call, one of them will be awaken.
          */
         void Unlock();
-        
+
     protected:
     #if defined(WIN32)
-    HANDLE hMutex;
+        HANDLE hMutex;
     #else
         pthread_mutex_t     __posix_mutex;
         pthread_mutexattr_t __posix_mutexattr;
     #endif
+};
+
+// Lock guard for exception safe locking
+class LockGuard {
+public:
+    LockGuard(Mutex& m) : pm(m) {
+        m.Lock();
+    }
+    ~LockGuard() {
+        pm.Unlock();
+    }
+private:
+    Mutex& pm;
 };
 
 } // namespace LinuxSampler

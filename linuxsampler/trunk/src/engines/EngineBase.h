@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2013 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -429,11 +429,12 @@ namespace LinuxSampler {
              */
             virtual void Suspend(RR* pRegion) {
                 dmsg(2,("EngineBase: Suspending Region %x ...\n",pRegion));
-                SuspendedRegionsMutex.Lock();
-                SuspensionChangeOngoing.Set(true);
-                pPendingRegionSuspension = pRegion;
-                SuspensionChangeOngoing.WaitAndUnlockIf(true);
-                SuspendedRegionsMutex.Unlock();
+                {
+                    LockGuard lock(SuspendedRegionsMutex);
+                    SuspensionChangeOngoing.Set(true);
+                    pPendingRegionSuspension = pRegion;
+                    SuspensionChangeOngoing.WaitAndUnlockIf(true);
+                }
                 dmsg(2,("EngineBase: Region %x suspended.",pRegion));
             }
 
@@ -445,11 +446,12 @@ namespace LinuxSampler {
              */
             virtual void Resume(RR* pRegion) {
                 dmsg(2,("EngineBase: Resuming Region %x ...\n",pRegion));
-                SuspendedRegionsMutex.Lock();
-                SuspensionChangeOngoing.Set(true);
-                pPendingRegionResumption = pRegion;
-                SuspensionChangeOngoing.WaitAndUnlockIf(true);
-                SuspendedRegionsMutex.Unlock();
+                {
+                    LockGuard lock(SuspendedRegionsMutex);
+                    SuspensionChangeOngoing.Set(true);
+                    pPendingRegionResumption = pRegion;
+                    SuspensionChangeOngoing.WaitAndUnlockIf(true);
+                }
                 dmsg(2,("EngineBase: Region %x resumed.\n",pRegion));
             }
 
@@ -1325,7 +1327,7 @@ namespace LinuxSampler {
              *  control and status variables. This method is protected by a mutex.
              */
             virtual void ResetInternal() {
-                ResetInternalMutex.Lock();
+                LockGuard lock(ResetInternalMutex);
 
                 // make sure that the engine does not get any sysex messages
                 // while it's reseting
@@ -1354,7 +1356,6 @@ namespace LinuxSampler {
                 pEventQueue->init();
                 pSysexBuffer->init();
                 if (sysexDisabled) MidiInputPort::AddSysexListener(this);
-                ResetInternalMutex.Unlock();
             }
 
             /**

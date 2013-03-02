@@ -2,7 +2,7 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009 - 2013 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -143,9 +143,10 @@ namespace LinuxSampler {
 
     AudioOutputDeviceCoreAudio::~AudioOutputDeviceCoreAudio() {
         atomic_set(&(aqPlayerState.mIsRunning), 0);
-        destroyMutex.Lock();
-        AudioQueueDispose(aqPlayerState.mQueue, true);
-        destroyMutex.Unlock();
+        {
+            LockGuard lock(destroyMutex);
+            AudioQueueDispose(aqPlayerState.mQueue, true);
+        }
         delete [] aqPlayerState.mBuffers;
 
         CurrentDevice.RemoveListener(this);
@@ -317,36 +318,33 @@ namespace LinuxSampler {
             }
         }
 
-        destroyMutex.Lock();
-        do {
-            if(atomic_read(&pausedNew) != pausedOld) {
-                pausedOld = atomic_read(&pausedNew);
+        {
+            LockGuard lock(destroyMutex);
+            do {
+                if(atomic_read(&pausedNew) != pausedOld) {
+                    pausedOld = atomic_read(&pausedNew);
 
-                if(pausedOld) {
-                    res = AudioQueuePause(aqPlayerState.mQueue);
-                    if(res) std::cerr << "AudioQueuePause: Error " << res << std::endl;
-                } else {
-                    res = AudioQueuePrime(aqPlayerState.mQueue, 0, NULL);
-                    if(res) std::cerr << "AudioQueuePrime: Error " << res << std::endl;
-                    res = AudioQueueStart(aqPlayerState.mQueue, NULL);
-                    if(res) std::cerr << "AudioQueueStart: Error " << res << std::endl;
+                    if(pausedOld) {
+                        res = AudioQueuePause(aqPlayerState.mQueue);
+                        if(res) std::cerr << "AudioQueuePause: Error " << res << std::endl;
+                    } else {
+                        res = AudioQueuePrime(aqPlayerState.mQueue, 0, NULL);
+                        if(res) std::cerr << "AudioQueuePrime: Error " << res << std::endl;
+                        res = AudioQueueStart(aqPlayerState.mQueue, NULL);
+                        if(res) std::cerr << "AudioQueueStart: Error " << res << std::endl;
+                    }
                 }
-            }
 
-            if(atomic_read(&restartQueue)) {
-                DestroyAudioQueue();
-                try { CreateAndStartAudioQueue(); }
-                catch(Exception e) {
-                    destroyMutex.Unlock();
-                    throw e;
+                if(atomic_read(&restartQueue)) {
+                    DestroyAudioQueue();
+                    CreateAndStartAudioQueue();
+                    atomic_set(&restartQueue, 0);
+                    dmsg(1,("Audio queue restarted"));
                 }
-                atomic_set(&restartQueue, 0);
-                dmsg(1,("Audio queue restarted"));
-            }
             
-            CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.2, false);
-        } while (atomic_read(&(aqPlayerState.mIsRunning)));
-        destroyMutex.Unlock();
+                CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.2, false);
+            } while (atomic_read(&(aqPlayerState.mIsRunning)));
+        }
 
         dmsg(2,("CoreAudio thread stopped\n"));
 

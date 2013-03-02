@@ -64,6 +64,8 @@ Version CVS HEAD (?)
     - all engines: add pan CC value to instrument pan parameter before
       applying panning, instead of using two separate pan functions in
       series (#182)
+    - added a lock guard class for exception safe mutex handling and
+      used it everywhere appropriate
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension

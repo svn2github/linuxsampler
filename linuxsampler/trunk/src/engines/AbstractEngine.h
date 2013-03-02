@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2013 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -63,14 +63,15 @@ namespace LinuxSampler {
             virtual void   Connect(AudioOutputDevice* pAudioOut) = 0;
             virtual void   DisableAndLock();
 
-            void SetVoiceCount(uint Count);// Simple array wrapper just to make sure memory is freed
-            // when liblinuxsampler is unloaded
+            void SetVoiceCount(uint Count);
 
             float Random() {
                 RandomSeed = RandomSeed * 1103515245 + 12345; // classic pseudo random number generator
                 return RandomSeed / 4294967296.0f;
             }
-            
+
+            // Simple array wrapper just to make sure memory is freed
+            // when liblinuxsampler is unloaded
             class FloatTable {
             private:
                 const float* array;

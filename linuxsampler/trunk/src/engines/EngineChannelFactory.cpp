@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -92,15 +92,16 @@ namespace LinuxSampler {
     Mutex EngineChannelFactory::EngineChannelsMutex;
 
     void EngineChannelFactory::SetDeleteEnabled(const EngineChannel* pEngineChannel, bool enable) {
-        LockedChannelsMutex.Lock();
         if (!enable) {
+            LockGuard lock(LockedChannelsMutex);
             if (!lockedChannels.Contains(pEngineChannel)) lockedChannels.Add(pEngineChannel);
-            LockedChannelsMutex.Unlock();
         } else {
-            bool b = lockedChannels.IsDestroyed(pEngineChannel);
-            lockedChannels.Remove(pEngineChannel);
-            LockedChannelsMutex.Unlock();
-
+            bool b;
+            {
+                LockGuard lock(LockedChannelsMutex);
+                b = lockedChannels.IsDestroyed(pEngineChannel);
+                lockedChannels.Remove(pEngineChannel);
+            }
             if (b) delete pEngineChannel;
         }
     }
@@ -123,27 +124,27 @@ namespace LinuxSampler {
         } else {
             throw Exception("Unknown engine type");
         }
-        EngineChannelsMutex.Lock();
+        LockGuard lock(EngineChannelsMutex);
         engineChannels.insert(pEngineChannel);
-        EngineChannelsMutex.Unlock();
         return pEngineChannel;
     }
 
     void EngineChannelFactory::Destroy(LinuxSampler::EngineChannel* pEngineChannel) {
         pEngineChannel->RemoveAllFxSendCountListeners();
-        EngineChannelsMutex.Lock();
-        engineChannels.erase(pEngineChannel);
-        EngineChannelsMutex.Unlock();
+        {
+            LockGuard lock(EngineChannelsMutex);
+            engineChannels.erase(pEngineChannel);
+        }
 
         // Postpone the deletion of the specified EngineChannel if needed (bug #113)
-        LockedChannelsMutex.Lock();
-        if (lockedChannels.Contains(pEngineChannel)) {
-            lockedChannels.SetDestroyed(pEngineChannel);
-            pEngineChannel->SetSamplerChannel(NULL);
-            LockedChannelsMutex.Unlock();
-            return;
+        {
+            LockGuard lock(LockedChannelsMutex);
+            if (lockedChannels.Contains(pEngineChannel)) {
+                lockedChannels.SetDestroyed(pEngineChannel);
+                pEngineChannel->SetSamplerChannel(NULL);
+                return;
+            }
         }
-        LockedChannelsMutex.Unlock();
         ///////
 
         delete pEngineChannel;

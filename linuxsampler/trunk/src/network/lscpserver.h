@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -242,9 +242,12 @@ class LSCPServer : public Thread {
 
 	static void SendLSCPNotify( LSCPEvent Event );
 	static int EventSubscribers( std::list<LSCPEvent::event_t> events );
-    static void LockRTNotify();
-    static void UnlockRTNotify();
-    static String FilterEndlines(String s);
+	static String FilterEndlines(String s);
+
+	//Protect main thread that generates real time notify messages
+	//like voice count, stream count and buffer fill
+	//from LSCP server removing engines and channels from underneath
+	static Mutex RTNotifyMutex;
 
     protected:
         int            hSocket;
@@ -292,11 +295,6 @@ class LSCPServer : public Thread {
 	static Mutex SubscriptionMutex;
 	static std::map< LSCPEvent::event_t, std::list<int> > eventSubscriptions;
 	static fd_set fdSet;
-
-	//Protect main thread that generates real time notify messages
-	//like voice count, stream count and buffer fill
-	//from LSCP server removing engines and channels from underneath
-	static Mutex RTNotifyMutex;
 
         class EventHandler : public ChannelCountListener, public AudioDeviceCountListener,
             public MidiDeviceCountListener, public MidiInstrumentCountListener,

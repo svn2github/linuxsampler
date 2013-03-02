@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -35,15 +35,13 @@ namespace LinuxSampler {
     Mutex loaderMutex;
 
     void InstrumentManager::LoadInstrumentInBackground(InstrumentManager::instrument_id_t ID, EngineChannel* pEngineChannel) {
-        loaderMutex.Lock();
+        LockGuard lock(loaderMutex);
         thread.StartNewLoad(ID.FileName, ID.Index, pEngineChannel);
-        loaderMutex.Unlock();
     }
 
     void InstrumentManager::SetModeInBackground(const instrument_id_t& ID, mode_t Mode) {
-        loaderMutex.Lock();
+        LockGuard lock(loaderMutex);
         thread.StartSettingMode(this, ID, Mode);
-        loaderMutex.Unlock();
     }
 
     void InstrumentManager::StopBackgroundThread() {

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -271,19 +271,20 @@ namespace LinuxSampler { namespace gig {
         int iProxyIndex                = -1;
 
         // first find the editor proxy entry for this editor
-        InstrumentEditorProxiesMutex.Lock();
-        for (int i = 0; i < InstrumentEditorProxies.size(); i++) {
-            InstrumentEditorProxy* pCurProxy =
-                dynamic_cast<InstrumentEditorProxy*>(
-                    InstrumentEditorProxies[i]
-                );
-            if (pCurProxy->pEditor == pSender) {
-                pProxy      = pCurProxy;
-                iProxyIndex = i;
-                pInstrument = pCurProxy->pInstrument;
+        {
+            LockGuard lock(InstrumentEditorProxiesMutex);
+            for (int i = 0; i < InstrumentEditorProxies.size(); i++) {
+                InstrumentEditorProxy* pCurProxy =
+                    dynamic_cast<InstrumentEditorProxy*>(
+                        InstrumentEditorProxies[i]
+                        );
+                if (pCurProxy->pEditor == pSender) {
+                    pProxy      = pCurProxy;
+                    iProxyIndex = i;
+                    pInstrument = pCurProxy->pInstrument;
+                }
             }
         }
-        InstrumentEditorProxiesMutex.Unlock();
 
         if (!pProxy) {
             std::cerr << "Eeeek, could not find instrument editor proxy, "
@@ -311,9 +312,10 @@ namespace LinuxSampler { namespace gig {
 
         // finally delete proxy entry and hand back instrument
         if (pInstrument) {
-            InstrumentEditorProxiesMutex.Lock();
-            InstrumentEditorProxies.remove(iProxyIndex);
-            InstrumentEditorProxiesMutex.Unlock();
+            {
+                LockGuard lock(InstrumentEditorProxiesMutex);
+                InstrumentEditorProxies.remove(iProxyIndex);
+            }
 
             HandBack(pInstrument, pProxy);
             delete pProxy;

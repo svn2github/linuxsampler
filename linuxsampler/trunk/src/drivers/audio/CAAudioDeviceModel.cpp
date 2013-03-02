@@ -2,7 +2,7 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009 - 2013 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -247,27 +247,24 @@ namespace LinuxSampler {
     }
 
     void CAAudioDeviceListModel::FireDeviceChangedEvent(AudioDeviceID devID) {
-        DeviceMutex.Lock();
+        LockGuard lock(DeviceMutex);
         for(int i = 0; i < GetListenerCount(); i++) {
             GetListener(i)->DeviceChanged(devID);
         }
-        DeviceMutex.Unlock();
     }
 
     void CAAudioDeviceListModel::FireDeviceListChangedEvent() {
-        DeviceMutex.Lock();
+        LockGuard lock(DeviceMutex);
         for(int i = 0; i < GetListenerCount(); i++) {
             GetListener(i)->DeviceListChanged();
         }
-        DeviceMutex.Unlock();
     }
 
     void CAAudioDeviceListModel::FireDefaultOutputDeviceChangedEvent(AudioDeviceID newID) {
-        DeviceMutex.Lock();
+        LockGuard lock(DeviceMutex);
         for(int i = 0; i < GetListenerCount(); i++) {
             GetListener(i)->DefaultOutputDeviceChanged(newID);
         }
-        DeviceMutex.Unlock();
     }
 
     AudioDeviceID CAAudioDeviceListModel::GetDefaultOutputDeviceID() {
@@ -275,51 +272,42 @@ namespace LinuxSampler {
     }
 
     UInt32 CAAudioDeviceListModel::GetOutputDeviceCount() {
-        DeviceMutex.Lock();
-        int size = outDevices.size();
-        DeviceMutex.Unlock();
-        return size;
+        LockGuard lock(DeviceMutex);
+        return outDevices.size();
     }
 
     CAAudioDeviceModel CAAudioDeviceListModel::GetOutputDevice(UInt32 Index) {
-        DeviceMutex.Lock();
+        LockGuard lock(DeviceMutex);
         if(Index < 0 || Index >= GetOutputDeviceCount()) {
-            DeviceMutex.Unlock();
             throw Exception("Device index out of bounds");
         }
 
-        CAAudioDeviceModel dev = outDevices[Index];
-        DeviceMutex.Unlock();
-        return dev;
+        return outDevices[Index];
     }
 
     CAAudioDeviceModel CAAudioDeviceListModel::GetOutputDeviceByID(AudioDeviceID devID) {
-        DeviceMutex.Lock();
+        LockGuard lock(DeviceMutex);
         for(int i = 0; i < outDevices.size(); i++) {
             if(outDevices[i].GetID() == devID) {
                 CAAudioDeviceModel dev = outDevices[i];
-                DeviceMutex.Unlock();
                 return dev;
             }
         }
-        DeviceMutex.Unlock();
         throw Exception("Unknown audio device ID: " + ToString(devID));
     }
 
     UInt32 CAAudioDeviceListModel::GetOutputDeviceIndex(AudioDeviceID devID) {
-        DeviceMutex.Lock();
+        LockGuard lock(DeviceMutex);
         for(UInt32 i = 0; i < outDevices.size(); i++) {
             if(outDevices[i].GetID() == devID) {
-                DeviceMutex.Unlock();
                 return i;
             }
         }
-        DeviceMutex.Unlock();
         throw Exception("Unknown audio device ID: " + ToString(devID));
     }
 
     void CAAudioDeviceListModel::RescanDevices() {
-        DeviceMutex.Lock();
+        LockGuard lock(DeviceMutex);
         inDevices.clear();
         outDevices.clear();
 
@@ -334,20 +322,17 @@ namespace LinuxSampler {
 
         if(res) {
             std::cerr << "Failed to get device list: " << res << std::endl;
-            DeviceMutex.Unlock();
             return;
         }
 
         UInt32 deviceNumber = outSize / sizeof(AudioDeviceID);
         if(deviceNumber < 1) {
             std::cerr << "No audio devices found" << std::endl;
-            DeviceMutex.Unlock();
             return;
         }
 
         if(deviceNumber * sizeof(AudioDeviceID) != outSize) {
             std::cerr << "Invalid device size. This is a bug!" << std::endl;
-            DeviceMutex.Unlock();
             return;
         }
 
@@ -360,7 +345,6 @@ namespace LinuxSampler {
         if(res) {
             std::cerr << "Failed to get device IDs: " << res << std::endl;
             delete [] devs;
-            DeviceMutex.Unlock();
             return;
         }
 
@@ -430,7 +414,6 @@ namespace LinuxSampler {
             }
             std::cout << std::endl;
         }*/
-        DeviceMutex.Unlock();
     }
 
     void CAAudioDeviceListModel::UpdateDefaultOutputDevice() {

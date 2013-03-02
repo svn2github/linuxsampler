@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2012 Andreas Persson                             *
+ *   Copyright (C) 2008 - 2013 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -58,14 +58,13 @@ namespace {
     LinuxSampler::Mutex logmutex;
 
     void log(const char* fmt, ...) {
-        logmutex.Lock();
+        LockGuard lock(logmutex);
         FILE* f = fopen((String(getenv("TEMP")) + "\\linuxsamplervst.log").c_str(), "a");
         va_list ap;
         va_start(ap, fmt);
         vfprintf(f, fmt, ap);
         va_end(ap);
         fclose(f);
-        logmutex.Unlock();
     }
 #undef dmsg
 #define dmsg(debuglevel,x) log x;

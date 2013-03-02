@@ -496,7 +496,7 @@ namespace LinuxSampler {
                     throw MidiInputException("Invalid note on velocity filter, values must be in range 0 .. 127");
         
         // apply new filter ...
-        noteOnVelocityFilterMutex.Lock();
+        LockGuard lock(noteOnVelocityFilterMutex);
         // double buffer ... double work ...
         {
             std::vector<uint8_t>& config =
@@ -508,7 +508,6 @@ namespace LinuxSampler {
                 noteOnVelocityFilter.SwitchConfig();
             config = filter;
         }
-        noteOnVelocityFilterMutex.Unlock();
     }
 
     void MidiInputPort::Connect(EngineChannel* pEngineChannel, midi_chan_t MidiChannel) {
@@ -516,20 +515,21 @@ namespace LinuxSampler {
             throw MidiInputException("MIDI channel index out of bounds");
 
         // first check if desired connection is already established
-        MidiChannelMapMutex.Lock();
-        MidiChannelMap_t& midiChannelMap = MidiChannelMap.GetConfigForUpdate();
-        bool bAlreadyDone = midiChannelMap[MidiChannel].count(pEngineChannel);
-        MidiChannelMapMutex.Unlock();
-        if (bAlreadyDone) return;
+        {
+            LockGuard lock(MidiChannelMapMutex);
+            MidiChannelMap_t& midiChannelMap = MidiChannelMap.GetConfigForUpdate();
+            if (midiChannelMap[MidiChannel].count(pEngineChannel)) return;
+        }
 
         // remove all other connections of that engine channel (if any)
         Disconnect(pEngineChannel);
 
         // register engine channel on the desired MIDI channel
-        MidiChannelMapMutex.Lock();
-        MidiChannelMap.GetConfigForUpdate()[MidiChannel].insert(pEngineChannel);
-        MidiChannelMap.SwitchConfig()[MidiChannel].insert(pEngineChannel);
-        MidiChannelMapMutex.Unlock();
+        {
+            LockGuard lock(MidiChannelMapMutex);
+            MidiChannelMap.GetConfigForUpdate()[MidiChannel].insert(pEngineChannel);
+            MidiChannelMap.SwitchConfig()[MidiChannel].insert(pEngineChannel);
+        }
 
         // inform engine channel about this connection
         pEngineChannel->Connect(this, MidiChannel);
@@ -544,8 +544,8 @@ namespace LinuxSampler {
         bool bChannelFound = false;
 
         // unregister engine channel from all MIDI channels
-        MidiChannelMapMutex.Lock();
         try {
+            LockGuard lock(MidiChannelMapMutex);
             {
                 MidiChannelMap_t& midiChannelMap = MidiChannelMap.GetConfigForUpdate();
                 for (int i = 0; i <= 16; i++) {
@@ -563,7 +563,6 @@ namespace LinuxSampler {
             }
         }
         catch(...) { /* NOOP */ }
-        MidiChannelMapMutex.Unlock();
 
         // inform engine channel about the disconnection (if there is one)
         if (bChannelFound) pEngineChannel->DisconnectMidiInputPort();
@@ -586,7 +585,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::Connect(VirtualMidiDevice* pDevice) {
-        virtualMidiDevicesMutex.Lock();
+        LockGuard lock(virtualMidiDevicesMutex);
         // double buffer ... double work ...
         {
             std::vector<VirtualMidiDevice*>& devices =
@@ -598,11 +597,10 @@ namespace LinuxSampler {
                 virtualMidiDevices.SwitchConfig();
             devices.push_back(pDevice);
         }
-        virtualMidiDevicesMutex.Unlock();
     }
 
     void MidiInputPort::Disconnect(VirtualMidiDevice* pDevice) {
-        virtualMidiDevicesMutex.Lock();
+        LockGuard lock(virtualMidiDevicesMutex);
         // double buffer ... double work ...
         {
             std::vector<VirtualMidiDevice*>& devices =
@@ -614,7 +612,6 @@ namespace LinuxSampler {
                 virtualMidiDevices.SwitchConfig();
             devices.erase(std::find(devices.begin(), devices.end(), pDevice));
         }
-        virtualMidiDevicesMutex.Unlock();
     }
 
 } // namespace LinuxSampler

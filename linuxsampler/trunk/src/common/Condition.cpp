@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -358,7 +358,7 @@ int Condition::WaitAndUnlockIf(bool bCondition, long TimeoutSeconds, long Timeou
 
 void Condition::Set(bool bCondition) {
     dmsg(7,("Condition::Set() -> LOCK()\n"));
-    Lock();
+    LockGuard lock(*this);
     dmsg(7,("Condition::Set() -> LOCK() passed\n"));
     if (this->bCondition != bCondition) {
         this->bCondition = bCondition;
@@ -379,7 +379,6 @@ void Condition::Set(bool bCondition) {
             #endif
         }
     }
-    Unlock();
 }
 
 bool Condition::GetUnsafe() {

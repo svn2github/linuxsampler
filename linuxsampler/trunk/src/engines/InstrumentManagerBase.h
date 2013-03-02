@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2013 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -85,13 +85,12 @@ namespace LinuxSampler {
                 InstrumentConsumer*  pConsumer,
                 RTList<R*>*          pRegionsInUse
             ) {
-                RegionInfoMutex.Lock();
+                LockGuard lock(RegionInfoMutex);
                 for (typename RTList<R*>::Iterator i = pRegionsInUse->first() ; i != pRegionsInUse->end() ; i++) {
                     RegionInfo[*i].refCount++;
                     SampleRefCount[(*i)->pSample]++;
                 }
                 this->HandBack(pResource, pConsumer, true);
-                RegionInfoMutex.Unlock();
             }
 
             /**
@@ -99,7 +98,7 @@ namespace LinuxSampler {
              * was previously handed back.
              */
             virtual void HandBackRegion(R* pRegion) {
-                RegionInfoMutex.Lock();
+                LockGuard lock(RegionInfoMutex);
                 if (RegionInfo.find(pRegion) == RegionInfo.end()) {
                     std::cerr << "Handing back unknown region. This is a BUG!!!" << std::endl;
                 }
@@ -117,7 +116,6 @@ namespace LinuxSampler {
                     }
                     RegionInfo.erase(pRegion);
                 }
-                RegionInfoMutex.Unlock();
             }
 
             virtual InstrumentManager::mode_t GetMode(const InstrumentManager::instrument_id_t& ID) {

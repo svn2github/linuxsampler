@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007-2009 Grigor Iliev, Benno Senoner                   *
+ *   Copyright (C) 2007-2013 Grigor Iliev, Benno Senoner                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -111,13 +111,11 @@ namespace LinuxSampler {
     }
     
     void InstrumentsDb::SetDbFile(String File) {
-        DbInstrumentsMutex.Lock();
+        LockGuard lock(DbInstrumentsMutex);
         if (File.empty() || DbFile.length() > 0) {
-            DbInstrumentsMutex.Unlock();
             throw Exception("Failed to set the database file");
         }
         DbFile = File;
-        DbInstrumentsMutex.Unlock();
     }
 
     sqlite3* InstrumentsDb::GetDb() {
@@ -464,17 +462,10 @@ namespace LinuxSampler {
 
     bool InstrumentsDb::DirectoryExist(String Dir) {
         dmsg(2,("InstrumentsDb: DirectoryExist(Dir=%s)\n", Dir.c_str()));
-        bool b;
-
-        DbInstrumentsMutex.Lock();
-        try { b = GetDirectoryId(Dir) != -1; }
-        catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
-            throw e;
+        {
+            LockGuard lock(DbInstrumentsMutex);
+            return GetDirectoryId(Dir) != -1;
         }
-        DbInstrumentsMutex.Unlock();
-
-        return b;
     }
 
     DbDirectory InstrumentsDb::GetDirectoryInfo(String Dir) {
@@ -714,8 +705,9 @@ namespace LinuxSampler {
         dmsg(2,("InstrumentsDb: AddInstruments(DbDir=%s,insDir=%d,FilePath=%s,Index=%d)\n", DbDir.c_str(), insDir, FilePath.c_str(), Index));
         if (DbDir.empty() || FilePath.empty()) return;
         
-        DbInstrumentsMutex.Lock();
-        try {
+        {
+            LockGuard lock(DbInstrumentsMutex);
+
             int dirId = GetDirectoryId(DbDir);
             if (dirId == -1) throw Exception("Invalid DB directory: " + toEscapedText(DbDir));
 
@@ -734,20 +726,16 @@ namespace LinuxSampler {
 
             String dir = insDir ? PrepareSubdirectory(DbDir, FilePath) : DbDir;
             AddInstrumentsFromFile(dir, FilePath, Index, pProgress);
-        } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
-            throw e;
         }
-
-        DbInstrumentsMutex.Unlock();
     }
 
     void InstrumentsDb::AddInstrumentsNonrecursive(String DbDir, String FsDir, bool insDir, ScanProgress* pProgress) {
         dmsg(2,("InstrumentsDb: AddInstrumentsNonrecursive(DbDir=%s,FsDir=%s,insDir=%d)\n", DbDir.c_str(), FsDir.c_str(), insDir));
         if (DbDir.empty() || FsDir.empty()) return;
         
-        DbInstrumentsMutex.Lock();
-        try {
+        {
+            LockGuard lock(DbInstrumentsMutex);
+
             int dirId = GetDirectoryId(DbDir);
             if (dirId == -1) throw Exception("Invalid DB directory: " + toEscapedPath(DbDir));
 
@@ -774,15 +762,8 @@ namespace LinuxSampler {
                 }
             } catch(Exception e) {
                 e.PrintMessage();
-                DbInstrumentsMutex.Unlock();
-                return;
             }
-        } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
-            throw e;
         }
-
-        DbInstrumentsMutex.Unlock();
     }
 
     void InstrumentsDb::AddInstrumentsRecursive(String DbDir, String FsDir, bool Flat, bool insDir, ScanProgress* pProgress) {
@@ -1466,7 +1447,7 @@ namespace LinuxSampler {
         }
         InTransaction = false;
         
-        if(db == NULL) {
+        if (db == NULL) {
             DbInstrumentsMutex.Unlock();
             return;
         }
@@ -1741,29 +1722,25 @@ namespace LinuxSampler {
     }
 
     void InstrumentsDb::Format() {
-        DbInstrumentsMutex.Lock();
-        if (db != NULL) {
-            sqlite3_close(db);
-            db = NULL;
-        }
+        {
+            LockGuard lock(DbInstrumentsMutex);
 
-        if (DbFile.empty()) DbFile = CONFIG_DEFAULT_INSTRUMENTS_DB_LOCATION;
-        String bkp = DbFile + ".bkp";
-        remove(bkp.c_str());
-        if (rename(DbFile.c_str(), bkp.c_str()) && errno != ENOENT) {
-            DbInstrumentsMutex.Unlock();
-            throw Exception(String("Failed to backup database: ") + strerror(errno));
-        }
+            if (db != NULL) {
+                sqlite3_close(db);
+                db = NULL;
+            }
+
+            if (DbFile.empty()) DbFile = CONFIG_DEFAULT_INSTRUMENTS_DB_LOCATION;
+            String bkp = DbFile + ".bkp";
+            remove(bkp.c_str());
+            if (rename(DbFile.c_str(), bkp.c_str()) && errno != ENOENT) {
+                throw Exception(String("Failed to backup database: ") + strerror(errno));
+            }
         
-        String f = DbFile;
-        DbFile = "";
-        try { CreateInstrumentsDb(f); }
-        catch(Exception e) {
-            DbInstrumentsMutex.Unlock();
-            throw e;
+            String f = DbFile;
+            DbFile = "";
+            CreateInstrumentsDb(f);
         }
-        DbInstrumentsMutex.Unlock();
-        
         FireDirectoryCountChanged("/");
         FireInstrumentCountChanged("/");
     }
