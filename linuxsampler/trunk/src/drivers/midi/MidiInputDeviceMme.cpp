@@ -247,8 +247,10 @@ void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle,
 
     switch(uMsg) {
         case MIM_DATA: {
-            int32_t timeStamp = (dwParam2) ? *dwParam2 : 0;
-            DispatchRaw(data, timeStamp);
+            //FIXME: passing timeStamp this way here does not work, since the DispatchRaw() expects it to be in period position, not miliseconds, requires additional code in RTMath to be able to transform the value for this purpose here
+            //int32_t timeStamp = dwParam2;
+            //DispatchRaw(data, timeStamp);
+            DispatchRaw(data);
             break;
         }
 
