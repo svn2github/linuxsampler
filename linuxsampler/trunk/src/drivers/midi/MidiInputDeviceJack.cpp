@@ -74,7 +74,7 @@ namespace LinuxSampler {
         // disconnect all current bindings first
         for (int i = 0; i < Bindings.size(); i++) {
             String src_name = Bindings[i];
-            int res = jack_disconnect(pPort->pDevice->hJackClient, src_name.c_str(), dst_name.c_str());
+            /*int res =*/ jack_disconnect(pPort->pDevice->hJackClient, src_name.c_str(), dst_name.c_str());
         }
         // connect new bindings
         for (int i = 0; i < vS.size(); i++) {
