@@ -55,11 +55,11 @@ bool VelocityCurve::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
             if (pass == 0) {
                 cr->line_to(w, h);
                 cr->line_to(0, h);
-                cr->set_source_rgba(0.5, 0.44, 1.0, 0.2);
+                cr->set_source_rgba(0.5, 0.44, 1.0, is_sensitive() ? 0.2 : 0.1);
                 cr->fill();
             } else {
                 cr->set_line_width(3);
-                cr->set_source_rgb(0.5, 0.44, 1.0);
+                cr->set_source_rgba(0.5, 0.44, 1.0, is_sensitive() ? 1.0 : 0.3);
                 cr->stroke();
             }
         }
@@ -82,28 +82,71 @@ bool CrossfadeCurve::on_expose_event(GdkEventExpose* e) {
 #else
 bool CrossfadeCurve::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
 #endif
-    if (dimreg && dimreg->Crossfade.out_end) {
-        int w = get_width();
-        int h = get_height();
-        
+    if (dimreg) {
         cr->translate(1.5, 0);
+
+        // first, draw curves for the other layers
+        gig::Region* region = dimreg->GetParent();
+        int dimregno;
+        for (dimregno = 0 ; dimregno < region->DimensionRegions ; dimregno++) {
+            if (region->pDimensionRegions[dimregno] == dimreg) {
+                break;
+            }
+        }
+        int bitcount = 0;
+        int layer_bit = 0;
+        for (int dim = 0 ; dim < region->Dimensions ; dim++) {
+            if (region->pDimensionDefinitions[dim].dimension ==
+                gig::dimension_layer) {
+                layer_bit = 1 << bitcount;
+
+                int mask =
+                    ~(((1 << region->pDimensionDefinitions[dim].bits) - 1) <<
+                      bitcount);
+                int c = dimregno & mask; // mask away the layer dimension
+
+                for (int i = 0 ; i < region->pDimensionDefinitions[dim].zones ;
+                     i++) {
+                    gig::DimensionRegion* d =
+                        region->pDimensionRegions[c + (i << bitcount)];
+                    if (d != dimreg) {
+                        draw_one_curve(cr, d, false);
+                    }
+                }
+                break;
+            }
+            bitcount += region->pDimensionDefinitions[dim].bits;
+        }
+
+        // then, draw the currently selected layer
+        draw_one_curve(cr, dimreg, is_sensitive());
+    }
+    return true;
+}
+
+void CrossfadeCurve::draw_one_curve(const Cairo::RefPtr<Cairo::Context>& cr,
+                                    const gig::DimensionRegion* d,
+                                    bool sensitive) {
+    int w = get_width();
+    int h = get_height();
+
+    if (d->Crossfade.out_end) {
         for (int pass = 0 ; pass < 2 ; pass++) {
-            cr->move_to(dimreg->Crossfade.in_start / 127.0 * (w - 3), h);
-            cr->line_to(dimreg->Crossfade.in_end / 127.0 * (w - 3), 1.5);
-            cr->line_to(dimreg->Crossfade.out_start / 127.0 * (w - 3), 1.5);
-            cr->line_to(dimreg->Crossfade.out_end / 127.0 * (w - 3), h);
+            cr->move_to(d->Crossfade.in_start / 127.0 * (w - 3), h);
+            cr->line_to(d->Crossfade.in_end / 127.0 * (w - 3), 1.5);
+            cr->line_to(d->Crossfade.out_start / 127.0 * (w - 3), 1.5);
+            cr->line_to(d->Crossfade.out_end / 127.0 * (w - 3), h);
 
             if (pass == 0) {
-                cr->set_source_rgba(0.5, 0.44, 1.0, 0.2);
+                cr->set_source_rgba(0.5, 0.44, 1.0, sensitive ? 0.2 : 0.1);
                 cr->fill();
             } else {
                 cr->set_line_width(3);
-                cr->set_source_rgb(0.5, 0.44, 1.0);
+                cr->set_source_rgba(0.5, 0.44, 1.0, sensitive ? 1.0 : 0.3);
                 cr->stroke();
             }
         }
     }
-    return true;
 }
 
 
@@ -900,6 +943,7 @@ void DimRegionEdit::VCFEnabled_toggled()
     eVCFVelocityCurve.set_sensitive(sensitive);
     eVCFVelocityScale.set_sensitive(sensitive);
     eVCFVelocityDynamicRange.set_sensitive(sensitive);
+    cutoff_curve.set_sensitive(sensitive);
     eVCFResonance.set_sensitive(sensitive);
     eVCFResonanceController.set_sensitive(sensitive);
     eVCFKeyboardTracking.set_sensitive(sensitive);
@@ -992,6 +1036,7 @@ void DimRegionEdit::AttenuationController_changed()
     eCrossfade_in_end.set_sensitive(hasController);
     eCrossfade_out_start.set_sensitive(hasController);
     eCrossfade_out_end.set_sensitive(hasController);
+    crossfade_curve.set_sensitive(hasController);
 }
 
 void DimRegionEdit::LFO1Controller_changed()

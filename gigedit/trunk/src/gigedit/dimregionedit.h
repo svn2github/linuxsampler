@@ -63,6 +63,9 @@ protected:
 
 private:
     gig::DimensionRegion* dimreg;
+    void draw_one_curve(const Cairo::RefPtr<Cairo::Context>& cr,
+                        const gig::DimensionRegion* d,
+                        bool sensitive);
 };
 
 class DimRegionEdit : public Gtk::Notebook
