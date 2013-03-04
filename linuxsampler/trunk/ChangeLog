@@ -307,6 +307,7 @@ Version CVS HEAD (?)
       virtual keyboards in frontends / instrument editors being stuck.
     - Bugfix in VirtualMidiDevice: process note on with velocity 0 as note off.
     - Implemented missing handling of MIDI "running status".
+    - CoreMIDI fix: a MIDIPacket can contain more than one event per packet.
 
   * audio driver:
     - ASIO driver fixes for newer gcc versions (fix from PortAudio)

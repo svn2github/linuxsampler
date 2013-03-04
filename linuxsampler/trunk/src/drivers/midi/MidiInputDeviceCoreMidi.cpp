@@ -169,8 +169,22 @@ namespace LinuxSampler {
 	void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ProcessMidiEvents(const MIDIPacketList *pktlist) {
 		MIDIPacket *packet = (MIDIPacket *)pktlist->packet;
 		for (unsigned int i = 0; i < pktlist->numPackets; ++i) {
-			//TODO: To be checked : several events per packet ?
-			DispatchRaw(packet->data);
+			char* pData = (char*) packet->data;
+			int k = 0;
+			// A MIDIPacket can have more than one (non SysEx) MIDI event in one
+			// packet. However SysEx messages are guaranteed to be alone in one
+			// MIDIPacket.
+			do {
+				int eventSize = expectedEventSize(pData[k]);
+				if (eventSize < 0) eventSize = packet->length - k;
+
+				if (k + eventSize > packet->length) goto next_packet;
+
+				DispatchRaw(packet->data);
+				k += eventSize;
+			} while (k < packet->length);
+
+		next_packet:
 			packet = MIDIPacketNext(packet);
 		}
 	}

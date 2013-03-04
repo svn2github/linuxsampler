@@ -378,6 +378,24 @@ namespace LinuxSampler {
              * Destructor
              */
             virtual ~MidiInputPort();
+            
+            /**
+             * Takes a MIDI status byte (the first byte of each MIDI event) as
+             * argument and returns the expected size of the associated MIDI
+             * event according to the MIDI protocol. Returns -1 on invalid
+             * status bytes AND on variable size events (SysEx events).
+             *
+             * This method can be used for drivers which have to deal with raw
+             * MIDI data, like the CoreMIDI driver, which can receive MIDI
+             * packets with more than one event per packet.
+             *
+             * This method handles "MIDI running status" as well. That is, in
+             * case the supplied byte is not a status byte but a data byte,
+             * it expects the event to be in "running status" and accordingly
+             * uses the status byte of the previous event (processed by the
+             * Dispatch*() methods).
+             */
+            int expectedEventSize(unsigned char byte);
 
             friend class MidiInputDevice;
 

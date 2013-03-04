@@ -614,4 +614,21 @@ namespace LinuxSampler {
         }
     }
 
+    int MidiInputPort::expectedEventSize(unsigned char byte) {
+        if (!(byte & 0x80) && runningStatusBuf[0])
+            byte = runningStatusBuf[0]; // "running status" mode
+        
+        if (byte < 0x80) return -1; // not a valid status byte
+        if (byte < 0xC0) return 3; // note on/off, note pressure, control change
+        if (byte < 0xE0) return 2; // program change, channel pressure
+        if (byte < 0xF0) return 3; // pitch wheel
+        if (byte == 0xF0) return -1; // sysex message (variable size)
+        if (byte == 0xF1) return 2; // time code per quarter frame
+        if (byte == 0xF2) return 3; // sys. common song position pointer
+        if (byte == 0xF3) return 2; // sys. common song select
+        if (byte == 0xF4) return -1; // sys. common undefined / reserved
+        if (byte == 0xF5) return -1; // sys. common undefined / reserved
+        return 1; // tune request, end of SysEx, system real-time events
+    }
+
 } // namespace LinuxSampler
