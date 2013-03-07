@@ -133,10 +133,6 @@ namespace LinuxSampler { //
             using AudioOutputDevice::RenderAudio;
             using AudioOutputDevice::Channels;
 
-
-        protected:
-            virtual int Main() OVERRIDE; ///< Implementation of virtual method from class Thread
-
         private:
             uint                 uiAsioChannels;
             uint                 uiSamplerate;
