@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2004, 2005 Grame                                        *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -48,7 +48,7 @@ namespace LinuxSampler {
                     class ParameterName : public MidiInputPort::ParameterName {
                         public:
                             ParameterName(MidiInputPort* pPort) throw (Exception);
-                            virtual void OnSetValue(String s) throw (Exception);
+                            virtual void OnSetValue(String s) throw (Exception) OVERRIDE;
                     };
 
                     /** MIDI Port Parameter 'CORE_MIDI_BINDINGS'
@@ -59,10 +59,10 @@ namespace LinuxSampler {
                     class ParameterCoreMidiBindings : public DeviceRuntimeParameterStrings {
                         public:
                             ParameterCoreMidiBindings(MidiInputPortCoreMidi* pPort);
-                            virtual String Description();
-                            virtual bool Fix();
-                            virtual std::vector<String> PossibilitiesAsString();
-                            virtual void OnSetValue(std::vector<String> vS) throw (Exception);
+                            virtual String Description() OVERRIDE;
+                            virtual bool Fix() OVERRIDE;
+                            virtual std::vector<String> PossibilitiesAsString() OVERRIDE;
+                            virtual void OnSetValue(std::vector<String> vS) throw (Exception) OVERRIDE;
                         protected:
                             MidiInputPortCoreMidi* pPort;
                     };
@@ -75,9 +75,9 @@ namespace LinuxSampler {
 					class ParameterAutoBind : public DeviceRuntimeParameterBool {
 						public:
 							ParameterAutoBind(MidiInputPortCoreMidi* pPort);
-							virtual String Description();
-							virtual bool Fix();
-							virtual void OnSetValue(bool b) throw (Exception);
+							virtual String Description() OVERRIDE;
+							virtual bool Fix() OVERRIDE;
+							virtual void OnSetValue(bool b) throw (Exception) OVERRIDE;
 						protected:
 							MidiInputPortCoreMidi* pPort;
 					};
@@ -108,9 +108,9 @@ namespace LinuxSampler {
             virtual ~MidiInputDeviceCoreMidi();
 
             // derived abstract methods from class 'MidiInputDevice'
-            void Listen(){}
-            void StopListen(){}
-			virtual String Driver();
+            void Listen() OVERRIDE {}
+            void StopListen() OVERRIDE {}
+			virtual String Driver() OVERRIDE;
 			static String Name();
 			static String Description();
             static String Version();

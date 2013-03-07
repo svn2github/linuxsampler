@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -77,12 +77,12 @@ namespace LinuxSampler {
                 public:
                     ParameterActive();
                     ParameterActive(String active);
-                    virtual String Description();
-                    virtual bool   Fix();
-                    virtual bool   Mandatory();
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
-                    virtual optional<bool> DefaultAsBool(std::map<String,String> Parameters);
-                    virtual void OnSetValue(bool b) throw (Exception);
+                    virtual String Description() OVERRIDE;
+                    virtual bool   Fix() OVERRIDE;
+                    virtual bool   Mandatory() OVERRIDE;
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+                    virtual optional<bool> DefaultAsBool(std::map<String,String> Parameters) OVERRIDE;
+                    virtual void OnSetValue(bool b) throw (Exception) OVERRIDE;
                     static String Name();
             };
 
@@ -95,15 +95,15 @@ namespace LinuxSampler {
                 public:
                     ParameterPorts();
                     ParameterPorts(String val);
-                    virtual String Description();
-                    virtual bool   Fix();
-                    virtual bool   Mandatory();
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
-                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters);
-                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters);
-                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters);
-                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
-                    virtual void             OnSetValue(int i) throw (Exception);
+                    virtual String Description() OVERRIDE;
+                    virtual bool   Fix() OVERRIDE;
+                    virtual bool   Mandatory() OVERRIDE;
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual void             OnSetValue(int i) throw (Exception) OVERRIDE;
                     static String Name();
             };
 

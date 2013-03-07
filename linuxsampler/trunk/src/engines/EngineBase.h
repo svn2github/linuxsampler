@@ -104,7 +104,7 @@ namespace LinuxSampler {
              *  @param Samples - number of sample points to be rendered
              *  @returns       0 on success
              */
-            virtual int RenderAudio(uint Samples) {
+            virtual int RenderAudio(uint Samples) OVERRIDE {
                 dmsg(8,("RenderAudio(Samples=%d)\n", Samples));
 
                 // return if engine disabled
@@ -205,9 +205,9 @@ namespace LinuxSampler {
                 return 0;
             }
 
-            virtual int MaxVoices() { return pVoicePool->poolSize(); }
+            virtual int MaxVoices() OVERRIDE { return pVoicePool->poolSize(); }
 
-            virtual void SetMaxVoices(int iVoices) throw (Exception) {
+            virtual void SetMaxVoices(int iVoices) throw (Exception) OVERRIDE {
                 if (iVoices < 1)
                     throw Exception("Maximum voices for an engine cannot be set lower than 1");
 
@@ -250,11 +250,11 @@ namespace LinuxSampler {
             /** Called after the new max number of voices is set and before resuming the engine. */
             virtual void PostSetMaxVoices(int iVoices) { }
 
-            virtual uint DiskStreamCount() { return (pDiskThread) ? pDiskThread->GetActiveStreamCount() : 0; }
-            virtual uint DiskStreamCountMax() { return (pDiskThread) ? pDiskThread->ActiveStreamCountMax : 0; }
-            virtual int  MaxDiskStreams() { return iMaxDiskStreams; }
+            virtual uint DiskStreamCount() OVERRIDE { return (pDiskThread) ? pDiskThread->GetActiveStreamCount() : 0; }
+            virtual uint DiskStreamCountMax() OVERRIDE { return (pDiskThread) ? pDiskThread->ActiveStreamCountMax : 0; }
+            virtual int  MaxDiskStreams() OVERRIDE { return iMaxDiskStreams; }
 
-            virtual void SetMaxDiskStreams(int iStreams) throw (Exception) {
+            virtual void SetMaxDiskStreams(int iStreams) throw (Exception) OVERRIDE {
                 if (iStreams < 0)
                     throw Exception("Maximum disk streams for an engine cannot be set lower than 0");
 
@@ -269,9 +269,9 @@ namespace LinuxSampler {
                 ResumeAll();
             }
 
-            virtual String DiskStreamBufferFillBytes() { return (pDiskThread) ? pDiskThread->GetBufferFillBytes() : ""; }
-            virtual String DiskStreamBufferFillPercentage() { return (pDiskThread) ? pDiskThread->GetBufferFillPercentage() : ""; }
-            virtual InstrumentManager* GetInstrumentManager() { return &instruments; }
+            virtual String DiskStreamBufferFillBytes() OVERRIDE { return (pDiskThread) ? pDiskThread->GetBufferFillBytes() : ""; }
+            virtual String DiskStreamBufferFillPercentage() OVERRIDE { return (pDiskThread) ? pDiskThread->GetBufferFillPercentage() : ""; }
+            virtual InstrumentManager* GetInstrumentManager() OVERRIDE { return &instruments; }
 
             /**
              * Connect this engine instance with the given audio output device.
@@ -282,7 +282,7 @@ namespace LinuxSampler {
              *
              * @param pAudioOut - audio output device to connect to
              */
-            virtual void Connect(AudioOutputDevice* pAudioOut) {
+            virtual void Connect(AudioOutputDevice* pAudioOut) OVERRIDE {
                 // caution: don't ignore if connecting to the same device here,
                 // because otherwise SetMaxDiskStreams() implementation won't work anymore!
 
@@ -370,7 +370,7 @@ namespace LinuxSampler {
             }
         
             // Implementattion for abstract method derived from Engine.
-            virtual void ReconnectAudioOutputDevice() {
+            virtual void ReconnectAudioOutputDevice() OVERRIDE {
                 SuspendAll();
                 if (pAudioOutputDevice) Connect(pAudioOutputDevice);
                 ResumeAll();
@@ -574,12 +574,13 @@ namespace LinuxSampler {
             public:
                 int PendingStreamDeletions;
                 RR* pPendingRegionSuspension;
+
                 SuspensionVoiceHandler(RR* pPendingRegionSuspension) {
                     PendingStreamDeletions = 0;
                     this->pPendingRegionSuspension = pPendingRegionSuspension;
                 }
 
-                virtual bool Process(MidiKey* pMidiKey) {
+                virtual bool Process(MidiKey* pMidiKey) OVERRIDE {
                     VoiceIterator itVoice = pMidiKey->pActiveVoices->first();
                     // if current key is not associated with this region, skip this key
                     if (itVoice->GetRegion()->GetParent() != pPendingRegionSuspension) return false;
@@ -587,7 +588,7 @@ namespace LinuxSampler {
                     return true;
                 }
 
-                virtual void Process(VoiceIterator& itVoice) {
+                virtual void Process(VoiceIterator& itVoice) OVERRIDE {
                     // request a notification from disk thread side for stream deletion
                     const Stream::Handle hStream = itVoice->KillImmediately(true);
                     if (hStream != Stream::INVALID_HANDLE) { // voice actually used a stream

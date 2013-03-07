@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -61,6 +61,18 @@ typedef unsigned int uint;
 #define DEPRECATED_API __attribute__ ((deprecated))
 #else
 #define DEPRECATED_API
+#endif
+
+// whether compiler is C++11 standard compliant
+#if defined(__cplusplus) && __cplusplus >= 201103L
+# define IS_CPP11
+#endif
+
+// C++ "override" keyword introduced with C++11 standard
+#if IS_CPP11
+# define OVERRIDE override
+#else
+# define OVERRIDE
 #endif
 
 #endif // __LS_GLOBAL_H__

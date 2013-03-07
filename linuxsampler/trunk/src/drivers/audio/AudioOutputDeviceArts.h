@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006, 2007 Christian Schoenebeck                        *
+ *   Copyright (C) 2006, 2007, 2013 Christian Schoenebeck                  *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -49,31 +49,31 @@ namespace LinuxSampler {
                 public:
                     ParameterName();
                     ParameterName(String s) throw (Exception);
-                    virtual String              Description();
-                    virtual bool                Fix();
-                    virtual bool                Mandatory();
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
-                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
-                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
-                    virtual void                OnSetValue(String s) throw (Exception);
+                    virtual String              Description() OVERRIDE;
+                    virtual bool                Fix() OVERRIDE;
+                    virtual bool                Mandatory() OVERRIDE;
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters) OVERRIDE;
+                    virtual void                OnSetValue(String s) throw (Exception) OVERRIDE;
                     static String Name();
             };
 
             // derived abstract methods from class 'AudioOutputDevice'
-            virtual void Play();
-            virtual bool IsPlaying();
-            virtual void Stop();
-            virtual uint MaxSamplesPerCycle();
-            virtual uint SampleRate();
-            virtual AudioChannel* CreateChannel(uint ChannelNr);
-
-            virtual String Driver();
+            virtual void Play() OVERRIDE;
+            virtual bool IsPlaying() OVERRIDE;
+            virtual void Stop() OVERRIDE;
+            virtual uint MaxSamplesPerCycle() OVERRIDE;
+            virtual uint SampleRate() OVERRIDE;
+            virtual AudioChannel* CreateChannel(uint ChannelNr) OVERRIDE;
+            virtual String Driver() OVERRIDE;
+            
             static String Name();
             static String Description();
             static String Version();
 
         protected:
-            int Main();  ///< Implementation of virtual method from class Thread
+            virtual int Main() OVERRIDE;  ///< Implementation of virtual method from class Thread
 
         private:
             unsigned int   uiArtsChannels;

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -58,29 +58,29 @@ namespace LinuxSampler {
             class ParameterName : public DeviceRuntimeParameterString {
                 public:
                     ParameterName(String s) : DeviceRuntimeParameterString(s) {}
-                    virtual String              Description()           { return "Arbitrary name";      }
-                    virtual bool                Fix()                   { return false;                 }
-                    virtual std::vector<String> PossibilitiesAsString() { return std::vector<String>(); }
-                    virtual void                OnSetValue(String s)    { /* nothing to do */           }
+                    virtual String              Description()  OVERRIDE          { return "Arbitrary name";      }
+                    virtual bool                Fix() OVERRIDE                   { return false;                 }
+                    virtual std::vector<String> PossibilitiesAsString() OVERRIDE { return std::vector<String>(); }
+                    virtual void                OnSetValue(String s)  OVERRIDE   { /* nothing to do */           }
             };
 
             class ParameterIsMixChannel : public DeviceRuntimeParameterBool {
                 public:
                     ParameterIsMixChannel(bool b) : DeviceRuntimeParameterBool(b) {}
-                    virtual String Description()                        { return "Whether real channel or mixed to another channel"; }
-                    virtual bool   Fix()                                { return true;                                               }
-                    virtual void   OnSetValue(bool b) throw (Exception) { /* cannot happen, as parameter is fix */                   }
+                    virtual String Description() OVERRIDE                        { return "Whether real channel or mixed to another channel"; }
+                    virtual bool   Fix() OVERRIDE                                { return true;                                               }
+                    virtual void   OnSetValue(bool b) throw (Exception) OVERRIDE { /* cannot happen, as parameter is fix */                   }
             };
 
             class ParameterMixChannelDestination : public DeviceRuntimeParameterInt {
                 public:
                     ParameterMixChannelDestination(int i) : DeviceRuntimeParameterInt(i) {}
-                    virtual String           Description()                       { return "Destination channel of this mix channel";                 }
-                    virtual bool             Fix()                               { return true;                                                      }
-                    virtual optional<int>    RangeMinAsInt()                     { return optional<int>::nothing; /*TODO: needs to be implemented */ }
-                    virtual optional<int>    RangeMaxAsInt()                     { return optional<int>::nothing; /*TODO: needs to be implemented */ }
-                    virtual std::vector<int> PossibilitiesAsInt()                { return std::vector<int>();     /*TODO: needs to be implemented */ }
-                    virtual void             OnSetValue(int i) throw (Exception) { /*TODO: needs to be implemented */                                }
+                    virtual String           Description() OVERRIDE                       { return "Destination channel of this mix channel";                 }
+                    virtual bool             Fix() OVERRIDE                               { return true;                                                      }
+                    virtual optional<int>    RangeMinAsInt() OVERRIDE                     { return optional<int>::nothing; /*TODO: needs to be implemented */ }
+                    virtual optional<int>    RangeMaxAsInt() OVERRIDE                     { return optional<int>::nothing; /*TODO: needs to be implemented */ }
+                    virtual std::vector<int> PossibilitiesAsInt() OVERRIDE                { return std::vector<int>();     /*TODO: needs to be implemented */ }
+                    virtual void             OnSetValue(int i) throw (Exception) OVERRIDE { /*TODO: needs to be implemented */                                }
             };
 
             // attributes

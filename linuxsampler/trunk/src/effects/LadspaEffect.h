@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2010 Christian Schoenebeck
+    Copyright (C) 2010 - 2013 Christian Schoenebeck
 */
 
 #ifndef LS_LADSPAEFFECT_H
@@ -27,9 +27,9 @@ class LadspaEffect : public Effect {
 public:
     LadspaEffect(EffectInfo* pInfo) throw (Exception);
    ~LadspaEffect();
-    EffectInfo* GetEffectInfo();
-    void RenderAudio(uint Samples);
-    void InitEffect(AudioOutputDevice* pDevice) throw (Exception);
+    EffectInfo* GetEffectInfo() OVERRIDE;
+    void RenderAudio(uint Samples) OVERRIDE;
+    void InitEffect(AudioOutputDevice* pDevice) throw (Exception) OVERRIDE;
     static std::vector<EffectInfo*> AvailableEffects();
 
 private:

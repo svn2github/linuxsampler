@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2012 Andreas Persson                             *
+ *   Copyright (C) 2008 - 2013 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -54,7 +54,7 @@ namespace LinuxSampler {
         public:
             ParameterChannelsPlugin() : ParameterChannels() { }
             ParameterChannelsPlugin(String s) : ParameterChannels(s) { }
-            virtual bool Fix() { return true; }
+            virtual bool Fix() OVERRIDE { return true; }
             void ForceSetValue(int channels);
         };
 
@@ -67,27 +67,27 @@ namespace LinuxSampler {
         public:
             ParameterFragmentSize();
             ParameterFragmentSize(String s) throw (Exception);
-            String Description();
-            bool Fix();
-            bool Mandatory();
-            std::map<String,DeviceCreationParameter*> DependsAsParameters();
-            optional<int> DefaultAsInt(std::map<String,String> Parameters);
-            optional<int> RangeMinAsInt(std::map<String,String> Parameters);
-            optional<int> RangeMaxAsInt(std::map<String,String> Parameters);
-            std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
-            void OnSetValue(int i) throw (Exception);
+            String Description() OVERRIDE;
+            bool Fix() OVERRIDE;
+            bool Mandatory() OVERRIDE;
+            std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+            optional<int> DefaultAsInt(std::map<String,String> Parameters) OVERRIDE;
+            optional<int> RangeMinAsInt(std::map<String,String> Parameters) OVERRIDE;
+            optional<int> RangeMaxAsInt(std::map<String,String> Parameters) OVERRIDE;
+            std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) OVERRIDE;
+            void OnSetValue(int i) throw (Exception) OVERRIDE;
             static String Name();
         };
 
         // derived abstract methods from class 'AudioOutputDevice'
-        void Play();
-        bool IsPlaying();
-        void Stop();
-        uint MaxSamplesPerCycle();
-        uint SampleRate();
-        String Driver();
-        AudioChannel* CreateChannel(uint ChannelNr);
-        bool isAutonomousDevice();
+        void Play() OVERRIDE;
+        bool IsPlaying() OVERRIDE;
+        void Stop() OVERRIDE;
+        uint MaxSamplesPerCycle() OVERRIDE;
+        uint SampleRate() OVERRIDE;
+        String Driver() OVERRIDE;
+        AudioChannel* CreateChannel(uint ChannelNr) OVERRIDE;
+        bool isAutonomousDevice() OVERRIDE;
         static String Name();
         static String Version();
         static String Description();

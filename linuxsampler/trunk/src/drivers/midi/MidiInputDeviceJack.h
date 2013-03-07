@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2013 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -48,7 +48,7 @@ namespace LinuxSampler {
                     class ParameterName : public MidiInputPort::ParameterName {
                         public:
                             ParameterName(MidiInputPortJack* pPort) throw (Exception);
-                            virtual void OnSetValue(String s) throw (Exception);
+                            virtual void OnSetValue(String s) throw (Exception) OVERRIDE;
                         protected:
                             MidiInputPortJack* pPort;
                     };
@@ -60,10 +60,10 @@ namespace LinuxSampler {
                     class ParameterJackBindings : public DeviceRuntimeParameterStrings {
                         public:
                             ParameterJackBindings(MidiInputPortJack* pPort);
-                            virtual String              Description();
-                            virtual bool                Fix();
-                            virtual std::vector<String> PossibilitiesAsString();
-                            virtual void                OnSetValue(std::vector<String> vS);
+                            virtual String              Description() OVERRIDE;
+                            virtual bool                Fix() OVERRIDE;
+                            virtual std::vector<String> PossibilitiesAsString() OVERRIDE;
+                            virtual void                OnSetValue(std::vector<String> vS) OVERRIDE;
                             static String Name();
                         protected:
                             MidiInputPortJack*  pPort;
@@ -88,13 +88,13 @@ namespace LinuxSampler {
                 public:
                     ParameterName();
                     ParameterName(String s);
-                    virtual String              Description();
-                    virtual bool                Fix();
-                    virtual bool                Mandatory();
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
-                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
-                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
-                    virtual void                OnSetValue(String s) throw (Exception);
+                    virtual String              Description() OVERRIDE;
+                    virtual bool                Fix() OVERRIDE;
+                    virtual bool                Mandatory() OVERRIDE;
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters) OVERRIDE;
+                    virtual void                OnSetValue(String s) throw (Exception) OVERRIDE;
                     static String Name();
             };
 
@@ -102,9 +102,9 @@ namespace LinuxSampler {
             ~MidiInputDeviceJack();
 
             // derived abstract methods from class 'MidiInputDevice'
-            void Listen();
-            void StopListen();
-            String Driver();
+            void Listen() OVERRIDE;
+            void StopListen() OVERRIDE;
+            String Driver() OVERRIDE;
             static String Name();
             static String Description();
             static String Version();

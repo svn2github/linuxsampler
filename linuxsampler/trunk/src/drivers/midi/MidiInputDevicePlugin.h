@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2012 Andreas Persson                             *
+ *   Copyright (C) 2008 - 2013 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -54,15 +54,15 @@ namespace LinuxSampler {
         public:
             ParameterPortsPlugin() : ParameterPorts() { }
             ParameterPortsPlugin(String s) : ParameterPorts(s) { }
-            virtual bool Fix() { return true; }
+            virtual bool Fix() OVERRIDE { return true; }
             void ForceSetValue(int ports);
         };
 
         // derived abstract methods from class 'MidiInputDevice'
-        void Listen();
-        void StopListen();
-        String Driver();
-        bool isAutonomousDevice();
+        void Listen() OVERRIDE;
+        void StopListen() OVERRIDE;
+        String Driver() OVERRIDE;
+        bool isAutonomousDevice() OVERRIDE;
         static String Name();
         static String Version();
         static String Description();

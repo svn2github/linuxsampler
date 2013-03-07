@@ -44,7 +44,7 @@ namespace LinuxSampler {
             /**
              * The entry point of the thread.
              */
-            virtual int Main();
+            virtual int Main() OVERRIDE;
 
         private:
             std::list<Runnable*> queue; // the queue, which holds the jobs to be executed

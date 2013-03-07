@@ -41,9 +41,9 @@ namespace LinuxSampler {
             ~MidiInputDeviceMidiShare();
 
             // derived abstract methods from class 'MidiInputDevice'
-            void Listen(){}
-            void StopListen(){}
-            virtual String Driver();
+            void Listen() OVERRIDE {}
+            void StopListen() OVERRIDE {}
+            virtual String Driver() OVERRIDE;
             static String Name();
             static String Description();
             static String Version();

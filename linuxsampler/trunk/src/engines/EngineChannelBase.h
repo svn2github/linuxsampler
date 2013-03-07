@@ -237,7 +237,7 @@ namespace LinuxSampler {
              * we are currently using on this EngineChannel is going to be updated,
              * so we can stop playback before that happens.
              */
-            virtual void ResourceToBeUpdated(I* pResource, void*& pUpdateArg) {
+            virtual void ResourceToBeUpdated(I* pResource, void*& pUpdateArg) OVERRIDE {
                 dmsg(3,("EngineChannelBase: Received instrument update message.\n"));
                 if (pEngine) pEngine->DisableAndLock();
                 ResetInternal();
@@ -248,7 +248,7 @@ namespace LinuxSampler {
              * Will be called by the InstrumentResourceManager when the instrument
              * update process was completed, so we can continue with playback.
              */
-            virtual void ResourceUpdated(I* pOldResource, I* pNewResource, void* pUpdateArg) {
+            virtual void ResourceUpdated(I* pOldResource, I* pNewResource, void* pUpdateArg) OVERRIDE {
                 this->pInstrument = pNewResource; //TODO: there are couple of engine parameters we should update here as well if the instrument was updated (see LoadInstrument())
                 if (pEngine) pEngine->Enable();
                 bStatusChanged = true; // status of engine has changed, so set notify flag
@@ -260,7 +260,7 @@ namespace LinuxSampler {
              *
              * @param fProgress - current progress as value between 0.0 and 1.0
              */
-            virtual void OnResourceProgress(float fProgress) {
+            virtual void OnResourceProgress(float fProgress) OVERRIDE {
                 this->InstrumentStat = int(fProgress * 100.0f);
                 dmsg(7,("EngineChannelBase: progress %d%", InstrumentStat));
                 bStatusChanged = true; // status of engine has changed, so set notify flag

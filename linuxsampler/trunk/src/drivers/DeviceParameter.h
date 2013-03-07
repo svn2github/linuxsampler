@@ -215,13 +215,13 @@ namespace LinuxSampler {
             // derived methods, implementing type "BOOL"
             //     (usually not to be overriden by descendant)
             
-            virtual String           Type();
-            virtual bool             Multiplicity();
-            virtual optional<String> RangeMin();
-            virtual optional<String> RangeMax();
-            virtual optional<String> Possibilities();
-            virtual String           Value();
-            virtual void             SetValue(String val) throw (Exception);
+            virtual String           Type() OVERRIDE;
+            virtual bool             Multiplicity() OVERRIDE;
+            virtual optional<String> RangeMin() OVERRIDE;
+            virtual optional<String> RangeMax() OVERRIDE;
+            virtual optional<String> Possibilities() OVERRIDE;
+            virtual String           Value() OVERRIDE;
+            virtual void             SetValue(String val) throw (Exception) OVERRIDE;
             
             /////////////////////////////////////////////////////////////////
             // convenience methods for type "BOOL"
@@ -274,13 +274,13 @@ namespace LinuxSampler {
             // derived methods, implementing type "INT"
             //     (usually not to be overriden by descendant)
             
-            virtual String           Type();
-            virtual bool             Multiplicity();
-            virtual optional<String> RangeMin();
-            virtual optional<String> RangeMax();
-            virtual optional<String> Possibilities();
-            virtual String           Value();
-            virtual void             SetValue(String val) throw (Exception);
+            virtual String           Type() OVERRIDE;
+            virtual bool             Multiplicity() OVERRIDE;
+            virtual optional<String> RangeMin() OVERRIDE;
+            virtual optional<String> RangeMax() OVERRIDE;
+            virtual optional<String> Possibilities() OVERRIDE;
+            virtual String           Value() OVERRIDE;
+            virtual void             SetValue(String val) throw (Exception) OVERRIDE;
             
             /////////////////////////////////////////////////////////////////
             // convenience methods for type "INT"
@@ -358,13 +358,13 @@ namespace LinuxSampler {
             // derived methods, implementing type "FLOAT"
             //     (usually not to be overriden by descendant)
             
-            virtual String           Type();
-            virtual bool             Multiplicity();
-            virtual optional<String> RangeMin();
-            virtual optional<String> RangeMax();
-            virtual optional<String> Possibilities();
-            virtual String           Value();
-            virtual void             SetValue(String val) throw (Exception);
+            virtual String           Type() OVERRIDE;
+            virtual bool             Multiplicity() OVERRIDE;
+            virtual optional<String> RangeMin() OVERRIDE;
+            virtual optional<String> RangeMax() OVERRIDE;
+            virtual optional<String> Possibilities() OVERRIDE;
+            virtual String           Value() OVERRIDE;
+            virtual void             SetValue(String val) throw (Exception) OVERRIDE;
 
             /////////////////////////////////////////////////////////////////
             // convenience methods for type "FLOAT"
@@ -444,13 +444,13 @@ namespace LinuxSampler {
             // derived methods, implementing type "STRING"
             //     (usually not to be overriden by descendant)
             
-            virtual String           Type();
-            virtual bool             Multiplicity();
-            virtual optional<String> RangeMin();
-            virtual optional<String> RangeMax();
-            virtual optional<String> Possibilities();
-            virtual String           Value();
-            virtual void             SetValue(String val) throw (Exception);
+            virtual String           Type() OVERRIDE;
+            virtual bool             Multiplicity() OVERRIDE;
+            virtual optional<String> RangeMin() OVERRIDE;
+            virtual optional<String> RangeMax() OVERRIDE;
+            virtual optional<String> Possibilities() OVERRIDE;
+            virtual String           Value() OVERRIDE;
+            virtual void             SetValue(String val) throw (Exception) OVERRIDE;
             
             /////////////////////////////////////////////////////////////////
             // convenience methods for type "STRING"
@@ -514,13 +514,13 @@ namespace LinuxSampler {
             // derived methods, implementing type "STRINGS"
             //     (usually not to be overriden by descendant)
             
-            virtual String           Type();
-            virtual bool             Multiplicity();
-            virtual optional<String> RangeMin();
-            virtual optional<String> RangeMax();
-            virtual optional<String> Possibilities();
-            virtual String           Value();
-            virtual void             SetValue(String val) throw (Exception);
+            virtual String           Type() OVERRIDE;
+            virtual bool             Multiplicity() OVERRIDE;
+            virtual optional<String> RangeMin() OVERRIDE;
+            virtual optional<String> RangeMax() OVERRIDE;
+            virtual optional<String> Possibilities() OVERRIDE;
+            virtual String           Value() OVERRIDE;
+            virtual void             SetValue(String val) throw (Exception) OVERRIDE;
             
             /////////////////////////////////////////////////////////////////
             // convenience methods for type "STRINGS"
@@ -769,14 +769,14 @@ namespace LinuxSampler {
         public:
             DeviceCreationParameterBool(bool bVal = false);
             DeviceCreationParameterBool(String val) throw (Exception);
-            virtual String Type();
-            virtual bool   Multiplicity();
-            virtual optional<String> Default(std::map<String,String> Parameters);
-            virtual optional<String> RangeMin(std::map<String,String> Parameters);
-            virtual optional<String> RangeMax(std::map<String,String> Parameters);
-            virtual optional<String> Possibilities(std::map<String,String> Parameters);
-            virtual String Value();
-            virtual void   SetValue(String val) throw (Exception);
+            virtual String Type() OVERRIDE;
+            virtual bool   Multiplicity() OVERRIDE;
+            virtual optional<String> Default(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> RangeMin(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> RangeMax(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> Possibilities(std::map<String,String> Parameters) OVERRIDE;
+            virtual String Value() OVERRIDE;
+            virtual void   SetValue(String val) throw (Exception) OVERRIDE;
 
             virtual bool ValueAsBool();
             virtual void SetValue(bool b) throw (Exception);
@@ -806,14 +806,14 @@ namespace LinuxSampler {
         public:
             DeviceCreationParameterInt(int iVal = 0);
             DeviceCreationParameterInt(String val) throw (Exception);
-            virtual String Type();
-            virtual bool   Multiplicity();
-            virtual optional<String> Default(std::map<String,String> Parameters);
-            virtual optional<String> RangeMin(std::map<String,String> Parameters);
-            virtual optional<String> RangeMax(std::map<String,String> Parameters);
-            virtual optional<String> Possibilities(std::map<String,String> Parameters);
-            virtual String Value();
-            virtual void   SetValue(String val) throw (Exception);
+            virtual String Type() OVERRIDE;
+            virtual bool   Multiplicity() OVERRIDE;
+            virtual optional<String> Default(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> RangeMin(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> RangeMax(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> Possibilities(std::map<String,String> Parameters) OVERRIDE;
+            virtual String Value() OVERRIDE;
+            virtual void   SetValue(String val) throw (Exception) OVERRIDE;
 
             virtual int  ValueAsInt();
             virtual void SetValue(int i) throw (Exception);
@@ -846,14 +846,14 @@ namespace LinuxSampler {
         public:
             DeviceCreationParameterFloat(float fVal = 0.0);
             DeviceCreationParameterFloat(String val) throw (Exception);
-            virtual String Type();
-            virtual bool   Multiplicity();
-            virtual optional<String> Default(std::map<String,String> Parameters);
-            virtual optional<String> RangeMin(std::map<String,String> Parameters);
-            virtual optional<String> RangeMax(std::map<String,String> Parameters);
-            virtual optional<String> Possibilities(std::map<String,String> Parameters);
-            virtual String Value();
-            virtual void   SetValue(String val) throw (Exception);
+            virtual String Type() OVERRIDE;
+            virtual bool   Multiplicity() OVERRIDE;
+            virtual optional<String> Default(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> RangeMin(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> RangeMax(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> Possibilities(std::map<String,String> Parameters) OVERRIDE;
+            virtual String Value() OVERRIDE;
+            virtual void   SetValue(String val) throw (Exception) OVERRIDE;
 
             virtual float ValueAsFloat();
             virtual void  SetValue(float f) throw (Exception);
@@ -885,14 +885,14 @@ namespace LinuxSampler {
         public:
             DeviceCreationParameterString(String sVal = String());
             virtual ~DeviceCreationParameterString(){}
-            virtual String Type();
-            virtual bool   Multiplicity();
-            virtual optional<String> Default(std::map<String,String> Parameters);
-            virtual optional<String> RangeMin(std::map<String,String> Parameters);
-            virtual optional<String> RangeMax(std::map<String,String> Parameters);
-            virtual optional<String> Possibilities(std::map<String,String> Parameters);
-            virtual String Value();
-            virtual void   SetValue(String val) throw (Exception);
+            virtual String Type() OVERRIDE;
+            virtual bool   Multiplicity() OVERRIDE;
+            virtual optional<String> Default(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> RangeMin(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> RangeMax(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> Possibilities(std::map<String,String> Parameters) OVERRIDE;
+            virtual String Value() OVERRIDE;
+            virtual void   SetValue(String val) throw (Exception) OVERRIDE;
 
             virtual String ValueAsString();
             virtual void   SetValueAsString(String s) throw (Exception);
@@ -925,14 +925,14 @@ namespace LinuxSampler {
             DeviceCreationParameterStrings(std::vector<String> sVals);
             DeviceCreationParameterStrings(String val) throw (Exception);
             virtual ~DeviceCreationParameterStrings(){}
-            virtual String Type();
-            virtual bool   Multiplicity();
-            virtual optional<String> Default(std::map<String,String> Parameters);
-            virtual optional<String> RangeMin(std::map<String,String> Parameters);
-            virtual optional<String> RangeMax(std::map<String,String> Parameters);
-            virtual optional<String> Possibilities(std::map<String,String> Parameters);
-            virtual String Value();
-            virtual void   SetValue(String val) throw (Exception);
+            virtual String Type() OVERRIDE;
+            virtual bool   Multiplicity() OVERRIDE;
+            virtual optional<String> Default(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> RangeMin(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> RangeMax(std::map<String,String> Parameters) OVERRIDE;
+            virtual optional<String> Possibilities(std::map<String,String> Parameters) OVERRIDE;
+            virtual String Value() OVERRIDE;
+            virtual void   SetValue(String val) throw (Exception) OVERRIDE;
 
             virtual std::vector<String> ValueAsStrings();
             virtual void                SetValue(std::vector<String> vS) throw (Exception);

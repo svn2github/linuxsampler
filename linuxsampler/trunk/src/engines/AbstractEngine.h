@@ -51,13 +51,13 @@ namespace LinuxSampler {
             virtual ~AbstractEngine();
 
             // implementation of abstract methods derived from class 'LinuxSampler::Engine'
-            virtual void   SendSysex(void* pData, uint Size, MidiInputPort* pSender);
-            virtual void   Reset();
-            virtual void   Enable();
-            virtual void   Disable();
-            virtual uint   VoiceCount();
-            virtual uint   VoiceCountMax();
-            virtual String EngineName();
+            virtual void   SendSysex(void* pData, uint Size, MidiInputPort* pSender) OVERRIDE;
+            virtual void   Reset() OVERRIDE;
+            virtual void   Enable() OVERRIDE;
+            virtual void   Disable() OVERRIDE;
+            virtual uint   VoiceCount() OVERRIDE;
+            virtual uint   VoiceCountMax() OVERRIDE;
+            virtual String EngineName() OVERRIDE;
 
             virtual Format GetEngineFormat() = 0;
             virtual void   Connect(AudioOutputDevice* pAudioOut) = 0;

@@ -65,7 +65,7 @@ namespace LinuxSampler {
                     class ParameterName : public AudioChannel::ParameterName {
                         public:
                             ParameterName(AudioChannelJack* pChannel);
-                            virtual void OnSetValue(String s);
+                            virtual void OnSetValue(String s) OVERRIDE;
                         protected:
                             AudioChannelJack* pChannel;
                     };
@@ -77,10 +77,10 @@ namespace LinuxSampler {
                     class ParameterJackBindings : public DeviceRuntimeParameterStrings {
                         public:
                             ParameterJackBindings(AudioChannelJack* pChannel);
-                            virtual String              Description();
-                            virtual bool                Fix();
-                            virtual std::vector<String> PossibilitiesAsString();
-                            virtual void                OnSetValue(std::vector<String> vS);
+                            virtual String              Description() OVERRIDE;
+                            virtual bool                Fix() OVERRIDE;
+                            virtual std::vector<String> PossibilitiesAsString() OVERRIDE;
+                            virtual void                OnSetValue(std::vector<String> vS) OVERRIDE;
                             static String Name();
                         protected:
                             AudioChannelJack*   pChannel;
@@ -108,28 +108,27 @@ namespace LinuxSampler {
                 public:
                     ParameterName();
                     ParameterName(String s) throw (Exception);
-                    virtual String              Description();
-                    virtual bool                Fix();
-                    virtual bool                Mandatory();
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
-                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
-                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
-                    virtual void                OnSetValue(String s) throw (Exception);
+                    virtual String              Description() OVERRIDE;
+                    virtual bool                Fix() OVERRIDE;
+                    virtual bool                Mandatory() OVERRIDE;
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters) OVERRIDE;
+                    virtual void                OnSetValue(String s) throw (Exception) OVERRIDE;
                     static String Name();
             };
 
             // derived abstract methods from class 'AudioOutputDevice'
-            virtual void Play();
-            virtual bool IsPlaying();
-            virtual void Stop();
-            virtual uint MaxSamplesPerCycle();
-            virtual uint SampleRate();
-            virtual AudioChannel* CreateChannel(uint ChannelNr);
-            virtual float latency();
-
+            virtual void Play() OVERRIDE;
+            virtual bool IsPlaying() OVERRIDE;
+            virtual void Stop() OVERRIDE;
+            virtual uint MaxSamplesPerCycle() OVERRIDE;
+            virtual uint SampleRate() OVERRIDE;
+            virtual AudioChannel* CreateChannel(uint ChannelNr) OVERRIDE;
+            virtual String Driver() OVERRIDE;
+            virtual float latency() OVERRIDE;
+            
             static String Name();
-
-            virtual String Driver();
 
             static String Description();
             static String Version();

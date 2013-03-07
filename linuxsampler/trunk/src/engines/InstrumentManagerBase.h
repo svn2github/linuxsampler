@@ -59,17 +59,17 @@ namespace LinuxSampler {
             InstrumentManagerBase() { }
             virtual ~InstrumentManagerBase() { }
 
-            virtual InstrumentEditor* LaunchInstrumentEditor(instrument_id_t ID, void* pUserData = NULL) throw (InstrumentManagerException) {
+            virtual InstrumentEditor* LaunchInstrumentEditor(instrument_id_t ID, void* pUserData = NULL) throw (InstrumentManagerException) OVERRIDE {
                  throw InstrumentManagerException(
                     "Instrument editing is not supported for this instrument format"
                 );
             }
 
-            virtual String GetInstrumentDataStructureName(instrument_id_t ID) {
+            virtual String GetInstrumentDataStructureName(instrument_id_t ID) OVERRIDE {
                 throw InstrumentManagerException("Not implemented");
             }
 
-            virtual String GetInstrumentDataStructureVersion(instrument_id_t ID) {
+            virtual String GetInstrumentDataStructureVersion(instrument_id_t ID) OVERRIDE {
                 throw InstrumentManagerException("Not implemented");
             }
 
@@ -97,7 +97,7 @@ namespace LinuxSampler {
              * Give back a region that belongs to an instrument that
              * was previously handed back.
              */
-            virtual void HandBackRegion(R* pRegion) {
+            virtual void HandBackRegion(R* pRegion) OVERRIDE {
                 LockGuard lock(RegionInfoMutex);
                 if (RegionInfo.find(pRegion) == RegionInfo.end()) {
                     std::cerr << "Handing back unknown region. This is a BUG!!!" << std::endl;
@@ -118,11 +118,11 @@ namespace LinuxSampler {
                 }
             }
 
-            virtual InstrumentManager::mode_t GetMode(const InstrumentManager::instrument_id_t& ID) {
+            virtual InstrumentManager::mode_t GetMode(const InstrumentManager::instrument_id_t& ID) OVERRIDE {
                 return static_cast<InstrumentManager::mode_t>(ResourceManager<instrument_id_t, I>::AvailabilityMode(ID));
             }
 
-            virtual void SetMode(const InstrumentManager::instrument_id_t& ID, InstrumentManager::mode_t Mode) {
+            virtual void SetMode(const InstrumentManager::instrument_id_t& ID, InstrumentManager::mode_t Mode) OVERRIDE {
                 dmsg(2,("InstrumentManagerBase: setting mode for %s (Index=%d) to %d\n",ID.FileName.c_str(),ID.Index,Mode));
                 this->SetAvailabilityMode(ID, static_cast<typename ResourceManager<instrument_id_t, I>::mode_t>(Mode));
             }

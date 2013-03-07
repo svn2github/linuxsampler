@@ -49,14 +49,14 @@ namespace LinuxSampler { //
             ~AudioOutputDeviceAsio();
 
             // derived abstract methods from class 'AudioOutputDevice'
-            virtual void Play();
-            virtual bool IsPlaying();
-            virtual void Stop();
-            virtual uint MaxSamplesPerCycle();
-            virtual uint SampleRate();
-            virtual AudioChannel* CreateChannel(uint ChannelNr);
-
-            virtual String Driver();
+            virtual void Play() OVERRIDE;
+            virtual bool IsPlaying() OVERRIDE;
+            virtual void Stop() OVERRIDE;
+            virtual uint MaxSamplesPerCycle() OVERRIDE;
+            virtual uint SampleRate() OVERRIDE;
+            virtual AudioChannel* CreateChannel(uint ChannelNr) OVERRIDE;
+            virtual String Driver() OVERRIDE;
+            
             static String Name();
             static String Description();
             static String Version();
@@ -69,13 +69,13 @@ namespace LinuxSampler { //
                 public:
                     ParameterCard();
                     ParameterCard(String s) throw (Exception);
-                    virtual String Description();
-                    virtual bool   Fix();
-                    virtual bool   Mandatory();
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
-                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
-                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
-                    virtual void                OnSetValue(String s) throw (Exception);
+                    virtual String Description() OVERRIDE;
+                    virtual bool   Fix() OVERRIDE;
+                    virtual bool   Mandatory() OVERRIDE;
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters) OVERRIDE;
+                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) OVERRIDE;
+                    virtual void                OnSetValue(String s) throw (Exception) OVERRIDE;
                     static String Name();
             };
 
@@ -87,9 +87,9 @@ namespace LinuxSampler { //
                 public:
                     ParameterSampleRate();
                     ParameterSampleRate(String s);
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
-                    virtual optional<int> DefaultAsInt(std::map<String,String> Parameters);
-                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+                    virtual optional<int> DefaultAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) OVERRIDE;
             };
 
             /** Device Parameters 'CHANNELS'
@@ -101,10 +101,10 @@ namespace LinuxSampler { //
                 public:
                     ParameterChannels();
                     ParameterChannels(String s);
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
-                    virtual optional<int> DefaultAsInt(std::map<String,String> Parameters);
-                    virtual optional<int> RangeMinAsInt(std::map<String,String> Parameters);
-                    virtual optional<int> RangeMaxAsInt(std::map<String,String> Parameters);
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+                    virtual optional<int> DefaultAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<int> RangeMinAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<int> RangeMaxAsInt(std::map<String,String> Parameters) OVERRIDE;
             };
 
 
@@ -116,15 +116,15 @@ namespace LinuxSampler { //
                 public:
                     ParameterFragmentSize();
                     ParameterFragmentSize(String s) throw (Exception);
-                    virtual String Description();
-                    virtual bool   Fix();
-                    virtual bool   Mandatory();
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
-                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters);
-                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters);
-                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters);
-                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
-                    virtual void             OnSetValue(int i) throw (Exception);
+                    virtual String Description() OVERRIDE;
+                    virtual bool   Fix() OVERRIDE;
+                    virtual bool   Mandatory() OVERRIDE;
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual void             OnSetValue(int i) throw (Exception) OVERRIDE;
                     static String Name();
 
             };
@@ -135,7 +135,7 @@ namespace LinuxSampler { //
 
 
         protected:
-            int Main(); ///< Implementation of virtual method from class Thread
+            virtual int Main() OVERRIDE; ///< Implementation of virtual method from class Thread
 
         private:
             uint                 uiAsioChannels;

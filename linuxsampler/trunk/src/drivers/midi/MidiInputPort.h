@@ -54,10 +54,10 @@ namespace LinuxSampler {
                 public:
                     ParameterName(MidiInputPort* pPort);
                     ParameterName(MidiInputPort* pPort, String val);
-                    virtual String Description();
-                    virtual bool   Fix();
-                    virtual std::vector<String> PossibilitiesAsString();
-                    virtual void OnSetValue(String s) throw (Exception);
+                    virtual String Description() OVERRIDE;
+                    virtual bool   Fix() OVERRIDE;
+                    virtual std::vector<String> PossibilitiesAsString() OVERRIDE;
+                    virtual void OnSetValue(String s) throw (Exception) OVERRIDE;
                 protected:
                     MidiInputPort* pPort;
             };

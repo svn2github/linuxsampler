@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -46,15 +46,15 @@ namespace LinuxSampler {
                 public:
                     ParameterPorts();
                     ParameterPorts(String val);
-                    virtual String Description();
-                    virtual bool   Fix();
-                    virtual bool   Mandatory();
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
-                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters);
-                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters);
-                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters);
-                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
-                    virtual void             OnSetValue(int i) throw (Exception);
+                    virtual String Description() OVERRIDE;
+                    virtual bool   Fix() OVERRIDE;
+                    virtual bool   Mandatory() OVERRIDE;
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual void             OnSetValue(int i) throw (Exception) OVERRIDE;
                     static String Name();
             };
 
@@ -63,9 +63,6 @@ namespace LinuxSampler {
              */
             class MidiInputPortMme : public MidiInputPort {
                 public:
-                    
-
-                   
 
                 /** MIDI Port Parameter 'Port'
                      *
@@ -75,19 +72,16 @@ namespace LinuxSampler {
                     class ParameterPort : public DeviceRuntimeParameterString {
                         public:
                             ParameterPort(MidiInputPortMme* pPort);
-                            virtual bool                Fix();
-                            virtual String              Description();
-                            virtual std::vector<String> PossibilitiesAsString();
-                            virtual void                OnSetValue(String s);
+                            virtual bool                Fix() OVERRIDE;
+                            virtual String              Description() OVERRIDE;
+                            virtual std::vector<String> PossibilitiesAsString() OVERRIDE;
+                            virtual void                OnSetValue(String s) OVERRIDE;
                         private:
                             MidiInputPortMme* pPort;
 
                     };
-
                     
                 protected:
-                    
-
                     MidiInputPortMme(MidiInputDeviceMme* pDevice) throw (MidiInputException);
                     ~MidiInputPortMme();
                     void ConnectToMmeMidiSource(const char* MidiSource);
@@ -112,9 +106,9 @@ namespace LinuxSampler {
             ~MidiInputDeviceMme();
 
             // derived abstract methods from class 'MidiInputDevice'
-            void Listen();
-            void StopListen();
-            virtual String Driver();
+            void Listen() OVERRIDE;
+            void StopListen() OVERRIDE;
+            virtual String Driver() OVERRIDE;
             static String Name();
             static String Description();
             static String Version();

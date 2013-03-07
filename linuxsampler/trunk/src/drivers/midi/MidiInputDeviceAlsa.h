@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -52,7 +52,7 @@ namespace LinuxSampler {
                     class ParameterName : public MidiInputPort::ParameterName {
                         public:
                             ParameterName(MidiInputPort* pPort) throw (Exception);
-                            virtual void OnSetValue(String s) throw (Exception);
+                            virtual void OnSetValue(String s) throw (Exception) OVERRIDE;
                     };
 
                     /** MIDI Port Parameter 'ALSA_SEQ_BINDINGS'
@@ -62,10 +62,10 @@ namespace LinuxSampler {
                     class ParameterAlsaSeqBindings : public DeviceRuntimeParameterStrings {
                         public:
                             ParameterAlsaSeqBindings(MidiInputPortAlsa* pPort);
-                            virtual String Description();
-                            virtual bool Fix();
-                            virtual std::vector<String> PossibilitiesAsString();
-                            virtual void OnSetValue(std::vector<String> vS) throw (Exception);
+                            virtual String Description() OVERRIDE;
+                            virtual bool Fix() OVERRIDE;
+                            virtual std::vector<String> PossibilitiesAsString() OVERRIDE;
+                            virtual void OnSetValue(std::vector<String> vS) throw (Exception) OVERRIDE;
                         protected:
                             MidiInputPortAlsa* pPort;
                     };
@@ -78,10 +78,10 @@ namespace LinuxSampler {
                     class ParameterAlsaSeqId : public DeviceRuntimeParameterString {
                         public:
                             ParameterAlsaSeqId(MidiInputPortAlsa* pPort);
-                            virtual String              Description();
-                            virtual bool                Fix();
-                            virtual std::vector<String> PossibilitiesAsString();
-                            virtual void                OnSetValue(String s);
+                            virtual String              Description() OVERRIDE;
+                            virtual bool                Fix() OVERRIDE;
+                            virtual std::vector<String> PossibilitiesAsString() OVERRIDE;
+                            virtual void                OnSetValue(String s) OVERRIDE;
                     };
 
                     void ConnectToAlsaMidiSource(const char* MidiSource);
@@ -108,13 +108,13 @@ namespace LinuxSampler {
                 public:
                     ParameterName();
                     ParameterName(String s);
-                    virtual String              Description();
-                    virtual bool                Fix();
-                    virtual bool                Mandatory();
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
-                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
-                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
-                    virtual void                OnSetValue(String s) throw (Exception);
+                    virtual String              Description() OVERRIDE;
+                    virtual bool                Fix() OVERRIDE;
+                    virtual bool                Mandatory() OVERRIDE;
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() OVERRIDE;
+                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) OVERRIDE;
+                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters) OVERRIDE;
+                    virtual void                OnSetValue(String s) throw (Exception) OVERRIDE;
                     static String Name();
             };
 
@@ -122,9 +122,9 @@ namespace LinuxSampler {
             ~MidiInputDeviceAlsa();
 
             // derived abstract methods from class 'MidiInputDevice'
-            void Listen();
-            void StopListen();
-            virtual String Driver();
+            void Listen() OVERRIDE;
+            void StopListen() OVERRIDE;
+            virtual String Driver() OVERRIDE;
             static String Name();
             static String Description();
             static String Version();
