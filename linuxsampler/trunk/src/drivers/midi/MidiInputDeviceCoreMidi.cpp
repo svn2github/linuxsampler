@@ -169,7 +169,7 @@ namespace LinuxSampler {
 	void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ProcessMidiEvents(const MIDIPacketList *pktlist) {
 		MIDIPacket *packet = (MIDIPacket *)pktlist->packet;
 		for (unsigned int i = 0; i < pktlist->numPackets; ++i) {
-			char* pData = (char*) packet->data;
+			uint8_t* pData = (uint8_t*) packet->data;
 			int k = 0;
 			// A MIDIPacket can have more than one (non SysEx) MIDI event in one
 			// packet. However SysEx messages are guaranteed to be alone in one
@@ -180,7 +180,7 @@ namespace LinuxSampler {
 
 				if (k + eventSize > packet->length) goto next_packet;
 
-				DispatchRaw(packet->data);
+				DispatchRaw(&pData[k]);
 				k += eventSize;
 			} while (k < packet->length);
 
@@ -190,12 +190,9 @@ namespace LinuxSampler {
 	}
 	
 	void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::connectToSource(MIDIEndpointRef source) {
-		// check if we already have such a connection, if yes, disconnect it first
+		// check if we already have such a connection, if yes, ignore it
 		for (uint i = 0; i < bindings.size(); ++i) {
-			if (bindings[i] == source) {
-				MIDIPortDisconnectSource(pDevice->pBridge, source);
-				break;
-			}
+			if (bindings[i] == source) return;
 		}
 		// now establish the CoreMIDI connection
 		MIDIPortConnectSource(pDevice->pBridge, source, this);
