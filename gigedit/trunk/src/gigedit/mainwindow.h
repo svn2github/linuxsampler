@@ -26,8 +26,10 @@
 #include <gtkmm/buttonbox.h>
 #include <gtkmm/dialog.h>
 #include <gtkmm/liststore.h>
+#include <gtkmm/menu.h>
 #include <gtkmm/paned.h>
 #include <gtkmm/progressbar.h>
+#include <gtkmm/radiomenuitem.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/treestore.h>
 #include <gtkmm/uimanager.h>
@@ -182,7 +184,7 @@ protected:
     sigc::signal<void, int/*key*/, int/*velocity*/> note_on_signal;
     sigc::signal<void, int/*key*/, int/*velocity*/> note_off_signal;
 
-    void on_instrument_selection_change(int index);
+    void on_instrument_selection_change(Gtk::RadioMenuItem* item);
     void on_sel_change();
     void region_changed();
     void dimreg_changed();
@@ -211,6 +213,8 @@ protected:
 
     Gtk::TreeView m_TreeView;
     Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
+
+    Gtk::Menu* instrument_menu;
 
     class SamplesModel : public Gtk::TreeModel::ColumnRecord {
     public:
@@ -280,6 +284,11 @@ protected:
     void on_action_duplicate_instrument();
     void on_action_remove_instrument();
 
+    void add_instrument(gig::Instrument* instrument);
+    Gtk::RadioMenuItem* add_instrument_to_menu(const Glib::ustring& name,
+                                               int position = -1);
+    void remove_instrument_from_menu(int index);
+
     LoadDialog* load_dialog;
     Loader* loader;
     void load_gig(gig::File* gig, const char* filename, bool isSharedInstrument = false);
@@ -311,6 +320,7 @@ protected:
                              const Gtk::TreeModel::iterator& iter);
     void instrument_name_changed(const Gtk::TreeModel::Path& path,
                                  const Gtk::TreeModel::iterator& iter);
+    sigc::connection instrument_name_connection;
 
     void __import_queued_samples();
     void __clear();

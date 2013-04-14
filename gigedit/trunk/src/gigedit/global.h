@@ -24,6 +24,8 @@
 # include <config.h>
 #endif
 
+#include <sstream>
+
 #if HAVE_GETTEXT
 # include <libintl.h>
 # define _(String) gettext(String)
@@ -36,5 +38,11 @@
 # define PACKAGE "gigedit"
 # define VERSION VER_STRING // VER_STRING defined in libgig_private.h
 #endif // WIN32
+
+template<class T> inline std::string ToString(T o) {
+    std::stringstream ss;
+    ss << o;
+    return ss.str();
+}
 
 #endif // GIGEDIT_GLOBAL_H

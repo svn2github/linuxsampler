@@ -23,6 +23,8 @@ Version CVS HEAD (?)
   * bug fix: avoid stale information in the instrument properties
     window when a new file is loaded or the instrument is removed
   * cross fade graph: draw curves of all layers in the same graph
+  * made sure the instruments menu is updated when instruments are
+    added, removed or renamed
 
 Version 0.2.0 (2009-07-31)
 

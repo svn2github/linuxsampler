@@ -30,7 +30,6 @@
 #include <gtkmm/stock.h>
 #include <gtkmm/targetentry.h>
 #include <gtkmm/main.h>
-#include <gtkmm/radiomenuitem.h>
 #include <gtkmm/toggleaction.h>
 #if GTKMM_MAJOR_VERSION < 3
 #include "wrapLabel.hh"
@@ -47,12 +46,6 @@
 #include "../../gfx/status_attached.xpm"
 #include "../../gfx/status_detached.xpm"
 
-template<class T> inline std::string ToString(T o) {
-    std::stringstream ss;
-    ss << o;
-    return ss.str();
-}
-
 
 MainWindow::MainWindow() :
     dimreg_label(_("Changes apply to:")),
@@ -67,8 +60,7 @@ MainWindow::MainWindow() :
     add(m_VBox);
 
     // Handle selection
-    Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
-    tree_sel_ref->signal_changed().connect(
+    m_TreeView.get_selection()->signal_changed().connect(
         sigc::mem_fun(*this, &MainWindow::on_sel_change));
 
     // m_TreeView.set_reorderable();
@@ -224,7 +216,7 @@ MainWindow::MainWindow() :
         "    <menuitem action='SampleProperties'/>"
         "    <menuitem action='AddGroup'/>"
         "    <menuitem action='AddSample'/>"
-	"    <menuitem action='ReplaceAllSamplesInAllGroups' />"
+        "    <menuitem action='ReplaceAllSamplesInAllGroups' />"
         "    <separator/>"
         "    <menuitem action='RemoveSample'/>"
         "  </popup>"
@@ -232,6 +224,9 @@ MainWindow::MainWindow() :
     uiManager->add_ui_from_string(ui_info);
 
     popup_menu = dynamic_cast<Gtk::Menu*>(uiManager->get_widget("/PopupMenu"));
+
+    instrument_menu = static_cast<Gtk::MenuItem*>(
+        uiManager->get_widget("/MenuBar/MenuInstrument"))->get_submenu();
 
     Gtk::Widget* menuBar = uiManager->get_widget("/MenuBar");
     m_VBox.pack_start(*menuBar, Gtk::PACK_SHRINK);
@@ -257,7 +252,7 @@ MainWindow::MainWindow() :
     // Create the Tree model:
     m_refTreeModel = Gtk::ListStore::create(m_Columns);
     m_TreeView.set_model(m_refTreeModel);
-    m_refTreeModel->signal_row_changed().connect(
+    instrument_name_connection = m_refTreeModel->signal_row_changed().connect(
         sigc::mem_fun(*this, &MainWindow::instrument_name_changed)
     );
 
@@ -375,9 +370,8 @@ void MainWindow::region_changed()
 gig::Instrument* MainWindow::get_instrument()
 {
     gig::Instrument* instrument = 0;
-    Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
-
-    Gtk::TreeModel::iterator it = tree_sel_ref->get_selected();
+    Gtk::TreeModel::const_iterator it =
+        m_TreeView.get_selection()->get_selected();
     if (it) {
         Gtk::TreeModel::Row row = *it;
         instrument = row[m_Columns.m_col_instr];
@@ -436,6 +430,16 @@ void MainWindow::dimreg_changed()
 
 void MainWindow::on_sel_change()
 {
+    // select item in instrument menu
+    Gtk::TreeModel::iterator it = m_TreeView.get_selection()->get_selected();
+    if (it) {
+        Gtk::TreePath path(it);
+        int index = path[0];
+        const std::vector<Gtk::Widget*> children =
+            instrument_menu->get_children();
+        static_cast<Gtk::RadioMenuItem*>(children[index])->set_active();
+    }
+
     m_RegionChooser.set_instrument(get_instrument());
 }
 
@@ -514,21 +518,15 @@ LoadDialog::LoadDialog(const Glib::ustring& title, Gtk::Window& parent)
 // Clear all GUI elements / controls. This method is typically called
 // before a new .gig file is to be created or to be loaded.
 void MainWindow::__clear() {
-    // remove all entries from "Instrument" menu
-    Gtk::MenuItem* instrument_menu =
-        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuInstrument"));
-    instrument_menu->hide();
-    Gtk::Menu* menu = instrument_menu->get_submenu();
-    while (menu->get_children().size()) {
-        Gtk::Widget* child = *menu->get_children().begin();
-        menu->remove(*child);
-        delete child;
-    }
     // forget all samples that ought to be imported
     m_SampleImportQueue.clear();
     // clear the samples and instruments tree views
     m_refTreeModel->clear();
     m_refSamplesTreeModel->clear();
+    // remove all entries from "Instrument" menu
+    while (!instrument_menu->get_children().empty()) {
+        remove_instrument_from_menu(0);
+    }
     // free libgig's gig::File instance
     if (file && !file_is_shared) delete file;
     file = NULL;
@@ -880,13 +878,13 @@ void MainWindow::__import_queued_samples() {
             m_SampleImportQueue.erase(cur);
         } catch (std::string what) {
             // remember the files that made trouble (and their cause)
-            if (error_files.size()) error_files += "\n";
+            if (!error_files.empty()) error_files += "\n";
             error_files += (*iter).sample_path += " (" + what + ")";
             ++iter;
         }
     }
     // show error message box when some sample(s) could not be imported
-    if (error_files.size()) {
+    if (!error_files.empty()) {
         Glib::ustring txt = _("Could not import the following sample(s):\n") + error_files;
         Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
         msg.run();
@@ -1126,31 +1124,20 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
 
     propDialog.set_info(gig->pInfo);
 
-    Gtk::MenuItem* instrument_menu =
-        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuInstrument"));
-
-    int instrument_index = 0;
-    Gtk::RadioMenuItem::Group instrument_group;
+    instrument_name_connection.block();
     for (gig::Instrument* instrument = gig->GetFirstInstrument() ; instrument ;
          instrument = gig->GetNextInstrument()) {
+        Glib::ustring name(instrument->pInfo->Name);
+
         Gtk::TreeModel::iterator iter = m_refTreeModel->append();
         Gtk::TreeModel::Row row = *iter;
-        row[m_Columns.m_col_name] = instrument->pInfo->Name.c_str();
+        row[m_Columns.m_col_name] = name;
         row[m_Columns.m_col_instr] = instrument;
-        // create a menu item for this instrument
-        Gtk::RadioMenuItem* item =
-            new Gtk::RadioMenuItem(instrument_group, instrument->pInfo->Name.c_str());
-        instrument_menu->get_submenu()->append(*item);
-        item->signal_activate().connect(
-            sigc::bind(
-                sigc::mem_fun(*this, &MainWindow::on_instrument_selection_change),
-                instrument_index
-            )
-        );
-        instrument_index++;
+
+        add_instrument_to_menu(name);
     }
-    instrument_menu->show();
-    instrument_menu->get_submenu()->show_all_children();
+    instrument_name_connection.unblock();
+    uiManager->get_widget("/MenuBar/MenuInstrument")->show();
 
     for (gig::Group* group = gig->GetFirstGroup(); group; group = gig->GetNextGroup()) {
         if (group->Name != "") {
@@ -1174,8 +1161,7 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
     file = gig;
 
     // select the first instrument
-    Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
-    tree_sel_ref->select(Gtk::TreePath("0"));
+    m_TreeView.get_selection()->select(Gtk::TreePath("0"));
 
     gig::Instrument* instrument = get_instrument();
     if (instrument) {
@@ -1214,8 +1200,19 @@ void MainWindow::on_button_release(GdkEventButton* button)
     }
 }
 
-void MainWindow::on_instrument_selection_change(int index) {
-    m_RegionChooser.set_instrument(file->GetInstrument(index));
+void MainWindow::on_instrument_selection_change(Gtk::RadioMenuItem* item) {
+    if (item->get_active()) {
+        const std::vector<Gtk::Widget*> children =
+            instrument_menu->get_children();
+        std::vector<Gtk::Widget*>::const_iterator it =
+            find(children.begin(), children.end(), item);
+        if (it != children.end()) {
+            int index = it - children.begin();
+            m_TreeView.get_selection()->select(Gtk::TreePath(ToString(index)));
+
+            m_RegionChooser.set_instrument(file->GetInstrument(index));
+        }
+    }
 }
 
 void MainWindow::on_sample_treeview_button_release(GdkEventButton* button) {
@@ -1245,6 +1242,57 @@ void MainWindow::on_sample_treeview_button_release(GdkEventButton* button) {
     }
 }
 
+
+Gtk::RadioMenuItem* MainWindow::add_instrument_to_menu(
+    const Glib::ustring& name, int position) {
+
+    Gtk::RadioMenuItem::Group instrument_group;
+    const std::vector<Gtk::Widget*> children = instrument_menu->get_children();
+    if (!children.empty()) {
+        instrument_group =
+            static_cast<Gtk::RadioMenuItem*>(children[0])->get_group();
+    }
+    Gtk::RadioMenuItem* item =
+        new Gtk::RadioMenuItem(instrument_group, name);
+    if (position < 0) {
+        instrument_menu->append(*item);
+    } else {
+        instrument_menu->insert(*item, position);
+    }
+    item->show();
+    item->signal_activate().connect(
+        sigc::bind(
+            sigc::mem_fun(*this, &MainWindow::on_instrument_selection_change),
+            item));
+    return item;
+}
+
+void MainWindow::remove_instrument_from_menu(int index) {
+    const std::vector<Gtk::Widget*> children =
+        instrument_menu->get_children();
+    Gtk::Widget* child = children[index];
+    instrument_menu->remove(*child);
+    delete child;
+}
+
+void MainWindow::add_instrument(gig::Instrument* instrument) {
+    const char* name = instrument->pInfo->Name.c_str();
+
+    // update instrument tree view
+    instrument_name_connection.block();
+    Gtk::TreeModel::iterator iterInstr = m_refTreeModel->append();
+    Gtk::TreeModel::Row rowInstr = *iterInstr;
+    rowInstr[m_Columns.m_col_name] = name;
+    rowInstr[m_Columns.m_col_instr] = instrument;
+    instrument_name_connection.unblock();
+
+    add_instrument_to_menu(name);
+
+    m_TreeView.get_selection()->select(iterInstr);
+
+    file_changed();
+}
+
 void MainWindow::on_action_add_instrument() {
     static int __instrument_indexer = 0;
     if (!file) return;
@@ -1252,17 +1300,13 @@ void MainWindow::on_action_add_instrument() {
     __instrument_indexer++;
     instrument->pInfo->Name =
         _("Unnamed Instrument ") + ToString(__instrument_indexer);
-    // update instrument tree view
-    Gtk::TreeModel::iterator iterInstr = m_refTreeModel->append();
-    Gtk::TreeModel::Row rowInstr = *iterInstr;
-    rowInstr[m_Columns.m_col_name] = instrument->pInfo->Name.c_str();
-    rowInstr[m_Columns.m_col_instr] = instrument;
-    file_changed();
+
+    add_instrument(instrument);
 }
 
 void MainWindow::on_action_duplicate_instrument() {
     if (!file) return;
-    
+
     // retrieve the currently selected instrument
     // (being the original instrument to be duplicated)
     Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeView.get_selection();
@@ -1271,18 +1315,13 @@ void MainWindow::on_action_duplicate_instrument() {
     Gtk::TreeModel::Row row = *itSelection;
     gig::Instrument* instrOrig = row[m_Columns.m_col_instr];
     if (!instrOrig) return;
-    
+
     // duplicate the orginal instrument
     gig::Instrument* instrNew = file->AddDuplicateInstrument(instrOrig);
     instrNew->pInfo->Name =
         instrOrig->pInfo->Name + " (" + _("Copy") + ")";
-        
-    // update instrument tree view
-    Gtk::TreeModel::iterator iterInstr = m_refTreeModel->append();
-    Gtk::TreeModel::Row rowInstr = *iterInstr;
-    rowInstr[m_Columns.m_col_name] = instrNew->pInfo->Name.c_str();
-    rowInstr[m_Columns.m_col_instr] = instrNew;
-    file_changed();
+
+    add_instrument(instrNew);
 }
 
 void MainWindow::on_action_remove_instrument() {
@@ -1304,12 +1343,29 @@ void MainWindow::on_action_remove_instrument() {
         Gtk::TreeModel::Row row = *it;
         gig::Instrument* instr = row[m_Columns.m_col_instr];
         try {
+            Gtk::TreePath path(it);
+            int index = path[0];
+
             // remove instrument from the gig file
             if (instr) file->DeleteInstrument(instr);
-            // remove respective row from instruments tree view
-            m_refTreeModel->erase(it);
             file_changed();
 
+            remove_instrument_from_menu(index);
+
+            // remove row from instruments tree view
+            m_refTreeModel->erase(it);
+
+#if GTKMM_MAJOR_VERSION < 3
+            // select another instrument (in gtk3 this is done
+            // automatically)
+            if (!m_refTreeModel->children().empty()) {
+                if (index == m_refTreeModel->children().size()) {
+                    index--;
+                }
+                m_TreeView.get_selection()->select(
+                    Gtk::TreePath(ToString(index)));
+            }
+#endif
             instr = get_instrument();
             if (instr) {
                 instrumentProps.set_instrument(instr);
@@ -1508,12 +1564,12 @@ void MainWindow::on_action_add_sample() {
                 sf_close(hFile);
                 file_changed();
             } catch (std::string what) { // remember the files that made trouble (and their cause)
-                if (error_files.size()) error_files += "\n";
+                if (!error_files.empty()) error_files += "\n";
                 error_files += *iter += " (" + what + ")";
             }
         }
         // show error message box when some file(s) could not be opened / added
-        if (error_files.size()) {
+        if (!error_files.empty()) {
             Glib::ustring txt = _("Could not add the following sample(s):\n") + error_files;
             Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
             msg.run();
@@ -1526,7 +1582,7 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
     if (!file) return;
     Gtk::FileChooserDialog dialog(*this, _("Select Folder"),
                                   Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
-    const char* str = 
+    const char* str =
         _("This is a very specific function. It tries to replace all samples "
           "in the current gig file by samples located in the chosen "
           "directory.\n\n"
@@ -1606,12 +1662,12 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
             }
             catch (std::string what)
             {
-                if (error_files.size()) error_files += "\n";
+                if (!error_files.empty()) error_files += "\n";
                     error_files += filename += " (" + what + ")";
             }
         }
         // show error message box when some file(s) could not be opened / added
-        if (error_files.size()) {
+        if (!error_files.empty()) {
             Glib::ustring txt =
                 _("Could not replace the following sample(s):\n") + error_files;
             Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
@@ -1821,6 +1877,21 @@ void MainWindow::instrument_name_changed(const Gtk::TreeModel::Path& path,
     if (!iter) return;
     Gtk::TreeModel::Row row = *iter;
     Glib::ustring name = row[m_Columns.m_col_name];
+
+    // change name in instrument menu
+    int index = path[0];
+    const std::vector<Gtk::Widget*> children = instrument_menu->get_children();
+    if (index < children.size()) {
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 16) || GTKMM_MAJOR_VERSION > 2
+        static_cast<Gtk::RadioMenuItem*>(children[index])->set_label(name);
+#else
+        remove_instrument_from_menu(index);
+        Gtk::RadioMenuItem* item = add_instrument_to_menu(name, index);
+        item->set_active();
+#endif
+    }
+
+    // change name in gig
     gig::Instrument* instrument = row[m_Columns.m_col_instr];
     if (instrument && instrument->pInfo->Name != name.raw()) {
         instrument->pInfo->Name = name.raw();

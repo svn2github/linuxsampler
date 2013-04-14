@@ -20,7 +20,6 @@
 #include "regionchooser.h"
 
 #include <algorithm>
-#include <sstream>
 
 #include <cairomm/context.h>
 #include <gdkmm/general.h>
@@ -159,12 +158,6 @@ RegionChooser::RegionChooser() :
 
 RegionChooser::~RegionChooser()
 {
-}
-
-template<class T> inline std::string ToString(T o) {
-    std::stringstream ss;
-    ss << o;
-    return ss.str();
 }
 
 void RegionChooser::invalidate_key(int key) {
