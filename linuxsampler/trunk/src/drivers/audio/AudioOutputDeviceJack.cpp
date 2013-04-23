@@ -298,13 +298,13 @@ namespace LinuxSampler {
         return static_cast<JackClient*>(arg)->Process(nframes);
     }
 
-    void JackClient::libjackShutdownCallback(void* arg) {
+    void JackClient::libjackShutdownCallback(jack_status_t code, const char* reason, void *arg) {
         JackClient* jackClient = static_cast<JackClient*>(arg);
         jackClient->Stop();
         fprintf(stderr, "Jack: Jack server shutdown, exiting.\n");
         for (int i = 0; i < jackClient->jackListeners.size(); ++i) {
             JackListener* listener = jackClient->jackListeners[i];
-            listener->onJackShutdown();
+            listener->onJackShutdown(code, reason);
         }
     }
     
@@ -377,7 +377,7 @@ namespace LinuxSampler {
         if (!hJackClient)
             throw Exception("Seems Jack server is not running.");
         jack_set_process_callback(hJackClient, linuxsampler_libjack_process_callback, this);
-        jack_on_shutdown(hJackClient, libjackShutdownCallback, this);
+        jack_on_info_shutdown(hJackClient, libjackShutdownCallback, this);
         jack_set_buffer_size_callback(hJackClient, libjackBufferSizeCallback, this);
         jack_set_sample_rate_callback(hJackClient, libjackSampleRateCallback, this);
         
