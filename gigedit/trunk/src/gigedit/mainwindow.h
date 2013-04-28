@@ -81,11 +81,18 @@ class InstrumentProps : public Gtk::Window,
 public:
     InstrumentProps();
     void set_instrument(gig::Instrument* instrument);
+    gig::Instrument* get_instrument() { return m; }
+    void update_name();
+    sigc::signal<void>& signal_name_changed() {
+        return sig_name_changed;
+    }
 protected:
+    void set_Name(const gig::String& name);
     void set_IsDrum(bool value);
     void set_MIDIBank(uint16_t value);
     void set_MIDIProgram(uint32_t value);
 
+    sigc::signal<void> sig_name_changed;
     Gtk::VBox vbox;
     Gtk::HButtonBox buttonBox;
     Gtk::Button quitButton;
@@ -269,6 +276,7 @@ protected:
     void on_action_file_properties();
     void on_action_quit();
     void show_instr_props();
+    bool instr_props_set_instrument();
     void on_action_view_status_bar();
     void on_action_help_about();
 
@@ -320,6 +328,7 @@ protected:
                              const Gtk::TreeModel::iterator& iter);
     void instrument_name_changed(const Gtk::TreeModel::Path& path,
                                  const Gtk::TreeModel::iterator& iter);
+    void instr_name_changed_by_instr_props(Gtk::TreeModel::iterator& it);
     sigc::connection instrument_name_connection;
 
     void __import_queued_samples();

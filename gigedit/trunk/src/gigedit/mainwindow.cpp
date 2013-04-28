@@ -1003,6 +1003,18 @@ void PropDialog::set_info(DLS::Info* info)
 }
 
 
+void InstrumentProps::set_Name(const gig::String& name)
+{
+    m->pInfo->Name = name;
+}
+
+void InstrumentProps::update_name()
+{
+    update_model++;
+    eName.set_value(m->pInfo->Name);
+    update_model--;
+}
+
 void InstrumentProps::set_IsDrum(bool value)
 {
     m->IsDrum = value;
@@ -1045,6 +1057,7 @@ InstrumentProps::InstrumentProps() :
           "\"keyswitching\" dimension")
     );
 
+    connect(eName, &InstrumentProps::set_Name);
     connect(eIsDrum, &InstrumentProps::set_IsDrum);
     connect(eMIDIBank, &InstrumentProps::set_MIDIBank);
     connect(eMIDIProgram, &InstrumentProps::set_MIDIProgram);
@@ -1056,6 +1069,8 @@ InstrumentProps::InstrumentProps() :
     connect(ePianoReleaseMode, &gig::Instrument::PianoReleaseMode);
     connect(eDimensionKeyRangeLow, eDimensionKeyRangeHigh,
             &gig::Instrument::DimensionKeyRange);
+
+    eName.signal_value_changed().connect(sig_name_changed.make_slot());
 
     table.set_col_spacings(5);
 
@@ -1097,6 +1112,7 @@ void InstrumentProps::set_instrument(gig::Instrument* instrument)
     update(instrument);
 
     update_model++;
+    eName.set_value(instrument->pInfo->Name);
     eIsDrum.set_value(instrument->IsDrum);
     eMIDIBank.set_value(instrument->MIDIBank);
     eMIDIProgram.set_value(instrument->MIDIProgram);
@@ -1163,20 +1179,50 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
     // select the first instrument
     m_TreeView.get_selection()->select(Gtk::TreePath("0"));
 
-    gig::Instrument* instrument = get_instrument();
-    if (instrument) {
+    instr_props_set_instrument();
+}
+
+bool MainWindow::instr_props_set_instrument()
+{
+    instrumentProps.signal_name_changed().clear();
+
+    Gtk::TreeModel::const_iterator it =
+        m_TreeView.get_selection()->get_selected();
+    if (it) {
+        Gtk::TreeModel::Row row = *it;
+        gig::Instrument* instrument = row[m_Columns.m_col_instr];
+
         instrumentProps.set_instrument(instrument);
+
+        // make sure instrument tree is updated when user changes the
+        // instrument name in instrument properties window
+        instrumentProps.signal_name_changed().connect(
+            sigc::bind(
+                sigc::mem_fun(*this, 
+                              &MainWindow::instr_name_changed_by_instr_props),
+                it));
+    } else {
+        instrumentProps.hide();
     }
+    return it;
 }
 
 void MainWindow::show_instr_props()
 {
-    gig::Instrument* instrument = get_instrument();
-    if (instrument)
-    {
-        instrumentProps.set_instrument(instrument);
+    if (instr_props_set_instrument()) {
         instrumentProps.show();
         instrumentProps.deiconify();
+    }
+}
+
+void MainWindow::instr_name_changed_by_instr_props(Gtk::TreeModel::iterator& it)
+{
+    Gtk::TreeModel::Row row = *it;
+    Glib::ustring name = row[m_Columns.m_col_name];
+
+    gig::Instrument* instrument = row[m_Columns.m_col_instr];
+    if (instrument->pInfo->Name != name) {
+        row[m_Columns.m_col_name] = instrument->pInfo->Name;
     }
 }
 
@@ -1366,12 +1412,7 @@ void MainWindow::on_action_remove_instrument() {
                     Gtk::TreePath(ToString(index)));
             }
 #endif
-            instr = get_instrument();
-            if (instr) {
-                instrumentProps.set_instrument(instr);
-            } else {
-                instrumentProps.hide();
-            }
+            instr_props_set_instrument();
         } catch (RIFF::Exception e) {
             Gtk::MessageDialog msg(*this, e.Message.c_str(), false, Gtk::MESSAGE_ERROR);
             msg.run();
@@ -1895,6 +1936,12 @@ void MainWindow::instrument_name_changed(const Gtk::TreeModel::Path& path,
     gig::Instrument* instrument = row[m_Columns.m_col_instr];
     if (instrument && instrument->pInfo->Name != name.raw()) {
         instrument->pInfo->Name = name.raw();
+
+        // change name in the instrument properties window
+        if (instrumentProps.get_instrument() == instrument) {
+            instrumentProps.update_name();
+        }
+
         file_changed();
     }
 }

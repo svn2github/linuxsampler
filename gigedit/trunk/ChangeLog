@@ -25,6 +25,7 @@ Version CVS HEAD (?)
   * cross fade graph: draw curves of all layers in the same graph
   * made sure the instruments menu is updated when instruments are
     added, removed or renamed
+  * fixed name entry field in instrument properties window
 
 Version 0.2.0 (2009-07-31)
 
