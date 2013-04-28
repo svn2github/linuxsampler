@@ -545,7 +545,7 @@ void MainWindow::on_action_file_new()
     gig::File* pFile = new gig::File;
     // already add one new instrument by default
     gig::Instrument* pInstrument = pFile->AddInstrument();
-    pInstrument->pInfo->Name = _("Unnamed Instrument");
+    pInstrument->pInfo->Name = gig_from_utf8(_("Unnamed Instrument"));
     // update GUI with that new gig::File
     load_gig(pFile, 0 /*no file name yet*/);
 }
@@ -1143,7 +1143,7 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
     instrument_name_connection.block();
     for (gig::Instrument* instrument = gig->GetFirstInstrument() ; instrument ;
          instrument = gig->GetNextInstrument()) {
-        Glib::ustring name(instrument->pInfo->Name);
+        Glib::ustring name(gig_to_utf8(instrument->pInfo->Name));
 
         Gtk::TreeModel::iterator iter = m_refTreeModel->append();
         Gtk::TreeModel::Row row = *iter;
@@ -1159,7 +1159,7 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
         if (group->Name != "") {
             Gtk::TreeModel::iterator iterGroup = m_refSamplesTreeModel->append();
             Gtk::TreeModel::Row rowGroup = *iterGroup;
-            rowGroup[m_SamplesModel.m_col_name]   = group->Name.c_str();
+            rowGroup[m_SamplesModel.m_col_name]   = gig_to_utf8(group->Name);
             rowGroup[m_SamplesModel.m_col_group]  = group;
             rowGroup[m_SamplesModel.m_col_sample] = NULL;
             for (gig::Sample* sample = group->GetFirstSample();
@@ -1167,7 +1167,8 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
                 Gtk::TreeModel::iterator iterSample =
                     m_refSamplesTreeModel->append(rowGroup.children());
                 Gtk::TreeModel::Row rowSample = *iterSample;
-                rowSample[m_SamplesModel.m_col_name]   = sample->pInfo->Name.c_str();
+                rowSample[m_SamplesModel.m_col_name] =
+                    gig_to_utf8(sample->pInfo->Name);
                 rowSample[m_SamplesModel.m_col_sample] = sample;
                 rowSample[m_SamplesModel.m_col_group]  = NULL;
             }
@@ -1221,8 +1222,9 @@ void MainWindow::instr_name_changed_by_instr_props(Gtk::TreeModel::iterator& it)
     Glib::ustring name = row[m_Columns.m_col_name];
 
     gig::Instrument* instrument = row[m_Columns.m_col_instr];
-    if (instrument->pInfo->Name != name) {
-        row[m_Columns.m_col_name] = instrument->pInfo->Name;
+    Glib::ustring gigname(gig_to_utf8(instrument->pInfo->Name));
+    if (gigname != name) {
+        row[m_Columns.m_col_name] = gigname;
     }
 }
 
@@ -1322,7 +1324,7 @@ void MainWindow::remove_instrument_from_menu(int index) {
 }
 
 void MainWindow::add_instrument(gig::Instrument* instrument) {
-    const char* name = instrument->pInfo->Name.c_str();
+    const Glib::ustring name(gig_to_utf8(instrument->pInfo->Name));
 
     // update instrument tree view
     instrument_name_connection.block();
@@ -1344,8 +1346,8 @@ void MainWindow::on_action_add_instrument() {
     if (!file) return;
     gig::Instrument* instrument = file->AddInstrument();
     __instrument_indexer++;
-    instrument->pInfo->Name =
-        _("Unnamed Instrument ") + ToString(__instrument_indexer);
+    instrument->pInfo->Name = gig_from_utf8(_("Unnamed Instrument ") +
+                                            ToString(__instrument_indexer));
 
     add_instrument(instrument);
 }
@@ -1365,7 +1367,8 @@ void MainWindow::on_action_duplicate_instrument() {
     // duplicate the orginal instrument
     gig::Instrument* instrNew = file->AddDuplicateInstrument(instrOrig);
     instrNew->pInfo->Name =
-        instrOrig->pInfo->Name + " (" + _("Copy") + ")";
+        instrOrig->pInfo->Name + 
+        gig_from_utf8(Glib::ustring(" (") + _("Copy") + ")");
 
     add_instrument(instrNew);
 }
@@ -1432,13 +1435,13 @@ void MainWindow::on_action_add_group() {
     static int __sample_indexer = 0;
     if (!file) return;
     gig::Group* group = file->AddGroup();
-    group->Name = _("Unnamed Group");
+    group->Name = gig_from_utf8(_("Unnamed Group"));
     if (__sample_indexer) group->Name += " " + ToString(__sample_indexer);
     __sample_indexer++;
     // update sample tree view
     Gtk::TreeModel::iterator iterGroup = m_refSamplesTreeModel->append();
     Gtk::TreeModel::Row rowGroup = *iterGroup;
-    rowGroup[m_SamplesModel.m_col_name] = group->Name.c_str();
+    rowGroup[m_SamplesModel.m_col_name] = gig_to_utf8(group->Name);
     rowGroup[m_SamplesModel.m_col_sample] = NULL;
     rowGroup[m_SamplesModel.m_col_group] = group;
     file_changed();
@@ -1547,7 +1550,7 @@ void MainWindow::on_action_add_sample() {
                         break;
                     }
                 }
-                sample->pInfo->Name = filename;
+                sample->pInfo->Name = gig_from_utf8(filename);
                 sample->Channels = info.channels;
                 sample->BitDepth = bitdepth;
                 sample->FrameSize = bitdepth / 8/*1 byte are 8 bits*/ * info.channels;
@@ -1598,7 +1601,8 @@ void MainWindow::on_action_add_sample() {
                 Gtk::TreeModel::iterator iterSample =
                     m_refSamplesTreeModel->append(row.children());
                 Gtk::TreeModel::Row rowSample = *iterSample;
-                rowSample[m_SamplesModel.m_col_name]   = filename;
+                rowSample[m_SamplesModel.m_col_name] =
+                    gig_to_utf8(sample->pInfo->Name);
                 rowSample[m_SamplesModel.m_col_sample] = sample;
                 rowSample[m_SamplesModel.m_col_group]  = NULL;
                 // close sound file
@@ -1669,8 +1673,9 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
              sample; sample = file->GetNextSample())
         {
             std::string filename =
-                folder + G_DIR_SEPARATOR_S + sample->pInfo->Name +
-                postfixEntryBox.get_text().raw();
+                folder + G_DIR_SEPARATOR_S +
+                Glib::filename_from_utf8(gig_to_utf8(sample->pInfo->Name) +
+                                         postfixEntryBox.get_text());
             SF_INFO info;
             info.format = 0;
             SNDFILE* hFile = sf_open(filename.c_str(), SFM_READ, &info);
@@ -1704,7 +1709,8 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
             catch (std::string what)
             {
                 if (!error_files.empty()) error_files += "\n";
-                    error_files += filename += " (" + what + ")";
+                error_files += Glib::filename_to_utf8(filename) + 
+                    " (" + what + ")";
             }
         }
         // show error message box when some file(s) could not be opened / added
@@ -1729,7 +1735,7 @@ void MainWindow::on_action_remove_sample() {
         try {
             // remove group or sample from the gig file
             if (group) {
-                // temporarily remember the samples that bolong to
+                // temporarily remember the samples that belong to
                 // that group (we need that to clean the queue)
                 std::list<gig::Sample*> members;
                 for (gig::Sample* pSample = group->GetFirstSample();
@@ -1898,15 +1904,16 @@ void MainWindow::sample_name_changed(const Gtk::TreeModel::Path& path,
     Glib::ustring name  = row[m_SamplesModel.m_col_name];
     gig::Group* group   = row[m_SamplesModel.m_col_group];
     gig::Sample* sample = row[m_SamplesModel.m_col_sample];
+    gig::String gigname(gig_from_utf8(name));
     if (group) {
-        if (group->Name != name) {
-            group->Name = name;
+        if (group->Name != gigname) {
+            group->Name = gigname;
             printf("group name changed\n");
             file_changed();
         }
     } else if (sample) {
-        if (sample->pInfo->Name != name.raw()) {
-            sample->pInfo->Name = name.raw();
+        if (sample->pInfo->Name != gigname) {
+            sample->pInfo->Name = gigname;
             printf("sample name changed\n");
             file_changed();
         }
@@ -1934,8 +1941,9 @@ void MainWindow::instrument_name_changed(const Gtk::TreeModel::Path& path,
 
     // change name in gig
     gig::Instrument* instrument = row[m_Columns.m_col_instr];
-    if (instrument && instrument->pInfo->Name != name.raw()) {
-        instrument->pInfo->Name = name.raw();
+    gig::String gigname(gig_from_utf8(name));
+    if (instrument && instrument->pInfo->Name != gigname) {
+        instrument->pInfo->Name = gigname;
 
         // change name in the instrument properties window
         if (instrumentProps.get_instrument() == instrument) {

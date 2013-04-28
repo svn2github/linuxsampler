@@ -928,7 +928,8 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
         d->pSample ? d->pSample->LoopPlayCount : 0);
     update_model--;
 
-    wSample->set_text(d->pSample ? d->pSample->pInfo->Name.c_str() : _("NULL"));
+    wSample->set_text(d->pSample ? gig_to_utf8(d->pSample->pInfo->Name) :
+                      _("NULL"));
 
     update_loop_elements();
     VCFEnabled_toggled();
@@ -1216,7 +1217,7 @@ bool DimRegionEdit::set_sample(gig::Sample* sample)
 
         // update ui
         update_model++;
-        wSample->set_text(dimregion->pSample->pInfo->Name);
+        wSample->set_text(gig_to_utf8(dimregion->pSample->pInfo->Name));
         eUnityNote.set_value(dimregion->UnityNote);
         eFineTune.set_value(dimregion->FineTune);
         eSampleLoopEnabled.set_value(dimregion->SampleLoops);

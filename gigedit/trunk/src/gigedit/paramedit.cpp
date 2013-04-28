@@ -24,6 +24,17 @@
 #include "global.h"
 #include "compat.h"
 
+std::string gig_encoding("CP1252");
+
+Glib::ustring gig_to_utf8(const gig::String& gig_string) {
+    return Glib::convert_with_fallback(gig_string, "UTF-8", gig_encoding, "?");
+}
+
+gig::String gig_from_utf8(const Glib::ustring& utf8_string) {
+    return Glib::convert_with_fallback(utf8_string, gig_encoding, "UTF-8", "?");
+}
+
+
 namespace {
     const char* const controlChangeTexts[] = {
         _("none"), _("channelaftertouch"), _("velocity"),
@@ -333,6 +344,16 @@ StringEntry::StringEntry(const char* labelText) :
     entry.signal_changed().connect(sig_changed.make_slot());
 }
 
+gig::String StringEntry::get_value() const
+{
+    return gig_from_utf8(entry.get_text());
+}
+
+void StringEntry::set_value(const gig::String& value) {
+    entry.set_text(gig_to_utf8(value));
+}
+
+
 StringEntryMultiLine::StringEntryMultiLine(const char* labelText) :
     LabelWidget(labelText, frame)
 {
@@ -347,14 +368,15 @@ gig::String StringEntryMultiLine::get_value() const
     Glib::ustring value = text_buffer->get_text();
     for (int i = 0 ; (i = value.find("\x0a", i)) >= 0 ; i += 2)
         value.replace(i, 1, "\x0d\x0a");
-    return value;
+    return gig_from_utf8(value);
 }
 
-void StringEntryMultiLine::set_value(gig::String value)
+void StringEntryMultiLine::set_value(const gig::String& value)
 {
-    for (int i = 0 ; (i = value.find("\x0d\x0a", i, 2)) >= 0 ; i++)
-        value.replace(i, 2, "\x0a");
-    text_buffer->set_text(value);
+    Glib::ustring text = gig_to_utf8(value);
+    for (int i = 0 ; (i = text.find("\x0d\x0a", i, 2)) >= 0 ; i++)
+        text.replace(i, 2, "\x0a");
+    text_buffer->set_text(text);
 }
 
 

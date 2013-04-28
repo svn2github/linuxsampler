@@ -24,6 +24,7 @@
 
 #include <cmath>
 
+#include <glibmm/convert.h>
 #include <gtkmm/adjustment.h>
 #include <gtkmm/alignment.h>
 #include <gtkmm/box.h>
@@ -40,6 +41,11 @@
 #define OLD_TOOLTIPS
 #include <gtkmm/tooltips.h>
 #endif
+
+
+Glib::ustring gig_to_utf8(const gig::String& gig_string);
+gig::String gig_from_utf8(const Glib::ustring& utf8_string);
+
 
 class LabelWidget {
 public:
@@ -282,13 +288,14 @@ public:
     void set_value(int32_t value);
 };
 
+
 class StringEntry : public LabelWidget {
 private:
     Gtk::Entry entry;
 public:
     StringEntry(const char* labelText);
-    gig::String get_value() const { return entry.get_text(); }
-    void set_value(gig::String value) { entry.set_text(value); }
+    gig::String get_value() const;
+    void set_value(const gig::String& value);
     void set_width_chars(int n_chars) { entry.set_width_chars(n_chars); }
 };
 
@@ -300,7 +307,7 @@ private:
 public:
     StringEntryMultiLine(const char* labelText);
     gig::String get_value() const;
-    void set_value(gig::String value);
+    void set_value(const gig::String& value);
 };
 
 
