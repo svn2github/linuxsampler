@@ -20,7 +20,7 @@
 class ChangeFlagRelaxed {
 public:
     ChangeFlagRelaxed() {
-        newval = ATOMIC_INIT(0);
+        newval = (atomic_t) ATOMIC_INIT(0);
         oldval = 0;
     }
     
