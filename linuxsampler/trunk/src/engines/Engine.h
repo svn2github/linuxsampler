@@ -2,8 +2,8 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005-2008 Christian Schoenebeck                        *
+ *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
+ *   Copyright (C) 2005-2013 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -82,6 +82,31 @@ namespace LinuxSampler {
              * max. samples per cycle changed.
              */
             virtual void ReconnectAudioOutputDevice() = 0;
+            
+            /**
+             * Modifies the scale tuning from standard well tempered chromatic
+             * scaling to any other kind of scaling.
+             * 
+             * ScaleTunes - detune factors (-64..+63 cents) for all 12
+             *              semitones of an octave
+             */
+            virtual void AdjustScaleTuning(const int8_t ScaleTunes[12]) = 0;
+            
+            /**
+             * Expects a byte array with 12 elements as argument @a pScaleTunes,
+             * where the currently effectve scale tuning setup is written to.
+             *
+             * pScaleTunes - output: detune factors (-64..+63 cents) for all 12
+             *               semitones of an octave
+             */
+            virtual void GetScaleTuning(int8_t* pScaleTunes) = 0;
+            
+            /**
+             * Reset to standard well tempered chromatic scaling, i.e. after
+             * being altered with AdjustScaleTuning() or after having sent the
+             * respective standard scale tuning SysEx MIDI message.
+             */
+            virtual void ResetScaleTuning() = 0;
 
         protected:
             virtual ~Engine() {}; // MUST only be destroyed by EngineFactory

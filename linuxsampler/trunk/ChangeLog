@@ -66,6 +66,9 @@ Version CVS HEAD (?)
       series (#182)
     - added a lock guard class for exception safe mutex handling and
       used it everywhere appropriate
+    - Immediately apply scale tuning changes to active voices.
+    - Exposed scale tuning to C++ API (along to the already existing standard
+      SysEx way).
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension

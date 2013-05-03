@@ -755,6 +755,19 @@ namespace LinuxSampler {
 
         return pitch;
     }
+    
+    void AbstractVoice::onScaleTuningChanged() {
+        PitchInfo pitch = this->Pitch;
+        double pitchbasecents = InstrInfo.FineTune + RgnInfo.FineTune + GetEngine()->ScaleTuning[MIDIKey % 12];
+        
+        // GSt behaviour: maximum transpose up is 40 semitones. If
+        // MIDI key is more than 40 semitones above unity note,
+        // the transpose is not done.
+        if (!SmplInfo.Unpitched && (MIDIKey - (int) RgnInfo.UnityNote) < 40) pitchbasecents += (MIDIKey - (int) RgnInfo.UnityNote) * 100;
+        
+        pitch.PitchBase = RTMath::CentsToFreqRatioUnlimited(pitchbasecents) * (double(SmplInfo.SampleRate) / double(GetEngine()->SampleRate));
+        this->Pitch = pitch;
+    }
 
     double AbstractVoice::CalculateVolume(double velocityAttenuation) {
         // For 16 bit samples, we downscale by 32768 to convert from

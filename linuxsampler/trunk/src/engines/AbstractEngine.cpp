@@ -165,6 +165,7 @@ namespace LinuxSampler {
      */
     void AbstractEngine::ResetScaleTuning() {
         memset(&ScaleTuning[0], 0x00, 12);
+        ScaleTuningChanged.raise();
     }
 
     /**
@@ -359,8 +360,13 @@ namespace LinuxSampler {
      *
      * @param ScaleTunes - detuning of all twelve semitones (in cents)
      */
-    void AbstractEngine::AdjustScale(int8_t ScaleTunes[12]) {
-        memcpy(&this->ScaleTuning[0], &ScaleTunes[0], 12); //TODO: currently not sample accurate
+    void AbstractEngine::AdjustScaleTuning(const int8_t ScaleTunes[12]) {
+        memcpy(&this->ScaleTuning[0], &ScaleTunes[0], 12);
+        ScaleTuningChanged.raise();
+    }
+    
+    void AbstractEngine::GetScaleTuning(int8_t* pScaleTunes) {
+        memcpy(pScaleTunes, &this->ScaleTuning[0], 12);
     }
 
     uint AbstractEngine::VoiceCount() {
@@ -530,7 +536,7 @@ namespace LinuxSampler {
                             if (GSCheckSum(checksum_reader, 12)) goto free_sysex_data;
                             #endif // CONFIG_ASSERT_GS_SYSEX_CHECKSUM
                             for (int i = 0; i < 12; i++) scale_tunes[i] -= 64;
-                            AdjustScale((int8_t*) scale_tunes);
+                            AdjustScaleTuning((int8_t*) scale_tunes);
                             dmsg(3,("\t\t\tNew scale applied.\n"));
                             break;
                         }

@@ -543,7 +543,21 @@ namespace LinuxSampler {
                     }
                 }
             }
-
+            
+            /**
+             * Recalculate the pitch of all active voices.
+             */
+            void OnScaleTuningChanged() {
+                RTList<uint>::Iterator iuiKey = pActiveKeys->first();
+                for (; iuiKey; ++iuiKey) {
+                    MidiKey* pKey = &pMIDIKeyInfo[*iuiKey];
+                    RTListVoiceIterator itVoice = pKey->pActiveVoices->first();
+                    for (; itVoice; ++itVoice) {
+                        itVoice->onScaleTuningChanged();
+                    }
+                }
+            }
+            
             void ProcessSustainPedalDown(Pool<Event>::Iterator& itEvent) {
                 // Cancel release process of all voices
                 RTList<uint>::Iterator iuiKey = pActiveKeys->first();

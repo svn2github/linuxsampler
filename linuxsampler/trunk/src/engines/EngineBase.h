@@ -143,6 +143,10 @@ namespace LinuxSampler {
                         }
                     }
                 }
+                
+                // In case scale tuning has been changed, recalculate pitch for
+                // all active voices.
+                ProcessScaleTuningChange();
 
                 // reset internal voice counter (just for statistic of active voices)
                 ActiveVoiceCountTemp = 0;
@@ -1451,6 +1455,22 @@ namespace LinuxSampler {
                 }
 
                 return -1;
+            }
+            
+            /**
+             * Checks whether scale tuning setting has been changed since last
+             * time this method was called, if yes, it recalculates the pitch
+             * for all active voices.
+             */
+            void ProcessScaleTuningChange() {
+                const bool changed = ScaleTuningChanged.readAndReset();
+                if (!changed) return;
+                
+                for (int i = 0; i < engineChannels.size(); i++) {
+                    EngineChannelBase<V, R, I>* channel =
+                        static_cast<EngineChannelBase<V, R, I>*>(engineChannels[i]);
+                    channel->OnScaleTuningChanged();
+                }
             }
 
         private:

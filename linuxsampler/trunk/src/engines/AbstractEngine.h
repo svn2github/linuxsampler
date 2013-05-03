@@ -31,6 +31,7 @@
 #include "../common/ConditionServer.h"
 #include "../common/Pool.h"
 #include "../common/RingBuffer.h"
+#include "../common/ChangeFlagRelaxed.h"
 #include "../drivers/audio/AudioOutputDevice.h"
 #include "common/Event.h"
 #include "common/SignalUnitRack.h"
@@ -58,6 +59,9 @@ namespace LinuxSampler {
             virtual uint   VoiceCount() OVERRIDE;
             virtual uint   VoiceCountMax() OVERRIDE;
             virtual String EngineName() OVERRIDE;
+            virtual void   AdjustScaleTuning(const int8_t ScaleTunes[12]) OVERRIDE;
+            virtual void   GetScaleTuning(int8_t* pScaleTunes) OVERRIDE;
+            virtual void   ResetScaleTuning() OVERRIDE;
 
             virtual Format GetEngineFormat() = 0;
             virtual void   Connect(AudioOutputDevice* pAudioOut) = 0;
@@ -100,6 +104,7 @@ namespace LinuxSampler {
             ArrayList<EngineChannel*>  engineChannels; ///< All engine channels of a Engine instance.
             ConditionServer            EngineDisabled;
             int8_t                     ScaleTuning[12];    ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
+            ChangeFlagRelaxed          ScaleTuningChanged; ///< Boolean flag indicating whenever ScaleTuning has been modified by a foreign thread (i.e. by API).
             RingBuffer<Event,false>*   pEventQueue;        ///< Input event queue for engine global events (e.g. SysEx messages).
             EventGenerator*            pEventGenerator;
             RTList<Event>*             pGlobalEvents;         ///< All engine global events for the current audio fragment (usually only SysEx messages).
@@ -117,7 +122,6 @@ namespace LinuxSampler {
             void ClearEventLists();
             void ImportEvents(uint Samples);
             void ProcessSysex(Pool<Event>::Iterator& itSysexEvent);
-            void ResetScaleTuning();
             void ProcessPitchbend(AbstractEngineChannel* pEngineChannel, Pool<Event>::Iterator& itPitchbendEvent);
 
             void ProcessFxSendControllers (
@@ -143,7 +147,6 @@ namespace LinuxSampler {
             static float* InitCrossfadeCurve();
             static float* InitCurve(const float* segments, int size = 128);
 
-            void AdjustScale(int8_t ScaleTunes[12]);
             bool RouteFxSend(FxSend* pFxSend, AudioChannel* ppSource[2], float FxSendLevel, uint Samples);
     };
 
