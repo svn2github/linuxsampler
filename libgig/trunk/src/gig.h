@@ -643,6 +643,9 @@ namespace gig {
     class MidiRule {
         public:
             virtual ~MidiRule() { }
+        protected:
+            virtual void UpdateChunks(uint8_t* pData) const = 0;
+            friend class Instrument;
     };
 
     /** MIDI rule for triggering notes by control change events. */
@@ -662,6 +665,78 @@ namespace gig {
 
         protected:
             MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg);
+            MidiRuleCtrlTrigger();
+            void UpdateChunks(uint8_t* pData) const;
+            friend class Instrument;
+    };
+
+    /** MIDI rule for instruments with legato samples. */
+    class MidiRuleLegato : public MidiRule {
+        public:
+            uint8_t LegatoSamples;     ///< Number of legato samples per key in each direction (always 12)
+            bool BypassUseController;  ///< If a controller should be used to bypass the sustain note
+            uint8_t BypassKey;         ///< Key to be used to bypass the sustain note
+            uint8_t BypassController;  ///< Controller to be used to bypass the sustain note
+            uint16_t ThresholdTime;    ///< Maximum time (ms) between two notes that should be played legato
+            uint16_t ReleaseTime;      ///< Release time
+            range_t KeyRange;          ///< Key range for legato notes
+            uint8_t ReleaseTriggerKey; ///< Key triggering release samples
+            uint8_t AltSustain1Key;    ///< Key triggering alternate sustain samples
+            uint8_t AltSustain2Key;    ///< Key triggering a second set of alternate sustain samples
+
+        protected:
+            MidiRuleLegato(RIFF::Chunk* _3ewg);
+            MidiRuleLegato();
+            void UpdateChunks(uint8_t* pData) const;
+            friend class Instrument;
+    };
+
+    /** MIDI rule to automatically cycle through specified sequences of different articulations. The instrument must be using the smartmidi dimension. */
+    class MidiRuleAlternator : public MidiRule {
+        public:
+            uint8_t Articulations;     ///< Number of articulations in the instrument
+            String pArticulations[32]; ///< Names of the articulations
+
+            range_t PlayRange;         ///< Key range of the playable keys in the instrument
+
+            uint8_t Patterns;          ///< Number of alternator patterns
+            struct pattern_t {
+                String Name;           ///< Name of the pattern
+                int Size;              ///< Number of steps in the pattern
+                const uint8_t& operator[](int i) const { /// Articulation to play
+                    return data[i];
+                }
+                uint8_t& operator[](int i) {
+                    return data[i];
+                }
+            private:
+                uint8_t data[32];
+            } pPatterns[32];           ///< A pattern is a sequence of articulation numbers
+
+            typedef enum {
+                selector_none,
+                selector_key_switch,
+                selector_controller
+            } selector_t;
+            selector_t Selector;       ///< Method by which pattern is chosen
+            range_t KeySwitchRange;    ///< Key range for key switch selector
+            uint8_t Controller;        ///< CC number for controller selector
+
+            bool Polyphonic;           ///< If alternator should step forward only when all notes are off
+            bool Chained;              ///< If all patterns should be chained together
+
+        protected:
+            MidiRuleAlternator(RIFF::Chunk* _3ewg);
+            MidiRuleAlternator();
+            void UpdateChunks(uint8_t* pData) const;
+            friend class Instrument;
+    };
+
+    /** A MIDI rule not yet implemented by libgig. */
+    class MidiRuleUnknown : public MidiRule {
+        protected:
+            MidiRuleUnknown() { }
+            void UpdateChunks(uint8_t* pData) const { }
             friend class Instrument;
     };
 
@@ -699,6 +774,10 @@ namespace gig {
             // own methods
             Region*   GetRegion(unsigned int Key);
             MidiRule* GetMidiRule(int i);
+            MidiRuleCtrlTrigger* AddMidiRuleCtrlTrigger();
+            MidiRuleLegato*      AddMidiRuleLegato();
+            MidiRuleAlternator*  AddMidiRuleAlternator();
+            void      DeleteMidiRule(int i);
         protected:
             Region*   RegionKeyTable[128]; ///< fast lookup for the corresponding Region of a MIDI key
 

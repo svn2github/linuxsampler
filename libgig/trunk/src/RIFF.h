@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2011 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -200,6 +200,7 @@ namespace RIFF {
             uint16_t       ReadUint16();
             int32_t        ReadInt32();
             uint32_t       ReadUint32();
+            void           ReadString(String& s, int size);
             unsigned long  Write(void* pData, unsigned long WordCount, unsigned long WordSize);
             unsigned long  WriteInt8(int8_t* pData,     unsigned long WordCount = 1);
             unsigned long  WriteUint8(uint8_t* pData,   unsigned long WordCount = 1);

@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2011 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -592,6 +592,23 @@ namespace RIFF {
        std::cout << "Chunk::ReadUint32(uint32_t*,ulong)" << std::endl;
        #endif // DEBUG
         return ReadSceptical(pData, WordCount, 4);
+    }
+
+    /**
+     * Reads a null-padded string of size characters and copies it
+     * into the string \a s. The position within the chunk will
+     * automatically be incremented.
+     *
+     * @param s                 destination string
+     * @param size              number of characters to read
+     * @throws RIFF::Exception  if an error occured or less than
+     *                          \a size characters could be read!
+     */
+    void Chunk::ReadString(String& s, int size) {
+        char* buf = new char[size];
+        ReadSceptical(buf, 1, size);
+        s.assign(buf, std::find(buf, buf + size, '\0'));
+        delete[] buf;
     }
 
     /**

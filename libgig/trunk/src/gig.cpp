@@ -3000,24 +3000,168 @@ namespace {
 // *************** MidiRule ***************
 // *
 
-MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
-    _3ewg->SetPos(36);
-    Triggers = _3ewg->ReadUint8();
-    _3ewg->SetPos(40);
-    ControllerNumber = _3ewg->ReadUint8();
-    _3ewg->SetPos(46);
-    for (int i = 0 ; i < Triggers ; i++) {
-        pTriggers[i].TriggerPoint = _3ewg->ReadUint8();
-        pTriggers[i].Descending = _3ewg->ReadUint8();
-        pTriggers[i].VelSensitivity = _3ewg->ReadUint8();
-        pTriggers[i].Key = _3ewg->ReadUint8();
-        pTriggers[i].NoteOff = _3ewg->ReadUint8();
-        pTriggers[i].Velocity = _3ewg->ReadUint8();
-        pTriggers[i].OverridePedal = _3ewg->ReadUint8();
-        _3ewg->ReadUint8();
+    MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
+        _3ewg->SetPos(36);
+        Triggers = _3ewg->ReadUint8();
+        _3ewg->SetPos(40);
+        ControllerNumber = _3ewg->ReadUint8();
+        _3ewg->SetPos(46);
+        for (int i = 0 ; i < Triggers ; i++) {
+            pTriggers[i].TriggerPoint = _3ewg->ReadUint8();
+            pTriggers[i].Descending = _3ewg->ReadUint8();
+            pTriggers[i].VelSensitivity = _3ewg->ReadUint8();
+            pTriggers[i].Key = _3ewg->ReadUint8();
+            pTriggers[i].NoteOff = _3ewg->ReadUint8();
+            pTriggers[i].Velocity = _3ewg->ReadUint8();
+            pTriggers[i].OverridePedal = _3ewg->ReadUint8();
+            _3ewg->ReadUint8();
+        }
     }
-}
 
+    MidiRuleCtrlTrigger::MidiRuleCtrlTrigger() :
+        ControllerNumber(0),
+        Triggers(0) {
+    }
+
+    void MidiRuleCtrlTrigger::UpdateChunks(uint8_t* pData) const {
+        pData[32] = 4;
+        pData[33] = 16;
+        pData[36] = Triggers;
+        pData[40] = ControllerNumber;
+        for (int i = 0 ; i < Triggers ; i++) {
+            pData[46 + i * 8] = pTriggers[i].TriggerPoint;
+            pData[47 + i * 8] = pTriggers[i].Descending;
+            pData[48 + i * 8] = pTriggers[i].VelSensitivity;
+            pData[49 + i * 8] = pTriggers[i].Key;
+            pData[50 + i * 8] = pTriggers[i].NoteOff;
+            pData[51 + i * 8] = pTriggers[i].Velocity;
+            pData[52 + i * 8] = pTriggers[i].OverridePedal;
+        }
+    }
+
+    MidiRuleLegato::MidiRuleLegato(RIFF::Chunk* _3ewg) {
+        _3ewg->SetPos(36);
+        LegatoSamples = _3ewg->ReadUint8(); // always 12
+        _3ewg->SetPos(40);
+        BypassUseController = _3ewg->ReadUint8();
+        BypassKey = _3ewg->ReadUint8();
+        BypassController = _3ewg->ReadUint8();
+        ThresholdTime = _3ewg->ReadUint16();
+        _3ewg->ReadInt16();
+        ReleaseTime = _3ewg->ReadUint16();
+        _3ewg->ReadInt16();
+        KeyRange.low = _3ewg->ReadUint8();
+        KeyRange.high = _3ewg->ReadUint8();
+        _3ewg->SetPos(64);
+        ReleaseTriggerKey = _3ewg->ReadUint8();
+        AltSustain1Key = _3ewg->ReadUint8();
+        AltSustain2Key = _3ewg->ReadUint8();
+    }
+
+    MidiRuleLegato::MidiRuleLegato() :
+        LegatoSamples(12),
+        BypassUseController(false),
+        BypassKey(0),
+        BypassController(1),
+        ThresholdTime(20),
+        ReleaseTime(20),
+        ReleaseTriggerKey(0),
+        AltSustain1Key(0),
+        AltSustain2Key(0)
+    {
+        KeyRange.low = KeyRange.high = 0;
+    }
+
+    void MidiRuleLegato::UpdateChunks(uint8_t* pData) const {
+        pData[32] = 0;
+        pData[33] = 16;
+        pData[36] = LegatoSamples;
+        pData[40] = BypassUseController;
+        pData[41] = BypassKey;
+        pData[42] = BypassController;
+        store16(&pData[43], ThresholdTime);
+        store16(&pData[47], ReleaseTime);
+        pData[51] = KeyRange.low;
+        pData[52] = KeyRange.high;
+        pData[64] = ReleaseTriggerKey;
+        pData[65] = AltSustain1Key;
+        pData[66] = AltSustain2Key;
+    }
+
+    MidiRuleAlternator::MidiRuleAlternator(RIFF::Chunk* _3ewg) {
+        _3ewg->SetPos(36);
+        Articulations = _3ewg->ReadUint8();
+        int flags = _3ewg->ReadUint8();
+        Polyphonic = flags & 8;
+        Chained = flags & 4;
+        Selector = (flags & 2) ? selector_controller :
+            (flags & 1) ? selector_key_switch : selector_none;
+        Patterns = _3ewg->ReadUint8();
+        _3ewg->ReadUint8(); // chosen row
+        _3ewg->ReadUint8(); // unknown
+        _3ewg->ReadUint8(); // unknown
+        _3ewg->ReadUint8(); // unknown
+        KeySwitchRange.low = _3ewg->ReadUint8();
+        KeySwitchRange.high = _3ewg->ReadUint8();
+        Controller = _3ewg->ReadUint8();
+        PlayRange.low = _3ewg->ReadUint8();
+        PlayRange.high = _3ewg->ReadUint8();
+
+        int n = std::min(int(Articulations), 32);
+        for (int i = 0 ; i < n ; i++) {
+            _3ewg->ReadString(pArticulations[i], 32);
+        }
+        _3ewg->SetPos(1072);
+        n = std::min(int(Patterns), 32);
+        for (int i = 0 ; i < n ; i++) {
+            _3ewg->ReadString(pPatterns[i].Name, 16);
+            pPatterns[i].Size = _3ewg->ReadUint8();
+            _3ewg->Read(&pPatterns[i][0], 1, 32);
+        }
+    }
+
+    MidiRuleAlternator::MidiRuleAlternator() :
+        Articulations(0),
+        Patterns(0),
+        Selector(selector_none),
+        Controller(0),
+        Polyphonic(false),
+        Chained(false)
+    {
+        PlayRange.low = PlayRange.high = 0;
+        KeySwitchRange.low = KeySwitchRange.high = 0;
+    }
+
+    void MidiRuleAlternator::UpdateChunks(uint8_t* pData) const {
+        pData[32] = 3;
+        pData[33] = 16;
+        pData[36] = Articulations;
+        pData[37] = (Polyphonic ? 8 : 0) | (Chained ? 4 : 0) |
+            (Selector == selector_controller ? 2 :
+             (Selector == selector_key_switch ? 1 : 0));
+        pData[38] = Patterns;
+
+        pData[43] = KeySwitchRange.low;
+        pData[44] = KeySwitchRange.high;
+        pData[45] = Controller;
+        pData[46] = PlayRange.low;
+        pData[47] = PlayRange.high;
+
+        char* str = reinterpret_cast<char*>(pData);
+        int pos = 48;
+        int n = std::min(int(Articulations), 32);
+        for (int i = 0 ; i < n ; i++, pos += 32) {
+            strncpy(&str[pos], pArticulations[i].c_str(), 32);
+        }
+
+        pos = 1072;
+        n = std::min(int(Patterns), 32);
+        for (int i = 0 ; i < n ; i++, pos += 49) {
+            strncpy(&str[pos], pPatterns[i].Name.c_str(), 16);
+            pData[pos + 16] = pPatterns[i].Size;
+            memcpy(&pData[pos + 16], &(pPatterns[i][0]), 32);
+        }
+    }
 
 // *************** Instrument ***************
 // *
@@ -3063,8 +3207,19 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
                     uint8_t id1 = _3ewg->ReadUint8();
                     uint8_t id2 = _3ewg->ReadUint8();
 
-                    if (id1 == 4 && id2 == 16) {
-                        pMidiRules[i++] = new MidiRuleCtrlTrigger(_3ewg);
+                    if (id2 == 16) {
+                        if (id1 == 4) {
+                            pMidiRules[i++] = new MidiRuleCtrlTrigger(_3ewg);
+                        } else if (id1 == 0) {
+                            pMidiRules[i++] = new MidiRuleLegato(_3ewg);
+                        } else if (id1 == 3) {
+                            pMidiRules[i++] = new MidiRuleAlternator(_3ewg);
+                        } else {
+                            pMidiRules[i++] = new MidiRuleUnknown;
+                        }
+                    }
+                    else if (id1 != 0 || id2 != 0) {
+                        pMidiRules[i++] = new MidiRuleUnknown;
                     }
                     //TODO: all the other types of rules
 
@@ -3156,6 +3311,15 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
                                     DimensionKeyRange.low << 1;
         pData[10] = dimkeystart;
         pData[11] = DimensionKeyRange.high;
+
+        if (pMidiRules[0] == 0 && _3ewg->GetSize() >= 34) {
+            pData[32] = 0;
+            pData[33] = 0;
+        } else {
+            for (int i = 0 ; pMidiRules[i] ; i++) {
+                pMidiRules[i]->UpdateChunks(pData);
+            }
+        }
     }
 
     /**
@@ -3237,7 +3401,56 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
     MidiRule* Instrument::GetMidiRule(int i) {
         return pMidiRules[i];
     }
-    
+
+    /**
+     * Adds the "controller trigger" MIDI rule to the instrument.
+     *
+     * @returns the new MIDI rule
+     */
+    MidiRuleCtrlTrigger* Instrument::AddMidiRuleCtrlTrigger() {
+        delete pMidiRules[0];
+        MidiRuleCtrlTrigger* r = new MidiRuleCtrlTrigger;
+        pMidiRules[0] = r;
+        pMidiRules[1] = 0;
+        return r;
+    }
+
+    /**
+     * Adds the legato MIDI rule to the instrument.
+     *
+     * @returns the new MIDI rule
+     */
+    MidiRuleLegato* Instrument::AddMidiRuleLegato() {
+        delete pMidiRules[0];
+        MidiRuleLegato* r = new MidiRuleLegato;
+        pMidiRules[0] = r;
+        pMidiRules[1] = 0;
+        return r;
+    }
+
+    /**
+     * Adds the alternator MIDI rule to the instrument.
+     *
+     * @returns the new MIDI rule
+     */
+    MidiRuleAlternator* Instrument::AddMidiRuleAlternator() {
+        delete pMidiRules[0];
+        MidiRuleAlternator* r = new MidiRuleAlternator;
+        pMidiRules[0] = r;
+        pMidiRules[1] = 0;
+        return r;
+    }
+
+    /**
+     * Deletes a MIDI rule from the instrument.
+     *
+     * @param i - MIDI rule number
+     */
+    void Instrument::DeleteMidiRule(int i) {
+        delete pMidiRules[i];
+        pMidiRules[i] = 0;
+    }
+
     /**
      * Make a (semi) deep copy of the Instrument object given by @a orig
      * and assign it to this object.

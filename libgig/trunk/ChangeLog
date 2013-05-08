@@ -18,6 +18,9 @@ Version CVS HEAD (?)
     - implemented File::AddDuplicateInstrument()
     - bugfix: negative EG3 depth values were not correctly parsed or
       saved
+    - added write support for CtrlTrigger midi rule
+    - added read and write support for Legato and Alternator midi
+      rules
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
@@ -29,6 +32,7 @@ Version CVS HEAD (?)
       as this may hang on some systems
     - fixed memory leak and memory handling errors when file loading
       fails
+    - added new method Chunk::ReadString
 
 Version 3.3.0 (30 Jul 2009)
 
