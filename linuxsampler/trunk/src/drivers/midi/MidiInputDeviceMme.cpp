@@ -151,6 +151,7 @@ void CALLBACK MidiInputDeviceMme::MidiInputPortMme::win32_midiin_callback(HMIDII
     }
 
     MidiInputDeviceMme::MidiInputPortMme::~MidiInputPortMme() {
+        CloseMmeMidiPort();
         delete[] TmpSysExBuf;
         delete[] SysExBuf;
     }
