@@ -24,6 +24,7 @@
 #include <set>
 #include <unistd.h>
 #include "lsatomic.h"
+#include "Mutex.h"
 
 namespace LinuxSampler {
 
@@ -73,10 +74,10 @@ namespace LinuxSampler {
                      *          object to be read by the real time
                      *          thread
                      */
-                    const T& Lock() {
+                    /*const*/ T& Lock() { //TODO const currently commented for the DoubleBuffer usage below
                         lock.store(lockCount += 2, memory_order_relaxed);
                         atomic_thread_fence(memory_order_seq_cst);
-                        return parent.config[parent.indexAtomic.load(
+                        return parent->config[parent->indexAtomic.load(
                                 memory_order_acquire)];
                     }
 
@@ -93,10 +94,11 @@ namespace LinuxSampler {
                     }
 
                     Reader(SynchronizedConfig& config);
-                    ~Reader();
+                    Reader(SynchronizedConfig* config);
+                    virtual ~Reader();
                 private:
                     friend class SynchronizedConfig;
-                    SynchronizedConfig& parent;
+                    SynchronizedConfig* parent;
                     int lockCount; // increased in every Lock(),
                                    // lowest bit is always set.
                     atomic<int> lock; // equals lockCount when inside
@@ -188,14 +190,184 @@ namespace LinuxSampler {
 
     template <class T>
     SynchronizedConfig<T>::Reader::Reader(SynchronizedConfig& config) :
+        parent(&config), lock(0), lockCount(1) {
+        parent->readers.insert(this);
+    }
+    
+    template <class T>
+    SynchronizedConfig<T>::Reader::Reader(SynchronizedConfig* config) :
         parent(config), lock(0), lockCount(1) {
-        parent.readers.insert(this);
+        parent->readers.insert(this);
     }
 
     template <class T>
     SynchronizedConfig<T>::Reader::~Reader() {
-        parent.readers.erase(this);
+        parent->readers.erase(this);
     }
+    
+    
+    // ----- Convenience classes on top of SynchronizedConfig ----
+
+
+    /**
+     * Base interface class for classes that implement synchronization of data
+     * shared between multiple threads.
+     */
+    template<class T>
+    class Synchronizer {
+    public:
+        /**
+         * Signal intention to enter a synchronized code block. Depending
+         * on the actual implementation, this call may block the calling
+         * thread until it is safe to actually use the protected data. After
+         * this call returns, it is safe for the calling thread to access and
+         * modify the shared data. As soon as the thread is done with accessing
+         * the shared data, it MUST call endSync().
+         *
+         * @return the shared protected data
+         */
+        virtual T& beginSync() = 0; //TODO: or call it lock() instead ?
+            
+        /**
+         * Signal that the synchronized code block has been left. Depending
+         * on the actual implementation, this call may block the calling
+         * thread for a certain amount of time.
+         */
+        virtual void endSync() = 0; //TODO: or call it unlock() instead ?
+    };
+
+    /**
+     * Wraps as a kind of pointer class some data object shared with other
+     * threads, to protect / synchronize the shared data against
+     * undeterministic concurrent access. It does so by locking the shared
+     * data in the Sync constructor and unlocking the shared data in the Sync
+     * destructor. Accordingly it can always be considered safe to access the
+     * shared data during the whole life time of the Sync object. Due to
+     * this design, a Sync object MUST only be accessed and destroyed
+     * by exactly one and the same thread which created that same Sync object.
+     */
+    template<class T>
+    class Sync {
+    public:
+        Sync(Synchronizer<T>* syncer) {
+            this->syncer = syncer;
+            this->data = &syncer->beginSync();
+        }
+        
+        virtual ~Sync() {
+            syncer->endSync();
+        }
+        
+        Sync& operator =(const Sync& arg) {
+            *this->data = *arg.data;
+            return *this;
+        }
+
+        Sync& operator =(const T& arg) {
+            *this->data = arg;
+            return *this;
+        }
+        
+        const T& operator *() const { return *data; }
+        T&       operator *()       { return *data; }
+
+        const T* operator ->() const { return data; }
+        T*       operator ->()       { return data; }
+
+    private:
+        Synchronizer<T>* syncer; ///< Points to the object that shall be responsible to protect the shared data.
+        T* data; ///< Points to the shared data that should be protected.
+    };
+
+    /**
+     * BackBuffer object to be accessed by multiple non-real-time threads.
+     *
+     * Since a back buffer is designed for being accessed by non-real-time
+     * threads, its methods involved may block the calling thread for a long
+     * amount of time.
+     */
+    template<class T>
+    class BackBuffer : public SynchronizedConfig<T>, public Synchronizer<T> {
+    public:
+        virtual T& beginSync() OVERRIDE {
+            mutex.Lock();
+            data = &SynchronizedConfig<T>::GetConfigForUpdate();
+            return *data;
+        }
+
+        virtual void endSync() OVERRIDE {
+            const T clone = *data;
+            SynchronizedConfig<T>::SwitchConfig() = clone;
+            mutex.Unlock();
+        }
+
+    private:
+        T* data;
+        Mutex mutex;
+    };
+
+    /**
+     * FrontBuffer object to be accessed by exactly ONE real-time thread.
+     * A front buffer is designed for real-time access. That is, its methods
+     * involved are lock free, that is none of them block the calling thread
+     * for a long time.
+     *
+     * If you need the front buffer's data to be accessed by multiple real-time
+     * threads instead, then you need to create multiple instances of the
+     * FrontBuffer object. They would point to the same data, but ensure
+     * protection against concurrent access among those real-time threads.
+     */
+    template<class T>
+    class FrontBuffer : public SynchronizedConfig<T>::Reader, public Synchronizer<T> {
+    public:
+        FrontBuffer(BackBuffer<T>& backBuffer) : SynchronizedConfig<T>::Reader::Reader(&backBuffer) {}
+        virtual T& beginSync() OVERRIDE { return SynchronizedConfig<T>::Reader::Lock(); }
+        virtual void endSync() OVERRIDE { SynchronizedConfig<T>::Reader::Unlock(); }
+    };
+
+    /**
+     * Synchronization / protection of data shared between multiple threads by
+     * using a double buffer design. The FrontBuffer is meant to be accessed by
+     * exactly one real-time thread, whereas the BackBuffer is meant to be
+     * accessed by multiple non-real-time threads.
+     *
+     * This class is built on top of SynchronizedConfig as convenient API to
+     * reduce the amount of code required to protect shared data.
+     */
+    template<class T>
+    class DoubleBuffer {
+    public:
+        DoubleBuffer() : m_front(m_back) {}
+        
+        /**
+         * Synchronized access of the shared data for EXACTLY one real-time
+         * thread.
+         *
+         * The returned shared data is wrapped into a Sync object, which
+         * ensures that the shared data is protected against concurrent access
+         * during the life time of the returned Sync object.
+         */
+        inline
+        Sync<T> front() { return Sync<T>(&m_front); }
+        
+        /**
+         * Synchronized access of the shared data for multiple non-real-time
+         * threads.
+         *
+         * The returned shared data is wrapped into a Sync object, which
+         * ensures that the shared data is protected against concurrent access
+         * during the life time of the returned Sync object.
+         *
+         * As soon as the returned Sync object is destroyed, the FrontBuffer
+         * will automatically be exchanged by the hereby modified BackBuffer.
+         */
+        inline
+        Sync<T> back() { return Sync<T>(&m_back); }
+
+    private:
+        BackBuffer<T> m_back; ///< Back buffer (non real-time thread(s) side).
+        FrontBuffer<T> m_front; ///< Front buffer (real-time thread side).
+    };
 
 } // namespace LinuxSampler
 
