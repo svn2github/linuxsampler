@@ -69,6 +69,10 @@ Version CVS HEAD (?)
     - Immediately apply scale tuning changes to active voices.
     - Exposed scale tuning to C++ API (along to the already existing standard
       SysEx way).
+    - lsatomic.h fixes: seq_cst load and store were suboptimal for x86
+      and broken for ppc64. (Seq_cst loads and stores are actually not
+      used in LS, so the bug wasn't noticable.)
+    - lsatomic.h: added ARMv7 support
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension

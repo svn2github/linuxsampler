@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008-2012 Andreas Persson                               *
+ *   Copyright (C) 2008-2013 Andreas Persson                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -75,7 +75,7 @@
  * - load and store of atomic<int> with relaxed, acquire/release or
  *   seq_cst memory ordering
  *
- * The supported architectures are x86 and powerpc.
+ * The supported architectures are x86, powerpc and ARMv7.
  */
 
 
@@ -115,6 +115,8 @@ namespace LinuxSampler {
             asm volatile("lwsync" : : : "memory");
 #elif defined(_ARCH_PPC)
             asm volatile("sync" : : : "memory");
+#elif defined(__ARM_ARCH_7A__)
+            asm volatile("dmb" : : : "memory");
 #else
             asm volatile("" : : : "memory");
 #endif
@@ -127,6 +129,8 @@ namespace LinuxSampler {
             asm volatile("lock; addl $0,0(%%esp)" : : : "memory");
 #elif defined(__x86_64__)
             asm volatile("mfence" : : : "memory");
+#elif defined(__ARM_ARCH_7A__)
+            asm volatile("dmb" : : : "memory");
 #else
             asm volatile("" : : : "memory");
 #endif
@@ -148,7 +152,9 @@ namespace LinuxSampler {
 
             case memory_order_seq_cst:
             case memory_order_release: // (invalid)
+#ifdef _ARCH_PPC
                 atomic_thread_fence(memory_order_seq_cst);
+#endif
                 // fall-through
 
             case memory_order_acquire:
@@ -164,7 +170,7 @@ namespace LinuxSampler {
                     : "memory", "cr0");
 #else
                 m = f;
-                asm volatile("" : : : "memory");
+                atomic_thread_fence(memory_order_acquire);
 #endif
                 break;
             }
@@ -184,9 +190,14 @@ namespace LinuxSampler {
 
             case memory_order_seq_cst:
             case memory_order_acquire: // (invalid)
+#ifdef _ARCH_PPC
+                atomic_thread_fence(memory_order_seq_cst);
+                f = m;
+#else
                 atomic_thread_fence(memory_order_release);
                 f = m;
                 atomic_thread_fence(memory_order_seq_cst);
+#endif
                 break;
             }
         }
