@@ -24,6 +24,10 @@ Version CVS HEAD (?)
       LDFLAGS="-Wl,--no-undefined" (#190)
     - fixed compilation with Clang 3.2
     - removed usage of deprecated Automake variable INCLUDES
+    - fixed building with C++11
+    - build fix: ChangeFlagRelaxed.h was missing in makefile
+    - build fix: libsndfile compiler flags were missing in some
+      makefiles
 
   * general changes:
     - Refactoring: moved the independent code from

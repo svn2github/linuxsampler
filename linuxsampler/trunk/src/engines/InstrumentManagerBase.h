@@ -97,7 +97,7 @@ namespace LinuxSampler {
              * Give back a region that belongs to an instrument that
              * was previously handed back.
              */
-            virtual void HandBackRegion(R* pRegion) OVERRIDE {
+            virtual void HandBackRegion(R* pRegion) {
                 LockGuard lock(RegionInfoMutex);
                 if (RegionInfo.find(pRegion) == RegionInfo.end()) {
                     std::cerr << "Handing back unknown region. This is a BUG!!!" << std::endl;

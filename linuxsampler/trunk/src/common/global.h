@@ -65,7 +65,7 @@ typedef unsigned int uint;
 
 // whether compiler is C++11 standard compliant
 #if defined(__cplusplus) && __cplusplus >= 201103L
-# define IS_CPP11
+# define IS_CPP11 1
 #endif
 
 // C++ "override" keyword introduced with C++11 standard

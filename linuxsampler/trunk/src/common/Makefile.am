@@ -35,7 +35,8 @@ liblinuxsamplercommon_la_SOURCES = \
 	WorkerThread.cpp WorkerThread.h \
 	Path.cpp Path.h \
 	File.cpp File.h \
-	ladspa.h
+	ladspa.h \
+	ChangeFlagRelaxed.h
 
 # create the plugins directory (i.e. /usr/lib/linuxsampler/plugins)
 install-exec-hook:
