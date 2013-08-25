@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -105,13 +105,16 @@ int octalsToNumber(char oct_digit0, char oct_digit1 = '0', char oct_digit2 = '0'
 
 // we provide our own version of yyerror() so we don't have to link against the yacc library
 void yyerror(const char* s);
+void yyerror(void* x, const char* s) { yyerror(s); }
 
 using namespace LinuxSampler;
 
 %}
 
 // reentrant parser
-%pure_parser
+%pure-parser
+
+%parse-param {void* yyparse_param}
 
 // tell bison to spit out verbose syntax error messages
 %error-verbose

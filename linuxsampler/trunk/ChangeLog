@@ -28,6 +28,7 @@ Version CVS HEAD (?)
     - build fix: ChangeFlagRelaxed.h was missing in makefile
     - build fix: libsndfile compiler flags were missing in some
       makefiles
+    - fix for building with bison 3.0 (#202)
 
   * general changes:
     - Refactoring: moved the independent code from
