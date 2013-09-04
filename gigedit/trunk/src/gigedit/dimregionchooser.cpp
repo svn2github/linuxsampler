@@ -256,8 +256,10 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                     Gdk::Cairo::set_source_rgba(cr, red);
                     int dr = (dimregno >> bitpos) &
                         ((1 << region->pDimensionDefinitions[i].bits) - 1);
+                    
+                    int x1 = -1, x2 = -1;
                     if (customsplits) {
-                        int x1 = label_width;
+                        x1 = label_width;
                         for (int j = 0 ; j < nbZones && x1 + 1 < clipx2 ; j++) {
                             gig::DimensionRegion* d =
                                 region->pDimensionRegions[c + (j << bitpos)];
@@ -266,8 +268,8 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                                 upperLimit = d->VelocityUpperLimit;
                             }
                             int v = upperLimit + 1;
-                            int x2 = int((w - label_width - 1) * v / 128.0 +
-                                         0.5) + label_width;
+                            x2 = int((w - label_width - 1) * v / 128.0 +
+                                     0.5) + label_width;
                             if (j == dr && x1 < x2) {
                                 cr->rectangle(x1 + 1, y + 1,
                                               (x2 - x1) - 1, h - 2);
@@ -278,14 +280,56 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                         }
                     } else {
                         if (dr < nbZones) {
-                            int x1 = int((w - label_width - 1) * dr /
-                                         double(nbZones) + 0.5);
-                            int x2 = int((w - label_width - 1) * (dr + 1) /
-                                         double(nbZones) + 0.5);
+                            x1 = int((w - label_width - 1) * dr /
+                                     double(nbZones) + 0.5);
+                            x2 = int((w - label_width - 1) * (dr + 1) /
+                                     double(nbZones) + 0.5);
                             cr->rectangle(label_width + x1 + 1, y + 1,
                                           (x2 - x1) - 1, h - 2);
                             cr->fill();
                         }
+                    }
+
+                    // draw text showing the beginning of the dimension zone
+                    // as numeric value to the user
+                    if (x1 >= 0) {
+                        Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
+                        int v = roundf(float(x1 - label_width) / float(w - label_width) * 127.f);
+                        if (dr > 0) v++;
+                        layout->set_text(Glib::Ascii::dtostr(v));
+                        Gdk::Cairo::set_source_rgba(cr, black);
+                        Pango::Rectangle rect = layout->get_logical_extents();
+                        
+                        int text_width, text_height;
+                        // get the text dimensions
+                        layout->get_pixel_size(text_width, text_height);
+                        // move text to the right end of the dimension zone
+                        cr->move_to(x1 + 1, y + 1);
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
+                        pango_cairo_show_layout(cr->cobj(), layout->gobj());
+#else
+                        layout->show_in_cairo_context(cr);
+#endif
+                    }
+                    // draw text showing the end of the dimension zone
+                    // as numeric value to the user
+                    if (x2 >= 0) {
+                        Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
+                        const int v = roundf(float(x2 - label_width) / float(w - label_width) * 127.f);
+                        layout->set_text(Glib::Ascii::dtostr(v));
+                        Gdk::Cairo::set_source_rgba(cr, black);
+                        Pango::Rectangle rect = layout->get_logical_extents();
+                        
+                        int text_width, text_height;
+                        // get the text dimensions
+                        layout->get_pixel_size(text_width, text_height);
+                        // move text to the right end of the dimension zone
+                        cr->move_to(x2 - text_width - 1, y + 1);
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
+                        pango_cairo_show_layout(cr->cobj(), layout->gobj());
+#else
+                        layout->show_in_cairo_context(cr);
+#endif
                     }
                 }
             }
