@@ -329,6 +329,7 @@ Version CVS HEAD (?)
     - JACK audio: jack_port_get_buffer() was cached and called outside
       RT context.
     - ASIO driver: removed compiler warnings
+    - CoreAudio: fixed minor error handling bug
 
   * LSCP server:
     - added support for sending MIDI CC messages via LSCP command

@@ -453,7 +453,7 @@ namespace LinuxSampler {
             &outSize, pBufferList
         );
 
-        if(res = noErr) {
+        if(res) {
             std::cerr << "Failed to get channel number: " << res << std::endl;
             free(pBufferList);
             return;
