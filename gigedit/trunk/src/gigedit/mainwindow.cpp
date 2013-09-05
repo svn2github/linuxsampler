@@ -128,8 +128,33 @@ MainWindow::MainWindow() :
                          *this, &MainWindow::on_action_quit));
     actionGroup->add(Gtk::Action::create("MenuInstrument", _("_Instrument")));
 
-    actionGroup->add(Gtk::Action::create("MenuView", _("_View")));
+
+    actionGroup->add(Gtk::Action::create("MenuEdit", _("_Edit")));
+
     Glib::RefPtr<Gtk::ToggleAction> toggle_action =
+        Gtk::ToggleAction::create("CopySampleUnity", _("Copy Sample's _Unity Note"), "ffaga");
+    toggle_action->set_active(true);
+    //FIXME: doesn't work, why?
+    toggle_action->set_tooltip(_("Used when dragging a sample to a region's sample reference field."));
+    actionGroup->add(toggle_action);
+
+    toggle_action =
+        Gtk::ToggleAction::create("CopySampleTune", _("Copy Sample's _Fine Tune"));
+    toggle_action->set_active(true);
+    //FIXME: doesn't work, why?
+    toggle_action->set_tooltip(_("Used when dragging a sample to a region's sample reference field."));
+    actionGroup->add(toggle_action);
+
+    toggle_action =
+        Gtk::ToggleAction::create("CopySampleLoop", _("Copy Sample's _Loop Points"));
+    toggle_action->set_active(true);
+    //FIXME: doesn't work, why?
+    toggle_action->set_tooltip(_("Used when dragging a sample to a region's sample reference field."));
+    actionGroup->add(toggle_action);
+
+
+    actionGroup->add(Gtk::Action::create("MenuView", _("_View")));
+    toggle_action =
         Gtk::ToggleAction::create("Statusbar", _("_Statusbar"));
     toggle_action->set_active(true);
     actionGroup->add(toggle_action,
@@ -195,6 +220,11 @@ MainWindow::MainWindow() :
         "      <menuitem action='Properties'/>"
         "      <separator/>"
         "      <menuitem action='Quit'/>"
+        "    </menu>"
+        "    <menu action='MenuEdit'>"
+        "      <menuitem action='CopySampleUnity'/>"
+        "      <menuitem action='CopySampleTune'/>"
+        "      <menuitem action='CopySampleLoop'/>"
         "    </menu>"
         "    <menu action='MenuInstrument'>"
         "    </menu>"
@@ -1239,6 +1269,36 @@ void MainWindow::on_action_view_status_bar() {
     else                    m_StatusBar.hide();
 }
 
+bool MainWindow::is_copy_samples_unity_note_enabled() const {
+    Gtk::CheckMenuItem* item =
+        dynamic_cast<Gtk::CheckMenuItem*>(uiManager->get_widget("/MenuBar/MenuEdit/CopySampleUnity"));
+    if (!item) {
+        std::cerr << "/MenuBar/MenuEdit/CopySampleUnity == NULL\n";
+        return true;
+    }
+    return item->get_active();
+}
+
+bool MainWindow::is_copy_samples_fine_tune_enabled() const {
+    Gtk::CheckMenuItem* item =
+        dynamic_cast<Gtk::CheckMenuItem*>(uiManager->get_widget("/MenuBar/MenuEdit/CopySampleTune"));
+    if (!item) {
+        std::cerr << "/MenuBar/MenuEdit/CopySampleTune == NULL\n";
+        return true;
+    }
+    return item->get_active();
+}
+
+bool MainWindow::is_copy_samples_loop_enabled() const {
+    Gtk::CheckMenuItem* item =
+        dynamic_cast<Gtk::CheckMenuItem*>(uiManager->get_widget("/MenuBar/MenuEdit/CopySampleLoop"));
+    if (!item) {
+        std::cerr << "/MenuBar/MenuEdit/CopySampleLoop == NULL\n";
+        return true;
+    }
+    return item->get_active();
+}
+
 void MainWindow::on_button_release(GdkEventButton* button)
 {
     if (button->type == GDK_2BUTTON_PRESS) {
@@ -1861,7 +1921,12 @@ void MainWindow::on_sample_label_drop_drag_data_received(
             channels_changed = true;
             region_changed();
         }
-        dimreg_edit.set_sample(sample);
+        dimreg_edit.set_sample(
+            sample,
+            is_copy_samples_unity_note_enabled(),
+            is_copy_samples_fine_tune_enabled(),
+            is_copy_samples_loop_enabled()
+        );
 
         if (sample->Channels == 2 && !stereo_dimension) {
             // add samplechannel dimension

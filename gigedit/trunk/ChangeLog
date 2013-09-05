@@ -28,6 +28,8 @@ Version CVS HEAD (?)
   * fixed name entry field in instrument properties window
   * use character encoding Windows-1252 for all strings in gig files
   * show dimension zone start and end as numeric text labels
+  * copying sample informations automatically may now be disabled from the
+    new "Edit" main menu
 
 Version 0.2.0 (2009-07-31)
 

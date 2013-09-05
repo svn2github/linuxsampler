@@ -75,7 +75,7 @@ public:
     DimRegionEdit();
     virtual ~DimRegionEdit();
     void set_dim_region(gig::DimensionRegion* d);
-    bool set_sample(gig::Sample* sample);
+    bool set_sample(gig::Sample* sample, bool copy_sample_unity, bool copy_sample_tune, bool copy_sample_loop);
     Gtk::Entry* wSample;
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_to_be_changed();
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_changed();

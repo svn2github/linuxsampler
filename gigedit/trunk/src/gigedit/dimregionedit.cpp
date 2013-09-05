@@ -1151,7 +1151,7 @@ void DimRegionEdit::loop_infinite_toggled() {
     update_model--;
 }
 
-bool DimRegionEdit::set_sample(gig::Sample* sample)
+bool DimRegionEdit::set_sample(gig::Sample* sample, bool copy_sample_unity, bool copy_sample_tune, bool copy_sample_loop)
 {
     if (dimregion) {
         //TODO: we should better move the code from MainWindow::on_sample_label_drop_drag_data_received() here
@@ -1195,23 +1195,25 @@ bool DimRegionEdit::set_sample(gig::Sample* sample)
             d[i]->pSample = sample;
 
             // copy sample information from Sample to DimensionRegion
-
-            d[i]->UnityNote = sample->MIDIUnityNote;
-            d[i]->FineTune = sample->FineTune;
-
-            int loops = sample->Loops ? 1 : 0;
-            while (d[i]->SampleLoops > loops) {
-                d[i]->DeleteSampleLoop(&d[i]->pSampleLoops[0]);
-            }
-            while (d[i]->SampleLoops < sample->Loops) {
-                DLS::sample_loop_t loop;
-                d[i]->AddSampleLoop(&loop);
-            }
-            if (loops) {
-                d[i]->pSampleLoops[0].Size = sizeof(DLS::sample_loop_t);
-                d[i]->pSampleLoops[0].LoopType = sample->LoopType;
-                d[i]->pSampleLoops[0].LoopStart = sample->LoopStart;
-                d[i]->pSampleLoops[0].LoopLength = sample->LoopEnd - sample->LoopStart + 1;
+            if (copy_sample_unity)
+                d[i]->UnityNote = sample->MIDIUnityNote;
+            if (copy_sample_tune)
+                d[i]->FineTune = sample->FineTune;
+            if (copy_sample_loop) {
+                int loops = sample->Loops ? 1 : 0;
+                while (d[i]->SampleLoops > loops) {
+                    d[i]->DeleteSampleLoop(&d[i]->pSampleLoops[0]);
+                }
+                while (d[i]->SampleLoops < sample->Loops) {
+                    DLS::sample_loop_t loop;
+                    d[i]->AddSampleLoop(&loop);
+                }
+                if (loops) {
+                    d[i]->pSampleLoops[0].Size = sizeof(DLS::sample_loop_t);
+                    d[i]->pSampleLoops[0].LoopType = sample->LoopType;
+                    d[i]->pSampleLoops[0].LoopStart = sample->LoopStart;
+                    d[i]->pSampleLoops[0].LoopLength = sample->LoopEnd - sample->LoopStart + 1;
+                }
             }
         }
 

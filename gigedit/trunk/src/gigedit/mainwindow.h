@@ -342,6 +342,10 @@ protected:
     bool on_delete_event(GdkEventAny* event);
 
     bool first_call_to_drag_data_get;
+    
+    bool is_copy_samples_unity_note_enabled() const;
+    bool is_copy_samples_fine_tune_enabled() const;
+    bool is_copy_samples_loop_enabled() const;
 };
 
 #endif
