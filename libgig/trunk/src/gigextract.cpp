@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This program is part of libgig.                                       *
@@ -87,7 +87,7 @@ string Revision();
 void PrintVersion();
 void PrintUsage();
 void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered);
-int writeWav(const char* filename, void* samples, long samplecount, int channels, int bitdepth, long rate);
+int writeWav(gig::Sample* sample, const char* filename, void* samples, long samplecount, int channels, int bitdepth, long rate);
 string ToString(int i);
 
 #if !HAVE_SNDFILE // use libaudiofile
@@ -177,6 +177,19 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 
+static std::string getLoopTypeText(gig::loop_type_t type) {
+    switch (type) {
+        case gig::loop_type_normal:
+            return "normal";
+        case gig::loop_type_bidirectional:
+            return "pingpong";
+        case gig::loop_type_backward:
+            return "backward";
+        default:
+            return "INVALID";
+    }
+}
+
 void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
 #if !HAVE_SNDFILE // use libaudiofile
     hAFlib = NULL;
@@ -216,7 +229,13 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
         filename += ".wav";
         if (pSample->Compressed) cout << "Decompressing ";
         else                     cout << "Extracting ";
-        cout << "Sample " << samples << ") " << name << " (" << pSample->BitDepth <<"Bits, " << pSample->SamplesPerSecond << "Hz, " << pSample->Channels << " Channels, " << pSample->SamplesTotal << " Samples)..." << flush;
+        cout << "Sample " << samples << ") " << name << " (" << pSample->BitDepth <<"Bits, " << pSample->SamplesPerSecond << "Hz, " << pSample->Channels << " Channels, " << pSample->SamplesTotal << " Samples";
+        if (pSample->Loops > 0) {
+            cout << ", LoopType "  << getLoopTypeText(pSample->LoopType)
+                 << ", LoopStart " << pSample->LoopStart
+                 << ", LoopEnd "   << pSample->LoopEnd;
+        }
+        cout << ")..." << flush;
 
 
 #if USE_DISK_STREAMING
@@ -282,7 +301,8 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
                 }
             }
 
-            int res = writeWav(filename.c_str(),
+            int res = writeWav(pSample,
+                               filename.c_str(),
                                pSample->BitDepth == 24 ? static_cast<void*>(pIntWave) : pWave,
                                pSample->SamplesTotal,
                                pSample->Channels,
@@ -307,10 +327,11 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
 #endif // !HAVE_SNDFILE
 }
 
-int writeWav(const char* filename, void* samples, long samplecount, int channels, int bitdepth, long rate) {
+int writeWav(gig::Sample* sample, const char* filename, void* samples, long samplecount, int channels, int bitdepth, long rate) {
 #if HAVE_SNDFILE
     SNDFILE* hfile;
     SF_INFO  sfinfo;
+    SF_INSTRUMENT instr;
     int format = SF_FORMAT_WAV;
     switch (bitdepth) {
         case 8:
@@ -330,6 +351,7 @@ int writeWav(const char* filename, void* samples, long samplecount, int channels
             return -1;
     }
     memset(&sfinfo, 0, sizeof (sfinfo));
+    memset(&instr, 0, sizeof (instr));
     sfinfo.samplerate = rate;
     sfinfo.frames     = samplecount;
     sfinfo.channels   = channels;
@@ -338,6 +360,29 @@ int writeWav(const char* filename, void* samples, long samplecount, int channels
         cerr << "Error: Unable to open output file \'" << filename << "\'.\n" << flush;
         return -1;
     }
+    instr.basenote = sample->MIDIUnityNote;
+    instr.detune = sample->FineTune;
+    if (sample->Loops > 0) {
+        instr.loop_count = 1;
+        switch (sample->LoopType) {
+            case gig::loop_type_normal:
+                instr.loops[0].mode = SF_LOOP_FORWARD;
+                break;
+            case gig::loop_type_bidirectional:
+                instr.loops[0].mode = SF_LOOP_ALTERNATING;
+                break;
+            case gig::loop_type_backward:
+                instr.loops[0].mode = SF_LOOP_BACKWARD;
+                break;
+            default:
+                instr.loops[0].mode = SF_LOOP_NONE;
+                break;
+        }
+        instr.loops[0].start = sample->LoopStart;
+        instr.loops[0].end   = sample->LoopEnd;
+        instr.loops[0].count = sample->LoopPlayCount;
+    }
+    sf_command(hfile, SFC_SET_INSTRUMENT, &instr, sizeof(instr));
     sf_count_t res = bitdepth == 24 ?
         sf_write_int(hfile, static_cast<int*>(samples), channels * samplecount) :
         sf_write_short(hfile, static_cast<short*>(samples), channels * samplecount);

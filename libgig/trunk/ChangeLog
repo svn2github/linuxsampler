@@ -6,7 +6,7 @@ Version CVS HEAD (?)
     - modernized configure script
     - removed usage of deprecated Automake variable INCLUDES
 
-  * SoundFont file format
+  * SoundFont file format:
     - initial implementation
     - changed region lookup API to avoid malloc in RT threads
     - fixed GetEG1Sustain which didn't return correct value
@@ -33,6 +33,9 @@ Version CVS HEAD (?)
     - fixed memory leak and memory handling errors when file loading
       fails
     - added new method Chunk::ReadString
+
+  * src/gigextract.cpp:
+    - export sample loop, unity note and fine tune with libsndfile
 
 Version 3.3.0 (30 Jul 2009)
 
