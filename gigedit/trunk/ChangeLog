@@ -30,6 +30,7 @@ Version CVS HEAD (?)
   * show dimension zone start and end as numeric text labels
   * copying sample informations automatically may now be disabled from the
     new "Edit" main menu
+  * import 'fine tune' when importing samples with libsndfile
 
 Version 0.2.0 (2009-07-31)
 

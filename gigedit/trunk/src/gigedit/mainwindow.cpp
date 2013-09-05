@@ -1624,6 +1624,7 @@ void MainWindow::on_action_add_sample() {
                                &instrument, sizeof(instrument)) != SF_FALSE)
                 {
                     sample->MIDIUnityNote = instrument.basenote;
+                    sample->FineTune      = instrument.detune;
 
                     if (instrument.loop_count && instrument.loops[0].mode != SF_LOOP_NONE) {
                         sample->Loops = 1;
