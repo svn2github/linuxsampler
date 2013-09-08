@@ -820,7 +820,7 @@ namespace gig {
             friend class File;
         private:
             File*        pFile;
-            RIFF::Chunk* pNameChunk;
+            RIFF::Chunk* pNameChunk; ///< '3gnm' chunk
     };
 
     /** Parses Gigasampler files and provides abstract access to the data. */

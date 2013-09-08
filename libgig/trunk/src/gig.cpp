@@ -4128,20 +4128,30 @@ namespace {
 
         // update group's chunks
         if (pGroups) {
-            std::list<Group*>::iterator iter = pGroups->begin();
-            std::list<Group*>::iterator end  = pGroups->end();
-            for (; iter != end; ++iter) {
-                (*iter)->UpdateChunks();
+            // make sure '3gri' and '3gnl' list chunks exist
+            // (before updating the Group chunks)
+            RIFF::List* _3gri = pRIFF->GetSubList(LIST_TYPE_3GRI);
+            if (!_3gri) {
+                _3gri = pRIFF->AddSubList(LIST_TYPE_3GRI);
+                pRIFF->MoveSubChunk(_3gri, pRIFF->GetSubChunk(CHUNK_ID_PTBL));
             }
+            RIFF::List* _3gnl = _3gri->GetSubList(LIST_TYPE_3GNL);
+            if (!_3gnl) _3gnl = _3gri->AddSubList(LIST_TYPE_3GNL);
 
             // v3: make sure the file has 128 3gnm chunks
+            // (before updating the Group chunks)
             if (pVersion && pVersion->major == 3) {
-                RIFF::List* _3gnl = pRIFF->GetSubList(LIST_TYPE_3GRI)->GetSubList(LIST_TYPE_3GNL);
                 RIFF::Chunk* _3gnm = _3gnl->GetFirstSubChunk();
                 for (int i = 0 ; i < 128 ; i++) {
                     if (i >= pGroups->size()) ::SaveString(CHUNK_ID_3GNM, _3gnm, _3gnl, "", "", true, 64);
                     if (_3gnm) _3gnm = _3gnl->GetNextSubChunk();
                 }
+            }
+
+            std::list<Group*>::iterator iter = pGroups->begin();
+            std::list<Group*>::iterator end  = pGroups->end();
+            for (; iter != end; ++iter) {
+                (*iter)->UpdateChunks();
             }
         }
 

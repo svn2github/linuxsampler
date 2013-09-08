@@ -21,6 +21,8 @@ Version CVS HEAD (?)
     - added write support for CtrlTrigger midi rule
     - added read and write support for Legato and Alternator midi
       rules
+    - bugfix: sample groups were sometimes created multiple times or with
+      wrong textual group name
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
