@@ -229,7 +229,7 @@ int GigEdit::run(int argc, char* argv[]) {
 
     Gtk::Main kit(argc, argv);
 
-#ifdef __APPLE__
+#if HAVE_GETTEXT && defined(__APPLE__)
     // Gtk::Main binds the gtk locale to a possible non-existent
     // directory. If we have bundled gtk locale files, we rebind here,
     // after the Gtk::Main constructor.
@@ -350,7 +350,7 @@ void GigEditState::main_loop_run(Cond* initialized) {
     const char* argv_c[] = { "gigedit" };
     char** argv = const_cast<char**>(argv_c);
     Gtk::Main main_loop(argc, argv);
-#ifdef __APPLE__
+#if HAVE_GETTEXT && defined(__APPLE__)
     if (!gigedit_localedir.empty()) {
         bindtextdomain("gtk20", gigedit_localedir.c_str());
     }
