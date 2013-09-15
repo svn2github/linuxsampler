@@ -61,11 +61,14 @@ AC_PROG_CXX
 IT_PROG_INTLTOOL(0.35.0)
 AM_GLIB_GNU_GETTEXT
 
+windows=no
+mac=no
 case $host in
     *mingw*|*cygwin*) windows=yes ;;
-    *)                windows=no ;;
+    *-*-darwin*) mac=yes ;;
 esac
 AM_CONDITIONAL(WINDOWS, test "$windows" = "yes")
+AM_CONDITIONAL(MAC, test "$mac" = "yes")
 
 PKG_PROG_PKG_CONFIG
 have_gtk3=no
