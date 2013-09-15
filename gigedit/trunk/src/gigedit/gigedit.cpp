@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 Andreas Persson
+ * Copyright (C) 2007-2013 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -23,6 +23,11 @@
 #include <glibmm/main.h>
 #include <gtkmm/main.h>
 
+#if defined(__APPLE__)
+# include <CoreFoundation/CoreFoundation.h>
+# include "MacHelper.h"
+#endif
+
 #include "mainwindow.h"
 
 #include "global.h"
@@ -31,6 +36,14 @@
 #include <dlfcn.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
+#endif
+
+//TODO: (hopefully) just a temporary nasty hack for launching gigedit on the main thread on Mac (see comments below in this file for details)
+#if defined(__APPLE__) // the following global external variables are defined in LinuxSampler's global_private.cpp ...
+extern bool g_mainThreadCallbackSupported;
+extern void (*g_mainThreadCallback)(void* info);
+extern void* g_mainThreadCallbackInfo;
+extern bool g_fireMainThreadCallback;
 #endif
 
 namespace {
@@ -85,10 +98,14 @@ private:
     GigEdit* parent;
     Cond open;
     Cond close;
+    Cond initialized;
     gig::Instrument* instrument;
 
     void open_window();
     void close_window();
+#if defined(__APPLE__)
+    static void runInCFMainLoop(void* info);
+#endif
 };
 
 #ifdef WIN32
@@ -127,7 +144,8 @@ void init_app() {
                     Glib::setenv("GDK_PIXBUF_MODULE_FILE", module_file, true);
                 }
             }
-#if HAVE_GETTEXT
+  //FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?
+  //#if HAVE_GETTEXT
             std::string localedir = Glib::build_filename(libdir, "locale");
             if (Glib::file_test(localedir, Glib::FILE_TEST_EXISTS)) {
                 gigedit_localedir = localedir;
@@ -135,7 +153,7 @@ void init_app() {
             } else {
                 bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
             }
-#endif
+  //#endif
         }
 
         // The gtk file dialog stores its recent files state in
@@ -143,27 +161,28 @@ void init_app() {
         g_mkdir_with_parents(
             Glib::build_filename(Glib::get_home_dir(),
                                  ".local/share").c_str(), 0777);
-#endif
+#endif // __APPLE__
 
-#if HAVE_GETTEXT
+//FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?
+#if (HAVE_GETTEXT || defined(__APPLE__))
 
-#ifdef WIN32
-#if GLIB_CHECK_VERSION(2, 16, 0)
+  #ifdef WIN32
+    #if GLIB_CHECK_VERSION(2, 16, 0)
         gchar* root =
             g_win32_get_package_installation_directory_of_module(gigedit_dll_handle);
-#else
+    #else
         gchar* root =
             g_win32_get_package_installation_directory(NULL, NULL);
-#endif
+    #endif
         gchar* temp = g_build_filename(root, "/share/locale", NULL);
         g_free(root);
         gchar* localedir = g_win32_locale_filename_from_utf8(temp);
         g_free(temp);
         bindtextdomain(GETTEXT_PACKAGE, localedir);
         g_free(localedir);
-#elif !defined(__APPLE__)
+  #elif !defined(__APPLE__)
         bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
-#endif
+  #endif
         bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
         textdomain(GETTEXT_PACKAGE);
 #endif // HAVE_GETTEXT
@@ -229,7 +248,8 @@ int GigEdit::run(int argc, char* argv[]) {
 
     Gtk::Main kit(argc, argv);
 
-#if HAVE_GETTEXT && defined(__APPLE__)
+//FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?
+#if (/*HAVE_GETTEXT &&*/ defined(__APPLE__))
     // Gtk::Main binds the gtk locale to a possible non-existent
     // directory. If we have bundled gtk locale files, we rebind here,
     // after the Gtk::Main constructor.
@@ -350,7 +370,8 @@ void GigEditState::main_loop_run(Cond* initialized) {
     const char* argv_c[] = { "gigedit" };
     char** argv = const_cast<char**>(argv_c);
     Gtk::Main main_loop(argc, argv);
-#if HAVE_GETTEXT && defined(__APPLE__)
+//FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?
+#if (/*HAVE_GETTEXT &&*/ defined(__APPLE__))
     if (!gigedit_localedir.empty()) {
         bindtextdomain("gtk20", gigedit_localedir.c_str());
     }
@@ -363,23 +384,86 @@ void GigEditState::main_loop_run(Cond* initialized) {
     main_loop.run();
 }
 
+#if defined(__APPLE__)
+
+void GigEditState::runInCFMainLoop(void* info) {
+    printf("runInCFMainLoop() entered\n"); fflush(stdout);
+    GigEditState* state = static_cast<GigEditState*>(info);
+    state->main_loop_run(
+        &state->initialized
+    );
+    printf("runInCFMainLoop() left\n"); fflush(stdout);
+}
+
+#endif // __APPLE__
+
 void GigEditState::run(gig::Instrument* pInstrument) {
     mutex.lock(); // lock access to static variables
 
     static bool main_loop_started = false;
     if (!main_loop_started) {
-        Cond initialized;
-#ifdef OLD_THREADS
+#if defined(__APPLE__)
+        // spawn GUI on main thread :
+        //     On OS X the Gtk GUI can only be launched on a process's "main"
+        //     thread. When trying to launch the Gtk GUI on any other thread,
+        //     there will only be a white box, because the GUI would not receive
+        //     any events, since it would listen to the wrong system event loop.
+        //     So far we haven't investigated whether there is any kind of
+        //     circumvention to allow doing that also on other OS X threads.
+        {
+            // In case the sampler was launched as standalone sampler (not as
+            // plugin), use the following global callback variable hack ...
+            if (g_mainThreadCallbackSupported) {
+                printf("Setting callback ...\n"); fflush(stdout);
+                g_mainThreadCallback = runInCFMainLoop;
+                g_mainThreadCallbackInfo = this;
+                g_fireMainThreadCallback = true;
+                printf("Callback variables set.\n"); fflush(stdout);
+            } else { // Sampler was launched as (i.e. AU / VST) plugin ...
+                // When the sampler was launched as plugin, we have no idea
+                // whether any sampler thread is the process's "main" thread.
+                // So that's why we are trying to use Apple's API for trying to
+                // launch our callback function on the process's main thread.
+                // However this will only work, if the plugin host application
+                // established a CF event loop, that is if the application is
+                // using Cocoa for its GUI. For other host applications the
+                // callback will never be executed and thus gigedit would not
+                // popup.
+                
+                // should be pretty much the same as the Objective-C solution below with macHelperRunCFuncOnMainThread()
+                /*CFRunLoopSourceContext sourceContext = CFRunLoopSourceContext();
+                sourceContext.info = this;
+                sourceContext.perform = runInCFMainLoop;
+                printf("CFRunLoopSourceCreate\n"); fflush(stdout);
+                CFRunLoopSourceRef source = CFRunLoopSourceCreate(
+                    kCFAllocatorDefault, // allocator
+                    1, // priority
+                    &sourceContext
+                );
+                printf("CFRunLoopAddSource\n"); fflush(stdout);
+                CFRunLoopAddSource(CFRunLoopGetMain(), source, kCFRunLoopDefaultMode);
+                CFRelease(source);*/
+                
+                // use Apple's Objective-C API to call our callback function
+                // 'runInCFMainLoop()' on the process's "main" thread
+                macHelperRunCFuncOnMainThread(runInCFMainLoop, this);
+            }
+        }
+#else
+  #ifdef OLD_THREADS
         Glib::Thread::create(
             sigc::bind(sigc::ptr_fun(&GigEditState::main_loop_run),
                        &initialized),
             false);
-#else
+  #else
         Glib::Threads::Thread::create(
             sigc::bind(sigc::ptr_fun(&GigEditState::main_loop_run),
                        &initialized));
+  #endif
 #endif
+        printf("Waiting for GUI being initialized (on main thread) ....\n"); fflush(stdout);
         initialized.wait();
+        printf("GUI is now initialized. Everything done.\n"); fflush(stdout);
         main_loop_started = true;
     }
     instrument = pInstrument;

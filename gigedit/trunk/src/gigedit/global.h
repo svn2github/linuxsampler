@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2007 Andreas Persson
+ * Copyright (C) 2007-2013 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -26,7 +26,8 @@
 
 #include <sstream>
 
-#if HAVE_GETTEXT
+//FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?
+#if (HAVE_GETTEXT || defined(__APPLE__))
 # include <libintl.h>
 # define _(String) gettext(String)
 #else

@@ -7,6 +7,14 @@ else
 wraplabel = wrapLabel.cc wrapLabel.hh
 endif
 
+if MAC
+mac_src = MacHelper.h MacHelper.m
+mac_ld = -framework Foundation
+else
+mac_src =
+mac_ld =
+endif
+
 pkglib_LTLIBRARIES = libgigedit.la
 libgigedit_la_SOURCES = \
 	global.h \
@@ -18,13 +26,14 @@ libgigedit_la_SOURCES = \
 	dimregionedit.cpp dimregionedit.h \
 	paramedit.cpp paramedit.h \
 	dimensionmanager.cpp dimensionmanager.h \
-	$(wraplabel)
+	$(wraplabel) $(mac_src)
 libgigedit_la_LIBADD = \
 	$(GTKMM_LIBS) $(GIG_LIBS) $(SNDFILE_LIBS)
 libgigedit_la_CXXFLAGS = \
 	$(SNDFILE_CFLAGS)
 libgigedit_la_LDFLAGS = \
-	-version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@ -no-undefined
+	-version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@ -no-undefined \
+	$(mac_ld)
 
 bin_PROGRAMS = gigedit
 gigedit_SOURCES = main.cpp
