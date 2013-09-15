@@ -220,6 +220,11 @@ int main(int argc, char **argv) {
         }
     }
 
+//TODO: (hopefully) just a temporary nasty hack for launching gigedit on the main thread on Mac (see comments in gigedit.cpp for details)
+#if defined(__APPLE__)
+    g_mainThreadCallbackSupported = true;
+#endif
+
     while (atomic_read(&running)) {
         if (bPrintStatistics) {
             const std::set<Engine*>& engines = EngineFactory::EngineInstances();
@@ -247,7 +252,22 @@ int main(int argc, char **argv) {
         }
 
         pSampler->fireStatistics();
+        
+        //TODO: (hopefully) just a temporary nasty hack for launching gigedit on the main thread on Mac (see comments in gigedit.cpp for details)
+        #if defined(__APPLE__)
+        if (g_fireMainThreadCallback && g_mainThreadCallback) {
+            void (*fn)(void* info) = g_mainThreadCallback;
+            void* info = g_mainThreadCallbackInfo;
+            g_mainThreadCallbackInfo = NULL;
+            g_mainThreadCallback     = NULL;
+            g_fireMainThreadCallback = false;
+            printf("Received main thread callback, calling now ...\n"); fflush(stdout);
+            (*fn)(info);
+            printf("Main thread callback executed.\n"); fflush(stdout);
+        }
+        #endif
     }
+//#endif
     if (pLSCPServer) pLSCPServer->StopThread();
     // the delete order here is important: the Sampler
     // destructor sends notifications to the lscpserver

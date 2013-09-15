@@ -29,6 +29,8 @@ Version CVS HEAD (?)
     - build fix: libsndfile compiler flags were missing in some
       makefiles
     - fix for building with bison 3.0 (#202)
+    - Mac OS X: added temporary hack allowing to spawn gigedit as callback
+      on the process's main thread
 
   * general changes:
     - Refactoring: moved the independent code from

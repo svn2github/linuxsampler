@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -106,6 +106,14 @@ class Runnable {
 extern double GLOBAL_VOLUME;
 extern int GLOBAL_MAX_VOICES;
 extern int GLOBAL_MAX_STREAMS;
+
+//TODO: (hopefully) just a temporary nasty hack for launching gigedit on the main thread on Mac (see comments in gigedit.cpp for details)
+#if defined(__APPLE__)
+extern bool g_mainThreadCallbackSupported;
+extern void (*g_mainThreadCallback)(void* info);
+extern void* g_mainThreadCallbackInfo;
+extern bool g_fireMainThreadCallback;
+#endif
 
 // I read with some Linux kernel versions (between 2.4.18 and 2.4.21)
 // sscanf() might be buggy regarding parsing of hex characters, so ...

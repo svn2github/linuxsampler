@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -97,6 +97,14 @@ int GLOBAL_MAX_VOICES = CONFIG_DEFAULT_MAX_VOICES;
 
 // this is the sampler global setting for maximum disk streams
 int GLOBAL_MAX_STREAMS = CONFIG_DEFAULT_MAX_STREAMS;
+
+//TODO: (hopefully) just a temporary nasty hack for launching gigedit on the main thread on Mac (see comments in gigedit.cpp for details)
+#if defined(__APPLE__)
+bool g_mainThreadCallbackSupported = false;
+void (*g_mainThreadCallback)(void* info) = 0;
+void* g_mainThreadCallbackInfo = 0;
+bool g_fireMainThreadCallback = false;
+#endif
 
 int hexToNumber(char hex_digit) {
     switch (hex_digit) {
