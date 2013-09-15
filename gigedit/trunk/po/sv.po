@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gigedit 0.2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-01-08 07:13+0100\n"
-"PO-Revision-Date: 2007-12-01 11:00+0100\n"
+"POT-Creation-Date: 2013-09-15 12:41+0200\n"
+"PO-Revision-Date: 2013-09-15 13:08+0200\n"
 "Last-Translator: Andreas Persson\n"
 "Language-Team: Swedish\n"
 "Language: \n"
@@ -16,110 +16,133 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:82
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:51
 msgid "Changes apply to:"
 msgstr "Ändra:"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:83
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:52
 msgid "all regions"
 msgstr "alla regioner"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:84
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:53
 msgid "all dimension splits"
 msgstr "alla dimensionsdelar"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:85
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:54
 msgid "both channels"
 msgstr "båda kanalerna"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:125
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:93
 msgid "Samples"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:126
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:94
 msgid "Instruments"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:131
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:99
 msgid "_File"
 msgstr "_Arkiv"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:161
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:129
 msgid "_Instrument"
 msgstr "_Instrument"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:163
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:132
+msgid "_Edit"
+msgstr "_Redigera"
+
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:135
+msgid "Copy Sample's _Unity Note"
+msgstr "Kopiera samplingens _Unity Note"
+
+#. FIXME: doesn't work, why?
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:138
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:145
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:152
+msgid "Used when dragging a sample to a region's sample reference field."
+msgstr ""
+
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:142
+msgid "Copy Sample's _Fine Tune"
+msgstr "Kopiera samplingens _Fine Tune"
+
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:149
+msgid "Copy Sample's _Loop Points"
+msgstr "Kopiera samplingens _Loop Points"
+
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:156
 msgid "_View"
 msgstr "_Visa"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:165
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:158
 msgid "_Statusbar"
 msgstr "Statusfältet"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:178
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:171
 msgid "Add _Instrument"
 msgstr "_Lägg till instrument"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:182
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:175
 msgid "_Duplicate Instrument"
 msgstr "_Duplicera instrument"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:196
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:189
 msgid "Add _Group"
 msgstr "Lägg till _grupp"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:200
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:193
 msgid "Add _Sample(s)..."
 msgstr "Lägg till _sampling(ar)..."
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:209
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:202
 msgid "Replace All Samples in All Groups..."
 msgstr "Ersätt alla samplingar i alla grupper..."
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:574
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:578
 msgid "Unnamed Instrument"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:581
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:585
 #, c-format
 msgid "Save changes to \"%s\" before closing?"
 msgstr "Spara ändringarna i \"%s\"?"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:585
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:589
 msgid "If you close without saving, your changes will be lost."
 msgstr "Om du stänger utan att spara förlorar du dina ändringar."
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:586
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:590
 msgid "Close _Without Saving"
 msgstr "Stäng _utan att spara"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:597
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:601
 msgid "Detach from sampler and proceed working stand-alone?"
 msgstr "Koppla från samplern och fortsätta arbeta fristående?"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:600
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:604
 msgid ""
 "If you proceed to work on another instrument file, it won't be used by the "
 "sampler until you tell the sampler explicitly to load it."
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:603
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:607
 msgid "_Yes, Detach"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:617
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:621
 msgid "Open file"
 msgstr "Öppna fil"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:644
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:648
 msgid "Loading..."
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:692
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:696
 msgid "The file could not be saved because it contains no samples"
 msgstr "Filen kunde inte sparas eftersom den inte innehåller några samplingar"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:701
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:705
 msgid ""
 "The file could not be saved because there are instruments that have no "
 "regions"
@@ -127,20 +150,20 @@ msgstr ""
 "Filen kunde inte sparas eftersom det finns instrument som inte har några "
 "regioner"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:726
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:814
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:730
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:818
 msgid "Could not save file: "
 msgstr "Kunde inte spara fil: "
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:745
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:749
 msgid "Save as"
 msgstr "Spara som"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:765
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:769
 msgid "copy_of_"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:787
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:791
 msgid ""
 "\n"
 "<b>CAUTION:</b> You <b>MUST</b> use the <span style=\"italic\">\"Save\"</"
@@ -150,24 +173,24 @@ msgid ""
 "wave data!\n"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:838
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1490
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1650
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:843
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1584
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1745
 msgid "could not open file"
 msgstr "kunde inte öppna fil"
 
 #. close sound file
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:855
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1506
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1666
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:860
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1600
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1761
 msgid "format not supported"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:913
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:918
 msgid "Could not import the following sample(s):\n"
 msgstr "Kunde inte importera följande sampling(ar):\n"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:936
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:941
 msgid ""
 "Released under the GNU General Public License.\n"
 "\n"
@@ -177,148 +200,148 @@ msgid ""
 "Please report bugs to: http://bugs.linuxsampler.org"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:950
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1089
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:955
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1066
 msgid "Name"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:951
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:956
 msgid "Creation date"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:952
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:957
 msgid "Comments"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:953
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:958
 msgid "Product"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:954
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:959
 msgid "Copyright"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:955
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:960
 msgid "Artists"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:956
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:961
 msgid "Genre"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:957
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:962
 msgid "Keywords"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:958
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:963
 msgid "Engineer"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:959
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:964
 msgid "Technician"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:960
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:965
 msgid "Software"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:961
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:966
 msgid "Medium"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:962
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:967
 msgid "Source"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:963
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:968
 msgid "Source form"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:964
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:969
 msgid "Commissioned"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:965
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:970
 msgid "Subject"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:970
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:974
 msgid "File Properties"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1090
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1067
 msgid "Is drum"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1091
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1068
 msgid "MIDI bank"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1092
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1069
 msgid "MIDI program"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1093
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1070
 msgid "Attenuation"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1094
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:195
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1071
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:238
 msgid "Gain +6dB"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1095
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1072
 msgid "Effect send"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1096
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:193
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1073
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:236
 msgid "Fine tune"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1097
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1074
 msgid "Pitchbend range"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1098
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1075
 msgid "Piano release mode"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1099
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1076
 msgid "Keyswitching range low"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1100
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1077
 msgid "Keyswitching range high"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1102
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1079
 msgid "Instrument Properties"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1105
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1082
 msgid ""
 "start of the keyboard area which should switch the \"keyswitching\" dimension"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1109
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1086
 msgid ""
 "end of the keyboard area which should switch the \"keyswitching\" dimension"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1200
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1166
 msgid "Unsaved Gig File"
 msgstr "Osparad gig-fil"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1327
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1409
 msgid "Unnamed Instrument "
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1351
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1431
 msgid "Copy"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1366
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1441
 msgid ""
 "You cannot delete an instrument from this file, since it's currently used by "
 "the sampler."
@@ -326,36 +349,36 @@ msgstr ""
 "Du kan inte radera ett instrument från den här filen, eftersom den används "
 "av samplern."
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1395
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1489
 msgid "Sorry, yet to be implemented!"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1404
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1498
 msgid "Unnamed Group"
 msgstr ""
 
 #. show 'browse for file' dialog
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1434
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1528
 msgid "Add Sample(s)"
 msgstr "Lägg till sampling(ar)"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1452
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1546
 msgid "Sound Files"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1453
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1547
 msgid "All Files"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1585
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1679
 msgid "Could not add the following sample(s):\n"
 msgstr "Kunde inte lägga till följande sampling(ar):\n"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1595
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1689
 msgid "Select Folder"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1598
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1692
 msgid ""
 "This is a very specific function. It tries to replace all samples in the "
 "current gig file by samples located in the chosen directory.\n"
@@ -371,669 +394,669 @@ msgid ""
 "file could be found will be reported and left untouched.\n"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1619
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1713
 msgid "Add filename extension: "
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1629
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1723
 msgid "Select"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1684
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1780
 msgid "Could not replace the following sample(s):\n"
 msgstr "Kunde inte lägga till följande sampling(ar):\n"
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1903
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:2027
 msgid "live-mode"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:1908
+#: /home/andreas/gigedit/po/../src/gigedit/mainwindow.cpp:2032
 msgid "stand-alone"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:114
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:133
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:157
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:176
 msgid "Pre-attack"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:115
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:134
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:151
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:158
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:177
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:194
 msgid "Attack"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:116
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:135
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:159
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:178
 msgid "Decay 1"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:117
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:136
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:160
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:179
 msgid "Decay 2"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:118
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:137
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:161
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:180
 msgid "Infinite sustain"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:119
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:138
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:162
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:181
 msgid "Sustain"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:120
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:139
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:163
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:182
 msgid "Release"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:121
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:164
 msgid "Hold"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:122
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:130
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:140
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:148
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:156
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:165
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:173
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:183
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:191
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:199
 msgid "Controller"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:123
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:141
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:166
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:184
 msgid "Controller invert"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:124
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:142
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:167
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:185
 msgid "Controller attack influence"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:125
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:143
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:168
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:186
 msgid "Controller decay influence"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:126
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:144
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:169
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:187
 msgid "Controller release influence"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:127
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:145
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:153
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:170
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:188
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:196
 msgid "Frequency"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:128
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:146
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:154
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:171
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:189
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:197
 msgid "Internal depth"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:129
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:147
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:155
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:172
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:190
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:198
 msgid "Control depth"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:131
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:149
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:174
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:192
 msgid "Flip phase"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:132
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:150
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:157
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:175
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:193
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:200
 msgid "Sync"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:152
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:195
 msgid "Depth"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:158
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:196
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:201
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:239
 msgid "Enabled"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:159
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:202
 msgid "Type"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:160
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:203
 msgid "Cutoff controller"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:161
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:204
 msgid "Cutoff controller invert"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:162
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:205
 msgid "Cutoff"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:163
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:206
 msgid "Velocity curve"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:164
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:207
 msgid "Velocity scale"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:165
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:208
 msgid "Velocity dynamic range"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:166
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:209
 msgid "Resonance"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:167
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:210
 msgid "Resonance dynamic"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:168
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:211
 msgid "Resonance controller"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:169
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:212
 msgid "Keyboard tracking"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:170
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:213
 msgid "Keyboard tracking breakpoint"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:171
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:214
 msgid "Velocity response curve"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:172
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:215
 msgid "Velocity response depth"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:173
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:216
 msgid "Velocity response curve scaling"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:174
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:217
 msgid "Release velocity response curve"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:175
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:218
 msgid "Release velocity response depth"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:176
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:219
 msgid "Release trigger decay"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:177
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:220
 msgid "Crossfade-in start"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:178
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:221
 msgid "Crossfade-in end"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:179
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:222
 msgid "Crossfade-out start"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:180
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:223
 msgid "Crossfade-out end"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:181
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:224
 msgid "Pitch track"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:182
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:225
 msgid "Dimension bypass"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:183
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:226
 msgid "Pan"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:184
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:227
 msgid "Self mask"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:185
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:228
 msgid "Attenuation controller"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:186
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:229
 msgid "Invert attenuation controller"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:187
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:230
 msgid "Attenuation controller threshold"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:188
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:231
 msgid "Channel offset"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:189
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:232
 msgid "Sustain defeat"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:190
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:233
 msgid "MS decode"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:191
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:234
 msgid "Sample start offset"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:192
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:235
 msgid "Unity note"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:194
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:237
 msgid "Gain"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:197
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:240
 msgid "Loop start positon"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:198
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:241
 msgid "Loop size"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:199
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:242
 msgid "Loop type"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:200
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:243
 msgid "Infinite loop"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:201
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:244
 msgid "Playback count"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:319
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:362
 msgid "Note this sample is associated with (a.k.a. 'root note')"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:321
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:364
 msgid "Sample position at which playback should be started"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:322
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:365
 msgid "Stereo balance (left/right)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:324
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:367
 msgid "Output channel where the audio signal should be routed to (0 - 9)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:327
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:370
 msgid ""
 "If true: sample will be pitched according to the key position (this would be "
 "disabled for drums for example)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:330
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:373
 msgid "If enabled: repeats to playback the sample"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:332
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:375
 msgid ""
 "Start position within the sample (in sample points) of the area to be looped"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:336
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:379
 msgid "Duration (in sample points) of the area to be looped"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:339
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:382
 msgid "Direction in which the loop area in the sample should be played back"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:342
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:385
 msgid ""
 "Whether the loop area should be played back forever\n"
 "Caution: this setting is stored on Sample side, thus is shared among all "
 "dimension regions that use this sample!"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:347
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:390
 msgid ""
 "How many times the loop area should be played back\n"
 "Caution: this setting is stored on Sample side, thus is shared among all "
 "dimension regions that use this sample!"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:356
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:399
 msgid "Mandatory Settings"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:357
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:693
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:400
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:736
 msgid "Sample"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:360
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:362
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:403
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:405
 msgid "Drop a sample here"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:365
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:408
 msgid "Optional Settings"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:368
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:411
 msgid "Loops"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:373
-#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:84
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:416
+#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:83
 msgid "normal"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:373
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:416
 msgid "bidirectional"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:373
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:416
 msgid "backward"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:387
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:430
 msgid "General Amplitude Settings"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:391
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:434
 msgid "Amplitude Envelope (EG1)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:408
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:451
 msgid "Amplitude Oscillator (LFO1)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:413
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:555
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:583
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:456
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:598
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:626
 msgid "internal"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:413
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:469
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:555
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:583
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:105
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:31
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:456
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:512
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:598
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:626
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:106
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:42
 msgid "modwheel"
 msgstr ""
 
 #. "Modulation Wheel or Lever",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:413
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:470
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:106
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:32
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:456
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:513
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:107
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:43
 msgid "breath"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:414
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:556
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:584
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:457
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:599
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:627
 msgid "internal+modwheel"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:414
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:457
 msgid "internal+breath"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:427
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:470
 msgid "Crossfade"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:453
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:496
 msgid "General Filter Settings"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:456
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:499
 msgid "lowpass"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:456
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:499
 msgid "lowpassturbo"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:456
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:499
 msgid "bandpass"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:457
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:500
 msgid "highpass"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:457
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:500
 msgid "bandreject"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:469
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:520
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:636
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:90
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:29
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:512
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:563
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:679
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:91
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:40
 msgid "none"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:469
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:512
 msgid "none2"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:469
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:110
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:37
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:512
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:111
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:48
 msgid "effect1"
 msgstr ""
 
 #. "Effect Control 1",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:469
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:111
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:38
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:512
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:112
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:49
 msgid "effect2"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:470
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:555
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:107
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:34
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:513
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:598
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:108
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:45
 msgid "foot"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:470
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:117
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:47
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:513
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:118
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:58
 msgid "sustainpedal"
 msgstr ""
 
 #. "Sustenuto On/Off",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:470
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:121
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:50
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:513
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:122
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:61
 msgid "softpedal"
 msgstr ""
 
 #. "General Purpose Controller 6",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:471
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:124
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:54
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:514
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:125
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:65
 msgid "genpurpose7"
 msgstr ""
 
 #. "General Purpose Controller 7",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:471
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:125
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:55
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:514
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:126
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:66
 msgid "genpurpose8"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:471
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:583
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:514
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:626
 msgid "aftertouch"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:491
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:534
 msgid "nonlinear"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:491
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:534
 msgid "linear"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:491
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:534
 msgid "special"
 msgstr ""
 
 #. "General Purpose Controller 2",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:520
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:114
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:42
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:563
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:115
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:53
 msgid "genpurpose3"
 msgstr ""
 
 #. "General Purpose Controller 3",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:520
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:115
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:43
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:563
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:116
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:54
 msgid "genpurpose4"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:521
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:122
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:52
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:564
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:123
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:63
 msgid "genpurpose5"
 msgstr ""
 
 #. "General Purpose Controller 5",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:521
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:123
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:53
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:564
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:124
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:64
 msgid "genpurpose6"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:537
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:580
 msgid "Filter Cutoff Envelope (EG2)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:550
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:593
 msgid "Filter Cutoff Oscillator (LFO2)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:556
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:599
 msgid "internal+foot"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:572
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:615
 msgid "General Pitch Settings"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:575
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:618
 msgid "Pitch Envelope (EG3)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:578
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:621
 msgid "Pitch Oscillator (LFO3)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:584
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:627
 msgid "internal+aftertouch"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:599
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:642
 msgid "Velocity Reponse"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:618
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:661
 msgid "Release Velocity Reponse"
 msgstr ""
 
 #. "Effects 3 Depth",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:636
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:133
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:60
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:679
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:134
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:71
 msgid "effect4depth"
 msgstr ""
 
 #. "Effects 4 Depth",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:636
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:135
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:61
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:679
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:136
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:72
 msgid "effect5depth"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:694
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:737
 msgid "Amplitude (1)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:695
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:738
 msgid "Amplitude (2)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:696
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:739
 msgid "Filter (1)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:697
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:740
 msgid "Filter (2)"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:698
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:741
 msgid "Pitch"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:699
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:742
 msgid "Misc"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:888
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:932
 msgid "NULL"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:951
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:996
 msgid "Minimum cutoff:"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:952
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionedit.cpp:997
 msgid "Velocity scale:"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:70
+#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:69
 msgid "Virtual Keyboard Mode"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:84
+#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:83
 msgid "chord"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:92
+#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:91
 msgid "Note-On Velocity:"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:94
+#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:93
 msgid "Note-Off Velocity:"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:115
+#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:114
 msgid "Dimensions..."
 msgstr "Dimensioner..."
 
-#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:846
+#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:839
 msgid "Region Properties"
 msgstr ""
 
 #. modal
 #. add "Keygroup" checkbox
-#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:848
+#: /home/andreas/gigedit/po/../src/gigedit/regionchooser.cpp:841
 msgid "Member of a Keygroup (Exclusive Group)"
 msgstr ""
 
@@ -1363,141 +1386,141 @@ msgstr ""
 msgid "Could not remove dimension: "
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:91
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:92
 msgid "samplechannel"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:93
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:94
 msgid "layer"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:94
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:29
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:95
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:40
 msgid "velocity"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:96
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:29
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:97
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:40
 msgid "channelaftertouch"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:98
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:99
 msgid "releasetrigger"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:99
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:100
 msgid "keyswitching"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:100
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:101
 msgid "roundrobin"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:101
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:102
 msgid "random"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:102
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:103
 msgid "smartmidi"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:104
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:105
 msgid "roundrobinkeyboard"
 msgstr ""
 
 #. "Foot Controller",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:109
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:35
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:110
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:46
 msgid "portamentotime"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:112
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:40
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:113
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:51
 msgid "genpurpose1"
 msgstr ""
 
 #. "General Purpose Controller 1",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:113
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:41
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:114
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:52
 msgid "genpurpose2"
 msgstr ""
 
 #. "Damper Pedal on/off (Sustain)",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:118
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:48
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:119
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:59
 msgid "portamento"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:120
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:121
 msgid "sostenutopedal"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:127
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:57
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:128
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:68
 msgid "effect1depth"
 msgstr ""
 
 #. "Effects 1 Depth",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:129
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:58
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:130
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:69
 msgid "effect2depth"
 msgstr ""
 
 #. "Effects 2 Depth",
-#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:131
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:59
+#: /home/andreas/gigedit/po/../src/gigedit/dimregionchooser.cpp:132
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:70
 msgid "effect3depth"
 msgstr ""
 
 #. "Portamento On/Off",
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:49
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:60
 msgid "sostenuto"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:198
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:211
 msgid "C"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:198
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:211
 msgid "C#"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:198
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:211
 msgid "D"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:198
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:211
 msgid "D#"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:198
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:211
 msgid "E"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:198
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:211
 msgid "F"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:198
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:211
 msgid "F#"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:199
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:212
 msgid "G"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:199
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:212
 msgid "G#"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:199
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:212
 msgid "A"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:199
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:212
 msgid "A#"
 msgstr ""
 
-#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:199
+#: /home/andreas/gigedit/po/../src/gigedit/paramedit.cpp:212
 msgid "B"
 msgstr ""

@@ -27,6 +27,12 @@
 
 #include "global.h"
 
+#ifdef __APPLE__
+#include <dlfcn.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+#endif
+
 namespace {
 
 // State for a gigedit thread.
@@ -89,12 +95,55 @@ private:
 HINSTANCE gigedit_dll_handle = 0;
 #endif
 
+#ifdef __APPLE__
+std::string gigedit_localedir;
+#endif
+
 void init_app() {
     static bool process_initialized = false;
     if (!process_initialized) {
         std::cout << "Initializing 3rd party services needed by gigedit.\n"
                   << std::flush;
         setlocale(LC_ALL, "");
+
+#ifdef __APPLE__
+        // Look for pango.modules, gdk-pixbuf.loaders and locale files
+        // under the same dir as the gigedit dylib is installed in.
+        Dl_info info;
+        if (dladdr((void*)&init_app, &info)) {
+            std::string libdir = Glib::path_get_dirname(info.dli_fname);
+
+            if (Glib::getenv("PANGO_SYSCONFDIR") == "" &&
+                Glib::file_test(Glib::build_filename(libdir,
+                                                     "pango/pango.modules"),
+                                Glib::FILE_TEST_EXISTS)) {
+                Glib::setenv("PANGO_SYSCONFDIR", libdir, true);
+            }
+            if (Glib::getenv("GDK_PIXBUF_MODULE_FILE") == "") {
+                std::string module_file =
+                    Glib::build_filename(libdir,
+                                         "gtk-2.0/gdk-pixbuf.loaders");
+                if (Glib::file_test(module_file, Glib::FILE_TEST_EXISTS)) {
+                    Glib::setenv("GDK_PIXBUF_MODULE_FILE", module_file, true);
+                }
+            }
+#if HAVE_GETTEXT
+            std::string localedir = Glib::build_filename(libdir, "locale");
+            if (Glib::file_test(localedir, Glib::FILE_TEST_EXISTS)) {
+                gigedit_localedir = localedir;
+                bindtextdomain(GETTEXT_PACKAGE, gigedit_localedir.c_str());
+            } else {
+                bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+            }
+#endif
+        }
+
+        // The gtk file dialog stores its recent files state in
+        // ~/.local/share
+        g_mkdir_with_parents(
+            Glib::build_filename(Glib::get_home_dir(),
+                                 ".local/share").c_str(), 0777);
+#endif
 
 #if HAVE_GETTEXT
 
@@ -112,7 +161,7 @@ void init_app() {
         g_free(temp);
         bindtextdomain(GETTEXT_PACKAGE, localedir);
         g_free(localedir);
-#else
+#elif !defined(__APPLE__)
         bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
 #endif
         bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
@@ -179,6 +228,16 @@ int GigEdit::run(int argc, char* argv[]) {
     init_app();
 
     Gtk::Main kit(argc, argv);
+
+#ifdef __APPLE__
+    // Gtk::Main binds the gtk locale to a possible non-existent
+    // directory. If we have bundled gtk locale files, we rebind here,
+    // after the Gtk::Main constructor.
+    if (!gigedit_localedir.empty()) {
+        bindtextdomain("gtk20", gigedit_localedir.c_str());
+    }
+#endif
+
     MainWindow window;
     connect_signals(this, &window);
     if (argc >= 2) window.load_file(argv[1]);
@@ -291,6 +350,11 @@ void GigEditState::main_loop_run(Cond* initialized) {
     const char* argv_c[] = { "gigedit" };
     char** argv = const_cast<char**>(argv_c);
     Gtk::Main main_loop(argc, argv);
+#ifdef __APPLE__
+    if (!gigedit_localedir.empty()) {
+        bindtextdomain("gtk20", gigedit_localedir.c_str());
+    }
+#endif
 
     dispatcher = new Glib::Dispatcher();
     dispatcher->connect(sigc::ptr_fun(&GigEditState::open_window_static));

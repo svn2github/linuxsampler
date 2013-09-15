@@ -31,6 +31,11 @@ Version CVS HEAD (?)
   * copying sample informations automatically may now be disabled from the
     new "Edit" main menu
   * import 'fine tune' when importing samples with libsndfile
+  * Mac OS X: initialize gtk and gettext with files from base
+    directory of the libgigedit library
+  * Mac OS X: fixed "recently used" in file dialogs
+  * Mac OS X: avoid crash when starting gigedit as an application
+    bundle
 
 Version 0.2.0 (2009-07-31)
 

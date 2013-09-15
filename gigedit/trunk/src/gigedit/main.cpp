@@ -33,6 +33,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 int main(int argc, char* argv[])
 {
+#ifdef __APPLE__
+    // remove the argument added by the OS
+    if (argc > 1 && strncmp(argv[1], "-psn", 4) == 0) {
+        argc--;
+        for (int i = 1 ; i < argc ; i++) {
+            argv[i] = argv[i + 1];
+        }
+    }
+#endif
     GigEdit app;
     return app.run(argc, argv);
 }

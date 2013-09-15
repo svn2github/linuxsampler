@@ -21,6 +21,7 @@
 #include <cairomm/context.h>
 #include <gdkmm/cursor.h>
 #include <gdkmm/general.h>
+#include <glibmm/stringutils.h>
 
 #include "global.h"
 
