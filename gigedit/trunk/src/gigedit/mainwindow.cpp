@@ -937,15 +937,19 @@ void MainWindow::on_action_help_about()
 #endif
     dialog.set_version(VERSION);
     dialog.set_copyright("Copyright (C) 2006-2013 Andreas Persson");
-    dialog.set_comments(_(
-        "Released under the GNU General Public License.\n"
-        "\n"
-        "Please notice that this is still a very young instrument editor. "
-        "So better backup your Gigasampler files before editing them with "
-        "this application.\n"
-        "\n"
-        "Please report bugs to: http://bugs.linuxsampler.org")
-    );
+    const std::string sComment =
+        _("Built " __DATE__ "\nUsing ") +
+        ::gig::libraryName() + " " + ::gig::libraryVersion() + "\n\n" +
+        _(
+            "Gigedit is released under the GNU General Public License.\n"
+            "\n"
+            "Please notice that this is still a very young instrument editor. "
+            "So better backup your Gigasampler files before editing them with "
+            "this application.\n"
+            "\n"
+            "Please report bugs to: http://bugs.linuxsampler.org"
+        );
+    dialog.set_comments(sComment.c_str());
     dialog.set_website("http://www.linuxsampler.org");
     dialog.set_website_label("http://www.linuxsampler.org");
     dialog.run();

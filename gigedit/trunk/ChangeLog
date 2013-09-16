@@ -37,6 +37,7 @@ Version CVS HEAD (?)
   * Mac OS X: avoid crash when starting gigedit as an application
     bundle
   * Mac OS X: try to launch the GUI on the process's "main" thread
+  * show build date and libgig version number in about dialog
 
 Version 0.2.0 (2009-07-31)
 
