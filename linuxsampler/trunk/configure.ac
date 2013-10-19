@@ -290,7 +290,8 @@ if test "$config_jack_driver" = "yes"; then
         AC_SUBST(JACK_CFLAGS)
         linuxsampler_save_LIBS=$LIBS
         LIBS="$JACK_LIBS $LIBS"
-        AC_CHECK_FUNCS(jack_client_name_size jack_client_open)
+        AC_CHECK_FUNCS(jack_client_name_size jack_client_open \
+                       jack_on_info_shutdown)
         LIBS=$linuxsampler_save_LIBS
         have_audio_output_driver="true";
     fi

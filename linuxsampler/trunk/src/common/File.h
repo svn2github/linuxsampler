@@ -26,9 +26,7 @@
 #include <vector>
 
 #include "Mutex.h"
-#ifndef WIN32
 #include <sys/stat.h>
-#endif
 
 namespace LinuxSampler {
 

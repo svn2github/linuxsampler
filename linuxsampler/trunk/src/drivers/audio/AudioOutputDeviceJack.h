@@ -191,7 +191,11 @@ namespace LinuxSampler {
             ~JackClient();
         
             // Callback functions for the libjack API
+#if HAVE_JACK_ON_INFO_SHUTDOWN
             static void libjackShutdownCallback(jack_status_t code, const char* reason, void *arg);
+#else
+            static void libjackShutdownCallback(void *arg);
+#endif
             static int libjackSampleRateCallback(jack_nframes_t nframes, void *arg);
             static int libjackBufferSizeCallback(jack_nframes_t nframes, void *arg);
     };

@@ -31,6 +31,9 @@ Version CVS HEAD (?)
     - fix for building with bison 3.0 (#202)
     - Mac OS X: added temporary hack allowing to spawn gigedit as callback
       on the process's main thread
+    - fixed build error on newer MinGW
+    - support building with older jack versions
+    - support building with spaces in vst sdk path
 
   * general changes:
     - Refactoring: moved the independent code from

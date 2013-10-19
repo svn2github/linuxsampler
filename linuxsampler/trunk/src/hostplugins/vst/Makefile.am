@@ -1,16 +1,26 @@
 if HAVE_VST
 
+BUILT_SOURCES = vstsdk
+
+clean-local: $(CLEAN_MAC)
+	$(RM) -r vstsdk
+
+# create links to vst sdk so make doesn't get confused by spaces in path
+vstsdk:
+	mkdir -p vstsdk/pluginterfaces vstsdk/public.sdk/source
+	ln -s "$(VSTSDK_DIR)"/pluginterfaces/vst2.x vstsdk/pluginterfaces/vst2.x
+	ln -s "$(VSTSDK_DIR)"/public.sdk/source/vst2.x vstsdk/public.sdk/source
+
 plugindir = $(libdir)/vst
 plugin_LTLIBRARIES = LinuxSampler.la
-LinuxSampler_la_CPPFLAGS = -I$(VSTSDK_DIR) \
-	-I$(VSTSDK_DIR)/public.sdk/source/vst2.x \
+LinuxSampler_la_CPPFLAGS = -Ivstsdk -Ivstsdk/public.sdk/source/vst2.x \
 	$(GIG_CFLAGS) $(SQLITE3_CFLAGS)
 
 LinuxSampler_la_SOURCES = PluginVst.cpp PluginVst.h
 nodist_LinuxSampler_la_SOURCES = \
-	$(VSTSDK_DIR)/public.sdk/source/vst2.x/audioeffectx.cpp \
-	$(VSTSDK_DIR)/public.sdk/source/vst2.x/audioeffect.cpp \
-	$(VSTSDK_DIR)/public.sdk/source/vst2.x/vstplugmain.cpp
+	vstsdk/public.sdk/source/vst2.x/audioeffectx.cpp \
+	vstsdk/public.sdk/source/vst2.x/audioeffect.cpp \
+	vstsdk/public.sdk/source/vst2.x/vstplugmain.cpp
 
 LinuxSampler_la_LDFLAGS = -module -avoid-version -no-undefined
 LinuxSampler_la_LIBADD = $(top_builddir)/src/liblinuxsampler.la
@@ -35,7 +45,9 @@ LinuxSampler.vst: LinuxSampler.la $(srcdir)/Info.plist $(srcdir)/PkgInfo
 	if test -f .libs/LinuxSampler.so ; then cp .libs/LinuxSampler.so LinuxSampler.vst/Contents/MacOS/LinuxSampler ; fi
 	@touch $@
 
-clean-local:
+CLEAN_MAC = clean-bundle
+
+clean-bundle:
 	rm -rf LinuxSampler.vst
 
 install-exec-hook:

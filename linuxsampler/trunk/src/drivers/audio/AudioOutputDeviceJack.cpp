@@ -298,13 +298,22 @@ namespace LinuxSampler {
         return static_cast<JackClient*>(arg)->Process(nframes);
     }
 
-    void JackClient::libjackShutdownCallback(jack_status_t code, const char* reason, void *arg) {
+#if HAVE_JACK_ON_INFO_SHUTDOWN
+    void JackClient::libjackShutdownCallback(jack_status_t code, const char* reason, void *arg)
+#else
+    void JackClient::libjackShutdownCallback(void *arg)
+#endif
+    {
         JackClient* jackClient = static_cast<JackClient*>(arg);
         jackClient->Stop();
         fprintf(stderr, "Jack: Jack server shutdown, exiting.\n");
         for (int i = 0; i < jackClient->jackListeners.size(); ++i) {
             JackListener* listener = jackClient->jackListeners[i];
+#if HAVE_JACK_ON_INFO_SHUTDOWN
             listener->onJackShutdown(code, reason);
+#else
+            listener->onJackShutdown(JackFailure, "unknown");
+#endif
         }
     }
     
@@ -377,7 +386,11 @@ namespace LinuxSampler {
         if (!hJackClient)
             throw Exception("Seems Jack server is not running.");
         jack_set_process_callback(hJackClient, linuxsampler_libjack_process_callback, this);
+#if HAVE_JACK_ON_INFO_SHUTDOWN
         jack_on_info_shutdown(hJackClient, libjackShutdownCallback, this);
+#else
+        jack_on_shutdown(hJackClient, libjackShutdownCallback, this);
+#endif
         jack_set_buffer_size_callback(hJackClient, libjackBufferSizeCallback, this);
         jack_set_sample_rate_callback(hJackClient, libjackSampleRateCallback, this);
         
