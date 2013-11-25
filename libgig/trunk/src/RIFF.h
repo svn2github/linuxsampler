@@ -180,7 +180,7 @@ namespace RIFF {
             String         GetChunkIDString();
             uint32_t       GetChunkID() { return ChunkID; }             ///< Chunk ID in unsigned integer representation.
             List*          GetParent()  { return pParent; }             ///< Returns pointer to the chunk's parent list chunk.
-            unsigned long  GetSize()    { return CurrentChunkSize; }    ///< Chunk size in bytes (without header, thus the chunk data body)
+            unsigned long  GetSize() const { return CurrentChunkSize; } ///< Chunk size in bytes (without header, thus the chunk data body)
             unsigned long  GetNewSize() { return NewChunkSize;     }    ///< New chunk size if it was modified with Resize().
             unsigned long  GetPos()     { return ulPos; }               ///< Position within the chunk data body
             unsigned long  GetFilePos() { return ulStartPos + ulPos; }  ///< Current, actual offset in file.
@@ -325,6 +325,8 @@ namespace RIFF {
             bool          SetMode(stream_mode_t NewMode);
             void SetByteOrder(endian_t Endian);
             String GetFileName();
+            void SetFileName(const String& path);
+            bool IsNew() const;
             virtual void Save();
             virtual void Save(const String& path);
             virtual ~File();
@@ -341,6 +343,7 @@ namespace RIFF {
             #endif // POSIX
             String Filename;
             bool   bEndianNative;
+            bool   bIsNewFile;
 
             void LogAsResized(Chunk* pResizedChunk);
             void UnlogResized(Chunk* pResizedChunk);

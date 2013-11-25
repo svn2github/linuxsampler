@@ -454,6 +454,73 @@ namespace {
     }
 
     /**
+     * Make a (semi) deep copy of the Sample object given by @a orig (without
+     * the actual waveform data) and assign it to this object.
+     *
+     * Discussion: copying .gig samples is a bit tricky. It requires three
+     * steps:
+     * 1. Copy sample's meta informations (done by CopyAssignMeta()) including
+     *    its new sample waveform data size.
+     * 2. Saving the file (done by File::Save()) so that it gains correct size
+     *    and layout for writing the actual wave form data directly to disc
+     *    in next step.
+     * 3. Copy the waveform data with disk streaming (done by CopyAssignWave()).
+     *
+     * @param orig - original Sample object to be copied from
+     */
+    void Sample::CopyAssignMeta(const Sample* orig) {
+        // handle base classes
+        DLS::Sample::CopyAssignCore(orig);
+        
+        // handle actual own attributes of this class
+        Manufacturer = orig->Manufacturer;
+        Product = orig->Product;
+        SamplePeriod = orig->SamplePeriod;
+        MIDIUnityNote = orig->MIDIUnityNote;
+        FineTune = orig->FineTune;
+        SMPTEFormat = orig->SMPTEFormat;
+        SMPTEOffset = orig->SMPTEOffset;
+        Loops = orig->Loops;
+        LoopID = orig->LoopID;
+        LoopType = orig->LoopType;
+        LoopStart = orig->LoopStart;
+        LoopEnd = orig->LoopEnd;
+        LoopSize = orig->LoopSize;
+        LoopFraction = orig->LoopFraction;
+        LoopPlayCount = orig->LoopPlayCount;
+        
+        // schedule resizing this sample to the given sample's size
+        Resize(orig->GetSize());
+    }
+
+    /**
+     * Should be called after CopyAssignMeta() and File::Save() sequence.
+     * Read more about it in the discussion of CopyAssignMeta(). This method
+     * copies the actual waveform data by disk streaming.
+     *
+     * @e CAUTION: this method is currently not thread safe! During this
+     * operation the sample must not be used for other purposes by other
+     * threads!
+     *
+     * @param orig - original Sample object to be copied from
+     */
+    void Sample::CopyAssignWave(const Sample* orig) {
+        const int iReadAtOnce = 32*1024;
+        char* buf = new char[iReadAtOnce * orig->FrameSize];
+        Sample* pOrig = (Sample*) orig; //HACK: remove constness for now
+        unsigned long restorePos = pOrig->GetPos();
+        pOrig->SetPos(0);
+        SetPos(0);
+        for (unsigned long n = pOrig->Read(buf, iReadAtOnce); n;
+                           n = pOrig->Read(buf, iReadAtOnce))
+        {
+            Write(buf, n);
+        }
+        pOrig->SetPos(restorePos);
+        delete [] buf;
+    }
+
+    /**
      * Apply sample and its settings to the respective RIFF chunks. You have
      * to call File::Save() to make changes persistent.
      *
@@ -808,7 +875,7 @@ namespace {
     /**
      * Returns the current position in the sample (in sample points).
      */
-    unsigned long Sample::GetPos() {
+    unsigned long Sample::GetPos() const {
         if (Compressed) return SamplePos;
         else            return pCkData->GetPos() / FrameSize;
     }
@@ -1608,6 +1675,18 @@ namespace {
      * @param orig - original DimensionRegion object to be copied from
      */
     void DimensionRegion::CopyAssign(const DimensionRegion* orig) {
+        CopyAssign(orig, NULL);
+    }
+
+    /**
+     * Make a (semi) deep copy of the DimensionRegion object given by @a orig
+     * and assign it to this object.
+     *
+     * @param orig - original DimensionRegion object to be copied from
+     * @param mSamples - crosslink map between the foreign file's samples and
+     *                   this file's samples
+     */
+    void DimensionRegion::CopyAssign(const DimensionRegion* orig, const std::map<Sample*,Sample*>* mSamples) {
         // delete all allocated data first
         if (VelocityTable) delete [] VelocityTable;
         if (pSampleLoops) delete [] pSampleLoops;
@@ -1615,10 +1694,24 @@ namespace {
         // backup parent list pointer
         RIFF::List* p = pParentList;
         
+        gig::Sample* pOriginalSample = pSample;
+        gig::Region* pOriginalRegion = pRegion;
+        
         //NOTE: copy code copied from assignment constructor above, see comment there as well
         
         *this = *orig; // default memberwise shallow copy of all parameters
         pParentList = p; // restore the chunk pointer
+        
+        // only take the raw sample reference & parent region reference if the
+        // two DimensionRegion objects are part of the same file
+        if (pOriginalRegion->GetParent()->GetParent() != orig->pRegion->GetParent()->GetParent()) {
+            pRegion = pOriginalRegion;
+            pSample = pOriginalSample;
+        }
+        
+        if (mSamples && mSamples->count(orig->pSample)) {
+            pSample = mSamples->find(orig->pSample)->second;
+        }
 
         // deep copy of owned structures
         if (orig->VelocityTable) {
@@ -2972,8 +3065,23 @@ namespace {
      * @param orig - original Region object to be copied from
      */
     void Region::CopyAssign(const Region* orig) {
+        CopyAssign(orig, NULL);
+    }
+    
+    /**
+     * Make a (semi) deep copy of the Region object given by @a orig and
+     * assign it to this object
+     *
+     * @param mSamples - crosslink map between the foreign file's samples and
+     *                   this file's samples
+     */
+    void Region::CopyAssign(const Region* orig, const std::map<Sample*,Sample*>* mSamples) {
         // handle base classes
         DLS::Region::CopyAssign(orig);
+        
+        if (mSamples && mSamples->count((gig::Sample*)orig->pSample)) {
+            pSample = mSamples->find((gig::Sample*)orig->pSample)->second;
+        }
         
         // handle own member variables
         for (int i = Dimensions - 1; i >= 0; --i) {
@@ -2989,7 +3097,8 @@ namespace {
         for (int i = 0; i < 256; i++) {
             if (pDimensionRegions[i] && orig->pDimensionRegions[i]) {
                 pDimensionRegions[i]->CopyAssign(
-                    orig->pDimensionRegions[i]
+                    orig->pDimensionRegions[i],
+                    mSamples
                 );
             }
         }
@@ -3461,6 +3570,18 @@ namespace {
      * @param orig - original Instrument object to be copied from
      */
     void Instrument::CopyAssign(const Instrument* orig) {
+        CopyAssign(orig, NULL);
+    }
+        
+    /**
+     * Make a (semi) deep copy of the Instrument object given by @a orig
+     * and assign it to this object.
+     *
+     * @param orig - original Instrument object to be copied from
+     * @param mSamples - crosslink map between the foreign file's samples and
+     *                   this file's samples
+     */
+    void Instrument::CopyAssign(const Instrument* orig, const std::map<Sample*,Sample*>* mSamples) {
         // handle base class
         // (without copying DLS region stuff)
         DLS::Instrument::CopyAssignCore(orig);
@@ -3489,7 +3610,8 @@ namespace {
                 Region* dstRgn = AddRegion();
                 //NOTE: Region does semi-deep copy !
                 dstRgn->CopyAssign(
-                    static_cast<gig::Region*>(*it)
+                    static_cast<gig::Region*>(*it),
+                    mSamples
                 );
             }
         }
@@ -3697,6 +3819,23 @@ namespace {
         if (!pSamples) return NULL;
         SamplesIterator++;
         return static_cast<gig::Sample*>( (SamplesIterator != pSamples->end()) ? *SamplesIterator : NULL );
+    }
+    
+    /**
+     * Returns Sample object of @a index.
+     *
+     * @returns sample object or NULL if index is out of bounds
+     */
+    Sample* File::GetSample(uint index) {
+        if (!pSamples) LoadSamples();
+        if (!pSamples) return NULL;
+        DLS::File::SampleList::iterator it = pSamples->begin();
+        for (int i = 0; i < index; ++i) {
+            ++it;
+            if (it == pSamples->end()) return NULL;
+        }
+        if (it == pSamples->end()) return NULL;
+        return static_cast<gig::Sample*>( *it );
     }
 
     /** @brief Add a new sample.
@@ -3915,6 +4054,69 @@ namespace {
         Instrument* instr = AddInstrument();
         instr->CopyAssign(orig);
         return instr;
+    }
+    
+    /** @brief Add content of another existing file.
+     *
+     * Duplicates the samples, groups and instruments of the original file
+     * given by @a pFile and adds them to @c this File. In case @c this File is
+     * a new one that you haven't saved before, then you have to call
+     * SetFileName() before calling AddContentOf(), because this method will
+     * automatically save this file during operation, which is required for
+     * writing the sample waveform data by disk streaming.
+     *
+     * @param pFile - original file whose's content shall be copied from
+     */
+    void File::AddContentOf(File* pFile) {
+        static int iCallCount = -1;
+        iCallCount++;
+        std::map<Group*,Group*> mGroups;
+        std::map<Sample*,Sample*> mSamples;
+        
+        // clone sample groups
+        for (int i = 0; pFile->GetGroup(i); ++i) {
+            Group* g = AddGroup();
+            g->Name =
+                "COPY" + ToString(iCallCount) + "_" + pFile->GetGroup(i)->Name;
+            mGroups[pFile->GetGroup(i)] = g;
+        }
+        
+        // clone samples (not waveform data here yet)
+        for (int i = 0; pFile->GetSample(i); ++i) {
+            Sample* s = AddSample();
+            s->CopyAssignMeta(pFile->GetSample(i));
+            mGroups[pFile->GetSample(i)->GetGroup()]->AddSample(s);
+            mSamples[pFile->GetSample(i)] = s;
+        }
+        
+        //BUG: For some reason this method only works with this additional
+        //     Save() call in between here.
+        //
+        // Important: The correct one of the 2 Save() methods has to be called
+        // here, depending on whether the file is completely new or has been
+        // saved to disk already, otherwise it will result in data corruption.
+        if (pRIFF->IsNew())
+            Save(GetFileName());
+        else
+            Save();
+        
+        // clone instruments
+        // (passing the crosslink table here for the cloned samples)
+        for (int i = 0; pFile->GetInstrument(i); ++i) {
+            Instrument* instr = AddInstrument();
+            instr->CopyAssign(pFile->GetInstrument(i), &mSamples);
+        }
+        
+        // Mandatory: file needs to be saved to disk at this point, so this
+        // file has the correct size and data layout for writing the samples'
+        // waveform data to disk.
+        Save();
+        
+        // clone samples' waveform data
+        // (using direct read & write disk streaming)
+        for (int i = 0; pFile->GetSample(i); ++i) {
+            mSamples[pFile->GetSample(i)]->CopyAssignWave(pFile->GetSample(i));
+        }
     }
 
     /** @brief Delete an instrument.

@@ -1419,7 +1419,7 @@ namespace RIFF {
      * @param FileType - four-byte identifier of the RIFF file type
      * @see AddSubChunk(), AddSubList(), SetByteOrder()
      */
-    File::File(uint32_t FileType) : List(this) {
+    File::File(uint32_t FileType) : List(this), bIsNewFile(true) {
         //HACK: see _GET_RESIZED_CHUNKS() comment
         ResizedChunks.push_back(reinterpret_cast<Chunk*>(new std::set<Chunk*>));
         #if defined(WIN32)
@@ -1441,7 +1441,7 @@ namespace RIFF {
      * @throws RIFF::Exception if error occured while trying to load the
      *                         given RIFF file
      */
-    File::File(const String& path) : List(this), Filename(path) {
+    File::File(const String& path) : List(this), Filename(path), bIsNewFile(false) {
        #if DEBUG
        std::cout << "File::File("<<path<<")" << std::endl;
        #endif // DEBUG
@@ -1486,6 +1486,10 @@ namespace RIFF {
 
     String File::GetFileName() {
         return Filename;
+    }
+    
+    void File::SetFileName(const String& path) {
+        Filename = path;
     }
 
     stream_mode_t File::GetMode() {
@@ -1718,7 +1722,7 @@ namespace RIFF {
         // make sure the RIFF tree is built (from the original file)
         LoadSubChunksRecursively();
 
-        if (Filename.length() > 0) SetMode(stream_mode_read);
+        if (!bIsNewFile) SetMode(stream_mode_read);
         // open the other (new) file for writing and truncate it to zero size
         #if POSIX
         hFileWrite = open(path.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP);
@@ -1766,6 +1770,7 @@ namespace RIFF {
 
         // associate new file with this File object from now on
         Filename = path;
+        bIsNewFile = false;
         Mode = (stream_mode_t) -1;       // Just set it to an undefined mode ...
         SetMode(stream_mode_read_write); // ... so SetMode() has to reopen the file handles.
     }
@@ -1790,6 +1795,14 @@ namespace RIFF {
        std::cout << "File::~File()" << std::endl;
        #endif // DEBUG
         Cleanup();
+    }
+    
+    /**
+     * Returns @c true if this file has been created new from scratch and
+     * has not been stored to disk yet.
+     */
+    bool File::IsNew() const {
+        return bIsNewFile;
     }
 
     void File::Cleanup() {

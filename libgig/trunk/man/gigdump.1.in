@@ -14,7 +14,7 @@ filename of the Gigasampler file
 .B \ -v
 print version and exit
 .SH "SEE ALSO"
-gigextract(1) dlsdump(1)
+gigextract(1) gigmerge(1) dlsdump(1)
 .SH "BUGS"
 None. Report bugs to http://bugs.linuxsampler.org
 .SH "Author"

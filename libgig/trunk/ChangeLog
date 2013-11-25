@@ -5,6 +5,8 @@ Version CVS HEAD (?)
     - removed gcc 4.7 warnings
     - modernized configure script
     - removed usage of deprecated Automake variable INCLUDES
+    - added new command line tool "gigmerge"
+    - added "const" keyword to several methods
 
   * SoundFont file format:
     - initial implementation
@@ -23,11 +25,14 @@ Version CVS HEAD (?)
       rules
     - bugfix: sample groups were sometimes created multiple times or with
       wrong textual group name
+    - added new method File::AddContentOf() for merging .gig files
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
     - fixed minor "memory leak on exception" bug found with cppcheck
     - added new method File::GetExtensionFile(int index)
+    - added new method File::SetFileName() allowing to call File::Save()
+      later on without passing a file name
 
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: avoid calling read() with count 0 when writing a file,
@@ -35,6 +40,9 @@ Version CVS HEAD (?)
     - fixed memory leak and memory handling errors when file loading
       fails
     - added new method Chunk::ReadString
+    - added new method File::SetFileName() allowing to call File::Save()
+      later on without passing a file name
+    - added new method File::IsNew()
 
   * src/gigextract.cpp:
     - export sample loop, unity note and fine tune with libsndfile

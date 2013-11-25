@@ -744,6 +744,57 @@ namespace DLS {
         RIFF::List* pParent = pWaveList->GetParent();
         pParent->DeleteSubChunk(pWaveList);
     }
+    
+    /**
+     * Make a deep copy of the Sample object given by @a orig (without the
+     * actual sample waveform data however) and assign it to this object.
+     *
+     * This is a special internal variant of CopyAssign() which only copies the
+     * most mandatory member variables. It will be called by gig::Sample
+     * descendent instead of CopyAssign() since gig::Sample has its own
+     * implementation to access and copy the actual sample waveform data.
+     *
+     * @param orig - original Sample object to be copied from
+     */
+    void Sample::CopyAssignCore(const Sample* orig) {
+        // handle base classes
+        Resource::CopyAssign(orig);
+        // handle actual own attributes of this class
+        FormatTag = orig->FormatTag;
+        Channels = orig->Channels;
+        SamplesPerSecond = orig->SamplesPerSecond;
+        AverageBytesPerSecond = orig->AverageBytesPerSecond;
+        BlockAlign = orig->BlockAlign;
+        BitDepth = orig->BitDepth;
+        SamplesTotal = orig->SamplesTotal;
+        FrameSize = orig->FrameSize;
+    }
+    
+    /**
+     * Make a deep copy of the Sample object given by @a orig and assign it to
+     * this object.
+     *
+     * @param orig - original Sample object to be copied from
+     */
+    void Sample::CopyAssign(const Sample* orig) {
+        CopyAssignCore(orig);
+        
+        // copy sample waveform data (reading directly from disc)
+        Resize(orig->GetSize());
+        char* buf = (char*) LoadSampleData();
+        Sample* pOrig = (Sample*) orig; //HACK: circumventing the constness here for now
+        const unsigned long restorePos = pOrig->pCkData->GetPos();
+        pOrig->SetPos(0);
+        for (unsigned long todo = pOrig->GetSize(), i = 0; todo; ) {
+            const int iReadAtOnce = 64*1024;
+            unsigned long n = (iReadAtOnce < todo) ? iReadAtOnce : todo;
+            n = pOrig->Read(&buf[i], n);
+            if (!n) break;
+            todo -= n;
+            i += (n * pOrig->FrameSize);
+        }
+        pOrig->pCkData->SetPos(restorePos);
+    }
 
     /** @brief Load sample data into RAM.
      *
@@ -794,7 +845,7 @@ namespace DLS {
      * @returns number of sample points or 0 if FormatTag != DLS_WAVE_FORMAT_PCM
      * @see FrameSize, FormatTag
      */
-    unsigned long Sample::GetSize() {
+    unsigned long Sample::GetSize() const {
         if (FormatTag != DLS_WAVE_FORMAT_PCM) return 0;
         return (pCkData) ? pCkData->GetSize() / FrameSize : 0;
     }
@@ -1122,8 +1173,15 @@ namespace DLS {
         PhaseGroup = orig->PhaseGroup;
         MultiChannel = orig->MultiChannel;
         Channel = orig->Channel;
-        WavePoolTableIndex = orig->WavePoolTableIndex;
-        pSample = orig->pSample;
+        // only take the raw sample reference if the two Region objects are
+        // part of the same file
+        if (GetParent()->GetParent() == orig->GetParent()->GetParent()) {
+            WavePoolTableIndex = orig->WavePoolTableIndex;
+            pSample = orig->pSample;
+        } else {
+            WavePoolTableIndex = -1;
+            pSample = NULL;
+        }
         FormatOptionFlags = orig->FormatOptionFlags;
         WaveLinkOptionFlags = orig->WaveLinkOptionFlags;
         // handle the last, a bit sensible attribute
@@ -1598,6 +1656,14 @@ namespace DLS {
      */
     String File::GetFileName() {
         return pRIFF->GetFileName();
+    }
+    
+    /**
+     * You may call this method store a future file name, so you don't have to
+     * to pass it to the Save() call later on.
+     */
+    void File::SetFileName(const String& name) {
+        pRIFF->SetFileName(name);
     }
 
     /**

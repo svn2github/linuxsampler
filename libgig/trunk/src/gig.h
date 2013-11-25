@@ -461,6 +461,7 @@ namespace gig {
             DimensionRegion(Region* pParent, RIFF::List* _3ewl);
             DimensionRegion(RIFF::List* _3ewl, const DimensionRegion& src);
            ~DimensionRegion();
+            void CopyAssign(const DimensionRegion* orig, const std::map<Sample*,Sample*>* mSamples);
             friend class Region;
         private:
             typedef enum { ///< Used to decode attenuation, EG1 and EG2 controller
@@ -557,12 +558,14 @@ namespace gig {
             void          ReleaseSampleData();
             void          Resize(int iNewSize);
             unsigned long SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
-            unsigned long GetPos();
+            unsigned long GetPos() const;
             unsigned long Read(void* pBuffer, unsigned long SampleCount, buffer_t* pExternalDecompressionBuffer = NULL);
             unsigned long ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState, DimensionRegion* pDimRgn, buffer_t* pExternalDecompressionBuffer = NULL);
             unsigned long Write(void* pBuffer, unsigned long SampleCount);
             Group*        GetGroup() const;
             virtual void  UpdateChunks();
+            void CopyAssignMeta(const Sample* orig);
+            void CopyAssignWave(const Sample* orig);
         protected:
             static unsigned int  Instances;               ///< Number of instances of class Sample.
             static buffer_t      InternalDecompressionBuffer; ///< Buffer used for decompression as well as for truncation of 24 Bit -> 16 Bit samples.
@@ -635,6 +638,7 @@ namespace gig {
             void LoadDimensionRegions(RIFF::List* rgn);
             void UpdateVelocityTable();
             Sample* GetSampleFromWavePool(unsigned int WavePoolTableIndex, progress_t* pProgress = NULL);
+            void CopyAssign(const Region* orig, const std::map<Sample*,Sample*>* mSamples);
            ~Region();
             friend class Instrument;
     };
@@ -783,6 +787,7 @@ namespace gig {
 
             Instrument(File* pFile, RIFF::List* insList, progress_t* pProgress = NULL);
            ~Instrument();
+            void CopyAssign(const Instrument* orig, const std::map<Sample*,Sample*>* mSamples);
             void UpdateRegionKeyTable();
             friend class File;
             friend class Region; // so Region can call UpdateRegionKeyTable()
@@ -841,11 +846,13 @@ namespace gig {
             // derived methods from DLS::File
             using DLS::File::Save;
             using DLS::File::GetFileName;
+            using DLS::File::SetFileName;
             // overridden  methods
             File();
             File(RIFF::File* pRIFF);
             Sample*     GetFirstSample(progress_t* pProgress = NULL); ///< Returns a pointer to the first <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Sample*     GetNextSample();      ///< Returns a pointer to the next <i>Sample</i> object of the file, <i>NULL</i> otherwise.
+            Sample*     GetSample(uint index);
             Sample*     AddSample();
             void        DeleteSample(Sample* pSample);
             Instrument* GetFirstInstrument(); ///< Returns a pointer to the first <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
@@ -862,6 +869,7 @@ namespace gig {
             void        DeleteGroupOnly(Group* pGroup);
             void        SetAutoLoad(bool b);
             bool        GetAutoLoad();
+            void        AddContentOf(File* pFile);
             virtual    ~File();
             virtual void UpdateChunks();
         protected:

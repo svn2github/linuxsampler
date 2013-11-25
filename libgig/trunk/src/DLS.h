@@ -328,6 +328,7 @@ namespace DLS {
             dlsid_t* pDLSID; ///< Points to a <i>dlsid_t</i> structure if the file provided a DLS ID else is <i>NULL</i>.
 
             Resource* GetParent() { return pParent; }
+            const Resource* GetParent() const { return pParent; }
             virtual void UpdateChunks();
             void GenerateDLSID();
             virtual void CopyAssign(const Resource* orig);
@@ -384,12 +385,13 @@ namespace DLS {
 
             void*         LoadSampleData();
             void          ReleaseSampleData();
-            unsigned long GetSize();
+            unsigned long GetSize() const;
             void          Resize(int iNewSize);
             unsigned long SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
             unsigned long Read(void* pBuffer, unsigned long SampleCount);
             unsigned long Write(void* pBuffer, unsigned long SampleCount);
             virtual void  UpdateChunks();
+            virtual void  CopyAssign(const Sample* orig);
         protected:
             RIFF::List*   pWaveList;
             RIFF::Chunk*  pCkData;
@@ -398,6 +400,7 @@ namespace DLS {
 
             Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset);
             virtual ~Sample();
+            void CopyAssignCore(const Sample* orig);
             friend class File;
             friend class Region; // Region has to compare the wave pool offset to get its sample
     };
@@ -478,6 +481,7 @@ namespace DLS {
             File();
             File(RIFF::File* pRIFF);
             String      GetFileName();
+            void        SetFileName(const String& name);
             Sample*     GetFirstSample();     ///< Returns a pointer to the first <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Sample*     GetNextSample();      ///< Returns a pointer to the next <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Sample*     AddSample();
