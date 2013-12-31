@@ -1,3 +1,9 @@
+libgig (3.3.0-2) unstable; urgency=low
+
+  * Included new command line tools "gigmerge" and "gig2mono".
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Tue, 31 Dec 2013 02:11:22 +0100
+
 libgig (3.3.0-1) unstable; urgency=low
 
   * changed package name to libgig6 according to Debian standards

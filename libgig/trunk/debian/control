@@ -47,6 +47,10 @@ Description: command line tools for Gigasampler and DLS Level 1/2 files
    Prints out the content of a .gig file.
  gigextract:
    Extracts samples from a .gig file.
+ gigmerge:
+   Combines multiple .gig files to one .gig file.
+ gig2mono:
+   Converts gig files from stereo to mono.
  dlsdump:
    Prints out the content of a DLS file.
  rifftree:
