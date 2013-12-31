@@ -14,8 +14,8 @@ mkdir -p $DIST
 cd $WIN/bin
 cp libgig-6.dll libsndfile-1.dll libsqlite3-0.dll \
     libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
-    rifftree.exe dlsdump.exe gigdump.exe gigextract.exe \
-    linuxsampler.exe \
+    rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
+    gig2mono.exe linuxsampler.exe \
     gigedit.exe \
     liblscp-6.dll qsampler.exe \
     $DIST
@@ -70,8 +70,8 @@ rm -rf $DIST
 mkdir -p $DIST
 cd $WIN/bin
 cp libgig-6.dll \
-    rifftree.exe dlsdump.exe gigdump.exe gigextract.exe \
-    linuxsampler.exe \
+    rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
+    gig2mono.exe linuxsampler.exe \
     $DIST
 cd $WIN/lib/bin
 cp liblinuxsampler-3.dll $DIST
@@ -88,8 +88,8 @@ mkdir -p $DIST
 cd $WIN/bin
 cp libgig-6.dll libsndfile-1.dll libsqlite3-0.dll \
     libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
-    rifftree.exe dlsdump.exe gigdump.exe gigextract.exe \
-    linuxsampler.exe gigedit.exe \
+    rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
+    gig2mono.exe linuxsampler.exe gigedit.exe \
     $DIST
 cd $WIN/gtkmm/bin
 cp libatk-1.0-0.dll libatkmm-1.6-1.dll libcairo-2.dll \
