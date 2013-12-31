@@ -17,7 +17,7 @@ print the size of each RIFF chunk
 .B \ -v
 print version and exit
 .SH "SEE ALSO"
-dlsdump(1) gigdump(1)
+dlsdump(1), gigdump(1)
 .SH "BUGS"
 None. Report bugs to http://bugs.linuxsampler.org
 .SH "Author"

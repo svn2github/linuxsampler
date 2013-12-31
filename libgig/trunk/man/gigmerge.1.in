@@ -20,7 +20,7 @@ filename of merged output Gigasampler file
 .B \ -v
 print version and exit
 .SH "SEE ALSO"
-gigextract(1) gigdump(1)
+gigextract(1), gigdump(1), gig2mono(1)
 .SH "BUGS"
 None. Report bugs to http://bugs.linuxsampler.org
 .SH "Author"

@@ -581,6 +581,14 @@ namespace {
         // update '3gix' chunk
         pData = (uint8_t*) pCk3gix->LoadChunkData();
         store16(&pData[0], iSampleGroup);
+
+        // if the library user toggled the "Compressed" attribute from true to
+        // false, then the EWAV chunk associated with compressed samples needs
+        // to be deleted
+        RIFF::Chunk* ewav = pWaveList->GetSubChunk(CHUNK_ID_EWAV);
+        if (ewav && !Compressed) {
+            pWaveList->DeleteSubChunk(ewav);
+        }
     }
 
     /// Scans compressed samples for mandatory informations (e.g. actual number of total sample points).

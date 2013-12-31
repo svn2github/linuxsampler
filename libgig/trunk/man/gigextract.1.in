@@ -20,7 +20,7 @@ optional index of sample(s) to be exclusively extracted
 .B \ -v
 print version and exit
 .SH "SEE ALSO"
-gigdump(1) gigmerge(1)
+gigdump(1), gigmerge(1), gig2mono(1)
 .SH "BUGS"
 None. Report bugs to http://bugs.linuxsampler.org
 .SH "Author"

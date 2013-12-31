@@ -25,7 +25,7 @@ endif
 if MAC
 libgig_la_LDFLAGS += -framework CoreFoundation
 endif
-bin_PROGRAMS = rifftree dlsdump gigdump gigextract gigmerge sf2dump
+bin_PROGRAMS = rifftree dlsdump gigdump gigextract gigmerge gig2mono sf2dump
 rifftree_SOURCES = rifftree.cpp
 rifftree_LDADD = libgig.la
 dlsdump_SOURCES = dlsdump.cpp
@@ -38,6 +38,8 @@ gigextract_CFLAGS = $(gigextract_flags)
 gigextract_CXXFLAGS = $(gigextract_flags)
 gigmerge_SOURCES = gigmerge.cpp
 gigmerge_LDADD = libgig.la
+gig2mono_SOURCES = gig2mono.cpp
+gig2mono_LDADD = libgig.la
 sf2dump_SOURCES = sf2dump.cpp
 sf2dump_LDADD = libgig.la
 

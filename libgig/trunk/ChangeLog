@@ -7,6 +7,7 @@ Version CVS HEAD (?)
     - removed usage of deprecated Automake variable INCLUDES
     - added new command line tool "gigmerge"
     - added "const" keyword to several methods
+    - added new command line tool "gig2mono"
 
   * SoundFont file format:
     - initial implementation

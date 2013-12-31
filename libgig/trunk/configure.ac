@@ -3,7 +3,7 @@
 
 m4_define(libgig_release_major, 3)
 m4_define(libgig_release_minor, 3)
-m4_define(libgig_release_build, 0.svn6)
+m4_define(libgig_release_build, 0.svn7)
 
 
 AC_INIT([libgig],[libgig_release_major.libgig_release_minor.libgig_release_build])
@@ -119,6 +119,7 @@ AC_CONFIG_FILES([\
     man/gigdump.1 \
     man/gigextract.1 \
     man/gigmerge.1 \
+    man/gig2mono.1 \
     man/rifftree.1 \
     debian/Makefile \
     osx/Makefile \
