@@ -507,6 +507,8 @@ Section "libgig 3.3.0" Seclibgig
   File bin\64\dlsdump.exe
   File bin\64\gigdump.exe
   File bin\64\gigextract.exe
+  File bin\64\gigmerge.exe
+  File bin\64\gig2mono.exe
   ; special dependencies for the 64 bit version
   File bin\64\libgcc_s_sjlj-1.dll
   File bin\64\libstdc++-6.dll
@@ -528,6 +530,8 @@ Section "libgig 3.3.0" Seclibgig
   File bin\686sse\dlsdump.exe
   File bin\686sse\gigdump.exe
   File bin\686sse\gigextract.exe
+  File bin\686sse\gigmerge.exe
+  File bin\686sse\gig2mono.exe
   Goto done
 
   libgig686:
@@ -537,6 +541,8 @@ Section "libgig 3.3.0" Seclibgig
   File bin\686\dlsdump.exe
   File bin\686\gigdump.exe
   File bin\686\gigextract.exe
+  File bin\686\gigmerge.exe
+  File bin\686\gig2mono.exe
   Goto done
 
   done:
