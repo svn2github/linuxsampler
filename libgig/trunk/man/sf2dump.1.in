@@ -1,4 +1,4 @@
-.TH "sf2dump" "1" "1 Jan 2014" "libgig 3.3.0.svn7" "libgig tools"
+.TH "sf2dump" "1" "1 Jan 2014" "libgig @VERSION@" "libgig tools"
 .SH NAME
 sf2dump \- Parses SoundFont v2 (.sf2) files and prints out the content.
 .SH SYNOPSIS
