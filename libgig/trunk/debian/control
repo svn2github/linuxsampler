@@ -32,7 +32,7 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: libgig3c2, libgig
 Replaces: libgig3c2, libgig
-Description: library for accessing Gigasampler DLS and SoundFont files
+Description: library for accessing Gigasampler, DLS and SoundFont files
  libgig is a C++ library for reading, modifying and creating Gigasampler /
  GigaStudio (.gig) files, DLS (Downloadable Sounds) Level 1/2 files and
  SoundFont version 2 (.sf2) files. These files are typically used in modern day

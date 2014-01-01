@@ -1,3 +1,9 @@
+libgig (3.3.0-3) unstable; urgency=low
+
+  * Updated package descriptions.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Thu, 02 Jan 2014 00:28:00 +0100
+
 libgig (3.3.0-2) unstable; urgency=low
 
   * Included new command line tools "gigmerge" and "gig2mono".
