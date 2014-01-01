@@ -434,7 +434,7 @@ void closeAFlib() {
 #endif // !HAVE_SNDFILE
 
 string Revision() {
-    string s = "$Revision: 1.12 $";
+    string s = "$Revision$";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

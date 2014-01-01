@@ -304,7 +304,7 @@ string GetControllerSource(sf2::Modulator& mod) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.3 $";
+    string s = "$Revision$";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 
