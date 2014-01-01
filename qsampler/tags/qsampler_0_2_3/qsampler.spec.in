@@ -1,0 +1,105 @@
+%define name    @PACKAGE_TARNAME@
+%define version @PACKAGE_VERSION@
+%define release 15
+
+%define _prefix	@ac_prefix@
+
+Summary:	A LinuxSampler Qt GUI interface
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
+License:	GPL-2.0+
+Group:		Productivity/Multimedia/Sound/Midi
+Source0:	%{name}-%{version}.tar.gz
+URL:		http://qsampler.sourceforge.net/
+#Packager:	rncbc.org
+
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
+
+BuildRequires:	libqt4-devel >= 4.4
+BuildRequires:	liblscp-devel >= 0.5.6
+BuildRequires:	libgig-devel >= 3.3.0
+
+%description
+QSampler is a LinuxSampler GUI front-end application written in C++ around
+the Qt4 toolkit using Qt Designer. For the moment it just wraps the client
+interface of LinuxSampler Control Protocol (LSCP) (http://www.linuxsampler.org).
+
+%prep
+%setup
+[ -f Makefile.svn ] && %__make -f Makefile.svn
+
+%build
+%configure
+%__make
+
+%install
+%__make DESTDIR=%{buildroot} install
+
+%clean
+[ -d %{buildroot} -a "%{buildroot}" != "" ] && %__rm -rf %{buildroot}
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS COPYING ChangeLog README TODO
+#dir %{_datadir}/mime
+#dir %{_datadir}/mime/packages
+#dir %{_datadir}/applications
+%dir %{_datadir}/icons/hicolor
+%dir %{_datadir}/icons/hicolor/32x32
+%dir %{_datadir}/icons/hicolor/32x32/apps
+%dir %{_datadir}/icons/hicolor/32x32/mimetypes
+%dir %{_datadir}/icons/hicolor/scalable
+%dir %{_datadir}/icons/hicolor/scalable/apps
+%dir %{_datadir}/icons/hicolor/scalable/mimetypes
+#dir %{_datadir}/locale
+%{_bindir}/%{name}
+%{_datadir}/mime/packages/%{name}.xml
+%{_datadir}/applications/%{name}.desktop
+%{_datadir}/icons/hicolor/32x32/apps/%{name}.png
+%{_datadir}/icons/hicolor/32x32/mimetypes/application-x-%{name}*.png
+%{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
+%{_datadir}/icons/hicolor/scalable/mimetypes/application-x-%{name}*.svg
+%{_datadir}/locale/%{name}_*.qm
+
+%changelog
+* Tue Dec 31 2013 Rui Nuno Capela <rncbc@rncbc.org> 0.2.3
+- A fifth of a Jubilee release.
+* Mon May 17 2010 Rui Nuno Capela <rncbc@rncbc.org>
+- Standard desktop icon fixing. 
+* Sat Aug  1 2009 Rui Nuno Capela <rncbc@rncbc.org> 0.2.2
+- New 0.2.2 release.
+* Thu Dec 6 2007 Rui Nuno Capela <rncbc@rncbc.org>
+- Qt4 migration complete.
+* Mon Jun 25 2007 Rui Nuno Capela <rncbc@rncbc.org>
+- Application icon is now installed to (prefix)/share/pixmaps.
+- Declared fundamental build and run-time requirements.
+- Destination install directory prefix is now in spec.
+- Spec is now a bit more openSUSE compliant.
+* Mon Jan 15 2007 Rui Nuno Capela <rncbc@rncbc.org>
+- Added sampler channel FX send support at session save code-level.
+- Global sampler volume slider/spinbox combo is now featured.
+* Thu Dec 17 2006 Rui Nuno Capela <rncbc@rncbc.org>
+- Added preliminary MIDI instrument mapping support.
+* Thu Jun 01 2006 Rui Nuno Capela <rncbc@rncbc.org>
+- Take a chance for a new 0.1.3 release.
+- Changed deprecated copyright attribute to license.
+* Wed Aug 24 2005 Rui Nuno Capela <rncbc@rncbc.org>
+- Prepared auto-generation from configure.
+* Tue Aug 16 2005 Rui Nuno Capela <rncbc@rncbc.org>
+- Get in sync with latest offerings from liblscp (0.3.1) and
+  specially libgig (2.0.2) which broke previous ABI, somewhat.
+* Thu Jun 23 2005 Rui Nuno Capela <rncbc@rncbc.org>
+- Even minor workings needs a rest.
+* Mon Jun 13 2005 Rui Nuno Capela <rncbc@rncbc.org>
+- The mantra of bugfixes.
+* Mon May 23 2005 Rui Nuno Capela <rncbc@rncbc.org>
+- Device configuration breakthrough.
+* Fri Mar 4 2005 Rui Nuno Capela <rncbc@rncbc.org>
+- Fifth alpha-release.
+* Wed Nov 16 2004 Rui Nuno Capela <rncbc@rncbc.org>
+- Prepared for the fourth alpha release.
+* Wed Nov 16 2004 Rui Nuno Capela <rncbc@rncbc.org>
+- Prepared for the fourth alpha release.
+* Wed Jun 2 2004 Rui Nuno Capela <rncbc@rncbc.org>
+- Created initial qsampler.spec
