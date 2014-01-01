@@ -121,6 +121,7 @@ AC_CONFIG_FILES([\
     man/gigmerge.1 \
     man/gig2mono.1 \
     man/rifftree.1 \
+    man/sf2dump.1 \
     debian/Makefile \
     osx/Makefile \
     osx/libgig.xcodeproj/Makefile \

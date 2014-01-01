@@ -9,16 +9,22 @@ Package: libgig-dev
 Section: libdevel
 Architecture: any
 Depends: libgig6 (= ${Source-Version})
-Description: library for reading and modifying Gigasampler and DLS files
- libgig is a C++ library for reading, modifying and creating Gigasampler
- files and DLS (Downloadable Sounds) Level 1/2 files.
+Description: library for accessing Gigasampler, DLS and SoundFont files
+ libgig is a C++ library for reading, modifying and creating Gigasampler /
+ GigaStudio (.gig) files, DLS (Downloadable Sounds) Level 1/2 files and
+ SoundFont version 2 (.sf2) files. These files are typically used in modern day
+ audio waveform samplers.
+ .
+ Since the Gigasampler / GigaStudio and DLS formats are based ontop of the
+ binary RIFF container format, this library also provides convenient access to
+ RIFF files in general.
  .
  For more information visit
  http://www.linuxsampler.org/libgig/
  .
- This package contains the header files needed for
- development with libgig. You will need this only if you
- intend to compile programs that use this library.
+ This package contains the header files needed for development with libgig.
+ You will need this only if you intend to compile programs that use this
+ library.
 
 Package: libgig6
 Section: libs
@@ -26,9 +32,15 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: libgig3c2, libgig
 Replaces: libgig3c2, libgig
-Description: library for reading and modifying Gigasampler and DLS files
- libgig is a C++ library for reading, modifying and creating Gigasampler
- files and DLS (Downloadable Sounds) Level 1/2 files.
+Description: library for accessing Gigasampler DLS and SoundFont files
+ libgig is a C++ library for reading, modifying and creating Gigasampler /
+ GigaStudio (.gig) files, DLS (Downloadable Sounds) Level 1/2 files and
+ SoundFont version 2 (.sf2) files. These files are typically used in modern day
+ audio waveform samplers.
+ .
+ Since the Gigasampler / GigaStudio and DLS formats are based ontop of the
+ binary RIFF container format, this library also provides convenient access to
+ RIFF files in general.
  .
  For more information visit
  http://www.linuxsampler.org/libgig/
@@ -37,22 +49,25 @@ Package: gigtools
 Section: utils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: command line tools for Gigasampler and DLS Level 1/2 files
- Raw file handling for audio sampler files based on DLS Level 1/2 and
- Gigasampler.
- These files are typically used in modern day audio waveform samplers.
+Description: command line tools for Gigasampler, SF2 and DLS Level 1/2 files
+ Raw file handling for audio sampler files based on either DLS Level 1/2,
+ Gigasampler / GigaStudio or SoundFont version 2. These files are typically
+ used in modern day audio waveform samplers.
+ .
  This package contains the following command line tools:
  .
  gigdump:
    Prints out the content of a .gig file.
  gigextract:
-   Extracts samples from a .gig file.
+   Extracts audio samples from a .gig file.
  gigmerge:
    Combines multiple .gig files to one .gig file.
  gig2mono:
-   Converts gig files from stereo to mono.
+   Converts .gig files from stereo to mono.
  dlsdump:
    Prints out the content of a DLS file.
  rifftree:
-   Prints out the RIFF tree of an arbitrary RIFF file.
+   Prints out the RIFF tree of an arbitrary RIFF container file.
+ sf2dump:
+   Prints out the content of a .sf2 file.
 

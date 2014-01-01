@@ -8,6 +8,7 @@ Version CVS HEAD (?)
     - added new command line tool "gigmerge"
     - added "const" keyword to several methods
     - added new command line tool "gig2mono"
+    - added man page for "sf2dump"
 
   * SoundFont file format:
     - initial implementation
