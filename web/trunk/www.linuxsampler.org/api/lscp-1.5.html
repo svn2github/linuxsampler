@@ -143,11 +143,11 @@
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <table summary="layout" width="66%" border="0" cellpadding="0" cellspacing="0"><tr><td><table summary="layout" width="100%" border="0" cellpadding="2" cellspacing="1">
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
-<tr><td class="header">Internet-Draft</td><td class="header">LinuxSampler.org</td></tr>
-<tr><td class="header">Intended status: Standards Track</td><td class="header">January 9, 2014</td></tr>
-<tr><td class="header">Expires: July 13, 2014</td><td class="header">&nbsp;</td></tr>
+<tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
+<tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
+<tr><td class="header">Expires: December 3, 2011</td><td class="header">June 2011</td></tr>
 </table></td></tr></table>
-<h1><br />LinuxSampler Control Protocol<br />LSCP 1.6</h1>
+<h1><br />LinuxSampler Control Protocol<br />LSCP 1.5</h1>
 
 <h3>Abstract</h3>
 
@@ -176,7 +176,7 @@ and may be updated, replaced, or obsoleted by other documents at any time.
 It is inappropriate to use Internet-Drafts as reference material or to cite
 them other than as &ldquo;work in progress.&rdquo;</p>
 <p>
-This Internet-Draft will expire on July 13, 2014.</p>
+This Internet-Draft will expire on December 3, 2011.</p>
 <a name="toc"></a><br /><hr />
 <h3>Table of Contents</h3>
 <p class="toc">
@@ -292,53 +292,47 @@ Setting audio output device<br />
 Setting audio output type<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL AUDIO_OUTPUT_CHANNEL">6.4.16.</a>&nbsp;
 Setting audio output channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ADD CHANNEL MIDI_INPUT">6.4.17.</a>&nbsp;
-Add MIDI input to sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#REMOVE CHANNEL MIDI_INPUT">6.4.18.</a>&nbsp;
-Remove MIDI input(s) from sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LIST CHANNEL MIDI_INPUTS">6.4.19.</a>&nbsp;
-Getting all MIDI inputs of a sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MIDI_INPUT_DEVICE">6.4.20.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MIDI_INPUT_DEVICE">6.4.17.</a>&nbsp;
 Setting MIDI input device<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MIDI_INPUT_TYPE">6.4.21.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MIDI_INPUT_TYPE">6.4.18.</a>&nbsp;
 Setting MIDI input type<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MIDI_INPUT_PORT">6.4.22.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MIDI_INPUT_PORT">6.4.19.</a>&nbsp;
 Setting MIDI input port<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MIDI_INPUT_CHANNEL">6.4.23.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MIDI_INPUT_CHANNEL">6.4.20.</a>&nbsp;
 Setting MIDI input channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL VOLUME">6.4.24.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL VOLUME">6.4.21.</a>&nbsp;
 Setting channel volume<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MUTE">6.4.25.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MUTE">6.4.22.</a>&nbsp;
 Muting a sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL SOLO">6.4.26.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL SOLO">6.4.23.</a>&nbsp;
 Soloing a sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MIDI_INSTRUMENT_MAP">6.4.27.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MIDI_INSTRUMENT_MAP">6.4.24.</a>&nbsp;
 Assigning a MIDI instrument map to a sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CREATE FX_SEND">6.4.28.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CREATE FX_SEND">6.4.25.</a>&nbsp;
 Adding an effect send to a sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#DESTROY FX_SEND">6.4.29.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#DESTROY FX_SEND">6.4.26.</a>&nbsp;
 Removing an effect send from a sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET FX_SENDS">6.4.30.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET FX_SENDS">6.4.27.</a>&nbsp;
 Getting amount of effect sends on a sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LIST FX_SENDS">6.4.31.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LIST FX_SENDS">6.4.28.</a>&nbsp;
 Listing all effect sends on a sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET FX_SEND INFO">6.4.32.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET FX_SEND INFO">6.4.29.</a>&nbsp;
 Getting effect send information<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND NAME">6.4.33.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND NAME">6.4.30.</a>&nbsp;
 Changing effect send's name<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND AUDIO_OUTPUT_CHANNEL">6.4.34.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND AUDIO_OUTPUT_CHANNEL">6.4.31.</a>&nbsp;
 Altering effect send's audio routing<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND EFFECT">6.4.35.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND EFFECT">6.4.32.</a>&nbsp;
 Assigning destination effect to an effect send<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#REMOVE FX_SEND EFFECT">6.4.36.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#REMOVE FX_SEND EFFECT">6.4.33.</a>&nbsp;
 Removing destination effect from an effect send<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND MIDI_CONTROLLER">6.4.37.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND MIDI_CONTROLLER">6.4.34.</a>&nbsp;
 Altering effect send's MIDI controller<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND LEVEL">6.4.38.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND LEVEL">6.4.35.</a>&nbsp;
 Altering effect send's send level<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SEND CHANNEL MIDI_DATA">6.4.39.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SEND CHANNEL MIDI_DATA">6.4.36.</a>&nbsp;
 Sending MIDI messages to sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RESET CHANNEL">6.4.40.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RESET CHANNEL">6.4.37.</a>&nbsp;
 Resetting a sampler channel<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor12">6.5.</a>&nbsp;
 Controlling connection<br />
@@ -391,7 +385,7 @@ Renaming a MIDI instrument map<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MAP MIDI_INSTRUMENT">6.7.7.</a>&nbsp;
 Create or replace a MIDI instrument map entry<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET MIDI_INSTRUMENTS">6.7.8.</a>&nbsp;
-Getting amount of MIDI instrument map entries<br />
+Getting ammount of MIDI instrument map entries<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LIST MIDI_INSTRUMENTS">6.7.9.</a>&nbsp;
 Getting indeces of all entries of a MIDI instrument map<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#UNMAP MIDI_INSTRUMENT">6.7.10.</a>&nbsp;
@@ -3919,7 +3913,7 @@ Getting all available engines</h3>
 <blockquote class="text">
 <p>C: "LIST AVAILABLE_ENGINES"
 </p>
-<p>S: "'gig','sfz','sf2'"
+<p>S: "'GigEngine','AkaiEngine','DLSEngine','JoesCustomEngine'"
 </p>
 </blockquote><p>
                     
@@ -3983,32 +3977,16 @@ Getting information about an engine</h3>
 </p>
 <p>The mentioned fields above don't have to be in particular order.
 </p>
-<p>Examples:
+<p>Example:
 </p>
 <p>
                         </p>
 <blockquote class="text">
-<p>C: "GET ENGINE INFO gig"
+<p>C: "GET ENGINE INFO JoesCustomEngine"
 </p>
-<p>S: "DESCRIPTION: GigaSampler Format Engine"
+<p>S: "DESCRIPTION: this is Joe's custom sampler engine"
 </p>
-<p>&nbsp;&nbsp;&nbsp;"VERSION: 1.110"
-</p>
-<p>&nbsp;&nbsp;&nbsp;"."
-</p>
-<p>C: "GET ENGINE INFO sf2"
-</p>
-<p>S: "DESCRIPTION: SoundFont Format Engine"
-</p>
-<p>&nbsp;&nbsp;&nbsp;"VERSION: 1.4"
-</p>
-<p>&nbsp;&nbsp;&nbsp;"."
-</p>
-<p>C: "GET ENGINE INFO sfz"
-</p>
-<p>S: "DESCRIPTION: SFZ Format Engine"
-</p>
-<p>&nbsp;&nbsp;&nbsp;"VERSION: 1.11"
+<p>&nbsp;&nbsp;&nbsp;"VERSION: testing-1.0"
 </p>
 <p>&nbsp;&nbsp;&nbsp;"."
 </p>
@@ -4224,7 +4202,7 @@ Getting sampler channel information</h3>
 <blockquote class="text">
 <p>C: "GET CHANNEL INFO 34"
 </p>
-<p>S: "ENGINE_NAME: gig"
+<p>S: "ENGINE_NAME: GigEngine"
 </p>
 <p>&nbsp;&nbsp;&nbsp;"VOLUME: 1.0"
 </p>
@@ -4496,7 +4474,7 @@ Setting audio output device</h3>
 <a name="rfc.section.6.4.15"></a><h3>6.4.15.&nbsp;
 Setting audio output type</h3>
 
-<p>DEPRECATED: THIS COMMAND WILL DISAPPEAR!
+<p>DEPRECATED: THIS COMMAND WILL DISAPPEAR SOON!
 </p>
 <p>The front-end can alter the audio output type on a specific sampler
                     channel by sending the following command:
@@ -4552,18 +4530,6 @@ Setting audio output type</h3>
                         </p>
 <blockquote class="text">
 <p>
-</p>
-</blockquote><p>
-                    
-</p>
-<p>Deprecated:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>Should not be used anymore. This command is currently only preserved for backward compatibility.
-</p>
-<p>This command is a relict from times where there was no sophisticated driver management yet. Use <a class='info' href='#CREATE AUDIO_OUTPUT_DEVICE'>"CREATE AUDIO_OUTPUT_DEVICE"<span> (</span><span class='info'>Creating an audio output device</span><span>)</span></a> and <a class='info' href='#SET CHANNEL AUDIO_OUTPUT_DEVICE'>"SET CHANNEL AUDIO_OUTPUT_DEVICE"<span> (</span><span class='info'>Setting audio output device</span><span>)</span></a> instead.
 </p>
 </blockquote><p>
                     
@@ -4635,273 +4601,11 @@ Setting audio output channel</h3>
 </blockquote><p>
                     
 </p>
-<a name="ADD CHANNEL MIDI_INPUT"></a><br /><hr />
-<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.17"></a><h3>6.4.17.&nbsp;
-Add MIDI input to sampler channel</h3>
-
-<p>The front-end can add a MIDI input on a specific sampler
-                    channel by sending the following command:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>ADD CHANNEL MIDI_INPUT &lt;sampler-channel&gt; &lt;midi-device-id&gt; [&lt;midi-input-port&gt;]
-</p>
-</blockquote><p>
-                    
-</p>
-<p>Where &lt;sampler-channel&gt; is the sampler channel number
-                    as returned by the <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
-                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a> command
-                    and &lt;midi-device-id&gt; is the numerical ID of the MIDI input
-                    device as returned by the
-                    <a class='info' href='#CREATE MIDI_INPUT_DEVICE'>"CREATE MIDI_INPUT_DEVICE"<span> (</span><span class='info'>Creating a MIDI input device</span><span>)</span></a>
-                    or <a class='info' href='#LIST MIDI_INPUT_DEVICES'>"LIST MIDI_INPUT_DEVICES"<span> (</span><span class='info'>Getting all created MIDI input device list</span><span>)</span></a> command,
-                    and &lt;midi-input-port&gt; is an optional MIDI input port number of that
-                    MIDI input device. If &lt;midi-input-port&gt; is omitted,
-                    then the MIDI input device's first port (port number 0) is
-                    used.
-                    
-</p>
-<p>Possible Answers:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>"OK" -
-                                </p>
-<blockquote class="text">
-<p>on success
-</p>
-</blockquote>
-                            
-
-<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
-                                </p>
-<blockquote class="text">
-<p>if MIDI input port was connected, but there are noteworthy
-                                    issue(s) related, providing an appropriate warning code and
-                                    warning message
-</p>
-</blockquote>
-                            
-
-<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
-                                </p>
-<blockquote class="text">
-<p>in case it failed, providing an appropriate error code and error message
-</p>
-</blockquote>
-                            
-
-</blockquote><p>
-                    
-</p>
-<p>Examples:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>C: "ADD CHANNEL MIDI_INPUT 0 0"
-</p>
-<p>S: "OK"
-</p>
-<p>C: "ADD CHANNEL MIDI_INPUT 1 0"
-</p>
-<p>S: "OK"
-</p>
-<p>C: "ADD CHANNEL MIDI_INPUT 1 1 1"
-</p>
-<p>S: "OK"
-</p>
-<p>C: "ADD CHANNEL MIDI_INPUT 1 2 0"
-</p>
-<p>S: "OK"
-</p>
-</blockquote><p>
-                    
-</p>
-<p>Since:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>Introduced with LSCP v1.6
-</p>
-</blockquote><p>
-                    
-</p>
-<a name="REMOVE CHANNEL MIDI_INPUT"></a><br /><hr />
-<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.18"></a><h3>6.4.18.&nbsp;
-Remove MIDI input(s) from sampler channel</h3>
-
-<p>The front-end can remove one ore more MIDI input(s) on a
-                    specific sampler channel by sending the following command:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>REMOVE CHANNEL MIDI_INPUT &lt;sampler-channel&gt; [&lt;midi-device-id&gt; [&lt;midi-input-port&gt;]]
-</p>
-</blockquote><p>
-                    
-</p>
-<p>Where &lt;sampler-channel&gt; is the sampler channel number
-                    as returned by the <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
-                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a> command
-                    and &lt;midi-device-id&gt; and &lt;midi-input-port&gt; are
-                    optional numerical IDs defining the MIDI input device and
-                    one of its MIDI ports as returned by the
-                    <a class='info' href='#LIST CHANNEL MIDI_INPUTS'>"LIST CHANNEL MIDI_INPUTS"<span> (</span><span class='info'>Getting all MIDI inputs of a sampler channel</span><span>)</span></a> command.
-                    
-</p>
-<p>
-                    If &lt;midi-input-port&gt; is omitted, then all MIDI input
-                    ports of &lt;midi-device-id&gt; are disconnected from this
-                    sampler channel.
-                    
-</p>
-<p>
-                    If both, &lt;midi-device-id&gt; and &lt;midi-input-port&gt;
-                    are omitted, then all MIDI input ports currently connected
-                    to this sampler channel are disconnected from this sampler
-                    channel.
-                    
-</p>
-<p>Possible Answers:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>"OK" -
-                                </p>
-<blockquote class="text">
-<p>on success
-</p>
-</blockquote>
-                            
-
-<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
-                                </p>
-<blockquote class="text">
-<p>if MIDI input porst were disconnected, but there are noteworthy
-                                    issue(s) related, providing an appropriate warning code and
-                                    warning message
-</p>
-</blockquote>
-                            
-
-<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
-                                </p>
-<blockquote class="text">
-<p>in case it failed, providing an appropriate error code and error message
-</p>
-</blockquote>
-                            
-
-</blockquote><p>
-                    
-</p>
-<p>Examples:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>C: "REMOVE CHANNEL MIDI_INPUT 0"
-</p>
-<p>S: "OK"
-</p>
-<p>C: "REMOVE CHANNEL MIDI_INPUT 1"
-</p>
-<p>S: "OK"
-</p>
-<p>C: "REMOVE CHANNEL MIDI_INPUT 1 2 0"
-</p>
-<p>S: "OK"
-</p>
-</blockquote><p>
-                    
-</p>
-<p>Since:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>Introduced with LSCP v1.6
-</p>
-</blockquote><p>
-                    
-</p>
-<a name="LIST CHANNEL MIDI_INPUTS"></a><br /><hr />
-<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.19"></a><h3>6.4.19.&nbsp;
-Getting all MIDI inputs of a sampler channel</h3>
-
-<p>The front-end can query a list of all currently connected
-                    MIDI inputs of a certain sampler channel by sending the following
-                    command:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>LIST CHANNEL MIDI_INPUTS &lt;sampler-channel&gt;
-</p>
-</blockquote><p>
-                    
-</p>
-<p>Where &lt;sampler-channel&gt; is the sampler channel number
-                    as returned by the <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
-                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a> command.
-                    
-</p>
-<p>Possible Answers:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>The sampler will answer by sending a comma separated
-                            list of MIDI input device ID - MIDI input port number pairs, where
-                            each pair is encapsulated into curly braces. The
-                            list is returned in one single line. The MIDI input
-                            device ID corresponds to the number returned by
-                            <a class='info' href='#LIST MIDI_INPUT_DEVICES'>"LIST MIDI_INPUT_DEVICES"<span> (</span><span class='info'>Getting all created MIDI input device list</span><span>)</span></a>
-                            and the port number is the index of the respective MIDI
-                            port of that MIDI input device.
-</p>
-</blockquote><p>
-                    
-</p>
-<p>Example:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>C: "LIST CHANNEL MIDI_INPUTS 0"
-</p>
-<p>S: "{0,0},{1,3},{2,0}"
-</p>
-</blockquote><p>
-                    
-</p>
-<p>Since:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>Introduced with LSCP v1.6
-</p>
-</blockquote><p>
-                    
-</p>
 <a name="SET CHANNEL MIDI_INPUT_DEVICE"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.20"></a><h3>6.4.20.&nbsp;
+<a name="rfc.section.6.4.17"></a><h3>6.4.17.&nbsp;
 Setting MIDI input device</h3>
 
-<p>DEPRECATED: THIS COMMAND WILL DISAPPEAR!
-</p>
 <p>The front-end can set the MIDI input device on a specific sampler
                     channel by sending the following command:
 </p>
@@ -4919,16 +4623,6 @@ Setting MIDI input device</h3>
                     and &lt;midi-device-id&gt; is  the numerical ID of the MIDI input device as returned by the
                     <a class='info' href='#CREATE MIDI_INPUT_DEVICE'>"CREATE MIDI_INPUT_DEVICE"<span> (</span><span class='info'>Creating a MIDI input device</span><span>)</span></a>
                     or <a class='info' href='#LIST MIDI_INPUT_DEVICES'>"LIST MIDI_INPUT_DEVICES"<span> (</span><span class='info'>Getting all created MIDI input device list</span><span>)</span></a> command.
-</p>
-<p>
-                    If more than 1 MIDI inputs are currently connected to this
-                    sampler channel: Sending this command will disconnect ALL
-                    currently connected MIDI input ports connected to this
-                    sampler channel before establishing the new MIDI input
-                    connection. So this command does NOT add the connection,
-                    it replaces all existing ones instead. This behavior is due
-                    to preserving full behavior backward compatibility.
-                    
 </p>
 <p>Possible Answers:
 </p>
@@ -4974,24 +4668,12 @@ Setting MIDI input device</h3>
 </blockquote><p>
                     
 </p>
-<p>Deprecated:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>Should not be used anymore as of LSCP v1.6 and younger. This command is currently only preserved for backward compatibility.
-</p>
-<p>This command is a relict from times where only one MIDI input per sampler channel was allowed. Use <a class='info' href='#ADD CHANNEL MIDI_INPUT'>"ADD CHANNEL MIDI_INPUT"<span> (</span><span class='info'>Add MIDI input to sampler channel</span><span>)</span></a> and <a class='info' href='#REMOVE CHANNEL MIDI_INPUT'>"REMOVE CHANNEL MIDI_INPUT"<span> (</span><span class='info'>Remove MIDI input(s) from sampler channel</span><span>)</span></a> instead.
-</p>
-</blockquote><p>
-                    
-</p>
 <a name="SET CHANNEL MIDI_INPUT_TYPE"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.21"></a><h3>6.4.21.&nbsp;
+<a name="rfc.section.6.4.18"></a><h3>6.4.18.&nbsp;
 Setting MIDI input type</h3>
 
-<p>DEPRECATED: THIS COMMAND WILL DISAPPEAR!
+<p>DEPRECATED: THIS COMMAND WILL DISAPPEAR SOON!
 </p>
 <p>The front-end can alter the MIDI input type on a specific sampler
                     channel by sending the following command:
@@ -5006,16 +4688,6 @@ Setting MIDI input type</h3>
 </p>
 <p>Where &lt;midi-input-type&gt; is currently only "ALSA" and
                     &lt;sampler-channel&gt; is the respective sampler channel number.
-</p>
-<p>
-                    If more than 1 MIDI inputs are currently connected to this
-                    sampler channel: Sending this command will disconnect ALL
-                    currently connected MIDI input ports connected to this
-                    sampler channel before establishing the new MIDI input
-                    connection. So this command does NOT add the connection,
-                    it replaces all existing ones instead. This behavior is due
-                    to preserving full behavior backward compatibility.
-                    
 </p>
 <p>Possible Answers:
 </p>
@@ -5061,25 +4733,11 @@ Setting MIDI input type</h3>
 </blockquote><p>
                     
 </p>
-<p>Deprecated:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>Should not be used anymore. This command is currently only preserved for backward compatibility.
-</p>
-<p>This command is a relict from times where only 1 MIDI input per sampler channels was allowed and where no sophisticated driver management existed yet. Use <a class='info' href='#ADD CHANNEL MIDI_INPUT'>"ADD CHANNEL MIDI_INPUT"<span> (</span><span class='info'>Add MIDI input to sampler channel</span><span>)</span></a> and <a class='info' href='#REMOVE CHANNEL MIDI_INPUT'>"REMOVE CHANNEL MIDI_INPUT"<span> (</span><span class='info'>Remove MIDI input(s) from sampler channel</span><span>)</span></a> instead.
-</p>
-</blockquote><p>
-                    
-</p>
 <a name="SET CHANNEL MIDI_INPUT_PORT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.22"></a><h3>6.4.22.&nbsp;
+<a name="rfc.section.6.4.19"></a><h3>6.4.19.&nbsp;
 Setting MIDI input port</h3>
 
-<p>DEPRECATED: THIS COMMAND WILL DISAPPEAR!
-</p>
 <p>The front-end can alter the MIDI input port on a specific sampler
                     channel by sending the following command:
 </p>
@@ -5094,19 +4752,6 @@ Setting MIDI input port</h3>
 <p>Where &lt;midi-input-port&gt; is a MIDI input port number of the
                     MIDI input device connected to the sampler channel given by
                     &lt;sampler-channel&gt;.
-</p>
-<p>
-                    If more than 1 MIDI inputs are currently connected to this
-                    sampler channel: Sending this command will switch the
-                    connection of the first (and only the first) MIDI input port
-                    currently being connected to this sampler channel, to
-                    another port of the same MIDI input device. Or in other
-                    words: the first MIDI input port currently connected to
-                    this sampler channel will be disconnected, and the requested
-                    other port of its MIDI input device will be connected to
-                    this sampler channel instead. This behavior is due
-                    to preserving full behavior backward compatibility.
-                    
 </p>
 <p>Possible Answers:
 </p>
@@ -5152,21 +4797,9 @@ Setting MIDI input port</h3>
 </blockquote><p>
                     
 </p>
-<p>Deprecated:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>Should not be used anymore. This command is currently only preserved for backward compatibility.
-</p>
-<p>This command is a relict from times where only one MIDI input per sampler channel was allowed. Use <a class='info' href='#ADD CHANNEL MIDI_INPUT'>"ADD CHANNEL MIDI_INPUT"<span> (</span><span class='info'>Add MIDI input to sampler channel</span><span>)</span></a> and <a class='info' href='#REMOVE CHANNEL MIDI_INPUT'>"REMOVE CHANNEL MIDI_INPUT"<span> (</span><span class='info'>Remove MIDI input(s) from sampler channel</span><span>)</span></a> instead.
-</p>
-</blockquote><p>
-                    
-</p>
 <a name="SET CHANNEL MIDI_INPUT_CHANNEL"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.23"></a><h3>6.4.23.&nbsp;
+<a name="rfc.section.6.4.20"></a><h3>6.4.20.&nbsp;
 Setting MIDI input channel</h3>
 
 <p>The front-end can alter the MIDI channel a sampler channel should
@@ -5180,9 +4813,8 @@ Setting MIDI input channel</h3>
 </blockquote><p>
                     
 </p>
-<p>Where &lt;midi-input-chan&gt; is the number
-                    of the new MIDI input channel (zero indexed!) where
-                    &lt;sampler-channel&gt; should listen to, or "ALL" to listen on all 16 MIDI
+<p>Where &lt;midi-input-chan&gt; is the number of the new MIDI input channel where
+                    &lt;sampler-channel&gt; should listen to or "ALL" to listen on all 16 MIDI
                     channels.
 </p>
 <p>Possible Answers:
@@ -5224,20 +4856,14 @@ Setting MIDI input channel</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>C: "SET CHANNEL MIDI_INPUT_CHANNEL 0 0"
-</p>
-<p>S: "OK"
-</p>
-<p>C: "SET CHANNEL MIDI_INPUT_CHANNEL 1 ALL"
-</p>
-<p>S: "OK"
+<p>
 </p>
 </blockquote><p>
                     
 </p>
 <a name="SET CHANNEL VOLUME"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.24"></a><h3>6.4.24.&nbsp;
+<a name="rfc.section.6.4.21"></a><h3>6.4.21.&nbsp;
 Setting channel volume</h3>
 
 <p>The front-end can alter the volume of a sampler channel by sending
@@ -5302,7 +4928,7 @@ Setting channel volume</h3>
 </p>
 <a name="SET CHANNEL MUTE"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.25"></a><h3>6.4.25.&nbsp;
+<a name="rfc.section.6.4.22"></a><h3>6.4.22.&nbsp;
 Muting a sampler channel</h3>
 
 <p>The front-end can mute/unmute a specific sampler
@@ -5368,7 +4994,7 @@ Muting a sampler channel</h3>
 </p>
 <a name="SET CHANNEL SOLO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.26"></a><h3>6.4.26.&nbsp;
+<a name="rfc.section.6.4.23"></a><h3>6.4.23.&nbsp;
 Soloing a sampler channel</h3>
 
 <p>The front-end can solo/unsolo a specific sampler channel
@@ -5434,7 +5060,7 @@ Soloing a sampler channel</h3>
 </p>
 <a name="SET CHANNEL MIDI_INSTRUMENT_MAP"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.27"></a><h3>6.4.27.&nbsp;
+<a name="rfc.section.6.4.24"></a><h3>6.4.24.&nbsp;
 Assigning a MIDI instrument map to a sampler channel</h3>
 
 <p>The front-end can assign a MIDI instrument map to a specific sampler channel
@@ -5532,7 +5158,7 @@ Assigning a MIDI instrument map to a sampler channel</h3>
 </p>
 <a name="CREATE FX_SEND"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.28"></a><h3>6.4.28.&nbsp;
+<a name="rfc.section.6.4.25"></a><h3>6.4.25.&nbsp;
 Adding an effect send to a sampler channel</h3>
 
 <p>The front-end can create an additional effect send on a specific sampler channel
@@ -5625,7 +5251,7 @@ Adding an effect send to a sampler channel</h3>
 </p>
 <a name="DESTROY FX_SEND"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.29"></a><h3>6.4.29.&nbsp;
+<a name="rfc.section.6.4.26"></a><h3>6.4.26.&nbsp;
 Removing an effect send from a sampler channel</h3>
 
 <p>The front-end can remove an existing effect send on a specific sampler channel
@@ -5686,7 +5312,7 @@ Removing an effect send from a sampler channel</h3>
 </p>
 <a name="GET FX_SENDS"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.30"></a><h3>6.4.30.&nbsp;
+<a name="rfc.section.6.4.27"></a><h3>6.4.27.&nbsp;
 Getting amount of effect sends on a sampler channel</h3>
 
 <p>The front-end can ask for the amount of effect sends on a specific sampler channel
@@ -5729,7 +5355,7 @@ Getting amount of effect sends on a sampler channel</h3>
 </p>
 <a name="LIST FX_SENDS"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.31"></a><h3>6.4.31.&nbsp;
+<a name="rfc.section.6.4.28"></a><h3>6.4.28.&nbsp;
 Listing all effect sends on a sampler channel</h3>
 
 <p>The front-end can ask for a list of effect sends on a specific sampler channel
@@ -5783,7 +5409,7 @@ Listing all effect sends on a sampler channel</h3>
 </p>
 <a name="GET FX_SEND INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.32"></a><h3>6.4.32.&nbsp;
+<a name="rfc.section.6.4.29"></a><h3>6.4.29.&nbsp;
 Getting effect send information</h3>
 
 <p>The front-end can ask for the current settings of an effect send entity
@@ -5933,7 +5559,7 @@ Getting effect send information</h3>
 </p>
 <a name="SET FX_SEND NAME"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.33"></a><h3>6.4.33.&nbsp;
+<a name="rfc.section.6.4.30"></a><h3>6.4.30.&nbsp;
 Changing effect send's name</h3>
 
 <p>The front-end can alter the current name of an effect
@@ -5997,7 +5623,7 @@ Changing effect send's name</h3>
 </p>
 <a name="SET FX_SEND AUDIO_OUTPUT_CHANNEL"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.34"></a><h3>6.4.34.&nbsp;
+<a name="rfc.section.6.4.31"></a><h3>6.4.31.&nbsp;
 Altering effect send's audio routing</h3>
 
 <p>The front-end can alter the destination of an effect send's audio channel on a specific
@@ -6082,7 +5708,7 @@ Altering effect send's audio routing</h3>
 </p>
 <a name="SET FX_SEND EFFECT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.35"></a><h3>6.4.35.&nbsp;
+<a name="rfc.section.6.4.32"></a><h3>6.4.32.&nbsp;
 Assigning destination effect to an effect send</h3>
 
 <p>The front-end can (re-)assign a destination effect to an
@@ -6149,7 +5775,7 @@ Assigning destination effect to an effect send</h3>
 </p>
 <a name="REMOVE FX_SEND EFFECT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.36"></a><h3>6.4.36.&nbsp;
+<a name="rfc.section.6.4.33"></a><h3>6.4.33.&nbsp;
 Removing destination effect from an effect send</h3>
 
 <p>The front-end can (re-)assign a destination effect to an
@@ -6214,7 +5840,7 @@ Removing destination effect from an effect send</h3>
 </p>
 <a name="SET FX_SEND MIDI_CONTROLLER"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.37"></a><h3>6.4.37.&nbsp;
+<a name="rfc.section.6.4.34"></a><h3>6.4.34.&nbsp;
 Altering effect send's MIDI controller</h3>
 
 <p>The front-end can alter the MIDI controller of an effect
@@ -6285,7 +5911,7 @@ Altering effect send's MIDI controller</h3>
 </p>
 <a name="SET FX_SEND LEVEL"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.38"></a><h3>6.4.38.&nbsp;
+<a name="rfc.section.6.4.35"></a><h3>6.4.35.&nbsp;
 Altering effect send's send level</h3>
 
 <p>The front-end can alter the current send level of an effect
@@ -6357,7 +5983,7 @@ Altering effect send's send level</h3>
 </p>
 <a name="SEND CHANNEL MIDI_DATA"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.39"></a><h3>6.4.39.&nbsp;
+<a name="rfc.section.6.4.36"></a><h3>6.4.36.&nbsp;
 Sending MIDI messages to sampler channel</h3>
 
 <p>The front-end can send MIDI events to a specific sampler channel
@@ -6455,7 +6081,7 @@ Sending MIDI messages to sampler channel</h3>
 </p>
 <a name="RESET CHANNEL"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.40"></a><h3>6.4.40.&nbsp;
+<a name="rfc.section.6.4.37"></a><h3>6.4.37.&nbsp;
 Resetting a sampler channel</h3>
 
 <p>The front-end can reset a particular sampler channel by sending the following command:
@@ -6933,26 +6559,6 @@ General sampler informations</h3>
 </p>
 <p>The mentioned fields above don't have to be in particular order.
                     Other fields might be added in future.
-</p>
-<p>Example:
-</p>
-<p>
-                        </p>
-<blockquote class="text">
-<p>C: "GET SERVER INFO"
-</p>
-<p>S: "DESCRIPTION: LinuxSampler - modular, streaming capable sampler"
-</p>
-<p>&nbsp;&nbsp;&nbsp;"VERSION: 1.0.0.svn23"
-</p>
-<p>&nbsp;&nbsp;&nbsp;"PROTOCOL_VERSION: 1.5"
-</p>
-<p>&nbsp;&nbsp;&nbsp;"INSTRUMENTS_DB_SUPPORT: no"
-</p>
-<p>&nbsp;&nbsp;&nbsp;"."
-</p>
-</blockquote><p>
-                    
 </p>
 <a name="GET VOLUME"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
@@ -7870,7 +7476,7 @@ Create or replace a MIDI instrument map entry</h3>
 <a name="GET MIDI_INSTRUMENTS"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.7.8"></a><h3>6.7.8.&nbsp;
-Getting amount of MIDI instrument map entries</h3>
+Getting ammount of MIDI instrument map entries</h3>
 
 <p>The front-end can query the amount of currently existing
                     entries in a MIDI instrument map by sending the following
@@ -12068,12 +11674,6 @@ Command Syntax</h3>
 <p>CHANNEL
 		
 </p>
-<p>/ CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index
-		
-</p>
-<p>/ CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index SP midi_input_port_index
-		
-</p>
 <p>/ DB_INSTRUMENT_DIRECTORY SP db_path
 		
 </p>
@@ -12336,15 +11936,6 @@ Command Syntax</h3>
 	</p>
 <blockquote class="text">
 <p>CHANNEL SP sampler_channel
-		
-</p>
-<p>/ CHANNEL SP MIDI_INPUT SP sampler_channel
-		
-</p>
-<p>/ CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index
-		
-</p>
-<p>/ CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index SP midi_input_port_index
 		
 </p>
 <p>/ MIDI_INSTRUMENT_MAP SP midi_map
@@ -12867,9 +12458,6 @@ Command Syntax</h3>
 		
 </p>
 <p>/ CHANNELS
-		
-</p>
-<p>/ CHANNEL SP MIDI_INPUTS SP sampler_channel
 		
 </p>
 <p>/ AVAILABLE_ENGINES
@@ -14558,25 +14146,21 @@ Acknowledgments</h3>
 <td class="author-text">C.
 Schoenebeck</td></tr>
 <tr><td class="author-text">&nbsp;</td>
-<td class="author-text">LinuxSampler.org</td></tr>
+<td class="author-text">Interessengemeinschaft Software Engineering e. V.</td></tr>
 <tr><td class="author-text">&nbsp;</td>
-<td class="author-text">Crudebyte Engineering</td></tr>
+<td class="author-text">Max-Planck-Str. 39</td></tr>
 <tr><td class="author-text">&nbsp;</td>
-<td class="author-text">Hofgartenstr. 3</td></tr>
-<tr><td class="author-text">&nbsp;</td>
-<td class="author-text">74189 Weinsberg</td></tr>
+<td class="author-text">74081 Heilbronn</td></tr>
 <tr><td class="author-text">&nbsp;</td>
 <td class="author-text">Germany</td></tr>
-<tr><td class="author" align="right">Phone:&nbsp;</td>
-<td class="author-text">+49 7134 911614</td></tr>
 <tr><td class="author" align="right">Email:&nbsp;</td>
-<td class="author-text"><a href="mailto:cuse@users.sf.net">cuse@users.sf.net</a></td></tr>
+<td class="author-text"><a href="mailto:schoenebeck at software minus engineering dot org">schoenebeck at software minus engineering dot org</a></td></tr>
 </table>
 <a name="rfc.copyright"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <h3>Full Copyright Statement</h3>
 <p class='copyright'>
-Copyright &copy; The IETF Trust (2014).</p>
+Copyright &copy; The IETF Trust (2011).</p>
 <p class='copyright'>
 This document is subject to the rights,
 licenses and restrictions contained in BCP&nbsp;78,
