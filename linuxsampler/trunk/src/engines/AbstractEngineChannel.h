@@ -5,6 +5,7 @@
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
  *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2013-2014 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -55,10 +56,16 @@ namespace LinuxSampler {
             virtual AudioOutputDevice* GetAudioOutputDevice() OVERRIDE;
             virtual void    SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) OVERRIDE;
             virtual int     OutputChannel(uint EngineAudioChannel) OVERRIDE;
-            virtual void    Connect(MidiInputPort* pMidiPort, midi_chan_t MidiChannel) OVERRIDE;
-            virtual void    DisconnectMidiInputPort() OVERRIDE;
-            virtual MidiInputPort* GetMidiInputPort() OVERRIDE;
+            virtual void    Connect(MidiInputPort* pMidiPort) OVERRIDE;
+            virtual void    Disconnect(MidiInputPort* pMidiPort) OVERRIDE;
+            virtual void    DisconnectAllMidiInputPorts() OVERRIDE;
+            virtual uint    GetMidiInputPortCount() OVERRIDE;
+            virtual MidiInputPort* GetMidiInputPort(uint index) OVERRIDE;
             virtual midi_chan_t MidiChannel() OVERRIDE;
+            virtual void    SetMidiChannel(midi_chan_t MidiChannel) OVERRIDE;
+            virtual void    Connect(MidiInputPort* pMidiPort, midi_chan_t MidiChannel) OVERRIDE; // deprecated, may be removed
+            virtual void    DisconnectMidiInputPort() OVERRIDE; // deprecated, may be removed
+            virtual MidiInputPort* GetMidiInputPort() OVERRIDE; // deprecated, may be removed
             virtual String  InstrumentFileName() OVERRIDE;
             virtual String  InstrumentName() OVERRIDE;
             virtual int     InstrumentIndex() OVERRIDE;
@@ -88,14 +95,15 @@ namespace LinuxSampler {
 
             AbstractEngine*           pEngine;
             Mutex                     EngineMutex; ///< protects the Engine from access by the instrument loader thread when lscp is disconnecting
+            Mutex                     MidiInputMutex; ///< Introduced when support for multiple MIDI inputs per engine channel was added: protects the MIDI event input ringbuffer on this engine channel to be accessed concurrently by multiple midi input threads. As alternative one might also move the ringbuffer from this engine channel to the individual MIDI ports/devices and let the sampler engine read the events from there instead of receiving them here.
 
         protected:
             AudioChannel*             pChannelLeft;             ///< encapsulates the audio rendering buffer (left)
             AudioChannel*             pChannelRight;            ///< encapsulates the audio rendering buffer (right)
             int                       AudioDeviceChannelLeft;   ///< audio device channel number to which the left channel is connected to
             int                       AudioDeviceChannelRight;  ///< audio device channel number to which the right channel is connected to
-            MidiInputPort*            pMidiInputPort;           ///< Points to the connected MIDI input port or NULL if none assigned.
-            midi_chan_t               midiChannel;              ///< MIDI channel(s) on which this engine channel listens to.
+            DoubleBuffer< ArrayList<MidiInputPort*> > midiInputs; ///< MIDI input ports on which this sampler engine channel shall listen to.
+            midi_chan_t               midiChannel;              ///< MIDI channel(s) on which this engine channel listens to (on all MIDI input ports).
             RingBuffer<Event,false>*  pEventQueue;              ///< Input event queue.
             RTList<Event>*            pEvents;                  ///< All engine channel specific events for the current audio fragment.
             uint8_t                   ControllerTable[129];     ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel. Number 128 is for channel pressure (mono aftertouch).
@@ -149,6 +157,20 @@ namespace LinuxSampler {
             void HandleKeyGroupConflicts(uint KeyGroup, Pool<Event>::Iterator& itNoteOnEvent);
             void ClearGroupEventLists();
             void DeleteGroupEventLists();
+
+        private:
+            /**
+             * Returns @c true if there are 2 ore more MidiInputPorts connected
+             * to this engine channel.
+             *
+             * This method is currently only used to prevent unnecessary
+             * MidiInputMutex.Lock() if there is not more than 1 MIDI input on
+             * this engine channel.
+             */
+            inline bool hasMultipleMIDIInputs() const {
+                //FIXME: leaves tiny time frames open (shortly after 1->2 devices connected or 2->1 disconnected) which could lead to concurrency issue for the purpose described above, however in practice it "should" be acceptable
+                return midiInputs.unsafeBack().size() > 1;
+            }
     };
 
 } // namespace LinuxSampler

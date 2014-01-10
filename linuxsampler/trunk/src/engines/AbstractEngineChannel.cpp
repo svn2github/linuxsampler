@@ -4,7 +4,8 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2013 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2013-2014 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -41,7 +42,6 @@ namespace LinuxSampler {
         pChannelRight = NULL;
         AudioDeviceChannelLeft  = -1;
         AudioDeviceChannelRight = -1;
-        pMidiInputPort = NULL;
         midiChannel = midi_chan_all;
         ResetControllers();
         PortamentoMode = false;
@@ -228,26 +228,107 @@ namespace LinuxSampler {
         }
     }
 
+    void AbstractEngineChannel::Connect(MidiInputPort* pMidiPort) {
+        if (!pMidiPort) return;
+
+        Sync< ArrayList<MidiInputPort*> > connections = midiInputs.back();
+
+        // check if connection already exists
+        for (int i = 0; i < connections->size(); ++i)
+            if ((*connections)[i] == pMidiPort)
+                return; // to avoid endless recursion
+
+        connections->add(pMidiPort);
+
+        // inform MIDI port about this new connection
+        pMidiPort->Connect(this, MidiChannel());
+    }
+
+    void AbstractEngineChannel::Disconnect(MidiInputPort* pMidiPort) {
+        if (!pMidiPort) return;
+
+        Sync< ArrayList<MidiInputPort*> > connections = midiInputs.back();
+
+        for (int i = 0; i < connections->size(); ++i) {
+            if ((*connections)[i] == pMidiPort) {
+                connections->remove(i);
+                // inform MIDI port about this disconnection
+                pMidiPort->Disconnect(this);
+                return;
+            }
+        }
+    }
+
+    void AbstractEngineChannel::DisconnectAllMidiInputPorts() {
+        Sync< ArrayList<MidiInputPort*> > connections = midiInputs.back();
+        ArrayList<MidiInputPort*> clonedList = *connections;
+        connections->clear();
+        for (int i = 0; i < clonedList.size(); ++i) clonedList[i]->Disconnect(this);
+    }
+
+    uint AbstractEngineChannel::GetMidiInputPortCount() {
+        Sync< ArrayList<MidiInputPort*> > connections = midiInputs.back();
+        return connections->size();
+    }
+
+    MidiInputPort* AbstractEngineChannel::GetMidiInputPort(uint index) {
+        Sync< ArrayList<MidiInputPort*> > connections = midiInputs.back();
+        return (index < connections->size()) ? (*connections)[index] : NULL;
+    }
+
+    // deprecated (just for API backward compatibility) - may be removed in future
     void AbstractEngineChannel::Connect(MidiInputPort* pMidiPort, midi_chan_t MidiChannel) {
-        if (!pMidiPort || pMidiPort == this->pMidiInputPort) return;
-        DisconnectMidiInputPort();
-        this->pMidiInputPort = pMidiPort;
-        this->midiChannel    = MidiChannel;
+        if (!pMidiPort) return;
+
+        Sync< ArrayList<MidiInputPort*> > connections = midiInputs.back();
+
+        // check against endless recursion
+        if (connections->size() == 1 && (*connections)[0] == pMidiPort && this->midiChannel == MidiChannel)
+            return;
+        
+        if (!isValidMidiChan(MidiChannel))
+            throw MidiInputException("Invalid MIDI channel (" + ToString(int(MidiChannel)) + ")");
+
+        this->midiChannel = MidiChannel;
+
+        // disconnect all currently connected MIDI ports
+        ArrayList<MidiInputPort*> clonedList = *connections;
+        connections->clear();
+        for (int i = 0; i < clonedList.size(); ++i)
+            clonedList[i]->Disconnect(this);
+
+        // connect the new port
+        connections->add(pMidiPort);
         pMidiPort->Connect(this, MidiChannel);
     }
 
+    // deprecated (just for API backward compatibility) - may be removed in future
     void AbstractEngineChannel::DisconnectMidiInputPort() {
-        MidiInputPort* pOldPort = this->pMidiInputPort;
-        this->pMidiInputPort = NULL;
-        if (pOldPort) pOldPort->Disconnect(this);
+        DisconnectAllMidiInputPorts();
     }
 
+    // deprecated (just for API backward compatibility) - may be removed in future
     MidiInputPort* AbstractEngineChannel::GetMidiInputPort() {
-        return pMidiInputPort;
+        return GetMidiInputPort(0);
     }
 
     midi_chan_t AbstractEngineChannel::MidiChannel() {
         return midiChannel;
+    }
+
+    void AbstractEngineChannel::SetMidiChannel(midi_chan_t MidiChannel) {
+        if (this->midiChannel == MidiChannel) return;
+        if (!isValidMidiChan(MidiChannel))
+            throw MidiInputException("Invalid MIDI channel (" + ToString(int(MidiChannel)) + ")");
+
+        this->midiChannel = MidiChannel;
+        
+        Sync< ArrayList<MidiInputPort*> > connections = midiInputs.back();
+        ArrayList<MidiInputPort*> clonedList = *connections;
+
+        DisconnectAllMidiInputPorts();
+
+        for (int i = 0; i < clonedList.size(); ++i) Connect(clonedList[i]);
     }
 
     void AbstractEngineChannel::Connect(VirtualMidiDevice* pDevice) {
@@ -285,6 +366,10 @@ namespace LinuxSampler {
      */
     void AbstractEngineChannel::SendNoteOn(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel) {
         if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
             Event event               = pEngine->pEventGenerator->CreateEvent();
             event.Type                = Event::type_note_on;
             event.Param.Note.Key      = Key;
@@ -322,6 +407,10 @@ namespace LinuxSampler {
             dmsg(1,("EngineChannel::SendNoteOn(): negative FragmentPos! Seems MIDI driver is buggy!"));
         }
         else if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
             Event event               = pEngine->pEventGenerator->CreateEvent(FragmentPos);
             event.Type                = Event::type_note_on;
             event.Param.Note.Key      = Key;
@@ -354,6 +443,10 @@ namespace LinuxSampler {
      */
     void AbstractEngineChannel::SendNoteOff(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel) {
         if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
             Event event               = pEngine->pEventGenerator->CreateEvent();
             event.Type                = Event::type_note_off;
             event.Param.Note.Key      = Key;
@@ -391,6 +484,10 @@ namespace LinuxSampler {
             dmsg(1,("EngineChannel::SendNoteOff(): negative FragmentPos! Seems MIDI driver is buggy!"));
         }
         else if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
             Event event               = pEngine->pEventGenerator->CreateEvent(FragmentPos);
             event.Type                = Event::type_note_off;
             event.Param.Note.Key      = Key;
@@ -422,6 +519,10 @@ namespace LinuxSampler {
      */
     void AbstractEngineChannel::SendPitchbend(int Pitch, uint8_t MidiChannel) {
         if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
             Event event             = pEngine->pEventGenerator->CreateEvent();
             event.Type              = Event::type_pitchbend;
             event.Param.Pitch.Pitch = Pitch;
@@ -447,6 +548,10 @@ namespace LinuxSampler {
             dmsg(1,("AbstractEngineChannel::SendPitchBend(): negative FragmentPos! Seems MIDI driver is buggy!"));
         }
         else if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
             Event event             = pEngine->pEventGenerator->CreateEvent(FragmentPos);
             event.Type              = Event::type_pitchbend;
             event.Param.Pitch.Pitch = Pitch;
@@ -468,6 +573,10 @@ namespace LinuxSampler {
      */
     void AbstractEngineChannel::SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel) {
         if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
             Event event               = pEngine->pEventGenerator->CreateEvent();
             event.Type                = Event::type_control_change;
             event.Param.CC.Controller = Controller;
@@ -495,6 +604,10 @@ namespace LinuxSampler {
             dmsg(1,("AbstractEngineChannel::SendControlChange(): negative FragmentPos! Seems MIDI driver is buggy!"));
         }
         else if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
             Event event               = pEngine->pEventGenerator->CreateEvent(FragmentPos);
             event.Type                = Event::type_control_change;
             event.Param.CC.Controller = Controller;

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -44,7 +44,6 @@ namespace LinuxSampler {
         pSampler           = pS;
         pEngineChannel     = NULL;
         pAudioOutputDevice = NULL;
-        pMidiInputDevice   = NULL;
         iMidiPort          = 0;
         midiChannel        = midi_chan_all;
         iIndex             = -1;
@@ -55,9 +54,9 @@ namespace LinuxSampler {
             Engine* engine = pEngineChannel->GetEngine();
             if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(engine);
 
-            MidiInputPort* pMidiInputPort = (pEngineChannel) ? pEngineChannel->GetMidiInputPort() : __GetMidiInputDevicePort(GetMidiInputChannel());
-            if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
             if (pEngineChannel) {
+                pEngineChannel->DisconnectAllMidiInputPorts();
+                
                 if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
                 EngineChannelFactory::Destroy(pEngineChannel);
 
@@ -84,35 +83,45 @@ namespace LinuxSampler {
         EngineChannel* pNewEngineChannel = EngineChannelFactory::Create(EngineType);
         if (!pNewEngineChannel) throw Exception("Unknown engine type");
 
-        pNewEngineChannel->SetSamplerChannel(this);
-
-        // dereference midi input port.
-        MidiInputPort* pMidiInputPort = __GetMidiInputDevicePort(GetMidiInputPort());
+        // remember current MIDI input connections
+        std::vector<MidiInputPort*> vMidiInputs = GetMidiInputPorts();
         midi_chan_t midiChannel = GetMidiInputChannel();
-        // disconnect old engine channel
-        if (pEngineChannel) {
-            Engine* engine = pEngineChannel->GetEngine();
-            if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(engine);
+        
+        try {
+            pNewEngineChannel->SetSamplerChannel(this);
 
-            if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
-            if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
-            EngineChannelFactory::Destroy(pEngineChannel);
+            // disconnect old engine channel
+            if (pEngineChannel) {
+                Engine* engine = pEngineChannel->GetEngine();
+                if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(engine);
 
-            // reconnect engine if it still exists
-            const std::set<Engine*>& engines = EngineFactory::EngineInstances();
-            if (engines.find(engine) != engines.end()) pAudioOutputDevice->Connect(engine);
+                pEngineChannel->DisconnectAllMidiInputPorts();
+                if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
+                EngineChannelFactory::Destroy(pEngineChannel);
+                pEngineChannel = NULL;
+
+                // reconnect engine if it still exists
+                const std::set<Engine*>& engines = EngineFactory::EngineInstances();
+                if (engines.find(engine) != engines.end()) pAudioOutputDevice->Connect(engine);
+            }
+
+            // connect new engine channel
+            if (pAudioOutputDevice) {
+                pNewEngineChannel->Connect(pAudioOutputDevice);
+                pAudioOutputDevice->Connect(pNewEngineChannel->GetEngine());
+            }
+            pNewEngineChannel->SetMidiChannel(midiChannel);
+            for (int i = 0; i < vMidiInputs.size(); ++i) {
+                pNewEngineChannel->Connect(vMidiInputs[i]);
+            }
+        } catch (...) {
+            EngineChannelFactory::Destroy(pNewEngineChannel);
+            throw; // re-throw the same exception
         }
-
-        // connect new engine channel
-        if (pAudioOutputDevice) {
-            pNewEngineChannel->Connect(pAudioOutputDevice);
-            pAudioOutputDevice->Connect(pNewEngineChannel->GetEngine());
-        }
-        if (pMidiInputPort) pMidiInputPort->Connect(pNewEngineChannel, midiChannel);
         pEngineChannel = pNewEngineChannel;
 
-        // from now on get MIDI device and port from EngineChannel object
-        this->pMidiInputDevice = NULL;
+        // from now on get MIDI input ports from EngineChannel object
+        this->vMidiInputs.clear();
         this->iMidiPort        = 0;
 
         pEngineChannel->StatusChanged(true);
@@ -146,6 +155,78 @@ namespace LinuxSampler {
         }
     }
 
+    void SamplerChannel::Connect(MidiInputPort* pPort) throw (Exception) {
+        if (!pPort) throw Exception("No MIDI input port provided");
+
+        // prevent attempts to connect non-autonomous MIDI ports
+        // (host plugins like VST, AU, LV2, DSSI)
+        if (!pPort->GetDevice()->isAutonomousDevice())
+            throw Exception("The MIDI input port '" + pPort->GetDevice()->Driver() + "' cannot be managed manually!");
+
+        std::vector<MidiInputPort*> vMidiPorts = GetMidiInputPorts();
+
+        // ignore if port is already connected
+        for (int i = 0; i < vMidiPorts.size(); ++i) {
+            if (vMidiPorts[i] == pPort) return;
+        }
+
+        // connect this new port
+        if (pEngineChannel) {
+            pEngineChannel->Connect(pPort);
+        } else { // no engine channel yet, remember it for future connection ...
+            const midi_conn_t c = {
+                pPort->GetDevice()->MidiInputDeviceID(),
+                pPort->GetPortNumber()
+            };
+            this->vMidiInputs.push_back(c);
+        }
+    }
+
+    void SamplerChannel::Disconnect(MidiInputPort* pPort) throw (Exception) {
+        if (!pPort) return;
+
+        // prevent attempts to alter channels with non-autonomous devices
+        // (host plugins like VST, AU, LV2, DSSI)
+        if (!pPort->GetDevice()->isAutonomousDevice())
+            throw Exception("The MIDI input port '" + pPort->GetDevice()->Driver() + "' cannot be managed manually!");
+
+        // disconnect this port
+        if (pEngineChannel) {
+            pEngineChannel->Disconnect(pPort);
+        } else { // no engine channel yet, forget it regarding future connection ...
+            const midi_conn_t c = {
+                pPort->GetDevice()->MidiInputDeviceID(),
+                pPort->GetPortNumber()
+            };
+            for (int i = this->vMidiInputs.size() - 1; i >= 0; --i) {
+                if (this->vMidiInputs[i] == c)
+                    this->vMidiInputs.erase(this->vMidiInputs.begin() + i);
+                // no break or return here, for safety reasons
+                // (just in case there were really duplicates for some reason)
+            }
+        }
+    }
+
+    void SamplerChannel::DisconnectAllMidiInputPorts() throw (Exception) {
+        std::vector<MidiInputPort*> vMidiPorts = GetMidiInputPorts();
+        for (int i = 0; i < vMidiPorts.size(); ++i) Disconnect(vMidiPorts[i]);
+    }
+
+    std::vector<MidiInputPort*> SamplerChannel::GetMidiInputPorts() {
+        std::vector<MidiInputPort*> v;
+        if (pEngineChannel) {
+            MidiInputPort* pPort = pEngineChannel->GetMidiInputPort(0);
+            for (int i = 0; pPort; pPort = pEngineChannel->GetMidiInputPort(++i))
+                v.push_back(pPort);
+        } else {
+            for (int i = 0; i < this->vMidiInputs.size(); ++i) {
+                MidiInputPort* pPort = _getPortForID(this->vMidiInputs[i]);
+                if (pPort) v.push_back(pPort);
+            }
+        }
+        return v;
+    }
+
     void SamplerChannel::SetMidiInputDevice(MidiInputDevice* pDevice) throw (Exception) {
        SetMidiInput(pDevice, 0, GetMidiInputChannel());
     }
@@ -155,38 +236,46 @@ namespace LinuxSampler {
     }
 
     void SamplerChannel::SetMidiInputChannel(midi_chan_t MidiChannel) {
-       SetMidiInput(GetMidiInputDevice(), GetMidiInputPort(), MidiChannel);
+        if (!isValidMidiChan(MidiChannel)) throw Exception("Invalid MIDI channel (" + ToString(int(MidiChannel)) + ")");
+        if (pEngineChannel) pEngineChannel->SetMidiChannel(MidiChannel);
+        this->midiChannel = MidiChannel;
     }
 
     void SamplerChannel::SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, midi_chan_t MidiChannel) throw (Exception) {
         if (!pDevice) throw Exception("No MIDI input device assigned.");
 
-        // get old and new midi input port
-        MidiInputPort* pOldMidiInputPort = __GetMidiInputDevicePort(GetMidiInputPort());
-        MidiInputPort* pNewMidiInputPort = pDevice->GetPort(iMidiPort);
+        // apply new MIDI channel
+        SetMidiInputChannel(MidiChannel);
 
-        // disconnect old device port
-        if (pOldMidiInputPort && pEngineChannel) {
-            MidiInputDevice* pOldDevice = pOldMidiInputPort->GetDevice();
-            if (pOldMidiInputPort != pNewMidiInputPort &&
-                pOldDevice && !pOldDevice->isAutonomousDevice()
-            ) throw Exception("The MIDI input port '" + pOldDevice->Driver() + "' cannot be altered on this sampler channel!");
+        MidiInputPort* pNewPort = pDevice->GetPort(iMidiPort);
+        if (!pNewPort) throw Exception("There is no MIDI input port with index " + ToString(iMidiPort) + ".");
 
-            pOldMidiInputPort->Disconnect(pEngineChannel);
+        std::vector<MidiInputPort*> vMidiPorts = GetMidiInputPorts();
+
+        // prevent attempts to remove non-autonomous MIDI ports
+        // (host plugins like VST, AU, LV2, DSSI)
+        for (int i = 0; i < vMidiPorts.size(); ++i) {
+            if (vMidiPorts[i] == pNewPort) continue;
+            if (!vMidiPorts[i]->GetDevice()->isAutonomousDevice())
+                throw Exception("The MIDI input port '" + vMidiPorts[i]->GetDevice()->Driver() + "' cannot be altered on this sampler channel!");
         }
 
-        // remember new device, port and channel if not engine channel yet created
-        if (!pEngineChannel) {
-            this->pMidiInputDevice = pDevice;
-            this->iMidiPort        = iMidiPort;
-            this->midiChannel      = MidiChannel;
+        if (pEngineChannel) {
+            // remove all current connections
+            pEngineChannel->DisconnectAllMidiInputPorts();
+            // create the new connection (alone)
+            pEngineChannel->Connect(pNewPort);
+        } else { // if there is no engine channel yet, then store connection for future ...
+            // delete all previously scheduled connections
+            this->vMidiInputs.clear();
+            // store the new connection (alone)
+            const midi_conn_t c = {
+                pNewPort->GetDevice()->MidiInputDeviceID(),
+                pNewPort->GetPortNumber()
+            };
+            this->vMidiInputs.push_back(c);
+            this->iMidiPort = iMidiPort;
         }
-
-        // connect new device port
-        if (pNewMidiInputPort && pEngineChannel) pNewMidiInputPort->Connect(pEngineChannel, MidiChannel);
-        // Ooops.
-        if (pNewMidiInputPort == NULL)
-            throw Exception("There is no MIDI input port with index " + ToString(iMidiPort) + ".");
     }
 
     EngineChannel* SamplerChannel::GetEngineChannel() {
@@ -199,7 +288,7 @@ namespace LinuxSampler {
     }
 
     int SamplerChannel::GetMidiInputPort() {
-        MidiInputPort* pMidiInputPort = (pEngineChannel) ? pEngineChannel->GetMidiInputPort() : NULL;
+        MidiInputPort* pMidiInputPort = (pEngineChannel) ? pEngineChannel->GetMidiInputPort(0) : NULL;
         if (pMidiInputPort) this->iMidiPort = (int) pMidiInputPort->GetPortNumber();
         return iMidiPort;
     }
@@ -210,8 +299,16 @@ namespace LinuxSampler {
 
     MidiInputDevice* SamplerChannel::GetMidiInputDevice() {
         if (pEngineChannel)
-            pMidiInputDevice = (pEngineChannel->GetMidiInputPort()) ? pEngineChannel->GetMidiInputPort()->GetDevice() : NULL;
-        return pMidiInputDevice;
+            return (pEngineChannel->GetMidiInputPort(0)) ? pEngineChannel->GetMidiInputPort(0)->GetDevice() : NULL;
+
+        if (vMidiInputs.empty())
+            return NULL;
+
+        std::map<uint, MidiInputDevice*> mAllDevices = MidiInputDeviceFactory::Devices();
+        if (!mAllDevices.count(vMidiInputs[0].deviceID))
+            return NULL;
+
+        return mAllDevices[vMidiInputs[0].deviceID];
     }
 
     uint SamplerChannel::Index() {
@@ -255,15 +352,18 @@ namespace LinuxSampler {
             llEngineChangeListeners.GetListener(i)->EngineChanged(Index());
         }
     }
+    
+    /**
+     * Takes a numeric MIDI device ID, port ID pair as argument and returns
+     * the actual MIDI input port associated with that unique ID pair.
+     */
+    MidiInputPort* SamplerChannel::_getPortForID(const midi_conn_t& c) {
+        std::map<uint, MidiInputDevice*> mAllDevices = MidiInputDeviceFactory::Devices();
+        if (!mAllDevices.count(c.deviceID))
+            return NULL;
 
-    MidiInputPort* SamplerChannel::__GetMidiInputDevicePort(int iMidiPort) {
-        MidiInputPort* pMidiInputPort = NULL;
-        MidiInputDevice* pMidiInputDevice = GetMidiInputDevice();
-        if (pMidiInputDevice)
-            pMidiInputPort = pMidiInputDevice->GetPort(iMidiPort);
-        return pMidiInputPort;
+        return mAllDevices[c.deviceID]->GetPort(c.portNr);
     }
-
 
 
     // ******************************************************************
@@ -622,8 +722,13 @@ namespace LinuxSampler {
         if (pDevice) {
             // check if there are still sampler engines connected to this device
             for (SamplerChannelMap::iterator iterChan = mSamplerChannels.begin();
-                 iterChan != mSamplerChannels.end(); iterChan++
-            ) if (iterChan->second->GetMidiInputDevice() == pDevice) throw Exception("Sampler channel " + ToString(iterChan->first) + " is still connected to the midi input device.");
+                 iterChan != mSamplerChannels.end(); ++iterChan)
+            {
+                std::vector<MidiInputPort*> vPorts = iterChan->second->GetMidiInputPorts();
+                for (int k = 0; k < vPorts.size(); ++k)
+                    if (vPorts[k]->GetDevice() == pDevice)
+                        throw Exception("Sampler channel " + ToString(iterChan->first) + " is still connected to the midi input device.");
+            }
 
             fireMidiDeviceToBeDestroyed(pDevice);
             MidiInputDeviceFactory::Destroy(pDevice);

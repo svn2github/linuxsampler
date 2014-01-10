@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -1774,6 +1774,106 @@ String LSCPServer::SetAudioOutputType(String AudioOutputDriver, uint uiSamplerCh
         catch (Exception e) {
             result.Error(e);
         }
+    }
+    return result.Produce();
+}
+
+String LSCPServer::AddChannelMidiInput(uint uiSamplerChannel, uint MIDIDeviceId, uint MIDIPort) {
+    dmsg(2,("LSCPServer: AddChannelMidiInput(uiSamplerChannel=%d, MIDIDeviceId=%d, MIDIPort=%d)\n",uiSamplerChannel,MIDIDeviceId,MIDIPort));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        std::map<uint, MidiInputDevice*> devices = pSampler->GetMidiInputDevices();
+        if (!devices.count(MIDIDeviceId)) throw Exception("There is no MIDI input device with index " + ToString(MIDIDeviceId));
+        MidiInputDevice* pDevice = devices[MIDIDeviceId];
+
+        MidiInputPort* pPort = pDevice->GetPort(MIDIPort);
+        if (!pPort) throw Exception("There is no MIDI input port with index " + ToString(MIDIPort) + " on MIDI input device with index " + ToString(MIDIDeviceId));
+
+        pSamplerChannel->Connect(pPort);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::RemoveChannelMidiInput(uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: RemoveChannelMidiInput(uiSamplerChannel=%d)\n",uiSamplerChannel));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+        pSamplerChannel->DisconnectAllMidiInputPorts();
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::RemoveChannelMidiInput(uint uiSamplerChannel, uint MIDIDeviceId) {
+    dmsg(2,("LSCPServer: RemoveChannelMidiInput(uiSamplerChannel=%d, MIDIDeviceId=%d)\n",uiSamplerChannel,MIDIDeviceId));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        std::map<uint, MidiInputDevice*> devices = pSampler->GetMidiInputDevices();
+        if (!devices.count(MIDIDeviceId)) throw Exception("There is no MIDI input device with index " + ToString(MIDIDeviceId));
+        MidiInputDevice* pDevice = devices[MIDIDeviceId];
+        
+        std::vector<MidiInputPort*> vPorts = pSamplerChannel->GetMidiInputPorts();
+        for (int i = 0; i < vPorts.size(); ++i)
+            if (vPorts[i]->GetDevice() == pDevice)
+                pSamplerChannel->Disconnect(vPorts[i]);
+
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::RemoveChannelMidiInput(uint uiSamplerChannel, uint MIDIDeviceId, uint MIDIPort) {
+    dmsg(2,("LSCPServer: RemoveChannelMidiInput(uiSamplerChannel=%d, MIDIDeviceId=%d, MIDIPort=%d)\n",uiSamplerChannel,MIDIDeviceId,MIDIPort));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        std::map<uint, MidiInputDevice*> devices = pSampler->GetMidiInputDevices();
+        if (!devices.count(MIDIDeviceId)) throw Exception("There is no MIDI input device with index " + ToString(MIDIDeviceId));
+        MidiInputDevice* pDevice = devices[MIDIDeviceId];
+
+        MidiInputPort* pPort = pDevice->GetPort(MIDIPort);
+        if (!pPort) throw Exception("There is no MIDI input port with index " + ToString(MIDIPort) + " on MIDI input device with index " + ToString(MIDIDeviceId));
+
+        pSamplerChannel->Disconnect(pPort);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ListChannelMidiInputs(uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: ListChannelMidiInputs(uiSamplerChannel=%d)\n",uiSamplerChannel));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+        std::vector<MidiInputPort*> vPorts = pSamplerChannel->GetMidiInputPorts();
+
+        String s;
+        for (int i = 0; i < vPorts.size(); ++i) {
+            const int iDeviceID = vPorts[i]->GetDevice()->MidiInputDeviceID();
+            const int iPortNr   = vPorts[i]->GetPortNumber();
+            if (s.size()) s += ",";
+            s += "{" + ToString(iDeviceID) + ","
+                     + ToString(iPortNr) + "}";
+        }
+        result.Add(s);
+    } catch (Exception e) {
+        result.Error(e);
     }
     return result.Produce();
 }

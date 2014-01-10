@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -38,7 +38,7 @@ namespace LinuxSampler {
     // just symbol prototyping
     class Sampler;
 
-    /** @brief LinuxSampler sampler channel
+    /** @brief LinuxSampler sampler channel (a.k.a. "sampler part")
      *
      * Encapsulates a channel of a specific sampler engine type, one
      * connection to a MIDI input device and one connection to an audio
@@ -72,7 +72,63 @@ namespace LinuxSampler {
             void SetAudioOutputDevice(AudioOutputDevice* pDevice) throw (Exception);
 
             /**
+             * Connect the given MIDIInputPort to this SamplerChannel. The
+             * connection is added to the sampler channel. So other MIDI input
+             * connections remain unaffected by this call. If the given port is
+             * already connected to this sampler channel, then this call is
+             * ignored.
+             *
+             * @param pPort - MIDI input port to connect to
+             * @throws Exception in case the MIDI device is tried to be changed
+             *                   while the sampler channel is being used by a
+             *                   host plugin (e.g. VST, AU, DSSI, LV2) which
+             *                   don't allow to change the MIDI port or even
+             *                   device
+             */
+            void Connect(MidiInputPort* pPort) throw (Exception);
+
+            /**
+             * Disconnects the given MidiInputPort from this SamplerChannel.
+             * All other MIDI input ports connected to this sampler channel
+             * remain unaffected. If the given port is not currently connected
+             * to this sampler channel, then this call is ignored.
+             *
+             * @param pPort - MIDI input port to disconnect
+             * @throws Exception in case the MIDI device is tried to be changed
+             *                   while the sampler channel is being used by a
+             *                   host plugin (e.g. VST, AU, DSSI, LV2) which
+             *                   don't allow to change the MIDI port or even
+             *                   device
+             */
+            void Disconnect(MidiInputPort* pPort) throw (Exception);
+
+            /**
+             * Disconnects all MIDI input ports currently connected with this
+             * SamplerChannel.
+             *
+             * @throws Exception in case the MIDI device is tried to be changed
+             *                   while the sampler channel is being used by a
+             *                   host plugin (e.g. VST, AU, DSSI, LV2) which
+             *                   don't allow to change the MIDI port or even
+             *                   device
+             */
+            void DisconnectAllMidiInputPorts() throw (Exception);
+
+            /**
+             * Returns all MIDI input ports currently connected to this sampler
+             * channel.
+             */
+            std::vector<MidiInputPort*> GetMidiInputPorts();
+
+            /**
              * Connect this sampler channel to a MIDI input device.
+             *
+             * This call will also disconnect <b>all</b> existing MIDI input
+             * connections from this sampler channel before establishing the
+             * new connection! Disconnection of all previous connections is
+             * done to preserve full behavior backward compatibility to times
+             * when this API only allowed one MIDI input port per sampler
+             * channel.
              *
              * @param pDevice - MIDI input device to connect to
              * @throws Exception in case the MIDI device is tried to be changed
@@ -80,32 +136,60 @@ namespace LinuxSampler {
              *                   host plugin (e.g. VST, AU, DSSI, LV2) which
              *                   don't allow to change the MIDI port or even
              *                   device
+             * @deprecated This method is only provided for backward
+             *             compatibility. It is a relict from days where there
+             *             was only 1 MIDI input allowed per SamplerChannel.
              */
-            void SetMidiInputDevice(MidiInputDevice *pDevice) throw (Exception);
+            void SetMidiInputDevice(MidiInputDevice *pDevice) throw (Exception) DEPRECATED_API;
 
             /**
-             * Connect this sampler channel to a MIDI input port.
+             * Change the MIDI input port connected to this sampler channel.
+             *
+             * Calling this method will switch the connection of the first
+             * (and only the first) MIDIInputPort currently being connected to
+             * this sampler channel, to another port of the same
+             * MidiInputDevice. Or in other words: the first MIDIInputPort
+             * currently connected to this sampler channel will be disconnected,
+             * and the requested other port of its MIDIInputDevice will be
+             * connected to this sampler channel instead.
+             *
+             * This behavior is implemented to preserve full behavior backward
+             * compatibility to times when this API only allowed one MIDI input
+             * port per SamplerChannel.
              *
              * @param MidiPort - MIDI port to connect to
              * @throws Exception in case the MIDI port is tried to be changed
              *                   while the sampler channel is being used by a
              *                   host plugin (e.g. VST, AU, DSSI, LV2) which
              *                   don't allow to change the MIDI port
+             * @deprecated This method is only provided for backward
+             *             compatibility. It is a relict from days where there
+             *             was only 1 MIDI input allowed per SamplerChannel.
              */
-            void SetMidiInputPort(int MidiPort) throw (Exception);
+            void SetMidiInputPort(int MidiPort) throw (Exception) DEPRECATED_API;
 
             /**
              * Define on which MIDI channel(s) this sampler channel should
-             * listen to. By default, that is after creation of a new
-             * sampler channel, the sampler channel will listen to all MIDI
-             * channels.
+             * listen to (on all MIDI ports and all virtual MIDI devices
+             * connected to this sampler channel). By default, that is after
+             * creation of a new sampler channel, the sampler channel will
+             * listen to all MIDI channels (a.k.a. "MIDI Omni mode").
              *
              * @param MidiChannel - MIDI channel to listen
+             * @throws Exception if provided MidiChannel is not a valid constant
+             *                   as defined by midi_chan_t
              */
             void SetMidiInputChannel(midi_chan_t MidiChannel);
 
             /**
              * Connect this sampler channel to a MIDI input triplet.
+             *
+             * This call will also disconnect <b>all</b> existing MIDI input
+             * connections from this sampler channel before establishing the
+             * new connection! Disconnection of all previous connections is
+             * done to preserve full behavior backward compatibility to times
+             * when this API only allowed one MIDI input port per sampler
+             * channel.
              *
              * @param pDevice - MIDI input device to connect to
              * @param iMidiPort - MIDI port to connect to
@@ -116,8 +200,11 @@ namespace LinuxSampler {
              *                   while the sampler channel is being used by a
              *                   host plugin (e.g. VST, AU, DSSI, LV2) which
              *                   don't allow to change the MIDI port
+             * @deprecated This method is only provided for backward
+             *             compatibility. It is a relict from days where there
+             *             was only 1 MIDI input allowed per sampler channel.
              */
-            void SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, midi_chan_t MidiChannel = midi_chan_all) throw (Exception);
+            void SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, midi_chan_t MidiChannel = midi_chan_all) throw (Exception) DEPRECATED_API;
 
             /**
              * Returns the EngineChannel object that was deployed on this
@@ -140,9 +227,14 @@ namespace LinuxSampler {
              * Returns the MIDI input port number to which this sampler
              * channel is currently connected to.
              *
+             * This method should not be used in new applications anymore!
+             *
              * @returns  MIDI input port number or -1 if not connected
+             * @deprecated This method is only provided for backward
+             *             compatibility. It is a relict from days where there
+             *             was only 1 MIDI input allowed per sampler channel.
              */
-            int GetMidiInputPort();
+            int GetMidiInputPort() DEPRECATED_API;
 
             /**
              * Returns the audio output device to which this sampler channel
@@ -159,8 +251,11 @@ namespace LinuxSampler {
              *
              * @returns  pointer to MIDI input device or NULL if not
              *           connected
+             * @deprecated This method is only provided for backward
+             *             compatibility. It is a relict from days where there
+             *             was only 1 MIDI input allowed per sampler channel.
              */
-            MidiInputDevice* GetMidiInputDevice();
+            MidiInputDevice* GetMidiInputDevice() DEPRECATED_API;
 
             /**
              * Returns the index number of this sampler channel within the
@@ -207,20 +302,34 @@ namespace LinuxSampler {
             SamplerChannel(Sampler* pS);
             virtual ~SamplerChannel();
 
-            /** Getting MIDI input device port given its index number. */
-            MidiInputPort* __GetMidiInputDevicePort(int iMidiPort);
-
             Sampler*           pSampler;
             EngineChannel*     pEngineChannel;
-            AudioOutputDevice* pAudioOutputDevice;
-            MidiInputDevice*   pMidiInputDevice;
+            AudioOutputDevice* pAudioOutputDevice; //FIXME: should be stored as numeric device ID instead of raw pointer to avoid pointer invalidation problems
             int                iIndex;
 
             friend class Sampler;
+
         private:
-            int                iMidiPort;   ///< Don't access directly, read GetMidiInputPort() instead !
+            struct midi_conn_t {
+                uint deviceID;
+                uint portNr;
+
+                bool operator== (const midi_conn_t& other) const {
+                    return other.deviceID == this->deviceID &&
+                           other.portNr   == this->portNr;
+                }
+
+                bool operator< (const midi_conn_t& other) const {
+                    return memcmp(this, &other, sizeof(midi_conn_t)) < 0;
+                }
+            };
+
+            int                iMidiPort;   ///< Don't access directly, read GetMidiInputPort() instead ! @deprecated This variable is just for backward compatibility from days when there was only one MIDI connection per SamplerChannel.
             midi_chan_t        midiChannel; ///< Don't access directly, read GetMidiInputChannel() instead !
+            std::vector<midi_conn_t> vMidiInputs; ///< MIDI input ports connected to this sampler channel. Only used as "cache" (device id, port nr pair) in initial situation where no engine type is selected yet, and accordingly no EngineChannel instance exists which actually manages the device connections. This way users can "connect" MIDI input ports to this SamplerChannel before an engine type is chosen.
             ListenerList<EngineChangeListener*> llEngineChangeListeners;
+
+            static MidiInputPort* _getPortForID(const midi_conn_t& c);
     };
 
     /** @brief LinuxSampler main class
@@ -228,22 +337,21 @@ namespace LinuxSampler {
      * This is the toplevel class for a LinuxSampler instance.
      *
      * LinuxSampler can have arbitrary numbers of sampler channels. Each
-     * sampler channel can individually be deployed with it's own sampler
-     * engine, connected to an arbitrary MIDI input device and connected to
-     * an arbitrary audio output device. Here an example setup:
+     * sampler channel (a.k.a. "sampler part") can individually be deployed
+     * with it's own sampler engine, connected to an arbitrary MIDI input
+     * device and connected to an arbitrary audio output device. Here an
+     * example setup:
      * @code
      * S.Channel    MIDI in    S.Engine         Audio out
      * -------------------------------------------------------------------
      *   0          Alsa   ->  gig::Engine  ->  Jack
-     *   1          VSTi   ->  Akai::Engine ->  VSTi
-     *   2          Jack   ->  DLS::Engine  ->  Jack
-     *   3          Jack   ->  SF::Engine   ->  Alsa
+     *   1          VSTi   ->  gig::Engine  ->  VSTi
+     *   2          Jack   ->  sfz::Engine  ->  Jack
+     *   3          Jack   ->  SF2::Engine  ->  Alsa
+     *   4          LV2    ->  sfz::Engine  ->  LV2
      *
      * ... (and so on) ...
      * @endcode
-     *
-     * Note that not all audio and MIDI backends and sampler engines listed
-     * in the example above might already been implemented!
      *
      * As you can see in the example setup, LinuxSampler is capable to use
      * several, different audio output and MIDI input systems

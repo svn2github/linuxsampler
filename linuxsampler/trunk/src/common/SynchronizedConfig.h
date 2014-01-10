@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006-2012 Andreas Persson                               *
+ *   Copyright (C) 2006-2014 Andreas Persson                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -123,6 +123,21 @@ namespace LinuxSampler {
             T& GetConfigForUpdate();
 
             /**
+             * Get the data on update side <b>unprotected</b>, that is
+             * <b>without</b> locking or any means of synchronizations.
+             *
+             * Due to its nature this must only be called for read access and
+             * you have to make sure by yourself, that the data/member you
+             * access is really safe for concurrent read access (i.e. SGI's
+             * implementation of std::vector::size() would be safe).
+             *
+             * Only use this when you are absolutely sure what you are doing!
+             */
+            const T& GetUnsafeUpdateConfig() const {
+                return config[updateIndex];
+            }
+
+            /**
              * Atomically switch the newly updated configuration
              * object with the one used by the real time thread, then
              * wait for the real time thread to finish working with
@@ -226,8 +241,15 @@ namespace LinuxSampler {
          *
          * @return the shared protected data
          */
-        virtual T& beginSync() = 0; //TODO: or call it lock() instead ?
-            
+        virtual void beginSync() = 0; //TODO: or call it lock() instead ?
+
+        /**
+         * Retrieve reference to critical, shared data. This method shall be
+         * called between a beginSync() and endSync() call pair, to be sure
+         * that shared data can be accessed safely.
+         */
+        virtual T& syncedData() = 0;
+
         /**
          * Signal that the synchronized code block has been left. Depending
          * on the actual implementation, this call may block the calling
@@ -251,32 +273,31 @@ namespace LinuxSampler {
     public:
         Sync(Synchronizer<T>* syncer) {
             this->syncer = syncer;
-            this->data = &syncer->beginSync();
+            syncer->beginSync();
         }
         
         virtual ~Sync() {
             syncer->endSync();
         }
         
-        Sync& operator =(const Sync& arg) {
+        /*Sync& operator =(const Sync& arg) {
             *this->data = *arg.data;
             return *this;
-        }
+        }*/
 
-        Sync& operator =(const T& arg) {
+        /*Sync& operator =(const T& arg) {
             *this->data = arg;
             return *this;
-        }
+        }*/
         
-        const T& operator *() const { return *data; }
-        T&       operator *()       { return *data; }
+        const T& operator *() const { return syncer->syncedData(); }
+        T&       operator *()       { return syncer->syncedData(); }
 
-        const T* operator ->() const { return data; }
-        T*       operator ->()       { return data; }
+        const T* operator ->() const { return &syncer->syncedData(); }
+        T*       operator ->()       { return &syncer->syncedData(); }
 
     private:
         Synchronizer<T>* syncer; ///< Points to the object that shall be responsible to protect the shared data.
-        T* data; ///< Points to the shared data that should be protected.
     };
 
     /**
@@ -289,20 +310,25 @@ namespace LinuxSampler {
     template<class T>
     class BackBuffer : public SynchronizedConfig<T>, public Synchronizer<T> {
     public:
-        virtual T& beginSync() OVERRIDE {
+        virtual void beginSync() OVERRIDE {
             mutex.Lock();
-            data = &SynchronizedConfig<T>::GetConfigForUpdate();
-            return *data;
+        }
+        
+        virtual T& syncedData() OVERRIDE {
+            return SynchronizedConfig<T>::GetConfigForUpdate();
         }
 
         virtual void endSync() OVERRIDE {
-            const T clone = *data;
+            const T clone = SynchronizedConfig<T>::GetConfigForUpdate();
             SynchronizedConfig<T>::SwitchConfig() = clone;
             mutex.Unlock();
         }
 
+        const T& unsafeData() const {
+            return SynchronizedConfig<T>::GetUnsafeUpdateConfig();
+        }
+
     private:
-        T* data;
         Mutex mutex;
     };
 
@@ -321,8 +347,11 @@ namespace LinuxSampler {
     class FrontBuffer : public SynchronizedConfig<T>::Reader, public Synchronizer<T> {
     public:
         FrontBuffer(BackBuffer<T>& backBuffer) : SynchronizedConfig<T>::Reader::Reader(&backBuffer) {}
-        virtual T& beginSync() OVERRIDE { return SynchronizedConfig<T>::Reader::Lock(); }
+        virtual void beginSync() OVERRIDE { data = &SynchronizedConfig<T>::Reader::Lock(); }
+        virtual T& syncedData() OVERRIDE { return *data; }
         virtual void endSync() OVERRIDE { SynchronizedConfig<T>::Reader::Unlock(); }
+    private:
+        T* data;
     };
 
     /**
@@ -363,6 +392,19 @@ namespace LinuxSampler {
          */
         inline
         Sync<T> back() { return Sync<T>(&m_back); }
+
+        /**
+         * Get the backbuffer data <b>unprotected</b>, that is <b>without</b>
+         * locking or any means of synchronizations.
+         *
+         * Due to its nature this must only be called for read access and
+         * you have to make sure by yourself, that the data/member you
+         * access is really safe for concurrent read access (i.e. SGI's
+         * implementation of std::vector::size() would be safe).
+         *
+         * Only use this when you are absolutely sure what you are doing!
+         */
+        const T& unsafeBack() const { return m_back.unsafeData(); }
 
     private:
         BackBuffer<T> m_back; ///< Back buffer (non real-time thread(s) side).

@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -114,14 +114,14 @@ namespace LinuxSampler {
             /**
              * Number of elements currently on the list.
              */
-            inline int size() {
+            inline int size() const {
                 return iSize;
             }
 
             /**
              * Returns true if the list is empty.
              */
-            inline bool empty() {
+            inline bool empty() const {
                 return (bool) !iSize;
             }
 
@@ -129,6 +129,13 @@ namespace LinuxSampler {
              * Access element at \a iPosition.
              */
             inline T& operator[](int iPosition) {
+                return pData[iPosition];
+            }
+
+            /**
+             * Access element at \a iPosition.
+             */
+            inline const T& operator[](int iPosition) const {
                 return pData[iPosition];
             }
 

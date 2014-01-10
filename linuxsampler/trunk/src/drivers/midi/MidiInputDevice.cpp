@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,6 +25,7 @@
 
 #include "../../common/global_private.h"
 #include "../../Sampler.h"
+#include "MidiInputDeviceFactory.h"
 
 namespace LinuxSampler {
 
@@ -118,15 +119,16 @@ namespace LinuxSampler {
         std::map<uint, SamplerChannel*>::iterator iter = channels.begin();
         for (; iter != channels.end(); iter++) {
             SamplerChannel* chn = iter->second;
-            if (chn->GetMidiInputDevice() == NULL || chn->GetMidiInputDevice() != pDevice) {
-                continue;
-            }
-
-            int port = chn->GetMidiInputPort();
-            if (port >= i) {
-                String err = "Sampler channel " + ToString(iter->first);
-                err += " is still connected to MIDI port " + ToString(port);
-                throw Exception(err);
+            std::vector<MidiInputPort*> vPorts = chn->GetMidiInputPorts();
+            for (int k = 0; k < vPorts.size(); ++k) {
+                if (vPorts[k]->GetDevice() != pDevice)
+                    continue;
+                int port = vPorts[k]->GetPortNumber();
+                if (port >= i) {
+                    String err = "Sampler channel " + ToString(iter->first);
+                    err += " is still connected to MIDI port " + ToString(port);
+                    throw Exception(err);
+                }
             }
         }
 
@@ -167,6 +169,16 @@ namespace LinuxSampler {
 
     std::map<String,DeviceCreationParameter*> MidiInputDevice::DeviceParameters() {
         return Parameters;
+    }
+
+    int MidiInputDevice::MidiInputDeviceID() {
+        std::map<uint, MidiInputDevice*> mDevices = MidiInputDeviceFactory::Devices();
+        for (std::map<uint, MidiInputDevice*>::const_iterator it = mDevices.begin(); it != mDevices.end(); ++it) {
+            if (it->second == this) {
+                return it->first;
+            }
+        }
+        return -1;
     }
 
     void MidiInputDevice::AddMidiPortCountListener(MidiPortCountListener* l) {

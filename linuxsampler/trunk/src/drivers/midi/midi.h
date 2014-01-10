@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005, 2006, 2014 Christian Schoenebeck                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -63,6 +63,10 @@ namespace LinuxSampler {
             return memcmp(this, &other, sizeof(midi_prog_index_t)) < 0;
         }
     };
+
+    inline bool isValidMidiChan(const midi_chan_t& ch) {
+        return ch >= 0 && ch <= midi_chan_all;
+    }
 
 } // namsepace LinuxSampler
 

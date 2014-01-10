@@ -4,7 +4,8 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2013-2014 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -347,11 +348,13 @@ namespace LinuxSampler {
      */
     uint8_t AbstractEngine::GSCheckSum(const RingBuffer<uint8_t,false>::NonVolatileReader AddrReader, uint DataSize) {
         RingBuffer<uint8_t,false>::NonVolatileReader reader = AddrReader;
-        uint bytes = 3 /*addr*/ + DataSize;
-        uint8_t addr_and_data[bytes];
-        reader.read(&addr_and_data[0], bytes);
+        uint bytes = 3 /*addr*/ + DataSize;        
         uint8_t sum = 0;
-        for (uint i = 0; i < bytes; i++) sum += addr_and_data[i];
+        uint8_t c;
+        for (uint i = 0; i < bytes; ++i) {
+            if (!reader.pop(&c)) break;
+            sum += c;
+        }
         return 128 - sum % 128;
     }
 
@@ -513,9 +516,13 @@ namespace LinuxSampler {
                         for (int i = 0; i < engineChannels.size(); ++i) {
                             AbstractEngineChannel* pEngineChannel
                                 = static_cast<AbstractEngineChannel*>(engineChannels[i]);
-                            if (pEngineChannel->GetMidiInputPort() == itSysexEvent->pMidiInputPort) {
-                                KillAllVoices(pEngineChannel, itSysexEvent);
-                                pEngineChannel->ResetControllers();
+                            Sync< ArrayList<MidiInputPort*> > midiInputs = pEngineChannel->midiInputs.front();
+                            for (int k = 0; k < midiInputs->size(); ++k) {
+                                if ((*midiInputs)[k] == itSysexEvent->pMidiInputPort) { 
+                                    KillAllVoices(pEngineChannel, itSysexEvent);
+                                    pEngineChannel->ResetControllers();
+                                    break;
+                                }
                             }
                         }
                     }
@@ -548,19 +555,23 @@ namespace LinuxSampler {
                             for (int i = 0; i < engineChannels.size(); ++i) {
                                 AbstractEngineChannel* pEngineChannel
                                     = static_cast<AbstractEngineChannel*>(engineChannels[i]);
-                                if (
-                                    (pEngineChannel->midiChannel == part ||
-                                     pEngineChannel->midiChannel == midi_chan_all) &&
-                                     pEngineChannel->GetMidiInputPort() == itSysexEvent->pMidiInputPort
-                                ) {
-                                    try {
-                                        pEngineChannel->SetMidiInstrumentMap(map);
-                                    } catch (Exception e) {
-                                        dmsg(2,("\t\t\tCould not apply MIDI instrument map %d to part %d: %s\n", map, part, e.Message().c_str()));
-                                        goto free_sysex_data;
-                                    } catch (...) {
-                                        dmsg(2,("\t\t\tCould not apply MIDI instrument map %d to part %d (unknown exception)\n", map, part));
-                                        goto free_sysex_data;
+                                if (pEngineChannel->midiChannel == part ||
+                                    pEngineChannel->midiChannel == midi_chan_all)
+                                {   
+                                    Sync< ArrayList<MidiInputPort*> > midiInputs = pEngineChannel->midiInputs.front();
+                                    for (int k = 0; k < midiInputs->size(); ++k) {
+                                        if ((*midiInputs)[k] == itSysexEvent->pMidiInputPort) {
+                                            try {
+                                                pEngineChannel->SetMidiInstrumentMap(map);
+                                            } catch (Exception e) {
+                                                dmsg(2,("\t\t\tCould not apply MIDI instrument map %d to part %d: %s\n", map, part, e.Message().c_str()));
+                                                goto free_sysex_data;
+                                            } catch (...) {
+                                                dmsg(2,("\t\t\tCould not apply MIDI instrument map %d to part %d (unknown exception)\n", map, part));
+                                                goto free_sysex_data;
+                                            }
+                                            break;
+                                        }
                                     }
                                 }
                             }

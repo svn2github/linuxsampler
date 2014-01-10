@@ -83,6 +83,13 @@ Version CVS HEAD (?)
       and broken for ppc64. (Seq_cst loads and stores are actually not
       used in LS, so the bug wasn't noticable.)
     - lsatomic.h: added ARMv7 support
+    - Added support for multiple MIDI input ports per sampler channel (and
+      added various new C++ methods for this new feature / design change, old
+      C++ API methods for managing SamplerChannel's MIDI inputs are now marked
+      as deprecated but are still there and should provide full behavior
+      backward compatibility).
+    - AbstractEngine::GSChecksum(): don't allocate memory on the stack (was
+      unsafe and caused compilation error with clang 2.x).
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension

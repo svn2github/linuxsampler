@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -132,6 +132,11 @@ class LSCPServer : public Thread {
         String SetAudioOutputChannel(uint ChannelAudioOutputChannel, uint AudioOutputDeviceInputChannel, uint uiSamplerChannel);
         String SetAudioOutputDevice(uint AudioDeviceId, uint SamplerChannel);
         String SetAudioOutputType(String AudioOutputDriver, uint uiSamplerChannel);
+        String AddChannelMidiInput(uint uiSamplerChannel, uint MIDIDeviceId, uint MIDIPort = 0);
+        String RemoveChannelMidiInput(uint uiSamplerChannel);
+        String RemoveChannelMidiInput(uint uiSamplerChannel, uint MIDIDeviceId);
+        String RemoveChannelMidiInput(uint uiSamplerChannel, uint MIDIDeviceId, uint MIDIPort);
+        String ListChannelMidiInputs(uint uiSamplerChannel);
         String SetMIDIInputPort(uint MIDIPort, uint uiSamplerChannel);
         String SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel);
         String SetMIDIInputDevice(uint MIDIDeviceId, uint uiSamplerChannel);

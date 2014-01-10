@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -163,6 +163,17 @@ namespace LinuxSampler {
              * Return all device parameter settings.
              */
             std::map<String,DeviceCreationParameter*> DeviceParameters();
+
+            /**
+             * Returns the unique ID number associated with this MIDIInputDevice
+             * instance. This ID number is unique among all MIDIInputDevice
+             * instances of the same Sampler instance and during the whole
+             * lifetime of the Sampler instance.
+             *
+             * @returns a value equal or larger than 0, a negative value only
+             *          on severe internal problems
+             */
+            int MidiInputDeviceID();
 
             /**
              * Registers the specified listener to be notified

@@ -16,25 +16,27 @@
      to an annoying "missing Normative/Informative References" error message -->
 <?rfc strict="no" ?>
 
-<rfc category="std" ipr="full3978" docName="LSCP 1.5">
+<rfc category="std" ipr="full3978" docName="LSCP 1.6">
     <front>
         <title>LinuxSampler Control Protocol</title>
         <author initials='C.S.' surname="Schoenebeck" fullname='C.
 Schoenebeck'>
             <organization>
-                Interessengemeinschaft Software Engineering e. V.
+                LinuxSampler.org
             </organization>
             <address>
                 <postal>
-                    <street>Max-Planck-Str. 39</street>
+                    <street>Crudebyte Engineering</street>
+                    <street>Hofgartenstr. 3</street>
 <!--                    <code>74081</code> -->
-                    <city>74081 Heilbronn</city>
+                    <city>74189 Weinsberg</city>
                     <country>Germany</country>
                 </postal>
-                <email>schoenebeck at software minus engineering dot org</email>
+                <phone>+49 7134 911614</phone>
+                <email>cuse@users.sf.net</email>
             </address>
         </author>
-        <date month="June" year="2011"/>
+        <date month="January" year="2014"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -2422,7 +2424,7 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>C: "LIST AVAILABLE_ENGINES"</t>
-                            <t>S: "'GigEngine','AkaiEngine','DLSEngine','JoesCustomEngine'"</t>
+                            <t>S: "'gig','sfz','sf2'"</t>
                         </list>
                     </t>
                 </section>
@@ -2468,12 +2470,20 @@ Schoenebeck'>
 
                     <t>The mentioned fields above don't have to be in particular order.</t>
 
-                    <t>Example:</t>
+                    <t>Examples:</t>
                     <t>
                         <list>
-                            <t>C: "GET ENGINE INFO JoesCustomEngine"</t>
-                            <t>S: "DESCRIPTION: this is Joe's custom sampler engine"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"VERSION: testing-1.0"</t>
+                            <t>C: "GET ENGINE INFO gig"</t>
+                            <t>S: "DESCRIPTION: GigaSampler Format Engine"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"VERSION: 1.110"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
+                            <t>C: "GET ENGINE INFO sf2"</t>
+                            <t>S: "DESCRIPTION: SoundFont Format Engine"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"VERSION: 1.4"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
+                            <t>C: "GET ENGINE INFO sfz"</t>
+                            <t>S: "DESCRIPTION: SFZ Format Engine"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"VERSION: 1.11"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
@@ -2567,17 +2577,31 @@ Schoenebeck'>
                                     </t>
                                     <t>MIDI_INPUT_DEVICE -
                                         <list>
+                                            <t>DEPRECATED: THIS FIELD WILL DISAPPEAR!</t>
                                             <t>numerical ID of the MIDI input device which is
                                             currently connected to this sampler channel to deliver
                                             MIDI input commands, "-1" if there's no device
                                             connected to this sampler channel</t>
+                                            <t>Should not be used anymore as of LSCP v1.6 and younger.
+                                            This field is currently only preserved for backward compatibility.
+                                            </t>
+                                            <t>This field a relict from times where only one MIDI input per
+                                            sampler channel was allowed. Use <xref target="LIST CHANNEL MIDI_INPUTS">"GET CHANNEL MIDI_INPUTS"</xref>
+                                            instead.</t>
                                         </list>
                                     </t>
                                     <t>MIDI_INPUT_PORT -
                                         <list>
+                                            <t>DEPRECATED: THIS FIELD WILL DISAPPEAR!</t>
                                             <t>port number of the MIDI input device (in case a
                                             MIDI device was already assigned to the sampler
                                             channel)</t>
+                                            <t>Should not be used anymore as of LSCP v1.6 and younger.
+                                            This field is currently only preserved for backward compatibility.
+                                            </t>
+                                            <t>This field a relict from times where only one MIDI input per
+                                            sampler channel was allowed. Use <xref target="LIST CHANNEL MIDI_INPUTS">"GET CHANNEL MIDI_INPUTS"</xref>
+                                            instead.</t>
                                         </list>
                                     </t>
                                     <t>MIDI_INPUT_CHANNEL -
@@ -2626,7 +2650,7 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>C: "GET CHANNEL INFO 34"</t>
-                            <t>S: "ENGINE_NAME: GigEngine"</t>
+                            <t>S: "ENGINE_NAME: gig"</t>
                             <t>&nbsp;&nbsp;&nbsp;"VOLUME: 1.0"</t>
                             <t>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_DEVICE: 0"</t>
                             <t>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_CHANNELS: 2"</t>
@@ -2803,7 +2827,7 @@ Schoenebeck'>
                 </section>
 
                 <section title="Setting audio output type" anchor="SET CHANNEL AUDIO_OUTPUT_TYPE">
-                    <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR SOON!</t>
+                    <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR!</t>
 
                     <t>The front-end can alter the audio output type on a specific sampler
                     channel by sending the following command:</t>
@@ -2841,6 +2865,13 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t></t>
+                        </list>
+                    </t>
+                    <t>Deprecated:</t>
+                    <t>
+                        <list>
+                            <t>Should not be used anymore. This command is currently only preserved for backward compatibility.</t>
+                            <t>This command is a relict from times where there was no sophisticated driver management yet. Use <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref> and <xref target="SET CHANNEL AUDIO_OUTPUT_DEVICE">"SET CHANNEL AUDIO_OUTPUT_DEVICE"</xref> instead.</t>
                         </list>
                     </t>
                 </section>
@@ -2890,7 +2921,188 @@ Schoenebeck'>
                     </t>
                 </section>
 
+                <section title="Add MIDI input to sampler channel" anchor="ADD CHANNEL MIDI_INPUT">
+                    <t>The front-end can add a MIDI input on a specific sampler
+                    channel by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>ADD CHANNEL MIDI_INPUT &lt;sampler-channel&gt; &lt;midi-device-id&gt; [&lt;midi-input-port&gt;]</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command
+                    and &lt;midi-device-id&gt; is the numerical ID of the MIDI input
+                    device as returned by the
+                    <xref target="CREATE MIDI_INPUT_DEVICE">"CREATE MIDI_INPUT_DEVICE"</xref>
+                    or <xref target="LIST MIDI_INPUT_DEVICES">"LIST MIDI_INPUT_DEVICES"</xref> command,
+                    and &lt;midi-input-port&gt; is an optional MIDI input port number of that
+                    MIDI input device. If &lt;midi-input-port&gt; is omitted,
+                    then the MIDI input device's first port (port number 0) is
+                    used.
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>if MIDI input port was connected, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "ADD CHANNEL MIDI_INPUT 0 0"</t>
+                            <t>S: "OK"</t>
+                            <t>C: "ADD CHANNEL MIDI_INPUT 1 0"</t>
+                            <t>S: "OK"</t>
+                            <t>C: "ADD CHANNEL MIDI_INPUT 1 1 1"</t>
+                            <t>S: "OK"</t>
+                            <t>C: "ADD CHANNEL MIDI_INPUT 1 2 0"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                    <t>Since:</t>
+                    <t>
+                        <list>
+                            <t>Introduced with LSCP v1.6</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Remove MIDI input(s) from sampler channel" anchor="REMOVE CHANNEL MIDI_INPUT">
+                    <t>The front-end can remove one ore more MIDI input(s) on a
+                    specific sampler channel by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>REMOVE CHANNEL MIDI_INPUT &lt;sampler-channel&gt; [&lt;midi-device-id&gt; [&lt;midi-input-port&gt;]]</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command
+                    and &lt;midi-device-id&gt; and &lt;midi-input-port&gt; are
+                    optional numerical IDs defining the MIDI input device and
+                    one of its MIDI ports as returned by the
+                    <xref target="LIST CHANNEL MIDI_INPUTS">"LIST CHANNEL MIDI_INPUTS"</xref> command.
+                    </t>
+
+                    <t>
+                    If &lt;midi-input-port&gt; is omitted, then all MIDI input
+                    ports of &lt;midi-device-id&gt; are disconnected from this
+                    sampler channel.
+                    </t>
+
+                    <t>
+                    If both, &lt;midi-device-id&gt; and &lt;midi-input-port&gt;
+                    are omitted, then all MIDI input ports currently connected
+                    to this sampler channel are disconnected from this sampler
+                    channel.
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>if MIDI input porst were disconnected, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "REMOVE CHANNEL MIDI_INPUT 0"</t>
+                            <t>S: "OK"</t>
+                            <t>C: "REMOVE CHANNEL MIDI_INPUT 1"</t>
+                            <t>S: "OK"</t>
+                            <t>C: "REMOVE CHANNEL MIDI_INPUT 1 2 0"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                    <t>Since:</t>
+                    <t>
+                        <list>
+                            <t>Introduced with LSCP v1.6</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Getting all MIDI inputs of a sampler channel" anchor="LIST CHANNEL MIDI_INPUTS">
+                    <t>The front-end can query a list of all currently connected
+                    MIDI inputs of a certain sampler channel by sending the following
+                    command:</t>
+                    <t>
+                        <list>
+                            <t>LIST CHANNEL MIDI_INPUTS &lt;sampler-channel&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command.
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by sending a comma separated
+                            list of MIDI input device ID - MIDI input port number pairs, where
+                            each pair is encapsulated into curly braces. The
+                            list is returned in one single line. The MIDI input
+                            device ID corresponds to the number returned by
+                            <xref target="LIST MIDI_INPUT_DEVICES">"LIST MIDI_INPUT_DEVICES"</xref>
+                            and the port number is the index of the respective MIDI
+                            port of that MIDI input device.</t>
+                        </list>
+                    </t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "LIST CHANNEL MIDI_INPUTS 0"</t>
+                            <t>S: "{0,0},{1,3},{2,0}"</t>
+                        </list>
+                    </t>
+
+                    <t>Since:</t>
+                    <t>
+                        <list>
+                            <t>Introduced with LSCP v1.6</t>
+                        </list>
+                    </t>
+                </section>
+
                 <section title="Setting MIDI input device" anchor="SET CHANNEL MIDI_INPUT_DEVICE">
+                    <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR!</t>
+
                     <t>The front-end can set the MIDI input device on a specific sampler
                     channel by sending the following command:</t>
                     <t>
@@ -2904,6 +3116,16 @@ Schoenebeck'>
                     and &lt;midi-device-id&gt; is  the numerical ID of the MIDI input device as returned by the
                     <xref target="CREATE MIDI_INPUT_DEVICE">"CREATE MIDI_INPUT_DEVICE"</xref>
                     or <xref target="LIST MIDI_INPUT_DEVICES">"LIST MIDI_INPUT_DEVICES"</xref> command.</t>
+
+                    <t>
+                    If more than 1 MIDI inputs are currently connected to this
+                    sampler channel: Sending this command will disconnect ALL
+                    currently connected MIDI input ports connected to this
+                    sampler channel before establishing the new MIDI input
+                    connection. So this command does NOT add the connection,
+                    it replaces all existing ones instead. This behavior is due
+                    to preserving full behavior backward compatibility.
+                    </t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -2933,10 +3155,17 @@ Schoenebeck'>
                             <t></t>
                         </list>
                     </t>
+                    <t>Deprecated:</t>
+                    <t>
+                        <list>
+                            <t>Should not be used anymore as of LSCP v1.6 and younger. This command is currently only preserved for backward compatibility.</t>
+                            <t>This command is a relict from times where only one MIDI input per sampler channel was allowed. Use <xref target="ADD CHANNEL MIDI_INPUT">"ADD CHANNEL MIDI_INPUT"</xref> and <xref target="REMOVE CHANNEL MIDI_INPUT">"REMOVE CHANNEL MIDI_INPUT"</xref> instead.</t>
+                        </list>
+                    </t>
                 </section>
 
                 <section title="Setting MIDI input type" anchor="SET CHANNEL MIDI_INPUT_TYPE">
-                    <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR SOON!</t>
+                    <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR!</t>
 
                     <t>The front-end can alter the MIDI input type on a specific sampler
                     channel by sending the following command:</t>
@@ -2947,6 +3176,16 @@ Schoenebeck'>
                     </t>
                     <t>Where &lt;midi-input-type&gt; is currently only "ALSA" and
                     &lt;sampler-channel&gt; is the respective sampler channel number.</t>
+
+                    <t>
+                    If more than 1 MIDI inputs are currently connected to this
+                    sampler channel: Sending this command will disconnect ALL
+                    currently connected MIDI input ports connected to this
+                    sampler channel before establishing the new MIDI input
+                    connection. So this command does NOT add the connection,
+                    it replaces all existing ones instead. This behavior is due
+                    to preserving full behavior backward compatibility.
+                    </t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -2976,9 +3215,18 @@ Schoenebeck'>
                             <t></t>
                         </list>
                     </t>
+                    <t>Deprecated:</t>
+                    <t>
+                        <list>
+                            <t>Should not be used anymore. This command is currently only preserved for backward compatibility.</t>
+                            <t>This command is a relict from times where only 1 MIDI input per sampler channels was allowed and where no sophisticated driver management existed yet. Use <xref target="ADD CHANNEL MIDI_INPUT">"ADD CHANNEL MIDI_INPUT"</xref> and <xref target="REMOVE CHANNEL MIDI_INPUT">"REMOVE CHANNEL MIDI_INPUT"</xref> instead.</t>
+                        </list>
+                    </t>
                 </section>
 
                 <section title="Setting MIDI input port" anchor="SET CHANNEL MIDI_INPUT_PORT">
+                    <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR!</t>
+                    
                     <t>The front-end can alter the MIDI input port on a specific sampler
                     channel by sending the following command:</t>
                     <t>
@@ -2989,6 +3237,19 @@ Schoenebeck'>
                     <t>Where &lt;midi-input-port&gt; is a MIDI input port number of the
                     MIDI input device connected to the sampler channel given by
                     &lt;sampler-channel&gt;.</t>
+                    
+                    <t>
+                    If more than 1 MIDI inputs are currently connected to this
+                    sampler channel: Sending this command will switch the
+                    connection of the first (and only the first) MIDI input port
+                    currently being connected to this sampler channel, to
+                    another port of the same MIDI input device. Or in other
+                    words: the first MIDI input port currently connected to
+                    this sampler channel will be disconnected, and the requested
+                    other port of its MIDI input device will be connected to
+                    this sampler channel instead. This behavior is due
+                    to preserving full behavior backward compatibility.
+                    </t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -3018,6 +3279,13 @@ Schoenebeck'>
                             <t></t>
                         </list>
                     </t>
+                    <t>Deprecated:</t>
+                    <t>
+                        <list>
+                            <t>Should not be used anymore. This command is currently only preserved for backward compatibility.</t>
+                            <t>This command is a relict from times where only one MIDI input per sampler channel was allowed. Use <xref target="ADD CHANNEL MIDI_INPUT">"ADD CHANNEL MIDI_INPUT"</xref> and <xref target="REMOVE CHANNEL MIDI_INPUT">"REMOVE CHANNEL MIDI_INPUT"</xref> instead.</t>
+                        </list>
+                    </t>
                 </section>
 
                 <section title="Setting MIDI input channel" anchor="SET CHANNEL MIDI_INPUT_CHANNEL">
@@ -3028,8 +3296,9 @@ Schoenebeck'>
                             <t>SET CHANNEL MIDI_INPUT_CHANNEL &lt;sampler-channel&gt; &lt;midi-input-chan&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;midi-input-chan&gt; is the number of the new MIDI input channel where
-                    &lt;sampler-channel&gt; should listen to or "ALL" to listen on all 16 MIDI
+                    <t>Where &lt;midi-input-chan&gt; is the number
+                    of the new MIDI input channel (zero indexed!) where
+                    &lt;sampler-channel&gt; should listen to, or "ALL" to listen on all 16 MIDI
                     channels.</t>
 
                     <t>Possible Answers:</t>
@@ -3057,7 +3326,10 @@ Schoenebeck'>
                     <t>Examples:</t>
                     <t>
                         <list>
-                            <t></t>
+                            <t>C: "SET CHANNEL MIDI_INPUT_CHANNEL 0 0"</t>
+                            <t>S: "OK"</t>
+                            <t>C: "SET CHANNEL MIDI_INPUT_CHANNEL 1 ALL"</t>
+                            <t>S: "OK"</t>
                         </list>
                     </t>
                 </section>
@@ -4217,6 +4489,18 @@ Schoenebeck'>
                     </t>
                     <t>The mentioned fields above don't have to be in particular order.
                     Other fields might be added in future.</t>
+                    
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET SERVER INFO"</t>
+                            <t>S: "DESCRIPTION: LinuxSampler - modular, streaming capable sampler"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"VERSION: 1.0.0.svn23"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"PROTOCOL_VERSION: 1.5"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"INSTRUMENTS_DB_SUPPORT: no"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
+                        </list>
+                    </t>
                 </section>
 
                 <section title="Getting global volume attenuation" anchor="GET VOLUME">
@@ -4869,7 +5153,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting ammount of MIDI instrument map entries" anchor="GET MIDI_INSTRUMENTS">
+                <section title="Getting amount of MIDI instrument map entries" anchor="GET MIDI_INSTRUMENTS">
                     <t>The front-end can query the amount of currently existing
                     entries in a MIDI instrument map by sending the following
                     command:</t>
@@ -7796,6 +8080,10 @@ Schoenebeck'>
 	<list>
 		<t>CHANNEL
 		</t>
+		<t>/ CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index
+		</t>
+		<t>/ CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index SP midi_input_port_index
+		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORY SP db_path
 		</t>
 		<t>/ DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP db_path SP filename
@@ -7971,6 +8259,12 @@ Schoenebeck'>
 <t>remove_instruction =
 	<list>
 		<t>CHANNEL SP sampler_channel
+		</t>
+		<t>/ CHANNEL SP MIDI_INPUT SP sampler_channel
+		</t>
+		<t>/ CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index
+		</t>
+		<t>/ CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index SP midi_input_port_index
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP SP midi_map
 		</t>
@@ -8319,6 +8613,8 @@ Schoenebeck'>
 		<t>/ MIDI_INPUT_DEVICES
 		</t>
 		<t>/ CHANNELS
+		</t>
+		<t>/ CHANNEL SP MIDI_INPUTS SP sampler_channel
 		</t>
 		<t>/ AVAILABLE_ENGINES
 		</t>

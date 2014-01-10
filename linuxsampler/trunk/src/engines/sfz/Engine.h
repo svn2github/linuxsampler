@@ -29,6 +29,7 @@
 #include "../EngineBase.h"
 #include "Voice.h"
 #include "sfz.h"
+#include "EngineChannel.h" // prevents compile errors with clang 2.x
 
 namespace LinuxSampler { namespace sfz {
     const int MaxCCPerVoice = 128; // FIXME: too much?

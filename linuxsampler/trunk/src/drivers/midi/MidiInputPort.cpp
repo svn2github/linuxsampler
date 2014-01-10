@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -532,7 +532,9 @@ namespace LinuxSampler {
         }
 
         // inform engine channel about this connection
-        pEngineChannel->Connect(this, MidiChannel);
+        pEngineChannel->Connect(this);
+        if (pEngineChannel->MidiChannel() != MidiChannel)
+            pEngineChannel->SetMidiChannel(MidiChannel);
 
         // mark engine channel as changed
         pEngineChannel->StatusChanged(true);
@@ -565,7 +567,7 @@ namespace LinuxSampler {
         catch(...) { /* NOOP */ }
 
         // inform engine channel about the disconnection (if there is one)
-        if (bChannelFound) pEngineChannel->DisconnectMidiInputPort();
+        if (bChannelFound) pEngineChannel->Disconnect(this);
 
         // mark engine channel as changed
         pEngineChannel->StatusChanged(true);

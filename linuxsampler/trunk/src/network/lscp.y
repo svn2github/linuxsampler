@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -190,6 +190,8 @@ command               :  ADD SP add_instruction                { $$ = $3;       
                       ;
 
 add_instruction       :  CHANNEL                               { $$ = LSCPSERVER->AddChannel();                  }
+                      |  CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index                           { $$ = LSCPSERVER->AddChannelMidiInput($5,$7);    }
+                      |  CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index SP midi_input_port_index  { $$ = LSCPSERVER->AddChannelMidiInput($5,$7,$9); }
                       |  DB_INSTRUMENT_DIRECTORY SP db_path    { $$ = LSCPSERVER->AddDbInstrumentDirectory($3);  }
                       |  DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP db_path SP filename                        { $$ = LSCPSERVER->AddDbInstruments($5,$7,$9, true);        }
                       |  DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP FILE_AS_DIR SP db_path SP filename         { $$ = LSCPSERVER->AddDbInstruments($5,$9,$11, true, true); }
@@ -278,6 +280,9 @@ unmap_instruction     :  MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog  
                       ;
 
 remove_instruction    :  CHANNEL SP sampler_channel                   { $$ = LSCPSERVER->RemoveChannel($3);                      }
+                      |  CHANNEL SP MIDI_INPUT SP sampler_channel                                           { $$ = LSCPSERVER->RemoveChannelMidiInput($5);       }
+                      |  CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index                           { $$ = LSCPSERVER->RemoveChannelMidiInput($5,$7);    }
+                      |  CHANNEL SP MIDI_INPUT SP sampler_channel SP device_index SP midi_input_port_index  { $$ = LSCPSERVER->RemoveChannelMidiInput($5,$7,$9); }
                       |  MIDI_INSTRUMENT_MAP SP midi_map              { $$ = LSCPSERVER->RemoveMidiInstrumentMap($3);            }
                       |  MIDI_INSTRUMENT_MAP SP ALL                   { $$ = LSCPSERVER->RemoveAllMidiInstrumentMaps();          }
                       |  SEND_EFFECT_CHAIN SP device_index SP effect_chain  { $$ = LSCPSERVER->RemoveSendEffectChain($3,$5);     }
@@ -452,6 +457,7 @@ buffer_size_type      :  BYTES       { $$ = fill_response_bytes;      }
 list_instruction      :  AUDIO_OUTPUT_DEVICES                               { $$ = LSCPSERVER->GetAudioOutputDevices();              }
                       |  MIDI_INPUT_DEVICES                                 { $$ = LSCPSERVER->GetMidiInputDevices();                }
                       |  CHANNELS                                           { $$ = LSCPSERVER->ListChannels();                       }
+                      |  CHANNEL SP MIDI_INPUTS SP sampler_channel          { $$ = LSCPSERVER->ListChannelMidiInputs($5);            }
                       |  AVAILABLE_ENGINES                                  { $$ = LSCPSERVER->ListAvailableEngines();               }
                       |  AVAILABLE_EFFECTS                                  { $$ = LSCPSERVER->ListAvailableEffects();               }
                       |  EFFECT_INSTANCES                                   { $$ = LSCPSERVER->ListEffectInstances();                }
@@ -1079,6 +1085,9 @@ MIDI_INPUT_TYPE       :  'M''I''D''I''_''I''N''P''U''T''_''T''Y''P''E'
                       ;
 
 MIDI_INPUT            :  'M''I''D''I''_''I''N''P''U''T'
+                      ;
+
+MIDI_INPUTS           :  'M''I''D''I''_''I''N''P''U''T''S'
                       ;
 
 MIDI_CONTROLLER       :  'M''I''D''I''_''C''O''N''T''R''O''L''L''E''R'

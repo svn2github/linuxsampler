@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -58,8 +58,7 @@ namespace LinuxSampler {
             // abstract methods
             //     (these have to be implemented by the descendant)
 
-            virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument) = 0;
-            virtual void    LoadInstrument() = 0;
+            // general sampler part management
             virtual void    Reset() = 0;
             virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel) = 0;
             virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity, uint8_t MidiChannel, int32_t FragmentPos) = 0;
@@ -76,28 +75,49 @@ namespace LinuxSampler {
             virtual float   Pan() = 0;
             virtual void    Pan(float f) = 0;
             virtual uint    Channels() = 0;
+
+            // audio driver management
             virtual void    Connect(AudioOutputDevice* pAudioOut) = 0;
             virtual void    DisconnectAudioOutputDevice() = 0;
             virtual AudioOutputDevice* GetAudioOutputDevice() = 0;
             virtual void    SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) = 0;
             virtual int     OutputChannel(uint EngineAudioChannel) = 0;
-            virtual void    Connect(MidiInputPort* pMidiPort, midi_chan_t MidiChannel) = 0;
-            virtual void    DisconnectMidiInputPort() = 0;
-            virtual MidiInputPort* GetMidiInputPort() = 0;
+
+            // MIDI driver management
+            virtual void    Connect(MidiInputPort* pMidiPort) = 0;
+            virtual void    Disconnect(MidiInputPort* pMidiPort) = 0;
+            virtual void    DisconnectAllMidiInputPorts() = 0;
+            virtual uint    GetMidiInputPortCount() = 0;
+            virtual MidiInputPort* GetMidiInputPort(uint index) = 0;
             virtual midi_chan_t MidiChannel() = 0;
+            virtual void    SetMidiChannel(midi_chan_t MidiChannel) = 0;
+            // (deprecated MIDI driver management methods)
+            virtual void    Connect(MidiInputPort* pMidiPort, midi_chan_t MidiChannel) DEPRECATED_API = 0;
+            virtual void    DisconnectMidiInputPort() DEPRECATED_API = 0;
+            virtual MidiInputPort* GetMidiInputPort() DEPRECATED_API = 0;
+
+            // virtual MIDI driver management (i.e. virtual on-screen MIDI keyboards)
+            virtual void    Connect(VirtualMidiDevice* pDevice) = 0;
+            virtual void    Disconnect(VirtualMidiDevice* pDevice) = 0;
+
+            // instrument (sound file) management
+            virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument) = 0;
+            virtual void    LoadInstrument() = 0;
             virtual String  InstrumentFileName() = 0; ///< Returns the file name of the currently loaded instrument. Equivalent as calling InstrumentFileName(0).
             virtual String  InstrumentFileName(int index);
             virtual String  InstrumentName() = 0;
             virtual int     InstrumentIndex() = 0;
             virtual int     InstrumentStatus() = 0;
+
+            // sampler format / sampler engine implementation details
             virtual Engine* GetEngine() = 0;
             virtual String  EngineName() = 0;
+
+            // effect routing
             virtual FxSend* AddFxSend(uint8_t MidiCtrl, String Name = "") throw (Exception) = 0;
             virtual FxSend* GetFxSend(uint FxSendIndex) = 0;
             virtual uint    GetFxSendCount() = 0;
             virtual void    RemoveFxSend(FxSend* pFxSend) = 0;
-            virtual void    Connect(VirtualMidiDevice* pDevice) = 0;
-            virtual void    Disconnect(VirtualMidiDevice* pDevice) = 0;
 
 
             /////////////////////////////////////////////////////////////////

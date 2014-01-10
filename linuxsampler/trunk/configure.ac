@@ -3,7 +3,7 @@
 
 m4_define(linuxsampler_release_major, 1)
 m4_define(linuxsampler_release_minor, 0)
-m4_define(linuxsampler_release_build, 0.svn24)
+m4_define(linuxsampler_release_build, 0.svn25)
 
 
 AC_INIT([linuxsampler],[linuxsampler_release_major.linuxsampler_release_minor.linuxsampler_release_build])
@@ -35,7 +35,7 @@ SHARED_VERSION_INFO="$LIBLINUXSAMPLER_LT_CURRENT:$LIBLINUXSAMPLER_LT_REVISION:$L
 # the LSCP specification version this LinuSampler release complies with:
 
 LSCP_RELEASE_MAJOR=1
-LSCP_RELEASE_MINOR=5
+LSCP_RELEASE_MINOR=6
 
 AC_DEFINE_UNQUOTED(LSCP_RELEASE_MAJOR, ${LSCP_RELEASE_MAJOR}, [LSCP spec major version this release complies with.])
 AC_DEFINE_UNQUOTED(LSCP_RELEASE_MINOR, ${LSCP_RELEASE_MINOR}, [LSCP spec minor version this release complies with.])
