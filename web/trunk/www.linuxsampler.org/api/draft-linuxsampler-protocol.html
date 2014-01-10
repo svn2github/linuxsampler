@@ -144,8 +144,8 @@
 <table summary="layout" width="66%" border="0" cellpadding="0" cellspacing="0"><tr><td><table summary="layout" width="100%" border="0" cellpadding="2" cellspacing="1">
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">LinuxSampler.org</td></tr>
-<tr><td class="header">Intended status: Standards Track</td><td class="header">January 9, 2014</td></tr>
-<tr><td class="header">Expires: July 13, 2014</td><td class="header">&nbsp;</td></tr>
+<tr><td class="header">Intended status: Standards Track</td><td class="header">January 10, 2014</td></tr>
+<tr><td class="header">Expires: July 14, 2014</td><td class="header">&nbsp;</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.6</h1>
 
@@ -176,7 +176,7 @@ and may be updated, replaced, or obsoleted by other documents at any time.
 It is inappropriate to use Internet-Drafts as reference material or to cite
 them other than as &ldquo;work in progress.&rdquo;</p>
 <p>
-This Internet-Draft will expire on July 13, 2014.</p>
+This Internet-Draft will expire on July 14, 2014.</p>
 <a name="toc"></a><br /><hr />
 <h3>Table of Contents</h3>
 <p class="toc">
@@ -4140,10 +4140,20 @@ Getting sampler channel information</h3>
 <p>MIDI_INPUT_DEVICE -
                                         </p>
 <blockquote class="text">
+<p>DEPRECATED: THIS FIELD WILL DISAPPEAR!
+</p>
 <p>numerical ID of the MIDI input device which is
                                             currently connected to this sampler channel to deliver
                                             MIDI input commands, "-1" if there's no device
                                             connected to this sampler channel
+</p>
+<p>Should not be used anymore as of LSCP v1.6 and younger.
+                                            This field is currently only preserved for backward compatibility.
+                                            
+</p>
+<p>This field a relict from times where only one MIDI input per
+                                            sampler channel was allowed. Use <a class='info' href='#LIST CHANNEL MIDI_INPUTS'>"GET CHANNEL MIDI_INPUTS"<span> (</span><span class='info'>Getting all MIDI inputs of a sampler channel</span><span>)</span></a>
+                                            instead.
 </p>
 </blockquote>
                                     
@@ -4151,9 +4161,19 @@ Getting sampler channel information</h3>
 <p>MIDI_INPUT_PORT -
                                         </p>
 <blockquote class="text">
+<p>DEPRECATED: THIS FIELD WILL DISAPPEAR!
+</p>
 <p>port number of the MIDI input device (in case a
                                             MIDI device was already assigned to the sampler
                                             channel)
+</p>
+<p>Should not be used anymore as of LSCP v1.6 and younger.
+                                            This field is currently only preserved for backward compatibility.
+                                            
+</p>
+<p>This field a relict from times where only one MIDI input per
+                                            sampler channel was allowed. Use <a class='info' href='#LIST CHANNEL MIDI_INPUTS'>"GET CHANNEL MIDI_INPUTS"<span> (</span><span class='info'>Getting all MIDI inputs of a sampler channel</span><span>)</span></a>
+                                            instead.
 </p>
 </blockquote>
                                     
