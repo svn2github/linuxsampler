@@ -117,7 +117,7 @@ public:
     LockGuard() : pm(NULL) {
     }
 
-    LockGuard(LockGuard& g) : pm(g.pm) {
+    LockGuard(const LockGuard& g) : pm(g.pm) {
         if (pm) pm->Lock();
     }
 
