@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2007 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -46,6 +46,7 @@ namespace LinuxSampler {
     public:
         class InnerFactory {
         public:
+            virtual ~InnerFactory() {}
             virtual InstrumentEditor* Create() = 0;
             virtual void Destroy(InstrumentEditor* pEditor) = 0;
         };

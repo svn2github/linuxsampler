@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -43,6 +43,7 @@ namespace LinuxSampler {
       public:
           class InnerFactory {
               public:
+                  virtual ~InnerFactory() {}
                   virtual MidiInputDevice* Create(std::map<String,DeviceCreationParameter*>& Parameters, Sampler* pSampler) = 0;
                   virtual String Description() = 0;
                   virtual String Version() = 0;

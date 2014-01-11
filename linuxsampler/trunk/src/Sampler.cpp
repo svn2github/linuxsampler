@@ -175,7 +175,7 @@ namespace LinuxSampler {
             pEngineChannel->Connect(pPort);
         } else { // no engine channel yet, remember it for future connection ...
             const midi_conn_t c = {
-                pPort->GetDevice()->MidiInputDeviceID(),
+                static_cast<uint>(pPort->GetDevice()->MidiInputDeviceID()),
                 pPort->GetPortNumber()
             };
             this->vMidiInputs.push_back(c);
@@ -195,7 +195,7 @@ namespace LinuxSampler {
             pEngineChannel->Disconnect(pPort);
         } else { // no engine channel yet, forget it regarding future connection ...
             const midi_conn_t c = {
-                pPort->GetDevice()->MidiInputDeviceID(),
+                static_cast<uint>(pPort->GetDevice()->MidiInputDeviceID()),
                 pPort->GetPortNumber()
             };
             for (int i = this->vMidiInputs.size() - 1; i >= 0; --i) {
@@ -270,7 +270,7 @@ namespace LinuxSampler {
             this->vMidiInputs.clear();
             // store the new connection (alone)
             const midi_conn_t c = {
-                pNewPort->GetDevice()->MidiInputDeviceID(),
+                static_cast<uint>(pNewPort->GetDevice()->MidiInputDeviceID()),
                 pNewPort->GetPortNumber()
             };
             this->vMidiInputs.push_back(c);
