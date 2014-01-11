@@ -57,6 +57,54 @@ cp -r "$P/Fantasia.app" "$D/LinuxSampler"
 mv qsampler.app "$D/LinuxSampler"
 
 
+# Gigedit
+
+# no powerpc build of gigedit
+createuniv ()
+{
+    $LIPO -create "$P/x86_64/$1" "$P/i686/$1" \
+        -output "$D/${2-$1}"
+}
+
+mkdir -p "$D/LinuxSampler/gigedit.app/Contents/MacOS" \
+    "$D/lib/gdk-pixbuf-2.0/2.10.0/loaders" \
+    "$D/lib/pango/1.8.0/modules" \
+    "$D/lib/gtk-2.0" \
+    "$D/lib/locale/sv/LC_MESSAGES" \
+    "$D/lib/locale/de/LC_MESSAGES" \
+    "$D/lib/linuxsampler/plugins"
+
+createuniv lib/gigedit/libgigedit.2.dylib lib/libgigedit.2.dylib
+createuniv bin/gigedit LinuxSampler/gigedit.app/Contents/MacOS/gigedit
+createuniv lib/linuxsampler/plugins/libgigeditlinuxsamplerplugin.so
+
+for x in libatk-1.0.0.dylib libatkmm-1.6.1.dylib libcairo.2.dylib \
+    libcairomm-1.0.1.dylib libffi.6.dylib libfontconfig.1.dylib \
+    libfreetype.6.dylib libgailutil.18.dylib libgdkmm-2.4.1.dylib \
+    libgdk_pixbuf-2.0.0.dylib libgdk-quartz-2.0.0.dylib libgio-2.0.0.dylib \
+    libgiomm-2.4.1.dylib libglib-2.0.0.dylib libglibmm-2.4.1.dylib \
+    libgmodule-2.0.0.dylib libgobject-2.0.0.dylib libgthread-2.0.0.dylib \
+    libgtkmm-2.4.1.dylib libgtk-quartz-2.0.0.dylib libintl.8.dylib \
+    libjpeg.8.dylib libpango-1.0.0.dylib libpangocairo-1.0.0.dylib \
+    libpangomm-1.4.1.dylib libpixman-1.0.dylib libpng15.15.dylib \
+    libsigc-2.0.0.dylib libtiff.3.dylib \
+    gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-xpm.so \
+    pango/1.8.0/modules/pango-basic-coretext.so
+do
+    $LIPO -create "/home/persson/macgtk64/lib/$x" \
+        "/home/persson/macgtk32/lib/$x" \
+        -output "$D/lib/$x"
+done
+
+cp PkgInfo Info.plist "$D/LinuxSampler/gigedit.app/Contents"
+cp pango.modules "$D/lib/pango/pango.modules"
+cp gdk-pixbuf.loaders "$D/lib/gtk-2.0"
+cp $P/x86_64/share/locale/de/LC_MESSAGES/gigedit.mo "$D/lib/locale/de/LC_MESSAGES"
+cp $P/x86_64/share/locale/sv/LC_MESSAGES/gigedit.mo "$D/lib/locale/sv/LC_MESSAGES"
+cp /home/persson/macgtk64/share/locale/de/LC_MESSAGES/gtk20.mo "$D/lib/locale/de/LC_MESSAGES"
+cp /home/persson/macgtk64/share/locale/sv/LC_MESSAGES/gtk20.mo "$D/lib/locale/sv/LC_MESSAGES"
+
+
 # package
 
 tar cjf "$D.tar.bz2" "$D"
