@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -41,6 +41,7 @@ namespace LinuxSampler {
 			class InnerFactory {
 				public:
 					InnerFactory(DeviceParameterFactory* pParent) { this->pParent = pParent; }
+					virtual ~InnerFactory() {}
 					virtual DeviceCreationParameter* Create(std::map<String,String> Parameters = StringMap()) = 0;
 					virtual DeviceCreationParameter* Create(String val) = 0;
 				protected:
