@@ -4,7 +4,8 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2011 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2013 - 2014 Christian Schoenebeck and Andreas Persson   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -503,11 +504,15 @@ namespace LinuxSampler {
                     }
 
                     // perform MIDI program change commands
-                    while (ProgramChangeQueue.read_space() > 0) {
+                    if (ProgramChangeQueue.read_space() > 0) {
                         program_change_command_t cmd;
-                        ProgramChangeQueue.pop(&cmd);
+                        // skip all old ones, only process the latest one
+                        do {
+                            ProgramChangeQueue.pop(&cmd);
+                        } while (ProgramChangeQueue.read_space() > 0);
                         cmd.pEngineChannel->ExecuteProgramChange(cmd.Program);
                     }
+
                     RefillStreams(); // refill the most empty streams
 
                     // if nothing was done during this iteration (eg no streambuffer

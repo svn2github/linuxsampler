@@ -123,15 +123,7 @@ namespace LinuxSampler {
             T& GetConfigForUpdate();
 
             /**
-             * Get the data on update side <b>unprotected</b>, that is
-             * <b>without</b> locking or any means of synchronizations.
-             *
-             * Due to its nature this must only be called for read access and
-             * you have to make sure by yourself, that the data/member you
-             * access is really safe for concurrent read access (i.e. SGI's
-             * implementation of std::vector::size() would be safe).
-             *
-             * Only use this when you are absolutely sure what you are doing!
+             * Get the data on update side for read-only access.
              */
             const T& GetUnsafeUpdateConfig() const {
                 return config[updateIndex];
