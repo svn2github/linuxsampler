@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2011 Andreas Persson
+ * Copyright (C) 2011-2014 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -31,6 +31,31 @@
 #endif
 
 
+// 2.12
+
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 12) || GTKMM_MAJOR_VERSION < 2
+#include <gtkmm/cellrenderertext.h>
+namespace Gtk {
+    // this is not a real spin cell renderer, instead it's just text,
+    // extended with a property for storing an adjustment
+    class CellRendererSpin : public CellRendererText {
+    private:
+        Adjustment* adj;
+        struct Proxy {
+            Adjustment*& adj;
+            Proxy(Adjustment*& adj) : adj(adj) { }
+            const Adjustment* get_value() const { return adj; }
+            void operator=(Adjustment* x) { adj = x; }
+        };
+    public:
+        Proxy property_adjustment() const {
+            return const_cast<Adjustment*&>(adj);
+        }
+    };
+}
+#endif
+
+
 // 2.18
 
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 18) || GTKMM_MAJOR_VERSION < 2
@@ -44,6 +69,13 @@
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION == 21 && GTKMM_MICRO_VERSION < 9) || \
     (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 21) || GTKMM_MAJOR_VERSION < 2
 #define ALIGN_START ALIGN_LEFT
+#endif
+
+
+// 2.24
+
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 24) || GTKMM_MAJOR_VERSION < 2
+#define get_first_cell() get_first_cell_renderer()
 #endif
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2013 Andreas Persson
+ * Copyright (C) 2006-2014 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -123,6 +123,10 @@ MainWindow::MainWindow() :
                                          Gtk::Stock::PROPERTIES),
                      sigc::mem_fun(
                          *this, &MainWindow::show_instr_props));
+    actionGroup->add(Gtk::Action::create("MidiRules",
+                                         _("_Midi Rules")),
+                     sigc::mem_fun(
+                         *this, &MainWindow::show_midi_rules));
     actionGroup->add(Gtk::Action::create("Quit", Gtk::Stock::QUIT),
                      sigc::mem_fun(
                          *this, &MainWindow::on_action_quit));
@@ -237,6 +241,7 @@ MainWindow::MainWindow() :
         "  </menubar>"
         "  <popup name='PopupMenu'>"
         "    <menuitem action='InstrProperties'/>"
+        "    <menuitem action='MidiRules'/>"
         "    <menuitem action='AddInstrument'/>"
         "    <menuitem action='DupInstrument'/>"
         "    <separator/>"
@@ -326,6 +331,8 @@ MainWindow::MainWindow() :
     instrumentProps.signal_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
     propDialog.signal_changed().connect(
+        sigc::mem_fun(*this, &MainWindow::file_changed));
+    midiRules.signal_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
 
     dimreg_edit.signal_dimreg_to_be_changed().connect(
@@ -936,7 +943,7 @@ void MainWindow::on_action_help_about()
     dialog.set_name("Gigedit");
 #endif
     dialog.set_version(VERSION);
-    dialog.set_copyright("Copyright (C) 2006-2013 Andreas Persson");
+    dialog.set_copyright("Copyright (C) 2006-2014 Andreas Persson");
     const std::string sComment =
         _("Built " __DATE__ "\nUsing ") +
         ::gig::libraryName() + " " + ::gig::libraryVersion() + "\n\n" +
@@ -1215,6 +1222,10 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
     m_TreeView.get_selection()->select(Gtk::TreePath("0"));
 
     instr_props_set_instrument();
+    gig::Instrument* instrument = get_instrument();
+    if (instrument) {
+        midiRules.set_instrument(instrument);
+    }
 }
 
 bool MainWindow::instr_props_set_instrument()
@@ -1259,6 +1270,16 @@ void MainWindow::instr_name_changed_by_instr_props(Gtk::TreeModel::iterator& it)
     Glib::ustring gigname(gig_to_utf8(instrument->pInfo->Name));
     if (gigname != name) {
         row[m_Columns.m_col_name] = gigname;
+    }
+}
+
+void MainWindow::show_midi_rules()
+{
+    if (gig::Instrument* instrument = get_instrument())
+    {
+        midiRules.set_instrument(instrument);
+        midiRules.show();
+        midiRules.deiconify();
     }
 }
 
@@ -1308,6 +1329,10 @@ void MainWindow::on_button_release(GdkEventButton* button)
     if (button->type == GDK_2BUTTON_PRESS) {
         show_instr_props();
     } else if (button->type == GDK_BUTTON_PRESS && button->button == 3) {
+        // gig v2 files have no midi rules
+        static_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/PopupMenu/MidiRules"))->set_sensitive(
+                !(file->pVersion && file->pVersion->major == 2));
         popup_menu->popup(button->button, button->time);
     }
 }
@@ -1480,6 +1505,12 @@ void MainWindow::on_action_remove_instrument() {
             }
 #endif
             instr_props_set_instrument();
+            instr = get_instrument();
+            if (instr) {
+                midiRules.set_instrument(instr);
+            } else {
+                midiRules.hide();
+            }
         } catch (RIFF::Exception e) {
             Gtk::MessageDialog msg(*this, e.Message.c_str(), false, Gtk::MESSAGE_ERROR);
             msg.run();

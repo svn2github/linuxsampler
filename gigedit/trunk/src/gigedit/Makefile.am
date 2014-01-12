@@ -26,6 +26,7 @@ libgigedit_la_SOURCES = \
 	dimregionedit.cpp dimregionedit.h \
 	paramedit.cpp paramedit.h \
 	dimensionmanager.cpp dimensionmanager.h \
+	midirules.cpp midirules.h \
 	$(wraplabel) $(mac_src)
 libgigedit_la_LIBADD = \
 	$(GTKMM_LIBS) $(GIG_LIBS) $(SNDFILE_LIBS)

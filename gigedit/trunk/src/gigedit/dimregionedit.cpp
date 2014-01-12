@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2013 Andreas Persson
+ * Copyright (C) 2006-2014 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -94,12 +94,9 @@ bool CrossfadeCurve::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
             }
         }
         int bitcount = 0;
-        int layer_bit = 0;
         for (int dim = 0 ; dim < region->Dimensions ; dim++) {
             if (region->pDimensionDefinitions[dim].dimension ==
                 gig::dimension_layer) {
-                layer_bit = 1 << bitcount;
-
                 int mask =
                     ~(((1 << region->pDimensionDefinitions[dim].bits) - 1) <<
                       bitcount);

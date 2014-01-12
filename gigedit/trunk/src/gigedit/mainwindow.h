@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006 - 2013 Andreas Persson
+ * Copyright (C) 2006 - 2014 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -42,6 +42,7 @@
 #include "regionchooser.h"
 #include "dimregionchooser.h"
 #include "dimregionedit.h"
+#include "midirules.h"
 #ifndef OLD_THREADS
 #include <glibmm/threads.h>
 #endif
@@ -176,6 +177,7 @@ protected:
 
     PropDialog propDialog;
     InstrumentProps instrumentProps;
+    MidiRules midiRules;
 
     sigc::signal<void, gig::File*> file_structure_to_be_changed_signal;
     sigc::signal<void, gig::File*> file_structure_changed_signal;
@@ -277,6 +279,7 @@ protected:
     void on_action_quit();
     void show_instr_props();
     bool instr_props_set_instrument();
+    void show_midi_rules();
     void on_action_view_status_bar();
     void on_action_help_about();
 

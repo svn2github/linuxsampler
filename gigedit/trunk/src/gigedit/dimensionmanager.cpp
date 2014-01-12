@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2011 Andreas Persson
+ * Copyright (C) 2006-2014 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -288,7 +288,7 @@ void DimensionManager::addDimension() {
             for (int i = 1; i <= 5; i++) {
                 char buf[3];
                 sprintf(buf, "%d", 1 << i);
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 24) || GTKMM_MAJOR_VERSION < 2
                 comboZones.append_text(buf);
 #else
                 comboZones.append(buf);

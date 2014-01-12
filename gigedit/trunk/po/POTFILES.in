@@ -4,3 +4,4 @@ src/gigedit/regionchooser.cpp
 src/gigedit/dimensionmanager.cpp
 src/gigedit/dimregionchooser.cpp
 src/gigedit/paramedit.cpp
+src/gigedit/midirules.cpp

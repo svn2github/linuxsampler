@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2013 Andreas Persson
+ * Copyright (C) 2006-2014 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -100,6 +100,7 @@ NumEntry::NumEntry(const char* labelText, double lower, double upper,
     scale.set_size_request(70);
     spinbutton.set_digits(decimals);
     spinbutton.set_value(0);
+    spinbutton.set_numeric();
     scale.set_draw_value(false);
     box.pack_start(spinbutton, Gtk::PACK_SHRINK);
     box.add(scale);
@@ -200,47 +201,79 @@ void NumEntryPermille::set_value(uint16_t value)
 NoteEntry::NoteEntry(const char* labelText) :
     NumEntryTemp<uint8_t>(labelText)
 {
-    spinbutton.set_width_chars(4);
-    spinbutton.signal_input().connect(
-        sigc::mem_fun(*this, &NoteEntry::on_input));
-    spinbutton.signal_output().connect(
-        sigc::mem_fun(*this, &NoteEntry::on_output));
+    spin_button_show_notes(spinbutton);
 }
 
-const char* notes[] = {
-    _("C"), _("C#"), _("D"), _("D#"), _("E"), _("F"),_("F#"),
-    _("G"), _("G#"), _("A"), _("A#"), _("B")
-};
+namespace {
+    const char* notes[] = {
+        _("C"), _("C#"), _("D"), _("D#"), _("E"), _("F"),_("F#"),
+        _("G"), _("G#"), _("A"), _("A#"), _("B")
+    };
 
+    int note_value(const Glib::ustring& note, double* value)
+    {
+        const char* str = note.c_str();
 
-// Convert the Entry text to a number
-int NoteEntry::on_input(double* new_value)
-{
-    const char* str = spinbutton.get_text().c_str();
-
-    int i;
-    for (i = 11 ; i >= 0 ; i--) {
-        if (strncmp(str, notes[i], strlen(notes[i])) == 0) break;
-    }
-    if (i >= 0) {
-        char* endptr;
-        long x = strtol(str + strlen(notes[i]), &endptr, 10);
-        if (endptr != str + strlen(notes[i])) {
-            *new_value = i + (x + 1) * 12;
-            return true;
+        int i;
+        for (i = 11 ; i >= 0 ; i--) {
+            if (strncasecmp(str, notes[i], strlen(notes[i])) == 0) break;
         }
+        if (i >= 0) {
+            char* endptr;
+            long x = strtol(str + strlen(notes[i]), &endptr, 10);
+            if (endptr != str + strlen(notes[i])) {
+                *value = std::max(0L, std::min(i + (x + 1) * 12, 127L));
+                return true;
+            }
+        } else {
+            char* endptr;
+            long x = strtol(str, &endptr, 10);
+            if (endptr != str) {
+                *value = std::max(0L, std::min(x, 127L));
+                return true;
+            }
+        }
+        return Gtk::INPUT_ERROR;
     }
-    return Gtk::INPUT_ERROR;
 }
 
-// Convert the Adjustment position to text
-bool NoteEntry::on_output()
+int note_value(const Glib::ustring& note)
 {
-    int x = int(spinbutton.get_adjustment()->get_value() + 0.5);
+    double value = 0;
+    note_value(note, &value);
+    return value;
+}
+
+Glib::ustring note_str(int note)
+{
     char buf[10];
-    sprintf(buf, "%s%d", notes[x % 12], x / 12 - 1);
-    spinbutton.set_text(buf);
-    return true;
+    sprintf(buf, "%s%d", notes[note % 12], note / 12 - 1);
+    return buf;
+}
+
+namespace {
+    // Convert the Entry text to a number
+    int on_input(double* new_value, Gtk::SpinButton* spinbutton) {
+        return note_value(spinbutton->get_text(), new_value);
+    }
+
+    // Convert the Adjustment position to text
+    bool on_output(Gtk::SpinButton* spinbutton) {
+        spinbutton->set_text(
+            note_str(spinbutton->get_adjustment()->get_value() + 0.5));
+        return true;
+    }
+}
+
+// Make a SpinButton show notes instead of numbers
+void spin_button_show_notes(Gtk::SpinButton& spin_button)
+{
+    spin_button.set_numeric(false);
+    spin_button.set_width_chars(4);
+    spin_button.signal_input().connect(
+        sigc::bind(sigc::ptr_fun(&on_input), &spin_button));
+    spin_button.signal_output().connect(
+        sigc::bind(sigc::ptr_fun(&on_output), &spin_button));
 }
 
 ChoiceEntryLeverageCtrl::ChoiceEntryLeverageCtrl(const char* labelText) :
@@ -249,7 +282,7 @@ ChoiceEntryLeverageCtrl::ChoiceEntryLeverageCtrl(const char* labelText) :
 {
     for (int i = 0 ; i < 99 ; i++) {
         if (controlChangeTexts[i]) {
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 24) || GTKMM_MAJOR_VERSION < 2
             combobox.append_text(controlChangeTexts[i]);
 #else
             combobox.append(controlChangeTexts[i]);

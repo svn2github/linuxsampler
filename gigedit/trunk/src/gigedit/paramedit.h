@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2013 Andreas Persson
+ * Copyright (C) 2006-2014 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -46,6 +46,10 @@
 Glib::ustring gig_to_utf8(const gig::String& gig_string);
 gig::String gig_from_utf8(const Glib::ustring& utf8_string);
 
+int note_value(const Glib::ustring& note);
+Glib::ustring note_str(int note);
+
+void spin_button_show_notes(Gtk::SpinButton& spin_button);
 
 class LabelWidget {
 public:
@@ -207,7 +211,8 @@ public:
 template<typename T>
 ChoiceEntry<T>::ChoiceEntry(const char* labelText) :
     LabelWidget(labelText, align),
-    align(0, 0, 0, 0)
+    align(0, 0, 0, 0),
+    values(0)
 {
     combobox.signal_changed().connect(sig_changed.make_slot());
     align.add(combobox);
@@ -217,7 +222,7 @@ template<typename T>
 void ChoiceEntry<T>::set_choices(const char** texts, const T* values)
 {
     for (int i = 0 ; texts[i] ; i++) {
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 24) || GTKMM_MAJOR_VERSION < 2
         combobox.append_text(texts[i]);
 #else
         combobox.append(texts[i]);
@@ -341,7 +346,7 @@ public:
 protected:
     M* m;
     int update_model; // to prevent infinite update loops
-    PropEditor() : update_model(0) { }
+    PropEditor() : m(0), update_model(0) { }
     sigc::signal<void> sig_changed;
 
     template<class C, typename T>

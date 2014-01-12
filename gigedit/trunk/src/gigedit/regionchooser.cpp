@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2011 Andreas Persson
+ * Copyright (C) 2006-2014 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -211,8 +211,6 @@ bool RegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
 #endif
     Gdk::Cairo::set_source_rgba(cr, bg);
     cr->paint();
-
-    const int w = get_width() - 1;
 
     if (clipy2 > h1) {
         draw_keyboard(cr, clipx1, clipx2);

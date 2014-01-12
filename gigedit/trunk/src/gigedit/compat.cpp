@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Andreas Persson
+ * Copyright (C) 2011-2014 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,6 +20,7 @@
 #include <gtkmmconfig.h>
 
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
+#include <gdkmm/window.h>
 #include <gdkmm/general.h>
 #include <gdk/gdkcairo.h>
 #include "compat.h"
