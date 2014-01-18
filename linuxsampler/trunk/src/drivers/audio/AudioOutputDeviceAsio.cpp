@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -595,7 +595,12 @@ std::map<String,DeviceCreationParameter*> AudioOutputDeviceAsio::ParameterCard::
 
 optional<String> AudioOutputDeviceAsio::ParameterCard::DefaultAsString(std::map<String,String> Parameters) {
     std::vector<String> cards = PossibilitiesAsString(Parameters);
-    if (cards.empty()) throw Exception("AudioOutputDeviceAsio: Can't find any card");
+    if (cards.empty()) throw Exception(
+        "AudioOutputDeviceAsio: Can't find any ASIO-capable sound card. Make "
+        "sure you have an ASIO driver installed for your sound device. If you "
+        "are using a consumer sound card that does not provide an ASIO driver "
+        "to be installed, then consider installing an alternative like ASIO4ALL."
+    );
 
     // If currentAsioDriverName is empty then return the first card,
     // otherwise return the currentAsioDriverName. This avoids closing

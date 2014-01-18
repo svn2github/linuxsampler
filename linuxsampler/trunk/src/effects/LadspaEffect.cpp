@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2010 - 2012 Christian Schoenebeck
+    Copyright (C) 2010 - 2014 Christian Schoenebeck
 */
 
 #include "LadspaEffect.h"
@@ -378,20 +378,20 @@ std::vector<EffectInfo*> LadspaEffect::AvailableEffects() {
     char* pcLadspaPath = getenv("LADSPA_PATH");
     String ladspaDir = pcLadspaPath ? pcLadspaPath : defaultLadspaDir();
 
-    try {
-        std::istringstream ss(ladspaDir);
-        std::string path;
-        while (std::getline(ss, path, File::PathSeparator)) {
-            if (!path.empty()) {
+    std::istringstream ss(ladspaDir);
+    std::string path;
+    while (std::getline(ss, path, File::PathSeparator)) {
+        if (!path.empty()) {
+            try {
                 DynamicLibrariesSearch(path.c_str(), "ladspa_descriptor", _foundLadspaDll, &v);
+            } catch (Exception e) {
+                std::cerr << "Could not scan LADSPA effects: " << e.Message()
+                          << std::endl << std::flush;
+            } catch (...) {
+                std::cerr << "Could not scan LADSPA effects: unknown exception\n"
+                          << std::flush;
             }
         }
-    } catch (Exception e) {
-        std::cerr << "Could not scan LADSPA effects: " << e.Message()
-                  << std::endl << std::flush;
-    } catch (...) {
-        std::cerr << "Could not scan LADSPA effects: unknown exception\n"
-                  << std::flush;
     }
 
     return v;

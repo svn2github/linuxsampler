@@ -1,15 +1,34 @@
-.TH "linuxsampler" "1" "04 Oct 2010" "linuxsampler @VERSION@" "User Manuals"
+.TH "linuxsampler" "1" "18 Jan 2014" "linuxsampler @VERSION@" "User Manuals"
 .SH NAME
 linuxsampler \- modular, streaming capable sampler
 .SH SYNOPSIS
 .B linuxsampler
 [OPTIONS]
 .SH DESCRIPTION
-LinuxSampler is a modular, streaming capable sampler. The sampler is designed as
+LinuxSampler is a modular, streaming capable sampler. Currently it supports the
+sampler formats Gigasampler/GigaStudio (.gig), SoundFont v2 (.sf2) and SFZ v2
+(.sfz).
+
+The sampler is designed as
 backend, that is server-like console application. You will need a frontend
-application like QSampler or JSampler to control the sampler and manage sampler
-sessions. Or you have to send LSCP commands manually to the sampler e.g. by
-using telnet or netcat.
+application like QSampler or JSampler/Fantasia to control the sampler and manage
+sampler sessions. Or you have to send LSCP commands manually to the sampler e.g.
+by using telnet or netcat. You can find examples and detailed informations about
+LinuxSampler's network protocol (LSCP) on
+http://linuxsampler.org/documentation.html#lscp_spec
+
+Various audio and MIDI driver systems are supported, like ALSA (audio & MIDI),
+JACK (audio & MIDI), ASIO, CoreAudio, CoreMIDI, Arts, MidiShare and MME.
+LinuxSampler can also be run as virtual instrument plugin. The following
+instrument plugin formats are currently supported: AudioUnit (AU), DSSI, LV2
+and VST. You can also load effect plugins into the sampler. Currently only the
+LADSPA plugin format is supported for sampler internal effects.
+
+If you are using sounds in the Gigasampler/GigaStudio format, then you may also
+want to install the graphical instrument editor application called "gigedit",
+which can directly be launched by LinuxSampler, allowing to edit instruments in
+real-time (changes immediately being audible, without needing to reload the
+sound files in the sampler).
 .SH OPTIONS
 .IP "--help"
 Print command line help and exit.
@@ -54,7 +73,9 @@ Allows to override the directory where LinuxSampler shall look for instrument
 editor plugins.
 .IP "LADSPA_PATH"
 Allows to override the directory where LinuxSampler shall look for LADSPA
-effect plugins.
+effect plugins. Multiple paths may be given, separated by colon (":") character
+on POSIX systems (i.e. Linux and Mac), or separated by semi-colon (";")
+character on Windows systems.
 .SH "SEE ALSO"
 qsampler(1)
 .SH "BUGS"
