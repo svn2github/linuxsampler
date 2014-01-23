@@ -381,6 +381,8 @@ Version CVS HEAD (?)
     - added LSCP commands "SUBSCRIBE EFFECT_INSTANCE_COUNT",
       "SUBSCRIBE EFFECT_INSTANCE_INFO", "SUBSCRIBE SEND_EFFECT_CHAIN_COUNT",
       "SUBSCRIBE SEND_EFFECT_CHAIN_INFO"
+    - provide comprehensive error messages on LSCP syntax errors
+      (suggesting expected next non-terminal symbols)
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

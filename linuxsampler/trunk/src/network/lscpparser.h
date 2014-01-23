@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -35,6 +35,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <stdint.h>
+#include <set>
 
 #include "../common/global_private.h"
 #include "../common/Path.h"
@@ -85,6 +87,7 @@ struct _YYSTYPE {
 #define YYSTYPE _YYSTYPE
 #define yystype YYSTYPE		///< For backward compatibility.
 #define YYSTYPE_IS_DECLARED	///< We tell the lexer / parser that we use our own data structure as defined above.
+#define YYTYPE_INT16 int16_t
 
 /**
  * Parameters given to the parser on every yyparse() call.
@@ -95,12 +98,15 @@ struct yyparse_param_t {
     bool        bVerbose; ///< if true then all commands will immediately sent back (echo)
     int         iLine;    ///< Current line (just for verbosity / messages)
     int         iColumn;  ///< Current column (just for verbosity / messages)
+    YYTYPE_INT16** ppStackBottom; ///< Bottom end of the Bison parser's state stack.
+    YYTYPE_INT16** ppStackTop;    ///< Current position (heap) of the Bison parser's state stack.
 
     yyparse_param_t() {
         pServer  = NULL;
         hSession = -1;
         bVerbose = false;
         iLine = iColumn = 0;
+        ppStackBottom = ppStackTop = NULL;
     }
 };
 #define YYPARSE_PARAM yyparse_param

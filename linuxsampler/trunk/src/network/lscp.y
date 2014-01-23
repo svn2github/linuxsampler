@@ -35,13 +35,14 @@
 #include "lscpserver.h"
 #include "lscpevent.h"
 #include "lscpsymbols.h"
+#include <algorithm>
 
 namespace LinuxSampler {
 
 // to save us typing work in the rules action definitions
 #define LSCPSERVER ((yyparse_param_t*) yyparse_param)->pServer
 #define SESSION_PARAM ((yyparse_param_t*) yyparse_param)
-#define INCREMENT_LINE { SESSION_PARAM->iLine++; SESSION_PARAM->iColumn = 0; }
+#define INCREMENT_LINE { SESSION_PARAM->iLine++; SESSION_PARAM->iColumn = 0; sParsed.clear(); }
 
 // clears input buffer
 void restart(yyparse_param_t* pparam, int& yychar);
@@ -51,6 +52,7 @@ static char buf[1024]; // input buffer to feed the parser with new characters
 static int bytes = 0;  // current number of characters in the input buffer
 static int ptr   = 0;  // current position in the input buffer
 static String sLastError; // error message of the last error occured
+static String sParsed; ///< Characters of current line which have already been shifted (consumed/parsed) by the parser.
 
 // external reference to the function which actually reads from the socket
 extern int GetLSCPCommand( void *buf, int max_size);
@@ -81,6 +83,7 @@ int yylex(YYSTYPE* yylval) {
     const char c = buf[ptr++];
     // increment current reading position (just for verbosity / messages)
     GetCurrentYaccSession()->iColumn++;
+    sParsed += c;
     // we have to handle "normal" and "extended" ASCII characters separately
     if (isExtendedAsciiChar(c)) {
         // workaround for characters with ASCII code higher than 127
@@ -103,11 +106,60 @@ int octalsToNumber(char oct_digit0, char oct_digit1 = '0', char oct_digit2 = '0'
 
 }
 
-// we provide our own version of yyerror() so we don't have to link against the yacc library
-void yyerror(const char* s);
-void yyerror(void* x, const char* s) { yyerror(s); }
-
 using namespace LinuxSampler;
+
+static std::set<String> yyExpectedSymbols();
+
+/**
+ * Will be called when an error occured (usually syntax error).
+ *
+ * We provide our own version of yyerror() so we a) don't have to link against
+ * the yacc library and b) can render more helpful syntax error messages.
+ */
+void yyerror(void* x, const char* s) {
+    yyparse_param_t* param = GetCurrentYaccSession();
+
+    // get the text part already parsed (of current line)
+    const bool bContainsLineFeed =
+        sParsed.find('\r') != std::string::npos ||
+        sParsed.find('\n') != std::string::npos;
+    // remove potential line feed characters
+    if (bContainsLineFeed) {
+        for (size_t p = sParsed.find('\r'); p != std::string::npos;
+             p = sParsed.find('\r')) sParsed.erase(p);
+        for (size_t p = sParsed.find('\n'); p != std::string::npos;
+             p = sParsed.find('\n')) sParsed.erase(p);
+    }
+
+    // start assembling the error message with Bison's own message
+    String txt = s;
+
+    // append exact position info of syntax error
+    txt += (" (line:"  + ToString(param->iLine+1)) +
+           (",column:" + ToString(param->iColumn)) + ")";
+
+    // append the part of the lined that has already been parsed
+    txt += ". Context: \"" + sParsed;
+    if (txt.empty() || bContainsLineFeed)
+        txt += "^";
+    else
+        txt.insert(txt.size() - 1, "^");
+    txt += "...\"";
+
+    // append the non-terminal symbols expected now/next
+    std::set<String> expectedSymbols = yyExpectedSymbols();
+    for (std::set<String>::const_iterator it = expectedSymbols.begin();
+         it != expectedSymbols.end(); ++it)
+    {
+        if (it == expectedSymbols.begin())
+            txt += " -> Should be: " + *it;
+        else
+            txt += " | " + *it;
+    }
+
+    dmsg(2,("LSCPParser: %s\n", txt.c_str()));
+    sLastError = txt;
+}
 
 %}
 
@@ -115,6 +167,15 @@ using namespace LinuxSampler;
 %pure-parser
 
 %parse-param {void* yyparse_param}
+
+// After entering the yyparse() function, store references to the parser's
+// state stack, so that we can create more helpful syntax error messages than
+// Bison (2.x) could do.
+%initial-action {
+    yyparse_param_t* p = (yyparse_param_t*) yyparse_param;
+    p->ppStackBottom = &yyss;
+    p->ppStackTop    = &yyssp;
+}
 
 // tell bison to spit out verbose syntax error messages
 %error-verbose
@@ -1200,17 +1261,136 @@ QUIT                  :  'Q''U''I''T'
 
 %%
 
+#define DEBUG_BISON_SYNTAX_ERROR_WALKER 0
+
 /**
- * Will be called when an error occured (usually syntax error).
+ * Internal function, only called by yyExpectedSymbols(). It is given a Bison
+ * parser state stack, reflecting the parser's entire state at a certain point,
+ * i.e. when a syntax error occured. This function will then walk ahead the
+ * potential parse tree starting from the current head of the given state
+ * stack. This function will call itself recursively to scan the individual
+ * parse tree branches. As soon as it hits on the next non-terminal grammar
+ * symbol in one parse tree branch, it adds the found non-terminal symbol to
+ * @a expectedSymbols and aborts scanning the respective tree branch further.
+ * If any local parser state is reached a second time, the respective parse
+ * tree is aborted to avoid any endless recursion.
+ *
+ * @param stack - Bison (yacc) state stack
+ * @param expectedSymbols - will be filled with next expected grammar symbols
+ * @param depth - just for internal debugging purposes
  */
-void yyerror(const char* s) {
+static void walkAndFillExpectedSymbols(std::vector<YYTYPE_INT16>& stack, std::set<String>& expectedSymbols, int depth = 0) {
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+    printf("\n");
+    for (int i = 0; i < depth; ++i) printf("\t");
+    printf("State stack:");
+    for (int i = 0; i < stack.size(); ++i) {
+        printf(" %d", stack[i]);
+    }
+    printf("\n");
+#endif
+
+    if (stack.empty()) return;
+
+    int state = stack[stack.size() - 1];
+    int n = yypact[state];
+    if (n == YYPACT_NINF) { // default reduction required ...
+        // get default reduction rule for this state
+        n = yydefact[state];
+        if (n <= 0 || n >= YYNRULES) return; // no rule, something is wrong
+        // return the new resolved expected symbol (left-hand symbol of grammar
+        // rule), then we're done in this state
+        expectedSymbols.insert(yytname[yyr1[n]]);
+        return;
+    }
+    if (!(YYPACT_NINF < n && n <= YYLAST)) return;
+
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+    for (int i = 0; i < depth; ++i) printf("\t");
+    printf("Expected tokens:");
+#endif
+    int begin = n < 0 ? -n : 0;
+    int checklim = YYLAST - n + 1;
+    int end = checklim < YYNTOKENS ? checklim : YYNTOKENS;
+    int rule, action, stackSize;
+    for (int token = begin; token < end; ++token) {
+        if (token == YYTERROR || yycheck[n + token] != token) continue;
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+        printf(" %s", yytname[token]);
+#endif
+
+        //if (yycheck[n + token] != token) goto default_reduction;
+
+        action = yytable[n + token];
+        if (action == 0 || action == YYTABLE_NINF) {
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+            printf(" (invalid action) "); fflush(stdout);
+#endif
+            continue; // error, ignore
+        }
+        if (action < 0) { // reduction with rule -action required ...
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+            printf(" (reduction) "); fflush(stdout);
+#endif
+            rule = -action;
+            goto reduce;
+        }
+        if (action == YYFINAL) continue; // "accept" state, we don't care about it here
+
+        // "shift" required ...
+
+        if (std::find(stack.begin(), stack.end(), action) != stack.end())
+            continue; // duplicate state, ignore it to avoid endless recursions
+
+        // "shift" / push the new state on the state stack and call this
+        // function recursively, and restore the stack after the recurse return
+        stackSize = stack.size();
+        stack.push_back(action);
+        walkAndFillExpectedSymbols( //FIXME: could cause stack overflow (should be a loop instead), is probably fine with our current grammar though
+            stack, expectedSymbols, depth + 1
+        );
+        stack.resize(stackSize); // restore stack
+        continue;
+
+    //default_reduction: // resolve default reduction for this state
+    //    printf(" (default red.) "); fflush(stdout);
+    //    rule = yydefact[state];
+
+    reduce: // "reduce" required
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+        printf(" (reduce by %d) ", rule); fflush(stdout);
+#endif
+        if (rule == 0 || rule >= YYNRULES) continue; // invalid rule, something is wrong
+        // store the left-hand symbol of the grammar rule
+        expectedSymbols.insert(yytname[yyr1[rule]]);
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+        printf(" (SYM %s) ", yytname[yyr1[rule]]); fflush(stdout);
+#endif
+    }
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+    printf("\n");
+#endif
+}
+
+/**
+ * Should only be called on syntax errors: returns a set of non-terminal
+ * symbols expected to appear now/next, just at the point where the syntax
+ * error appeared.
+ */
+static std::set<String> yyExpectedSymbols() {
+    std::set<String> result;
     yyparse_param_t* param = GetCurrentYaccSession();
-    String msg = s
-        + (" (line:"   + ToString(param->iLine+1))
-        + ( ",column:" + ToString(param->iColumn))
-        + ")";
-    dmsg(2,("LSCPParser: %s\n", msg.c_str()));
-    sLastError = msg;
+    YYTYPE_INT16* ss = (*param->ppStackBottom);
+    YYTYPE_INT16* sp = (*param->ppStackTop);
+    int iStackSize   = sp - ss + 1;
+    // copy and wrap parser's state stack into a convenient STL container
+    std::vector<YYTYPE_INT16> stack;
+    for (int i = 0; i < iStackSize; ++i) {
+        stack.push_back(ss[i]);
+    }
+    // do the actual parser work
+    walkAndFillExpectedSymbols(stack, result);
+    return result;
 }
 
 namespace LinuxSampler {
@@ -1222,6 +1402,7 @@ void restart(yyparse_param_t* pparam, int& yychar) {
     bytes = 0;
     ptr   = 0;
     sLastError = "";
+    sParsed = "";
 }
 
 }
