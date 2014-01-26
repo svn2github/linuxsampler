@@ -132,7 +132,7 @@ namespace LinuxSampler {
              * running JACK server. It will return "nothing" if the JACK server
              * is not running at that point.
              */
-            class ParameterSampleRate : AudioOutputDevice::ParameterSampleRate {
+            class ParameterSampleRate : public AudioOutputDevice::ParameterSampleRate {
                 public:
                     ParameterSampleRate();
                     ParameterSampleRate(String s);
