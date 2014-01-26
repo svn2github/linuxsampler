@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -169,6 +169,40 @@ namespace LinuxSampler {
 
     String AudioOutputDeviceJack::ParameterName::Name() {
         return "NAME";
+    }
+
+
+
+// *************** AudioOutputDeviceJack::ParameterSampleRate ***************
+// *
+
+    AudioOutputDeviceJack::ParameterSampleRate::ParameterSampleRate() : AudioOutputDevice::ParameterSampleRate() {
+    }
+
+    AudioOutputDeviceJack::ParameterSampleRate::ParameterSampleRate(String s) : AudioOutputDevice::ParameterSampleRate(s) {
+    }
+
+    optional<int> AudioOutputDeviceJack::ParameterSampleRate::DefaultAsInt(std::map<String,String> Parameters) {
+        static int i = 0;
+        // arbitrary JACK client name, that shall not clash with other ones
+        String name = "LinSmPSR" + ToString(i++);
+#if HAVE_JACK_CLIENT_OPEN
+        jack_client_t* hClient = jack_client_open(name.c_str(), JackNullOption, NULL);
+#else
+        jack_client_t* hClient = jack_client_new(name.c_str());
+#endif
+        // Better return "nothing" instead of i.e. 44100 here, so a frontend
+        // like QSampler will not be tempted to pass SAMPLERATE as creation
+        // parameter when creating a new JACK audio device instance.
+        if (!hClient) return optional<int>::nothing;
+        int sampleRate = jack_get_sample_rate(hClient);
+        jack_client_close(hClient);
+        return sampleRate;
+    }
+
+    void AudioOutputDeviceJack::ParameterSampleRate::OnSetValue(int i) throw (Exception) {
+        // nothing to do: the JACK API does currently not allow JACK clients to
+        // change the sample rate
     }
 
 

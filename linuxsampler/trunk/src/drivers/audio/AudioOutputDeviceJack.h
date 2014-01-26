@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -116,6 +116,28 @@ namespace LinuxSampler {
                     virtual optional<String>    DefaultAsString(std::map<String,String> Parameters) OVERRIDE;
                     virtual void                OnSetValue(String s) throw (Exception) OVERRIDE;
                     static String Name();
+            };
+
+            /** Audio Device Parameter 'SAMPLERATE'
+             *
+             * Used to retrieve the sample rate of the JACK audio output
+             * device. Even though the sample rate of the JACK server might
+             * change during runtime, the JACK API currently however does not
+             * allow clients to change the sample rate. So this parameter is
+             * read only.
+             *
+             * This base parameter class has just been overridden for this JACK
+             * driver to implement a valid default value for sample rate. The
+             * default value will simply return the sample rate of the currently
+             * running JACK server. It will return "nothing" if the JACK server
+             * is not running at that point.
+             */
+            class ParameterSampleRate : AudioOutputDevice::ParameterSampleRate {
+                public:
+                    ParameterSampleRate();
+                    ParameterSampleRate(String s);
+                    virtual optional<int> DefaultAsInt(std::map<String,String> Parameters) OVERRIDE;
+                    virtual void OnSetValue(int i) throw (Exception) OVERRIDE;
             };
 
             // derived abstract methods from class 'AudioOutputDevice'

@@ -344,6 +344,8 @@ Version CVS HEAD (?)
     - ASIO driver: removed compiler warnings
     - CoreAudio: fixed minor error handling bug
     - ASIO driver: be more verbose when no ASIO card could be found (fixes #203)
+    - JACK audio: return the JACK server's current sample rate as default value
+      for audio device parameter "SAMPLERATE" (fixes #166).
 
   * LSCP server:
     - added support for sending MIDI CC messages via LSCP command
