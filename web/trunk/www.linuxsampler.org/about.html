@@ -177,9 +177,10 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 
 			<h2>The Project</h2>
 			<p class="default">
-			The LinuxSampler project was founded with the
+			The LinuxSampler project was founded in 2002 with the
 			goal to produce a free, streaming capable open source pure
-			software audio sampler with professional grade features,
+			software audio sampler with high stability, efficiency and very
+			low latency, providing professional grade features,
 			comparable to both hardware and commercial Windows/Mac software
 			samplers and to introduce new features not yet available by any
 			other sampler in the world.
@@ -277,30 +278,123 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 			current setup and state of the running sampler engine.
 			</p>
 
-			<h2>The Format</h2>
+			<h2>Sampler Formats</h2>
+			<p class="default">
+			Virtual instruments (i.e. pianos, drums, orchestra ensembles) based
+			on sampler software are created and distributed as files, which
+			essentially contain recorded audio samples plus so called
+			<i>articulation informations</i>. The latter are a very important
+			factor to make audio samples assemble a realistic sound of i.e.
+			natural instruments. The are defining when and how exactly
+			the individual audio samples shall be played back and modified by
+			the sampler. So a <i>sampler format</i> is made up of two things:
+			</p>
+			<ol class="default">
+			  <li>
+				<b>File format:</b> which defines how audio samples and
+				articulation informations are stored in files exactly.
+			  </li>
+			  <li><b>Synthesis model:</b> which defines what the sampler sampler
+				can do with audio samples, and how the sampler should interpret
+				the articulation informations stored in files.
+			  </i>
+			</ol>
 			<p class="default">
 			It is planned to support all common sampler formats in
-			LinuxSampler, but at the moment we chose to concentrate on the
-			Gigasampler format, because when we started this project, the
-			Gigasampler format was (in our opinion) the most popular
-			and "best" sampler format in regards of quality and power,
-			especially	for the synthesis of natural instruments like pianos,
-			brass and bowed instruments. But we already made good advance in
-			implementing this format, so we are optimistic to start with
-			adding other formats soon. Beside that we also planned to
-			design our own, sophisticated sampler format to introduce a more
-			powerful and more flexible sampler format compared to
-			any sampler format currently available in the world. Be encouraged
-			to share your ideas about such a new format with us!
+			LinuxSampler. At the moment the sampler supports the following
+			three:
+			</p>
+			<ol class="default">
+			  <li>
+				<b>GigaStudio/GigaSampler Format:</b>
+				First format ever supported by LinuxSampler and hence probably
+				the most mature option in LinuxSampler right now. When we
+				started to develop LinuxSampler back in 2002, we chose to
+				concentrate on this commercial sampler format first, because at
+				that point it was (in our opinion) the most popular and "best"
+				sampler format in regards of quality and features, especially
+				for the synthesis of natural instruments like pianos, brass and
+				powed instruments. Some of the best sounding orchestra
+				libraries were made in this format at that time.<br>
+				<br>
+				In contrast to all those commercial samplers
+				out there who claim to support the GigaStudio/GigaSampler format,
+				we invested many years and a lot of effort to reassemble the original
+				sound of this format as exactly as possible, as it was with the
+				original GigaStudio PC software. Other samplers usually provide
+				only raw sample playback for this format and - if at all - only
+				limited support for its articulations and synthesis model.
+				LinuxSampler however is providing i.e. envelopes and filters
+				with very precise characteristics and accuracy of the original
+				ones used in the original GigaStudio software. We even
+				reassembled the "warty" parts of the format, that is strange
+				aspects of the format. All this just to fulfill one goal:
+				playing back your huge collection of high class .gig instruments with
+				LinuxSampler exactly as they sounded like with GigaStudio!
+				And as of to date there is probably no other sampler out there
+				which does that job better.
+				<br><br>
+			  </li>
+			  <li>
+				<b>SoundFont Format:</b>
+				Being a very popular sampler format, supported by numerous
+				hardware devices and sampler software products for many years,
+				we also added support for the SoundFont format. However, since
+				this format is fairly old and limited we did not spend as much
+				effort on it than on the other formats. So there is currently
+				not full support for all aspects of this format yet. Be invited
+				to help us on finishing support for this format!
+				<br><br>
+			  </li>
+			  <li>
+				<b>SFZ Format:</b> Not to be interchanged with the
+				<i>SoundFont</i> format! Even though their names suggest them to
+				be similar, and also being initiated by the same company, the SFZ
+				format does not have much in common with the SoundFont format!
+				The SFZ format is a quite new one, an open format that is also
+                used as basis in many commercial sampler products. It has the
+				potential to become a broad standard format among sampler
+				products. It is extensible for custom features, provides
+				articulation information in human-readable text form and samples
+				are usually stored as separate files along to the articulation
+				files. The latter also allows a variety of audio formats to be
+				used and gives sound designers and their customers various
+				advantages to work with.
+				<br><br>
+				Due to its high potential we recently spent a lot of time in
+				supporting this format in LinuxSampler. A lot of this format is
+				<a href="/sfz/">already supported</a> (v1 and v2) in
+				LinuxSampler, also extensions of commercial samplers, and we
+				continue to evolve support for this format.
+			  </li>
+			</ol>
+			<p class="default">
+			Along to these formats, we have been thinking about creating our
+			own, new sampler format from scratch, for providing new sampler
+			features currently not available in any sampler yet. However when
+			we started adding support for SFZ, we realized such features should
+			rather be implemented as extension to the SFZ format.
 			</p>
 
-			<h2>The Editor</h2>
+			<h2>Instrument Editors</h2>
 			<p class="default">
+			For creating new virtual instruments and for adjusting your
+			existing ones, you may want to use an instrument editor.
+			LinuxSampler was designed decoupled from instrument editors, but
+			provides extensive support for cooperation with instrument editor
+			applications. Especially for the aspect of being able to edit an
+			instrument while playing it in the sampler, and for making all
+			changes audible immediately and without reloading the sounds into
+			sampler.<br>
+			<br>
+			Currently we implemented the following instrument editor
+			application:<br>
+			<br>
 			<u><b>gigedit</b></u> allows you to edit and create instruments
-			for the Gigasampler format, which can be used with LinuxSampler
-			as well as with Tascam's Gigastudio. Following our line of
-			modularity we also made the instrument editors independent
-			applications. Because let's face it: every sampler format is
+			for the GigaStudio/Gigasampler format, which can be used with LinuxSampler
+			as well as with Tascam's original Gigastudio software. Following our line of
+			modularity we also made this instrument editor an independent
+			application. Because let's face it: every sampler format is
 			different, so in our opinion it is better to honor the specific
 			features of one format with its own instrument editor application
 			instead of trying to fiddle everything into one single bloated
@@ -331,7 +425,7 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 			you.
 			</p>
 
-			<h2>The Technical Interface</h2>
+			<h2>Technical Interfaces</h2>
 			<p class="default">
 			As the components of the sampler are independent applications,
 			there must be a way to let the applications communicate with each
@@ -357,7 +451,7 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 			editor if you want.
 			</p>
 
-			<h2>The Compatibility</h2>
+			<h2>Compatibility &amp; Cross Platform</h2>
 			<p class="default">
 			LinuxSampler is available for the most popular operating
 			systems and already supports a variety of audio and MIDI driver
@@ -369,7 +463,19 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 			So we're prepared for the future!
 			</p>
 
-			<h2>The Community</h2>
+			<h2>Sequencer &amp; DAW Plugin Support</h2>
+			<p class="default">
+			The sampler can be run stand alone as well as host plugin in popular
+			sequencer or digital audio workstations like Cubase, Logic, Ardour,
+			QTractor, Reaper and many more. At the moment the sampler supports
+			the host plugin formats VSTi (v2), AudiUnit (AU), DSSI and LV2.<br>
+			<br>
+			You  can  also  load effect plugins into the sampler, for them being
+			used on parts or as master effects. Currently only the LADSPA plugin
+			format is supported for sampler internal effects.
+			</p>
+
+			<h2>Community</h2>
 			<p class="default">
 			You need a helping hand? You certainly get the answers on your
 			personal questions on our
@@ -389,6 +495,7 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 			participate with active source code development. Don't be afraid!
 			You have your own ideas and concepts for making the sampler better?
 			Great, share them with us!<br>
+			<br>
 			<br>
 			</p>
 
