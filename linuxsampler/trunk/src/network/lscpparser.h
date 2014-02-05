@@ -96,6 +96,7 @@ struct yyparse_param_t {
     LSCPServer* pServer;
     int         hSession;
     bool        bVerbose; ///< if true then all commands will immediately sent back (echo)
+    bool        bShellInteract; ///< if true: then client is the LSCP shell
     int         iLine;    ///< Current line (just for verbosity / messages)
     int         iColumn;  ///< Current column (just for verbosity / messages)
     YYTYPE_INT16** ppStackBottom; ///< Bottom end of the Bison parser's state stack.
@@ -105,6 +106,7 @@ struct yyparse_param_t {
         pServer  = NULL;
         hSession = -1;
         bVerbose = false;
+        bShellInteract = false;
         iLine = iColumn = 0;
         ppStackBottom = ppStackTop = NULL;
     }

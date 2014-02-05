@@ -3,7 +3,7 @@
 
 m4_define(linuxsampler_release_major, 1)
 m4_define(linuxsampler_release_minor, 0)
-m4_define(linuxsampler_release_build, 0.svn27)
+m4_define(linuxsampler_release_build, 0.svn28)
 
 
 AC_INIT([linuxsampler],[linuxsampler_release_major.linuxsampler_release_minor.linuxsampler_release_build])
@@ -1322,6 +1322,7 @@ AC_CONFIG_FILES([\
     Makefile \
     man/Makefile \
     man/linuxsampler.1 \
+    man/lscp.1 \
     src/Makefile \
     src/db/Makefile \
     src/network/Makefile \
@@ -1343,6 +1344,7 @@ AC_CONFIG_FILES([\
     src/hostplugins/lv2/manifest.ttl \
     src/hostplugins/vst/Makefile \
     src/hostplugins/au/Makefile \
+    src/shell/Makefile \
     linuxsampler.spec \
     debian/Makefile \
     Artwork/Makefile \

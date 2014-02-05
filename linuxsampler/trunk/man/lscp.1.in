@@ -1,0 +1,38 @@
+.TH "lscp" "1" "05 Feb 2014" "linuxsampler @VERSION@" "User Manuals"
+.SH NAME
+lscp \- the LinuxSampler Control Protocol (LSCP) shell
+.SH SYNOPSIS
+.B lscp
+[OPTIONS]
+.SH DESCRIPTION
+The LSCP shell allows to control a running instance of
+.BR linuxsampler (1)
+from the command line. By default, the LSCP shell will assume LinuxSampler to
+run on the local machine and accordingly will try to connect to LinuxSampler on
+the local machine. You can however also connect to LinuxSampler instances
+running on any another machine available on the network. Since LSCP is
+essentially just a human readable text protocol, you can also control the
+sampler simply by using
+.BR telnet (1)
+or
+.BR netcat (1),
+however since the LSCP shell is aware about the details of the LSCP protocol,
+it has various advantages, i.e. it provides colored highlighting of correct,
+incorrect and complete commands while typing them on the terminal.
+
+You can find examples and detailed informations
+about LinuxSampler's network protocol (LSCP) on
+http://linuxsampler.org/documentation.html#lscp_spec
+.SH OPTIONS
+.IP "-h HOSTNAME or --host HOSTNAME"
+Host name of LSCP server (default "localhost").
+.IP "-p PORTNR or --port PORTNR"
+TCP port number of LSCP server (default 8888).
+.SH ENVIRONMENT VARIABLES
+None (yet).
+.SH "SEE ALSO"
+.BR linuxsampler (1)
+.SH "BUGS"
+Report bugs to http://bugs.linuxsampler.org
+.SH "Author"
+Written by Christian Schoenebeck <cuse@users.sf.net>

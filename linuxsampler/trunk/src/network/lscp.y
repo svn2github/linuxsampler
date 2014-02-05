@@ -36,6 +36,7 @@
 #include "lscpevent.h"
 #include "lscpsymbols.h"
 #include <algorithm>
+#include "lscp.h"
 
 namespace LinuxSampler {
 
@@ -428,6 +429,7 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' p
                       |  DB_INSTRUMENT SP DESCRIPTION SP db_path SP stringval_escaped                     { $$ = LSCPSERVER->SetDbInstrumentDescription($5,$7);              }
                       |  DB_INSTRUMENT SP FILE_PATH SP filename SP filename                               { $$ = LSCPSERVER->SetDbInstrumentFilePath($5,$7);                 }
                       |  ECHO SP boolean                                                                  { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
+                      |  SHELL SP INTERACT SP boolean                                                     { $$ = LSCPSERVER->SetShellInteract((yyparse_param_t*) yyparse_param, $5); }
                       |  VOLUME SP volume_value                                                           { $$ = LSCPSERVER->SetGlobalVolume($3);                            }
                       |  VOICES SP number                                                                 { $$ = LSCPSERVER->SetGlobalMaxVoices($3);                         }
                       |  STREAMS SP number                                                                { $$ = LSCPSERVER->SetGlobalMaxStreams($3);                        }
@@ -920,6 +922,12 @@ REMOVE                :  'R''E''M''O''V''E'
 SET                   :  'S''E''T'
                       ;
 
+SHELL                 :  'S''H''E''L''L'
+                      ;
+
+INTERACT              :  'I''N''T''E''R''A''C''T'
+                      ;
+
 APPEND                :  'A''P''P''E''N''D'
                       ;
 
@@ -1372,6 +1380,105 @@ static void walkAndFillExpectedSymbols(std::vector<YYTYPE_INT16>& stack, std::se
 #endif
 }
 
+inline static int _yyReduce(std::vector<YYTYPE_INT16>& stack, const int& rule) {
+    if (stack.empty()) throw 1; // severe error
+    const int len = yyr2[rule];
+    stack.resize(stack.size() - len);
+    YYTYPE_INT16 newState = yypgoto[yyr1[rule] - YYNTOKENS] + stack.back();
+    if (0 <= newState && newState <= YYLAST && yycheck[newState] == stack.back())
+        newState = yytable[newState];
+    else
+        newState = yydefgoto[yyr1[rule] - YYNTOKENS];
+    stack.push_back(newState);
+    return newState;
+}
+
+inline static int _yyDefaultReduce(std::vector<YYTYPE_INT16>& stack) {
+    if (stack.empty()) throw 2; // severe error
+    int rule = yydefact[stack.back()];
+    if (rule <= 0 || rule >= YYNRULES) throw 3; // no rule, something is wrong
+    return _yyReduce(stack, rule);
+}
+
+#define DEBUG_PUSH_PARSE 0
+
+static bool yyPushParse(std::vector<YYTYPE_INT16>& stack, char ch) {
+    startLabel:
+
+#if DEBUG_PUSH_PARSE
+    //printf("\n");
+    //for (int i = 0; i < depth; ++i) printf("\t");
+    printf("State stack:");
+    for (int i = 0; i < stack.size(); ++i) {
+        printf(" %d", stack[i]);
+    }
+    printf(" char='%c'(%d)\n", ch, (int)ch);
+#endif
+
+    if (stack.empty()) return false;
+
+    int state = stack.back();
+    int n = yypact[state];
+    if (n == YYPACT_NINF) { // default reduction required ...
+#if DEBUG_PUSH_PARSE
+        printf("(def reduce 1)\n");
+#endif
+        state = _yyDefaultReduce(stack);
+        goto startLabel;
+    }
+    if (!(YYPACT_NINF < n && n <= YYLAST)) return false;
+
+    YYTYPE_INT16 token = (ch == YYEOF) ? YYEOF : yytranslate[ch];
+    n += token;
+    if (n < 0 || YYLAST < n || yycheck[n] != token) {
+#if DEBUG_PUSH_PARSE
+        printf("(def reduce 2) n=%d token=%d\n", n, token);
+#endif
+        state = _yyDefaultReduce(stack);
+        goto startLabel;
+    }
+    int action = yytable[n]; // yytable[yypact[state] + token]
+    if (action == 0 || action == YYTABLE_NINF) throw 4;
+    if (action < 0) {
+#if DEBUG_PUSH_PARSE
+        printf("(reduce)\n");
+#endif
+        int rule = -action;
+        state = _yyReduce(stack, rule);
+        goto startLabel;
+    }
+    if (action == YYFINAL) return true; // final state reached
+
+#if DEBUG_PUSH_PARSE
+    printf("(push)\n");
+#endif
+    // push new state
+    state = action;
+    stack.push_back(state);
+    return true;
+}
+
+static bool yyValid(std::vector<YYTYPE_INT16>& stack, char ch) {
+    try {
+        return yyPushParse(stack, ch);
+    } catch (int i) {
+#if DEBUG_PUSH_PARSE
+        printf("exception %d\n", i);
+#endif
+        return false;
+    } catch (...) {
+        return false;
+    }
+}
+
+static int yyValidCharacters(std::vector<YYTYPE_INT16>& stack, const String& line) {
+    int i;
+    for (i = 0; i < line.size(); ++i) {
+        if (!yyValid(stack, line[i])) return i;
+    }
+    return i;
+}
+
 /**
  * Should only be called on syntax errors: returns a set of non-terminal
  * symbols expected to appear now/next, just at the point where the syntax
@@ -1394,6 +1501,23 @@ static std::set<String> yyExpectedSymbols() {
 }
 
 namespace LinuxSampler {
+
+String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param) {
+    std::vector<YYTYPE_INT16> stack;
+    stack.push_back(0); // every Bison symbol stack starts with zero
+    String l = line + '\n';
+    int n = yyValidCharacters(stack, l);
+    String result = line;
+    result.insert(n <= result.length() ? n : result.length(), LSCP_SHK_GOOD_FRONT);
+    int code = (n > line.length()) ? LSCP_SHU_COMPLETE : (n < line.length()) ?
+               LSCP_SHU_SYNTAX_ERR : LSCP_SHU_INCOMPLETE;
+    result = "SHU:" + ToString(code) + ":" + result;
+    //if (n > line.length()) result += " [OK]";
+#if DEBUG_PUSH_PARSE
+    printf("%s\n", result.c_str());
+#endif
+    return result;
+}
 
 /**
  * Clears input buffer.

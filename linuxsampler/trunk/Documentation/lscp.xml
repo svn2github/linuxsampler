@@ -8434,6 +8434,8 @@ Schoenebeck'>
 		</t>
 		<t>/ ECHO SP boolean
 		</t>
+		<t>/ SHELL SP INTERACT SP boolean
+		</t>
 		<t>/ VOLUME SP volume_value
 		</t>
 		<t>/ VOICES SP number

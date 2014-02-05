@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2014 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -34,5 +35,16 @@
 
 #define LSCP_WRN_UNKNOWN		0  ///< unknown warning type
 
+
+// LSCP Shell Codes
+
+#define LSCP_SHU_COMPLETE		0
+#define LSCP_SHU_SYNTAX_ERR		1
+#define LSCP_SHU_INCOMPLETE		2
+
+// LSCP Shell Keywords
+
+#define LSCP_SHK_GOOD_FRONT		"{{GF}}"
+#define LSCP_SHK_EXPECT_MULTI_LINE  "SHE:MLINE"
 
 #endif // __LSCP_H__

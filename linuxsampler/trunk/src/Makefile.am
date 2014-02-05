@@ -30,7 +30,7 @@ endif
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
-SUBDIRS = db network engines common testcases drivers plugins effects . hostplugins
+SUBDIRS = db network engines common testcases drivers plugins effects . hostplugins shell
 
 liblinuxsamplerincludedir = $(includedir)/linuxsampler
 liblinuxsamplerinclude_HEADERS = Sampler.h EventListeners.h

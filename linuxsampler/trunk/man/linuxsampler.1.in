@@ -1,4 +1,4 @@
-.TH "linuxsampler" "1" "18 Jan 2014" "linuxsampler @VERSION@" "User Manuals"
+.TH "linuxsampler" "1" "05 Feb 2014" "linuxsampler @VERSION@" "User Manuals"
 .SH NAME
 linuxsampler \- modular, streaming capable sampler
 .SH SYNOPSIS
@@ -11,10 +11,21 @@ sampler formats Gigasampler/GigaStudio (.gig), SoundFont v2 (.sf2) and SFZ v2
 
 The sampler is designed as
 backend, that is server-like console application. You will need a frontend
-application like QSampler or JSampler/Fantasia to control the sampler and manage
-sampler sessions. Or you have to send LSCP commands manually to the sampler e.g.
-by using telnet or netcat. You can find examples and detailed informations about
-LinuxSampler's network protocol (LSCP) on
+application like QSampler or JSampler/Fantasia, which provide a graphical user
+interface (GUI) to control the sampler and manage sampler sessions conveniently.
+If you prefer, you can also control the sampler from the command line instead,
+for example by using the
+.BR lscp (1)
+shell application shipped with
+LinuxSampler, which provides LSCP aware color highlighting, auto completion and
+more. Since the LSCP network interface is based on a human readable text
+protocol, you can also send LSCP commands by any other means to the sampler,
+e.g. by using
+.BR telnet (1)
+or
+.BR netcat (1).
+You can find examples and detailed informations
+about LinuxSampler's network protocol (LSCP) on
 http://linuxsampler.org/documentation.html#lscp_spec
 
 Various audio and MIDI driver systems are supported, like ALSA (audio & MIDI),
@@ -77,7 +88,8 @@ effect plugins. Multiple paths may be given, separated by colon (":") character
 on POSIX systems (i.e. Linux and Mac), or separated by semi-colon (";")
 character on Windows systems.
 .SH "SEE ALSO"
-qsampler(1)
+.BR lscp (1),
+.BR qsampler (1)
 .SH "BUGS"
 Report bugs to http://bugs.linuxsampler.org
 .SH "Author"

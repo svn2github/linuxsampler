@@ -47,6 +47,8 @@
 
 namespace LinuxSampler {
 
+String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param);
+
 /**
  * Returns a copy of the given string where all special characters are
  * replaced by LSCP escape sequences ("\xHH"). This function shall be used
@@ -592,11 +594,11 @@ int LSCPServer::Main() {
 	//Something was selected and it was not the hSocket, so it must be some command(s) coming.
 	for (std::vector<yyparse_param_t>::iterator iter = Sessions.begin(); iter != Sessions.end(); iter++) {
 		if (FD_ISSET((*iter).hSession, &selectSet)) {	//Was it this socket?
+			currentSocket = (*iter).hSession;  //a hack
 			if (GetLSCPCommand(iter)) {	//Have we read the entire command?
 				dmsg(3,("LSCPServer: Got command on socket %d, calling parser.\n", currentSocket));
                                 int dummy; // just a temporary hack to fulfill the restart() function prototype
                                 restart(NULL, dummy); // restart the 'scanner'
-				currentSocket = (*iter).hSession;  //a hack
 				itCurrentSession = iter; // another hack
 				dmsg(2,("LSCPServer: [%s]\n",bufferedCommands[currentSocket].c_str()));
                                 if ((*iter).bVerbose) { // if echo mode enabled
@@ -610,6 +612,7 @@ int LSCPServer::Main() {
 					CloseConnection(iter);
 				}
 			}
+			currentSocket = -1;	//continuation of a hack
 			//socket may have been closed, iter may be invalid, get out of the loop for now.
 			//we'll be back if there is data.
 			break;
@@ -739,7 +742,21 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 				bufferedCommands[socket] += "\r\n";
 				return true; //Complete command was read
 			}
-			bufferedCommands[socket] += c;
+			// backspace character - should only happen with shell
+			if (c == '\b') {
+				if (!bufferedCommands[socket].empty()) {
+					bufferedCommands[socket] = bufferedCommands[socket].substr(
+						0, bufferedCommands[socket].length() - 1
+					);
+				}
+			} else bufferedCommands[socket] += c;
+			// only if the other side is the LSCP shell application:
+			// check the current (incomplete) command line for syntax errors,
+			// possible completions and report everything back to the shell
+			if ((*iter).bShellInteract) {
+				String s = lscpParserProcessShellInteraction(bufferedCommands[socket], &(*iter));
+				if (!s.empty()) AnswerClient(s + "\n");
+			}
 		}
 		#if defined(WIN32)
 		if (result == SOCKET_ERROR) {
@@ -801,9 +818,29 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
  * @param ReturnMessage - message that will be send to the client
  */
 void LSCPServer::AnswerClient(String ReturnMessage) {
-    dmsg(2,("LSCPServer::AnswerClient(ReturnMessage=%s)", ReturnMessage.c_str()));
+    dmsg(2,("LSCPServer::AnswerClient(ReturnMessage='%s')", ReturnMessage.c_str()));
     if (currentSocket != -1) {
 	    LockGuard lock(NotifyMutex);
+
+        // just if other side is LSCP shell: in case respose is a multi-line
+        // one, then inform client about it before sending the actual mult-line
+        // response
+        if (GetCurrentYaccSession()->bShellInteract) {
+            // check if this is a multi-line response
+            int n = 0;
+            for (int i = 0; i < ReturnMessage.size(); ++i)
+                if (ReturnMessage[i] == '\n') ++n;
+            if (n >= 2) {
+                dmsg(2,("LSCP Shell <- expect mult-line response\n"));
+                String s = LSCP_SHK_EXPECT_MULTI_LINE "\r\n";
+#ifdef MSG_NOSIGNAL
+                send(currentSocket, s.c_str(), s.size(), MSG_NOSIGNAL);
+#else
+                send(currentSocket, s.c_str(), s.size(), 0);
+#endif                
+            }
+        }
+
 #ifdef MSG_NOSIGNAL
 	    send(currentSocket, ReturnMessage.c_str(), ReturnMessage.size(), MSG_NOSIGNAL);
 #else
@@ -3956,6 +3993,19 @@ String LSCPServer::SetEcho(yyparse_param_t* pSession, double boolean_value) {
     }
     catch (Exception e) {
          result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::SetShellInteract(yyparse_param_t* pSession, double boolean_value) {
+    dmsg(2,("LSCPServer: SetShellInteract(val=%f)\n", boolean_value));
+    LSCPResultSet result;
+    try {
+        if      (boolean_value == 0) pSession->bShellInteract = false;
+        else if (boolean_value == 1) pSession->bShellInteract = true;
+        else throw Exception("Not a boolean value, must either be 0 or 1");
+    } catch (Exception e) {
+        result.Error(e);
     }
     return result.Produce();
 }

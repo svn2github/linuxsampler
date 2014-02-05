@@ -91,6 +91,8 @@ Version CVS HEAD (?)
     - AbstractEngine::GSChecksum(): don't allocate memory on the stack (was
       unsafe and caused compilation error with clang 2.x).
     - Bugfix: only process the latest MIDI program change event.
+    - Introducing the LSCP shell, which provides convenient control of the
+      sampler from the command line by providing LSCP aware features.
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension
