@@ -388,6 +388,11 @@ Version CVS HEAD (?)
     - provide comprehensive error messages on LSCP syntax errors
       (suggesting expected next non-terminal symbols)
 
+  * LSCP shell:
+    - Added support for auto correction of obvious and trivial syntax mistakes.
+    - Added support for auto completion by tab key.
+    - Show currently available auto completion while typing.
+
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range
     - minor valgrind fixes

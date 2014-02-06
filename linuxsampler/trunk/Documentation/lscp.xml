@@ -8436,6 +8436,8 @@ Schoenebeck'>
 		</t>
 		<t>/ SHELL SP INTERACT SP boolean
 		</t>
+		<t>/ SHELL SP AUTO_CORRECT SP boolean
+		</t>
 		<t>/ VOLUME SP volume_value
 		</t>
 		<t>/ VOICES SP number

@@ -67,6 +67,16 @@ inline bool isExtendedAsciiChar(const char c) {
     return (c < 0);
 }
 
+// returns true if the given character is between between a to z.
+inline bool isLowerCaseAlphaChar(const char c) {
+    return c >= 'a' && c <= 'z';
+}
+
+// converts the given (expected) lower case character to upper case
+inline char alphaCharToUpperCase(const char c) {
+    return (c - 'a') + 'A';
+}
+
 // custom scanner function which reads from the socket
 // (bison expects it to return the numerical ID of the next
 // "recognized token" from the input stream)
@@ -430,6 +440,7 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' p
                       |  DB_INSTRUMENT SP FILE_PATH SP filename SP filename                               { $$ = LSCPSERVER->SetDbInstrumentFilePath($5,$7);                 }
                       |  ECHO SP boolean                                                                  { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
                       |  SHELL SP INTERACT SP boolean                                                     { $$ = LSCPSERVER->SetShellInteract((yyparse_param_t*) yyparse_param, $5); }
+                      |  SHELL SP AUTO_CORRECT SP boolean                                                 { $$ = LSCPSERVER->SetShellAutoCorrect((yyparse_param_t*) yyparse_param, $5); }
                       |  VOLUME SP volume_value                                                           { $$ = LSCPSERVER->SetGlobalVolume($3);                            }
                       |  VOICES SP number                                                                 { $$ = LSCPSERVER->SetGlobalMaxVoices($3);                         }
                       |  STREAMS SP number                                                                { $$ = LSCPSERVER->SetGlobalMaxStreams($3);                        }
@@ -928,6 +939,9 @@ SHELL                 :  'S''H''E''L''L'
 INTERACT              :  'I''N''T''E''R''A''C''T'
                       ;
 
+AUTO_CORRECT          :  'A''U''T''O''_''C''O''R''R''E''C''T'
+                      ;
+
 APPEND                :  'A''P''P''E''N''D'
                       ;
 
@@ -1269,25 +1283,97 @@ QUIT                  :  'Q''U''I''T'
 
 %%
 
+// TODO: actually would be fine to have the following bunch of source code in a separate file, however those functions are a) accessing private Bison tables like yytable and b) including the functions from another file here would make the line numbers incorrect on compile errors in auto generated lscpparser.cpp
+
+/**
+ * Additional informations of a grammar symbol.
+ */
+struct BisonSymbolInfo {
+    bool isTerminalSymbol; ///< Whether the symbol is a terminal or non-termianl symbol. NOTE: Read comment regarding this in _isRuleTerminalSymbol() !!
+    String nextExpectedChars; ///< According to current parser position: sequence of characters expected next for satisfying this grammar symbol.
+};
+
+/**
+ * Returns true if the given grammar @a rule is a terminal symbol (in *our*
+ * terms).
+ *
+ * Please note that the term "terminal symbol" is a bit confusingly used in
+ * this source code here around. In Bison's terms, "terminal symbols" are (more
+ * or less) just the numbers returned by the YYLEX function. Since we decided
+ * though to use a convenient solution without a separate lexer, and all its
+ * caveats, all numbers by the yylex() function here are just the ASCII
+ * numbers of the individual characters received. Based on that however, one
+ * single character is not what one would intuitively expect of being a 
+ * "terminal symbol", because it is simply too primitive.
+ *
+ * So in this LSCP parser source code a "terminal symbol" rather means a
+ * keyword like "CREATE" or "GET". In the grammal definition above, those are
+ * however defined as grammar rules (non-terminals in Bison's terms). So this
+ * function decides like this: if the given grammar rule just contains
+ * individual characters on the right side of its grammar rule, then it is a
+ * "terminal symbol" in *our* terms.
+ *
+ * @param rule - Bison grammar rule number
+ */
+inline static bool _isRuleTerminalSymbol(int rule) {
+    for (int i = yyprhs[rule]; yyrhs[i] != -1; ++i)
+        if (yyrhs[i] >= YYNTOKENS) return false;
+    return true;
+}
+
+/**
+ * Returns additional informations to the given grammar @a rule.
+ */
+inline static BisonSymbolInfo _symbolInfoForRule(int rule, const String& nextExpectedChars) {
+    BisonSymbolInfo info;
+    info.isTerminalSymbol = _isRuleTerminalSymbol(rule);
+    if (info.isTerminalSymbol) info.nextExpectedChars  = nextExpectedChars;
+    return info;
+}
+
+/**
+ * Returns the human readable name of the given @a token.
+ */
+inline static String _tokenName(int token) {
+    String s = yytname[token];
+    // remove leading and trailing apostrophes that Bison usually adds to
+    // ASCII characters used directly in grammar rules
+    if (s.empty()) return s;
+    if (s[0] == '\'') s.erase(0, 1);
+    if (s.empty()) return s;
+    if (s[s.size() - 1] == '\'') s.erase(s.size() - 1);
+    return s;
+}
+
 #define DEBUG_BISON_SYNTAX_ERROR_WALKER 0
 
 /**
- * Internal function, only called by yyExpectedSymbols(). It is given a Bison
- * parser state stack, reflecting the parser's entire state at a certain point,
- * i.e. when a syntax error occured. This function will then walk ahead the
- * potential parse tree starting from the current head of the given state
- * stack. This function will call itself recursively to scan the individual
- * parse tree branches. As soon as it hits on the next non-terminal grammar
- * symbol in one parse tree branch, it adds the found non-terminal symbol to
- * @a expectedSymbols and aborts scanning the respective tree branch further.
- * If any local parser state is reached a second time, the respective parse
- * tree is aborted to avoid any endless recursion.
+ * Tries to find the next expected grammar symbols according to the given
+ * precise parse position & state represented by @a stack, according to Bison's
+ * LALR(1) parser algorithm.
  *
- * @param stack - Bison (yacc) state stack
+ * This function is given a Bison parser state stack, reflecting the parser's
+ * entire state at a certain point, i.e. when a syntax error occured. This
+ * function will then walk ahead the potential parse tree starting from the
+ * current head of the given state stack. This function will call itself
+ * recursively to scan the individual parse tree branches. As soon as it hits
+ * on the next non-terminal grammar symbol in one parse tree branch, it adds the
+ * found non-terminal symbol to @a expectedSymbols and aborts scanning the
+ * respective tree branch further. If any local parser state is reached a second
+ * time, the respective parse tree is aborted to avoid any endless recursion.
+ *
+ * @param stack - current Bison (yacc) state stack to be examined
  * @param expectedSymbols - will be filled with next expected grammar symbols
+ * @param nextExpectedChars - just for internal purpose, due to the recursive
+ *                            implementation of this function, do supply an
+ *                            empty character for this argument
  * @param depth - just for internal debugging purposes
  */
-static void walkAndFillExpectedSymbols(std::vector<YYTYPE_INT16>& stack, std::set<String>& expectedSymbols, int depth = 0) {
+static void walkAndFillExpectedSymbols(
+    std::vector<YYTYPE_INT16>& stack,
+    std::map<String,BisonSymbolInfo>& expectedSymbols,
+    String& nextExpectedChars, int depth = 0)
+{
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
     printf("\n");
     for (int i = 0; i < depth; ++i) printf("\t");
@@ -1308,7 +1394,7 @@ static void walkAndFillExpectedSymbols(std::vector<YYTYPE_INT16>& stack, std::se
         if (n <= 0 || n >= YYNRULES) return; // no rule, something is wrong
         // return the new resolved expected symbol (left-hand symbol of grammar
         // rule), then we're done in this state
-        expectedSymbols.insert(yytname[yyr1[n]]);
+        expectedSymbols[yytname[yyr1[n]]] = _symbolInfoForRule(n, nextExpectedChars);
         return;
     }
     if (!(YYPACT_NINF < n && n <= YYLAST)) return;
@@ -1320,7 +1406,7 @@ static void walkAndFillExpectedSymbols(std::vector<YYTYPE_INT16>& stack, std::se
     int begin = n < 0 ? -n : 0;
     int checklim = YYLAST - n + 1;
     int end = checklim < YYNTOKENS ? checklim : YYNTOKENS;
-    int rule, action, stackSize;
+    int rule, action, stackSize, nextExpectedCharsLen;
     for (int token = begin; token < end; ++token) {
         if (token == YYTERROR || yycheck[n + token] != token) continue;
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
@@ -1353,11 +1439,14 @@ static void walkAndFillExpectedSymbols(std::vector<YYTYPE_INT16>& stack, std::se
         // "shift" / push the new state on the state stack and call this
         // function recursively, and restore the stack after the recurse return
         stackSize = stack.size();
+        nextExpectedCharsLen = nextExpectedChars.size();
         stack.push_back(action);
+        nextExpectedChars += _tokenName(token);
         walkAndFillExpectedSymbols( //FIXME: could cause stack overflow (should be a loop instead), is probably fine with our current grammar though
-            stack, expectedSymbols, depth + 1
+            stack, expectedSymbols, nextExpectedChars, depth + 1
         );
         stack.resize(stackSize); // restore stack
+        nextExpectedChars.resize(nextExpectedCharsLen); // restore 'nextExpectedChars'
         continue;
 
     //default_reduction: // resolve default reduction for this state
@@ -1370,7 +1459,7 @@ static void walkAndFillExpectedSymbols(std::vector<YYTYPE_INT16>& stack, std::se
 #endif
         if (rule == 0 || rule >= YYNRULES) continue; // invalid rule, something is wrong
         // store the left-hand symbol of the grammar rule
-        expectedSymbols.insert(yytname[yyr1[rule]]);
+        expectedSymbols[yytname[yyr1[rule]]] = _symbolInfoForRule(rule, nextExpectedChars);
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
         printf(" (SYM %s) ", yytname[yyr1[rule]]); fflush(stdout);
 #endif
@@ -1380,6 +1469,10 @@ static void walkAndFillExpectedSymbols(std::vector<YYTYPE_INT16>& stack, std::se
 #endif
 }
 
+/**
+ * Implements Bison's so called "reduce" action, according to Bison's LALR(1)
+ * parser algorithm.
+ */
 inline static int _yyReduce(std::vector<YYTYPE_INT16>& stack, const int& rule) {
     if (stack.empty()) throw 1; // severe error
     const int len = yyr2[rule];
@@ -1393,6 +1486,10 @@ inline static int _yyReduce(std::vector<YYTYPE_INT16>& stack, const int& rule) {
     return newState;
 }
 
+/**
+ * Implements Bison's so called "default reduce" action, according to Bison's
+ * LALR(1) parser algorithm.
+ */
 inline static int _yyDefaultReduce(std::vector<YYTYPE_INT16>& stack) {
     if (stack.empty()) throw 2; // severe error
     int rule = yydefact[stack.back()];
@@ -1402,6 +1499,13 @@ inline static int _yyDefaultReduce(std::vector<YYTYPE_INT16>& stack) {
 
 #define DEBUG_PUSH_PARSE 0
 
+/**
+ * Implements parsing exactly one character (given by @a c), continueing at the
+ * parser position reflected by @a stack. The @a stack will hold the new parser
+ * state after this call.
+ *
+ * This function is implemented according to Bison's LALR(1) parser algorithm.
+ */
 static bool yyPushParse(std::vector<YYTYPE_INT16>& stack, char ch) {
     startLabel:
 
@@ -1458,6 +1562,14 @@ static bool yyPushParse(std::vector<YYTYPE_INT16>& stack, char ch) {
     return true;
 }
 
+/**
+ * Returns true if parsing ahead with given character @a ch is syntactially
+ * valid according to the LSCP grammar, it returns false if it would create a
+ * parse error.
+ *
+ * This is just a wrapper ontop of yyPushParse() which converts parser
+ * exceptions thrown by yyPushParse() into negative return value.
+ */
 static bool yyValid(std::vector<YYTYPE_INT16>& stack, char ch) {
     try {
         return yyPushParse(stack, ch);
@@ -1471,10 +1583,41 @@ static bool yyValid(std::vector<YYTYPE_INT16>& stack, char ch) {
     }
 }
 
-static int yyValidCharacters(std::vector<YYTYPE_INT16>& stack, const String& line) {
+/**
+ * Returns the amount of correct characters of given @a line from the left,
+ * according to the LSCP grammar.
+ *
+ * @param stack - a Bison symbol state stack to work with
+ * @param line  - the input line to check
+ * @param bAutoCorrect - if true: try to correct obvious, trivial syntax errors
+ */
+static int yyValidCharacters(std::vector<YYTYPE_INT16>& stack, String& line, bool bAutoCorrect) {
     int i;
     for (i = 0; i < line.size(); ++i) {
-        if (!yyValid(stack, line[i])) return i;
+        // since we might check the same parser state twice against the current
+        // char here below, and since the state stack might be altered
+        // (i.e. shifted or reduced) on syntax errors, we have to backup the
+        // current state stack and restore it on syntax errors below
+        std::vector<YYTYPE_INT16> stackBackup = stack;
+        if (yyValid(stackBackup, line[i])) {
+            stack = stackBackup;
+            continue;
+        }
+        if (bAutoCorrect) {
+            // try trivial corrections, i.e. upper case character instead of
+            // lower case, subline instead of space and vice versa
+            char c;
+            if      (line[i] == ' ') c = '_';
+            else if (line[i] == '_') c = ' ';
+            else if (isLowerCaseAlphaChar(line[i]))
+                c = alphaCharToUpperCase(line[i]);
+            else return i;
+            if (yyValid(stack, c)) {
+                line[i] = c;
+                continue;
+            }
+        }
+        return i;
     }
     return i;
 }
@@ -1485,7 +1628,7 @@ static int yyValidCharacters(std::vector<YYTYPE_INT16>& stack, const String& lin
  * error appeared.
  */
 static std::set<String> yyExpectedSymbols() {
-    std::set<String> result;
+    std::map<String,BisonSymbolInfo> expectedSymbols;
     yyparse_param_t* param = GetCurrentYaccSession();
     YYTYPE_INT16* ss = (*param->ppStackBottom);
     YYTYPE_INT16* sp = (*param->ppStackTop);
@@ -1495,27 +1638,123 @@ static std::set<String> yyExpectedSymbols() {
     for (int i = 0; i < iStackSize; ++i) {
         stack.push_back(ss[i]);
     }
+    String notUsedHere;
     // do the actual parser work
-    walkAndFillExpectedSymbols(stack, result);
+    walkAndFillExpectedSymbols(stack, expectedSymbols, notUsedHere);
+
+    // convert expectedSymbols to the result set
+    std::set<String> result;
+    for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
+         it != expectedSymbols.end(); ++it) result.insert(it->first);
     return result;
 }
 
 namespace LinuxSampler {
 
+#define DEBUG_SHELL_INTERACTION 0
+
+/**
+ * If LSP shell mode is enabled, then this function is called on every new
+ * received from client. It will check the current total input line and reply
+ * to the LSCP shell for providing colored syntax highlighting and potential
+ * auto completion in the shell.
+ *
+ * It also performs auto correction of obvious & trivial syntax mistakes if
+ * requested.
+ */
 String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param) {
+    // first, determine how many characters (starting from the left) of the
+    // given input line are already syntactially correct
     std::vector<YYTYPE_INT16> stack;
-    stack.push_back(0); // every Bison symbol stack starts with zero
-    String l = line + '\n';
-    int n = yyValidCharacters(stack, l);
+    stack.push_back(0); // every Bison symbol stack starts with state zero
+    String l = line + '\n'; // '\n' to pretend ENTER as if the line was now complete
+    int n = yyValidCharacters(stack, l, param->bShellAutoCorrect);
+
+    // if auto correction is enabled, apply the auto corrected string to
+    // intput/output string 'line'
+    if (param->bShellAutoCorrect) {
+        int nMin = (n < line.length()) ? n : line.length();
+        line.replace(0, nMin, l.substr(0, nMin));
+    }
+
+    // generate an info string that will be sent to the LSCP shell for letting
+    // it know which part is correct, which one is wrong, where is the cursor, etc.
     String result = line;
     result.insert(n <= result.length() ? n : result.length(), LSCP_SHK_GOOD_FRONT);
     int code = (n > line.length()) ? LSCP_SHU_COMPLETE : (n < line.length()) ?
                LSCP_SHU_SYNTAX_ERR : LSCP_SHU_INCOMPLETE;
-    result = "SHU:" + ToString(code) + ":" + result;
+    result = "SHU:" + ToString(code) + ":" + result + LSCP_SHK_CURSOR;
     //if (n > line.length()) result += " [OK]";
-#if DEBUG_PUSH_PARSE
+
+    // get a clean parser stack to the last valid parse position
+    // (due to the appended '\n' character above, and on syntax errors, the
+    // state stack might be in undesired, i.e. reduced state)
+    stack.clear();
+    stack.push_back(0); // every Bison symbol stack starts with state zero
+    l = line.substr(0, n);
+    if (!l.empty()) yyValidCharacters(stack, l, param->bShellAutoCorrect);
+
+    // generate auto completion suggestion (based on the current parser stack)
+    std::map<String,BisonSymbolInfo> expectedSymbols;
+    String notUsedHere;
+    walkAndFillExpectedSymbols(stack, expectedSymbols, notUsedHere);
+    if (expectedSymbols.size() == 1) {
+        String name          = expectedSymbols.begin()->first;
+        BisonSymbolInfo info = expectedSymbols.begin()->second;
+#if DEBUG_SHELL_INTERACTION
+        printf("Suggested Completion (%d): %s '%s'\n", expectedSymbols.size(), (info.isTerminalSymbol) ? "T:" : "NT:", (name + " (" + info.nextExpectedChars + ")").c_str());
+#endif
+        result += LSCP_SHK_SUGGEST_BACK + info.nextExpectedChars;
+    } else if (expectedSymbols.size() == 0) {
+#if DEBUG_SHELL_INTERACTION
+        printf("No suggestion.\n");
+#endif
+    } else if (expectedSymbols.size() > 1) {
+#if DEBUG_SHELL_INTERACTION
+        printf("Multiple possibilities:");
+        for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
+             it != expectedSymbols.end(); ++it)
+        {
+            printf(" %s (..%s)", it->first.c_str(), it->second.nextExpectedChars.c_str());
+        }
+        printf("\n");
+#endif
+        // check if any of the possibilites is a non-terminal symbol, if so, we
+        // have no way for auto completion at this point
+        bool bNonTerminalExists = false;
+        for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
+             it != expectedSymbols.end(); ++it) if (!it->second.isTerminalSymbol) { bNonTerminalExists = true; break; };
+        if (!bNonTerminalExists) {
+            // all possibilites are terminal symbaols, so try to find the least
+            // common string all possibilites start with from the left
+            String sCommon;
+            for (int i = 0; true; ++i) {
+                char c;
+                for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
+                     it != expectedSymbols.end(); ++it)
+                {
+                    if (i >= it->second.nextExpectedChars.size())
+                        goto commonSearchEndLabel;
+                    if (it == expectedSymbols.begin())
+                        c = it->second.nextExpectedChars[i];
+                    if (c != it->second.nextExpectedChars[i])
+                        goto commonSearchEndLabel;
+                    if (it == --expectedSymbols.end())
+                        sCommon += c;
+                }
+            }
+            commonSearchEndLabel:
+            if (!sCommon.empty()) result += LSCP_SHK_SUGGEST_BACK + sCommon;
+#if DEBUG_SHELL_INTERACTION
+            printf("Common possibility: '%s'\n", sCommon.c_str());
+#endif
+        }
+    }
+
+#if DEBUG_SHELL_INTERACTION
     printf("%s\n", result.c_str());
 #endif
+
     return result;
 }
 

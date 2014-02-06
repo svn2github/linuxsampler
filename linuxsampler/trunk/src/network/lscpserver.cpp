@@ -753,9 +753,9 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 			// only if the other side is the LSCP shell application:
 			// check the current (incomplete) command line for syntax errors,
 			// possible completions and report everything back to the shell
-			if ((*iter).bShellInteract) {
+			if ((*iter).bShellInteract || (*iter).bShellAutoCorrect) {
 				String s = lscpParserProcessShellInteraction(bufferedCommands[socket], &(*iter));
-				if (!s.empty()) AnswerClient(s + "\n");
+				if (!s.empty() && (*iter).bShellInteract) AnswerClient(s + "\n");
 			}
 		}
 		#if defined(WIN32)
@@ -4003,6 +4003,19 @@ String LSCPServer::SetShellInteract(yyparse_param_t* pSession, double boolean_va
     try {
         if      (boolean_value == 0) pSession->bShellInteract = false;
         else if (boolean_value == 1) pSession->bShellInteract = true;
+        else throw Exception("Not a boolean value, must either be 0 or 1");
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::SetShellAutoCorrect(yyparse_param_t* pSession, double boolean_value) {
+    dmsg(2,("LSCPServer: SetShellAutoCorrect(val=%f)\n", boolean_value));
+    LSCPResultSet result;
+    try {
+        if      (boolean_value == 0) pSession->bShellAutoCorrect = false;
+        else if (boolean_value == 1) pSession->bShellAutoCorrect = true;
         else throw Exception("Not a boolean value, must either be 0 or 1");
     } catch (Exception e) {
         result.Error(e);

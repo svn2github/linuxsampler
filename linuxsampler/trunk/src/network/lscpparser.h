@@ -88,6 +88,7 @@ struct _YYSTYPE {
 #define yystype YYSTYPE		///< For backward compatibility.
 #define YYSTYPE_IS_DECLARED	///< We tell the lexer / parser that we use our own data structure as defined above.
 #define YYTYPE_INT16 int16_t
+#define YYDEBUG 1
 
 /**
  * Parameters given to the parser on every yyparse() call.
@@ -97,6 +98,7 @@ struct yyparse_param_t {
     int         hSession;
     bool        bVerbose; ///< if true then all commands will immediately sent back (echo)
     bool        bShellInteract; ///< if true: then client is the LSCP shell
+    bool        bShellAutoCorrect; ///< if true: try to automatically correct obvious syntax mistakes
     int         iLine;    ///< Current line (just for verbosity / messages)
     int         iColumn;  ///< Current column (just for verbosity / messages)
     YYTYPE_INT16** ppStackBottom; ///< Bottom end of the Bison parser's state stack.
@@ -106,7 +108,7 @@ struct yyparse_param_t {
         pServer  = NULL;
         hSession = -1;
         bVerbose = false;
-        bShellInteract = false;
+        bShellInteract = bShellAutoCorrect = false;
         iLine = iColumn = 0;
         ppStackBottom = ppStackTop = NULL;
     }

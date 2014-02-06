@@ -30,6 +30,9 @@ using namespace LinuxSampler;
 static LSCPClient g_client;
 static KeyboardReader g_keyboardReader;
 static Condition g_todo;
+static String g_goodPortion;
+static String g_badPortion;
+static String g_suggestedPortion;
 
 static void printUsage() {
     cout << "lscp - The LinuxSampler Control Protocol (LSCP) Shell." << endl;
@@ -39,6 +42,8 @@ static void printUsage() {
     cout << "   -h  Host name of LSCP server (default \"" << LSCP_DEFAULT_HOST << "\")." << endl;
     cout << endl;
     cout << "   -p  TCP port number of LSCP server (default " << LSCP_DEFAULT_PORT << ")." << endl;
+    cout << endl;
+    cout << "   --no-auto-correct  Don't perform auto correction of obvious syntax errors." << endl;
     cout << endl;
 }
 
@@ -53,9 +58,21 @@ static void onNewKeyboardInputAvailable(KeyboardReader* reader) {
     g_todo.Set(true);
 }
 
+static void autoComplete() {
+    if (g_suggestedPortion.empty()) return;
+    String s;
+    // let the server delete mistaken characters first
+    for (int i = 0; i < g_badPortion.size(); ++i) s += '\b';
+    // now add the suggested, correct characters
+    s += g_suggestedPortion;
+    g_suggestedPortion.clear();
+    g_client.send(s);
+}
+
 int main(int argc, char *argv[]) {
     String host = LSCP_DEFAULT_HOST;
     int port    = LSCP_DEFAULT_PORT;
+    bool autoCorrect = true;
 
     // parse command line arguments
     for (int i = 0; i < argc; ++i) {
@@ -76,6 +93,8 @@ int main(int argc, char *argv[]) {
                 cerr << "Error: invalid port argument \"" << argv[i] << "\"\n";
                 return -1;
             }
+        } else if (s == "--no-auto-correct") {
+            autoCorrect = false;
         } else if (s[0] == '-') { // invalid / unknown command line argument ...
             printUsage();
             return -1;
@@ -86,7 +105,10 @@ int main(int argc, char *argv[]) {
     // receiving incoming network data from the sampler's LSCP server
     g_client.setCallback(onLSCPClientNewInputAvailable);
     if (!g_client.connect(host, port)) return -1;
-    String sResponse = g_client.sendCommandSync("SET SHELL INTERACT 1");
+    String sResponse = g_client.sendCommandSync(
+        (autoCorrect) ? "SET SHELL AUTO_CORRECT 1" : "SET SHELL AUTO_CORRECT 0"
+    );
+    sResponse = g_client.sendCommandSync("SET SHELL INTERACT 1");
     if (sResponse.substr(0, 2) != "OK") {
         cerr << "Error: sampler too old, it does not support shell instructions\n";
         return -1;
@@ -116,15 +138,46 @@ int main(int argc, char *argv[]) {
                 if (res >= 1) {                    
                     String s = line.substr(n);
 
-                    String key = LSCP_SHK_GOOD_FRONT;
-                    size_t i = s.find(key);
-                    String sGood = s.substr(0, i);
-                    String sBad  = s.substr(i + key.length());
-                    //printf("line '%s' good='%s' bad='%s'\n", line.c_str(), sGood.c_str(), sBad.c_str());
+                    // extract portion that is already syntactically correct
+                    size_t iGood = s.find(LSCP_SHK_GOOD_FRONT);
+                    String sGood = s.substr(0, iGood);
+                    if (sGood.find(LSCP_SHK_CURSOR) != string::npos)
+                        sGood.erase(sGood.find(LSCP_SHK_CURSOR), strlen(LSCP_SHK_CURSOR)); // erase cursor marker
 
-                    CCursor cursor = CCursor::now();
-                    cursor.toColumn(0);
-                    cursor.clearLine();
+                    // extract portion that was written syntactically incorrect
+                    String sBad = s.substr(iGood + strlen(LSCP_SHK_GOOD_FRONT));
+                    if (sBad.find(LSCP_SHK_CURSOR) != string::npos)
+                        sBad.erase(sBad.find(LSCP_SHK_CURSOR), strlen(LSCP_SHK_CURSOR)); // erase cursor marker
+                    if (sBad.find(LSCP_SHK_SUGGEST_BACK) != string::npos)
+                        sBad.erase(sBad.find(LSCP_SHK_SUGGEST_BACK)); // erase auto suggestion portion
+
+                    // extract portion that is suggested for auto completion
+                    String sSuggest;
+                    if (s.find(LSCP_SHK_SUGGEST_BACK) != string::npos) {
+                        sSuggest = s.substr(s.find(LSCP_SHK_SUGGEST_BACK) + strlen(LSCP_SHK_SUGGEST_BACK));
+                        if (sSuggest.find(LSCP_SHK_CURSOR) != string::npos)
+                            sSuggest.erase(sSuggest.find(LSCP_SHK_CURSOR), strlen(LSCP_SHK_CURSOR)); // erase cursor marker
+                    }
+
+                    // extract current cursor position
+                    int cursorColumn = sGood.size();
+                    String sCursor = s;
+                    if (sCursor.find(LSCP_SHK_GOOD_FRONT) != string::npos)
+                        sCursor.erase(sCursor.find(LSCP_SHK_GOOD_FRONT), strlen(LSCP_SHK_GOOD_FRONT)); // erase good/bad marker
+                    if (sCursor.find(LSCP_SHK_SUGGEST_BACK) != string::npos)
+                        sCursor.erase(sCursor.find(LSCP_SHK_SUGGEST_BACK), strlen(LSCP_SHK_SUGGEST_BACK)); // erase suggestion marker
+                    if (sCursor.find(LSCP_SHK_CURSOR) != string::npos)
+                        cursorColumn = sCursor.find(LSCP_SHK_CURSOR);
+
+                    // store those informations globally for the auto-completion
+                    // feature
+                    g_goodPortion      = sGood;
+                    g_badPortion       = sBad;
+                    g_suggestedPortion = sSuggest;
+
+                    //printf("line '%s' good='%s' bad='%s' suggested='%s' cursor=%d\n", line.c_str(), sGood.c_str(), sBad.c_str(), sSuggest.c_str(), cursorColumn);
+
+                    CCursor cursor = CCursor::now().toColumn(0).clearLine();
 
                     CFmt cfmt;
                     if (code == LSCP_SHU_COMPLETE) cfmt.bold().green();
@@ -132,6 +185,10 @@ int main(int argc, char *argv[]) {
                     cout << sGood << flush;
                     cfmt.reset().red();
                     cout << sBad << flush;
+                    cfmt.bold().yellow();
+                    cout << sSuggest << flush;
+
+                    cursor.toColumn(cursorColumn);
                 }
             } else if (line.substr(0,2) == "OK") { // single-line response expected ...
                 cout << endl << flush;
@@ -177,6 +234,9 @@ int main(int argc, char *argv[]) {
             if (c == KBD_BACKSPACE) {
                 cout << "\b \b" << flush;
                 c = '\b';
+            } else if (c == '\t') { // auto completion ...
+                autoComplete();
+                continue; // don't send tab character to LSCP server
             } else if (c != '\n') { // don't apply RETURN stroke yet, since the typed command might still be corrected by the sampler
                 cout << c << flush;
             }

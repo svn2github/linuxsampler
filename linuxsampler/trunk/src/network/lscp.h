@@ -45,6 +45,8 @@
 // LSCP Shell Keywords
 
 #define LSCP_SHK_GOOD_FRONT		"{{GF}}"
+#define LSCP_SHK_CURSOR			"{{CU}}"
+#define LSCP_SHK_SUGGEST_BACK	"{{SB}}"
 #define LSCP_SHK_EXPECT_MULTI_LINE  "SHE:MLINE"
 
 #endif // __LSCP_H__
