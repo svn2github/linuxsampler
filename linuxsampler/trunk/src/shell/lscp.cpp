@@ -19,6 +19,7 @@
 #include "CCursor.h"
 
 #include "../common/global.h"
+#include "../common/global_private.h"
 #include "../common/Condition.h"
 
 #define LSCP_DEFAULT_HOST "localhost"
@@ -27,12 +28,13 @@
 using namespace std;
 using namespace LinuxSampler;
 
-static LSCPClient g_client;
-static KeyboardReader g_keyboardReader;
+static LSCPClient* g_client = NULL;
+static KeyboardReader* g_keyboardReader = NULL;
 static Condition g_todo;
 static String g_goodPortion;
 static String g_badPortion;
 static String g_suggestedPortion;
+static const String g_prompt = "lscp=# ";
 
 static void printUsage() {
     cout << "lscp - The LinuxSampler Control Protocol (LSCP) Shell." << endl;
@@ -45,6 +47,19 @@ static void printUsage() {
     cout << endl;
     cout << "   --no-auto-correct  Don't perform auto correction of obvious syntax errors." << endl;
     cout << endl;
+}
+
+static void printWelcome() {
+    cout << "Welcome to lscp " << VERSION << ", the LinuxSampler Control Protocol (LSCP) shell." << endl;
+    cout << endl;
+}
+
+static void printPrompt() {
+    cout << g_prompt << flush;
+}
+
+static int promptOffset() {
+    return g_prompt.size();
 }
 
 // Called by the network reading thread, whenever new data arrived from the
@@ -66,7 +81,7 @@ static void autoComplete() {
     // now add the suggested, correct characters
     s += g_suggestedPortion;
     g_suggestedPortion.clear();
-    g_client.send(s);
+    g_client->send(s);
 }
 
 int main(int argc, char *argv[]) {
@@ -103,22 +118,27 @@ int main(int argc, char *argv[]) {
 
     // try to connect to the sampler's LSCP server and start a thread for
     // receiving incoming network data from the sampler's LSCP server
-    g_client.setCallback(onLSCPClientNewInputAvailable);
-    if (!g_client.connect(host, port)) return -1;
-    String sResponse = g_client.sendCommandSync(
+    g_client = new LSCPClient;
+    g_client->setCallback(onLSCPClientNewInputAvailable);
+    if (!g_client->connect(host, port)) return -1;
+    String sResponse = g_client->sendCommandSync(
         (autoCorrect) ? "SET SHELL AUTO_CORRECT 1" : "SET SHELL AUTO_CORRECT 0"
     );
-    sResponse = g_client.sendCommandSync("SET SHELL INTERACT 1");
+    sResponse = g_client->sendCommandSync("SET SHELL INTERACT 1");
     if (sResponse.substr(0, 2) != "OK") {
         cerr << "Error: sampler too old, it does not support shell instructions\n";
         return -1;
     }
+    
+    printWelcome();
+    printPrompt();
 
     // start a thread for reading from the local text input keyboard
     // (keyboard echo will be disabled as well to have a clean control on what
     // is appearing on the screen)
-    g_keyboardReader.setCallback(onNewKeyboardInputAvailable);
-    g_keyboardReader.startReading();
+    g_keyboardReader = new KeyboardReader;
+    g_keyboardReader->setCallback(onNewKeyboardInputAvailable);
+    g_keyboardReader->startReading();
     
     // main thread's loop
     while (true) {
@@ -129,8 +149,8 @@ int main(int argc, char *argv[]) {
         g_todo.Unlock();
 
         // did network data arrive?
-        while (g_client.messageComplete()) {
-            String line = *g_client.popLine();
+        while (g_client->messageComplete()) {
+            String line = *g_client->popLine();
             //printf("line '%s'\n", line.c_str());
             if (line.substr(0,4) == "SHU:") {
                 int code = 0, n = 0;
@@ -178,6 +198,7 @@ int main(int argc, char *argv[]) {
                     //printf("line '%s' good='%s' bad='%s' suggested='%s' cursor=%d\n", line.c_str(), sGood.c_str(), sBad.c_str(), sSuggest.c_str(), cursorColumn);
 
                     CCursor cursor = CCursor::now().toColumn(0).clearLine();
+                    printPrompt();
 
                     CFmt cfmt;
                     if (code == LSCP_SHU_COMPLETE) cfmt.bold().green();
@@ -188,7 +209,7 @@ int main(int argc, char *argv[]) {
                     cfmt.bold().yellow();
                     cout << sSuggest << flush;
 
-                    cursor.toColumn(cursorColumn);
+                    cursor.toColumn(cursorColumn + promptOffset());
                 }
             } else if (line.substr(0,2) == "OK") { // single-line response expected ...
                 cout << endl << flush;
@@ -197,6 +218,7 @@ int main(int argc, char *argv[]) {
                 cout << line.substr(0,2) << flush;
                 cfmt.reset();
                 cout << line.substr(2) << endl << flush;
+                printPrompt();
             } else if (line.substr(0,3) == "WRN") { // single-line response expected ...
                 cout << endl << flush;
                 CFmt cfmt;
@@ -204,6 +226,7 @@ int main(int argc, char *argv[]) {
                 cout << line.substr(0,3) << flush;
                 cfmt.reset();
                 cout << line.substr(3) << endl << flush;
+                printPrompt();
             } else if (line.substr(0,3) == "ERR") { // single-line response expected ...
                 cout << endl << flush;
                 CFmt cfmt;
@@ -211,28 +234,32 @@ int main(int argc, char *argv[]) {
                 cout << line.substr(0,3) << flush;
                 cfmt.reset();
                 cout << line.substr(3) << endl << flush;
-            } else if (g_client.multiLine()) { // multi-line response expected ...
+                printPrompt();
+            } else if (g_client->multiLine()) { // multi-line response expected ...
                 cout << endl << flush;
                 while (true) {                   
                    cout << line << endl << flush;
                    if (line.substr(0, 1) == ".") break;
-                   if (!g_client.lineAvailable()) break;
-                   line = *g_client.popLine();
+                   if (!g_client->lineAvailable()) break;
+                   line = *g_client->popLine();
                 }
+                printPrompt();
             } else {
                 cout << endl << line << endl << flush;
+                printPrompt();
             }
         }
 
         // did keyboard input arrive?
-        while (g_keyboardReader.charAvailable()) {
-            char c = g_keyboardReader.popChar();
+        while (g_keyboardReader->charAvailable()) {
+            char c = g_keyboardReader->popChar();
 
             CFmt cfmt;
             cfmt.white();
             //std::cout << c << "(" << int(c) << ")" << std::endl << std::flush;
             if (c == KBD_BACKSPACE) {
-                cout << "\b \b" << flush;
+                if (promptOffset() < CCursor::now().column())
+                    cout << "\b \b" << flush;
                 c = '\b';
             } else if (c == '\t') { // auto completion ...
                 autoComplete();
@@ -241,7 +268,7 @@ int main(int argc, char *argv[]) {
                 cout << c << flush;
             }
 
-            g_client.send(c);
+            g_client->send(c);
         }
     }
 

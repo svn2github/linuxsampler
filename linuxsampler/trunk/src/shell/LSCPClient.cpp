@@ -44,6 +44,7 @@ bool LSCPClient::connect(String host, int port) {
     addr.sin_port = htons(port);
     if (::connect(hSocket, (sockaddr*)&addr, sizeof(addr)) < 0) {
         std::cerr << "Error: Could not connect to host \"" << host << "\".\n";
+        std::cerr << "Is linuxsampler running and listening on port " << port << " ?\n";
         disconnect();
         return false;
     }

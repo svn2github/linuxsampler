@@ -15,20 +15,26 @@
 #include <assert.h>
 #include <sys/ioctl.h>
 #include <stdio.h>
+#include "../common/Mutex.h"
+
+using namespace LinuxSampler;
 
 ///////////////////////////////////////////////////////////////////////////
 // class 'TerminalSetting'
 
+static Mutex g_mutexReferences;
 static std::map<void*,int> g_terminalSettingReferences;
 
 static termios* _newTermios() {
     termios* p = new termios;
+    LockGuard lock(g_mutexReferences);
     g_terminalSettingReferences[p] = 1;
     return p;
 }
 
 static void _releaseTermiosRef(void* p) {
     if (!p) return;
+    LockGuard lock(g_mutexReferences);
     std::map<void*,int>::iterator it = g_terminalSettingReferences.find(p);
     assert(it != g_terminalSettingReferences.end());
     assert(it->second > 0);
@@ -41,6 +47,7 @@ static void _releaseTermiosRef(void* p) {
 
 static termios* _bumpTermiosRef(void* p) {
     if (!p) return NULL;
+    LockGuard lock(g_mutexReferences);
     std::map<void*,int>::iterator it = g_terminalSettingReferences.find(p);
     assert(it != g_terminalSettingReferences.end());
     assert(it->second > 0);
