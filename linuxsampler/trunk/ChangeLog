@@ -34,6 +34,9 @@ Version CVS HEAD (?)
     - fixed build error on newer MinGW
     - support building with older jack versions
     - support building with spaces in vst sdk path
+    - enabled automake 'subdir-objects' option and moved external
+      source references (vst, au, asio) from makefiles to cpp files,
+      in order to get rid of warnings from automake 1.14
 
   * general changes:
     - Refactoring: moved the independent code from

@@ -1323,7 +1323,7 @@ AC_DEFINE_UNQUOTED(CONFIG_UNSIGNED_TRIANG_ALGO, ${triang_unsigned}, [Define unsi
 # Create Build Files
 
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 
 AC_LANG([C++])
 

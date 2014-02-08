@@ -12,48 +12,7 @@ noinst_PROGRAMS = LinuxSamplerAU
 # Uncomment for debug messages.
 #debug_messages = -DAU_DEBUG_DISPATCHER=1
 
-nodist_LinuxSamplerAU_SOURCES = $(ca_public_dir)/CAHostTimeBase.cpp \
-    $(ca_public_dir)/CAHostTimeBase.h \
-    $(ca_public_dir)/CAAUMIDIMap.cpp \
-    $(ca_public_dir)/CAAUMIDIMap.h \
-    $(ca_public_dir)/CAAUMIDIMapManager.cpp \
-    $(ca_public_dir)/CAAUMIDIMapManager.h \
-    $(ca_public_dir)/CAAUParameter.cpp \
-    $(ca_public_dir)/CAAUParameter.h \
-    $(ca_public_dir)/CAAudioChannelLayout.cpp \
-    $(ca_public_dir)/CAAudioChannelLayout.h \
-    $(ca_public_dir)/CAMutex.cpp \
-    $(ca_public_dir)/CAMutex.h \
-    $(ca_public_dir)/CAStreamBasicDescription.cpp \
-    $(ca_public_dir)/CAStreamBasicDescription.h \
-    $(ca_public_dir)/CAVectorUnitTypes.h \
-    $(ca_public_dir)/CAVectorUnit.cpp \
-    $(ca_public_dir)/CAVectorUnit.h \
-    $(au_public_dir)/Utility/AUBuffer.cpp \
-    $(au_public_dir)/Utility/AUBuffer.h \
-    $(au_public_dir)/Utility/AUDebugDispatcher.cpp \
-    $(au_public_dir)/Utility/AUDebugDispatcher.h \
-    $(au_public_dir)/Utility/AUInputFormatConverter.h \
-    $(au_public_dir)/Utility/AUSilentTimeout.h \
-    $(au_public_dir)/Utility/AUTimestampGenerator.h \
-    $(au_public_dir)/AUBase/AUBase.cpp \
-    $(au_public_dir)/AUBase/AUBase.h \
-    $(au_public_dir)/AUBase/AUDispatch.cpp \
-    $(au_public_dir)/AUBase/AUDispatch.h \
-    $(au_public_dir)/AUBase/AUInputElement.cpp \
-    $(au_public_dir)/AUBase/AUInputElement.h \
-    $(au_public_dir)/AUBase/AUOutputElement.cpp \
-    $(au_public_dir)/AUBase/AUOutputElement.h \
-    $(au_public_dir)/AUBase/AUScopeElement.cpp \
-    $(au_public_dir)/AUBase/AUScopeElement.h \
-    $(au_public_dir)/AUBase/ComponentBase.cpp \
-    $(au_public_dir)/AUBase/ComponentBase.h \
-    $(au_public_dir)/OtherBases/AUMIDIBase.cpp \
-    $(au_public_dir)/OtherBases/AUMIDIBase.h \
-    $(au_public_dir)/OtherBases/MusicDeviceBase.cpp \
-    $(au_public_dir)/OtherBases/MusicDeviceBase.h
-
-LinuxSamplerAU_SOURCES = PluginAU.cpp PluginAU.h PluginAUVersion.h
+LinuxSamplerAU_SOURCES = PluginAU.cpp PluginAU.h PluginAUVersion.h ausdk.cpp
 
 LinuxSamplerAU_LDADD = $(top_builddir)/src/liblinuxsampler.la
 
