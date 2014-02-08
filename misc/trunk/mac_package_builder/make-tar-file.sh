@@ -31,6 +31,7 @@ createuniv lib/libsndfile.1.dylib
 createuniv lib/libgig.6.dylib
 createuniv lib/linuxsampler/liblinuxsampler.3.dylib lib/liblinuxsampler.3.dylib
 createuniv bin/linuxsampler LinuxSampler/linuxsampler
+createuniv bin/lscp LinuxSampler/lscp
 cp README "$D"
 cp licenses.txt "$D/LinuxSampler"
 
