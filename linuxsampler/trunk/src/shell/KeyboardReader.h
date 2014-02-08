@@ -18,6 +18,7 @@
 #include "TerminalCtrl.h"
 
 #define KBD_BACKSPACE 127
+#define KBD_ESCAPE    27
 
 using namespace LinuxSampler;
 

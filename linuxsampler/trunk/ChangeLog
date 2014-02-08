@@ -392,6 +392,7 @@ Version CVS HEAD (?)
     - Added support for auto correction of obvious and trivial syntax mistakes.
     - Added support for auto completion by tab key.
     - Show currently available auto completion while typing.
+    - Added support for browsing command history with up / down keys.
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

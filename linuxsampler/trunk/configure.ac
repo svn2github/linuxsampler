@@ -3,7 +3,7 @@
 
 m4_define(linuxsampler_release_major, 1)
 m4_define(linuxsampler_release_minor, 0)
-m4_define(linuxsampler_release_build, 0.svn30)
+m4_define(linuxsampler_release_build, 0.svn31)
 
 
 AC_INIT([linuxsampler],[linuxsampler_release_major.linuxsampler_release_minor.linuxsampler_release_build])
@@ -43,6 +43,7 @@ AC_DEFINE_UNQUOTED(LSCP_RELEASE_MINOR, ${LSCP_RELEASE_MINOR}, [LSCP spec minor v
 AC_PROG_CXX
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
+AC_PROG_YACC
 
 AC_SUBST(SHLIB_VERSION_ARG)
 AC_SUBST(SHARED_VERSION_INFO)
@@ -181,6 +182,18 @@ fi
 # isn't it hidden by libgig?
 AC_CHECK_HEADERS(uuid/uuid.h)
 AC_SEARCH_LIBS(uuid_generate, uuid)
+
+# In case Bison is available, determine the exact version, since we need to
+# use different custom parser code for Bison 2.x vs. Bison 3.x generated
+# parser yacc tables.
+if echo "$YACC" | grep -q bison; then
+    # NOTE: m4 removes [], that's why it needs to be escaped
+    bison_version=[`$YACC --version | head -n 1 | sed -e 's/[^0-9.]*\([-0-9.]\+\)$/\1/'`]
+    bison_version_major=`echo $bison_version | cut -d. -f1`
+    bison_version_minor=`echo $bison_version | cut -d. -f2`
+    AC_DEFINE_UNQUOTED(HAVE_BISON_MAJ,$bison_version_major,[Define to the major version of the GNU Bison program installed.])
+    AC_DEFINE_UNQUOTED(HAVE_BISON_MIN,$bison_version_minor,[Define to the minor version of the GNU Bison program installed.])
+fi
 
 
 

@@ -1293,6 +1293,58 @@ struct BisonSymbolInfo {
     String nextExpectedChars; ///< According to current parser position: sequence of characters expected next for satisfying this grammar symbol.
 };
 
+#if HAVE_BISON_MAJ >= 3 // Bison 3.x or younger ...
+
+/**
+ * Must ONLY be called just before a so called "reduce" parser action:
+ * Returns true if the grammar rule, which is just about to be "reduced", is a
+ * terminal symbol (in *our* terms).
+ *
+ * Please note that the term "terminal symbol" is a bit confusingly used in
+ * this source code here around. In Bison's terms, "terminal symbols" are (more
+ * or less) just the numbers returned by the YYLEX function. Since we decided
+ * though to use a convenient solution without a separate lexer, and all its
+ * caveats, all numbers by the yylex() function here are just the ASCII
+ * numbers of the individual characters received. Based on that however, one
+ * single character is not what one would intuitively expect of being a 
+ * "terminal symbol", because it is simply too primitive.
+ *
+ * So in this LSCP parser source code a "terminal symbol" rather means a
+ * keyword like "CREATE" or "GET". In the grammal definition above, those are
+ * however defined as grammar rules (non-terminals in Bison's terms). So this
+ * function decides like this: if the given grammar rule just contains
+ * individual characters on the right side of its grammar rule, then it is a
+ * "terminal symbol" in *our* terms.
+ *
+ * @param rule - Bison grammar rule number
+ * @param stack - reflecting current Bison parser state
+ */
+inline static bool _isRuleTerminalSymbol(int rule, const std::vector<YYTYPE_INT16>& stack) {
+    int nrhs = yyr2[rule];
+    for (int i = 0; i < nrhs; ++i)
+        if (yystos[*(stack.end() - nrhs + i)] >= YYNTOKENS) return false;
+    return true;
+}
+
+/**
+ * Must ONLY be called just before a so called "reduce" parser action: Returns
+ * additional informations to the given grammar rule that is about to be
+ * "reduced".
+ *
+ * @param rule - Bison grammar rule number
+ * @param stack - reflecting current Bison parser state
+ * @param nextExpectedChars - must already be filled with the characters
+ *                            expected to be coming next
+ */
+inline static BisonSymbolInfo _symbolInfoForRule(int rule, const std::vector<YYTYPE_INT16>& stack, const String& nextExpectedChars) {
+    BisonSymbolInfo info;
+    info.isTerminalSymbol = _isRuleTerminalSymbol(rule, stack);
+    if (info.isTerminalSymbol) info.nextExpectedChars  = nextExpectedChars;
+    return info;
+}
+
+#else // Bison 2.x or older ...
+
 /**
  * Returns true if the given grammar @a rule is a terminal symbol (in *our*
  * terms).
@@ -1323,6 +1375,10 @@ inline static bool _isRuleTerminalSymbol(int rule) {
 
 /**
  * Returns additional informations to the given grammar @a rule.
+ *
+ * @param rule - grammar rule index to retrieve informations about
+ * @param nextExpectedChars - must already be filled with the characters
+ *                            expected to be coming next
  */
 inline static BisonSymbolInfo _symbolInfoForRule(int rule, const String& nextExpectedChars) {
     BisonSymbolInfo info;
@@ -1330,6 +1386,8 @@ inline static BisonSymbolInfo _symbolInfoForRule(int rule, const String& nextExp
     if (info.isTerminalSymbol) info.nextExpectedChars  = nextExpectedChars;
     return info;
 }
+
+#endif // HAVE_BISON_MAJ >= 3
 
 /**
  * Returns the human readable name of the given @a token.
@@ -1394,7 +1452,11 @@ static void walkAndFillExpectedSymbols(
         if (n <= 0 || n >= YYNRULES) return; // no rule, something is wrong
         // return the new resolved expected symbol (left-hand symbol of grammar
         // rule), then we're done in this state
+        #if HAVE_BISON_MAJ >= 3
+        expectedSymbols[yytname[yyr1[n]]] = _symbolInfoForRule(n, stack, nextExpectedChars);
+        #else
         expectedSymbols[yytname[yyr1[n]]] = _symbolInfoForRule(n, nextExpectedChars);
+        #endif
         return;
     }
     if (!(YYPACT_NINF < n && n <= YYLAST)) return;
@@ -1459,7 +1521,11 @@ static void walkAndFillExpectedSymbols(
 #endif
         if (rule == 0 || rule >= YYNRULES) continue; // invalid rule, something is wrong
         // store the left-hand symbol of the grammar rule
+        #if HAVE_BISON_MAJ >= 3
+        expectedSymbols[yytname[yyr1[rule]]] = _symbolInfoForRule(rule, stack, nextExpectedChars);
+        #else
         expectedSymbols[yytname[yyr1[rule]]] = _symbolInfoForRule(rule, nextExpectedChars);
+        #endif
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
         printf(" (SYM %s) ", yytname[yyr1[rule]]); fflush(stdout);
 #endif

@@ -35,6 +35,8 @@ static String g_goodPortion;
 static String g_badPortion;
 static String g_suggestedPortion;
 static const String g_prompt = "lscp=# ";
+static std::vector<String> g_commandHistory;
+static int g_commandHistoryIndex = -1;
 
 static void printUsage() {
     cout << "lscp - The LinuxSampler Control Protocol (LSCP) Shell." << endl;
@@ -82,6 +84,33 @@ static void autoComplete() {
     s += g_suggestedPortion;
     g_suggestedPortion.clear();
     g_client->send(s);
+}
+
+static void commandFromHistory(int offset) {
+    if (g_commandHistoryIndex + offset < 0 ||
+        g_commandHistoryIndex + offset >= g_commandHistory.size()) return;
+    g_commandHistoryIndex += offset;
+    int len = g_goodPortion.size() + g_badPortion.size();
+    // erase current active line
+    for (int i = 0; i < len; ++i) g_client->send('\b');
+    // transmit new/old line to LSCP server
+    String command = g_commandHistory[g_commandHistory.size() - g_commandHistoryIndex - 1];
+    g_client->send(command);
+}
+
+static void previousCommand() {
+    commandFromHistory(1);
+}
+
+static void nextCommand() {
+    commandFromHistory(-1);
+}
+
+static void storeCommandInHistory(const String& sCommand) {
+    g_commandHistoryIndex = -1; // reset history index
+    // don't save the command if the previous one was the same
+    if (g_commandHistory.empty() || g_commandHistory.back() != sCommand)
+        g_commandHistory.push_back(sCommand);
 }
 
 int main(int argc, char *argv[]) {
@@ -139,7 +168,10 @@ int main(int argc, char *argv[]) {
     g_keyboardReader = new KeyboardReader;
     g_keyboardReader->setCallback(onNewKeyboardInputAvailable);
     g_keyboardReader->startReading();
-    
+
+    int iKbdEscapeCharsExpected = 0;
+    char kbdPrevEscapeChar;
+
     // main thread's loop
     while (true) {
         // sleep until either new data from the network or from keyboard arrived
@@ -257,14 +289,34 @@ int main(int argc, char *argv[]) {
             CFmt cfmt;
             cfmt.white();
             //std::cout << c << "(" << int(c) << ")" << std::endl << std::flush;
-            if (c == KBD_BACKSPACE) {
+            if (iKbdEscapeCharsExpected) { // escape sequence (still) expected now ...
+                iKbdEscapeCharsExpected--;
+                if (iKbdEscapeCharsExpected) kbdPrevEscapeChar = c;
+                else { // escape sequence is complete ...
+                    if (kbdPrevEscapeChar == 91 && c == 65) // up key
+                        previousCommand();
+                    else if (kbdPrevEscapeChar == 91 && c == 66) // down key
+                        nextCommand();
+                    else if (kbdPrevEscapeChar == 91 && c == 68) { // left key
+                        //TODO: move cursor left
+                    } else if (kbdPrevEscapeChar == 91 && c == 67) { // right key
+                        //TODO: move cursor right
+                    }
+                }
+                continue; // don't send this escape sequence character to LSCP server
+            } else if (c == KBD_ESCAPE) { // escape sequence for special keys expected next ...
+                iKbdEscapeCharsExpected = 2;
+                continue; // don't send ESC character to LSCP server
+            } else if (c == KBD_BACKSPACE) {
                 if (promptOffset() < CCursor::now().column())
                     cout << "\b \b" << flush;
-                c = '\b';
+                c = '\b';    
             } else if (c == '\t') { // auto completion ...
                 autoComplete();
                 continue; // don't send tab character to LSCP server
-            } else if (c != '\n') { // don't apply RETURN stroke yet, since the typed command might still be corrected by the sampler
+            } else if (c == '\n') {
+                storeCommandInHistory(g_goodPortion + g_badPortion);
+            } else { // don't apply RETURN stroke yet, since the typed command might still be corrected by the sampler
                 cout << c << flush;
             }
 
