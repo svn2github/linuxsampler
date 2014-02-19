@@ -83,7 +83,7 @@ public:
      * @returns true on success, false if internal FIFO full
      *          (or provided value invalid)
      */
-    bool SendProgramChangeToSampler(int Program);
+    bool SendProgramChangeToSampler(uint8_t Program);
 
     /**
      * Can be called by the virtual MIDI device to check whether a new note

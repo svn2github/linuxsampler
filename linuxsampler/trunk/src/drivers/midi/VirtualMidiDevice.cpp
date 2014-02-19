@@ -86,14 +86,18 @@ namespace LinuxSampler {
         if (Pitch < -8192 || Pitch > 8191) return false;
         Pitch += 8192;
         // order: LSB, MSB like it would be in a regular pitch bend MIDI message
-        event_t ev = { EVENT_TYPE_PITCHBEND, Pitch & 0x7f, (Pitch >> 7) & 0x7f };
+        event_t ev = {
+            EVENT_TYPE_PITCHBEND,
+            static_cast<uint8_t>(Pitch & 0x7f),
+            static_cast<uint8_t>((Pitch >> 7) & 0x7f)
+        };
         if (p->events.write_space() <= 0) return false;
         p->events.push(&ev);
         return true;
     }
 
-    bool VirtualMidiDevice::SendProgramChangeToSampler(int Program) {
-        if (Program < 0 || Program > 127) return false;
+    bool VirtualMidiDevice::SendProgramChangeToSampler(uint8_t Program) {
+        if (Program > 127) return false;
         event_t ev = { EVENT_TYPE_PROGRAM, Program, 0 };
         if (p->events.write_space() <= 0) return false;
         p->events.push(&ev);
