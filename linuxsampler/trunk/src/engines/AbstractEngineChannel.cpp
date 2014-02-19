@@ -663,11 +663,28 @@ namespace LinuxSampler {
                             event.Param.Note.Channel  = channel;
                             break;
                         case VirtualMidiDevice::EVENT_TYPE_CC:
-                            event.Type = Event::type_control_change;
-                            event.Param.CC.Controller = devEvent.Arg1;
-                            event.Param.CC.Value      = devEvent.Arg2;
-                            event.Param.CC.Channel    = channel;
+                            switch (devEvent.Arg1) {
+                                case 0: // bank select MSB ...
+                                    SetMidiBankMsb(devEvent.Arg2);
+                                    continue; // don't push this event into FIFO
+                                case 32: // bank select LSB ...
+                                    SetMidiBankLsb(devEvent.Arg2);
+                                    continue; // don't push this event into FIFO
+                                default: // regular MIDI CC ...
+                                    event.Type = Event::type_control_change;
+                                    event.Param.CC.Controller = devEvent.Arg1;
+                                    event.Param.CC.Value      = devEvent.Arg2;
+                                    event.Param.CC.Channel    = channel;
+                            }
                             break;
+                        case VirtualMidiDevice::EVENT_TYPE_PITCHBEND:
+                            event.Type = Event::type_pitchbend;
+                            event.Param.Pitch.Pitch = int(devEvent.Arg2 << 7 | devEvent.Arg1) - 8192;
+                            event.Param.Pitch.Channel = channel;
+                            break;
+                        case VirtualMidiDevice::EVENT_TYPE_PROGRAM:
+                            SendProgramChange(devEvent.Arg1);
+                            continue; // don't push this event into FIFO
                         default:
                             std::cerr << "AbstractEngineChannel::ImportEvents() ERROR: unknown event type ("
                                       << devEvent.Type << "). This is a bug!";

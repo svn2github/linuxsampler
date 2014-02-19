@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2008 - 2012 Christian Schoenebeck
+    Copyright (C) 2008 - 2014 Christian Schoenebeck
  */
 
 #include "VirtualMidiDevice.h"
@@ -77,6 +77,24 @@ namespace LinuxSampler {
     bool VirtualMidiDevice::SendCCToSampler(uint8_t Controller, uint8_t Value) {
         if (Controller >= MIDI_CONTROLLERS || Value > 127) return false;
         event_t ev = { EVENT_TYPE_CC, Controller, Value };
+        if (p->events.write_space() <= 0) return false;
+        p->events.push(&ev);
+        return true;
+    }
+
+    bool VirtualMidiDevice::SendPitchBendToSampler(int Pitch) {
+        if (Pitch < -8192 || Pitch > 8191) return false;
+        Pitch += 8192;
+        // order: LSB, MSB like it would be in a regular pitch bend MIDI message
+        event_t ev = { EVENT_TYPE_PITCHBEND, Pitch & 0x7f, (Pitch >> 7) & 0x7f };
+        if (p->events.write_space() <= 0) return false;
+        p->events.push(&ev);
+        return true;
+    }
+
+    bool VirtualMidiDevice::SendProgramChangeToSampler(int Program) {
+        if (Program < 0 || Program > 127) return false;
+        event_t ev = { EVENT_TYPE_PROGRAM, Program, 0 };
         if (p->events.write_space() <= 0) return false;
         p->events.push(&ev);
         return true;

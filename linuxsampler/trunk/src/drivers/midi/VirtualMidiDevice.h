@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2008 - 2012 Christian Schoenebeck
+    Copyright (C) 2008 - 2014 Christian Schoenebeck
  */
 
 #ifndef LS_VIRTUALMIDIDEVICE_H
@@ -22,7 +22,9 @@ public:
     enum event_type_t {
         EVENT_TYPE_NOTEON  = 1,
         EVENT_TYPE_NOTEOFF = 2,
-        EVENT_TYPE_CC      = 3
+        EVENT_TYPE_CC      = 3,
+        EVENT_TYPE_PITCHBEND,
+        EVENT_TYPE_PROGRAM
     };
 
     struct event_t {
@@ -58,6 +60,30 @@ public:
      *          (or provided values invalid)
      */
     bool SendCCToSampler(uint8_t Controller, uint8_t Value);
+
+    /**
+     * Sends a MIDI @e Pitch @e Bend event to the sampler.
+     *
+     * @param Pitch - MIDI pitch value (-8192 ... +8191)
+     *
+     * @returns true on success, false if internal FIFO full
+     *          (or provided pitch value out of valid range)
+     */
+    bool SendPitchBendToSampler(int Pitch);
+
+    /**
+     * Sends a MIDI @e Program @e Change event to the sampler.
+     *
+     * If you want to change the sound bank, call SendCCToSampler() (with
+     * controller = 0 for bank select MSB and/or controller = 32 for bank select
+     * LSB) before calling this method.
+     *
+     * @param Program - MIDI program number
+     *
+     * @returns true on success, false if internal FIFO full
+     *          (or provided value invalid)
+     */
+    bool SendProgramChangeToSampler(int Program);
 
     /**
      * Can be called by the virtual MIDI device to check whether a new note

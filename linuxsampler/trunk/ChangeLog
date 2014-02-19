@@ -96,6 +96,9 @@ Version CVS HEAD (?)
     - Bugfix: only process the latest MIDI program change event.
     - Introducing the LSCP shell, which provides convenient control of the
       sampler from the command line by providing LSCP aware features.
+    - VirtualMidiDevice: Added support for program change.
+    - VirtualMidiDevice: Added support for bank select (MSB & LSB).
+    - VirtualMidiDevice: Added support for pitch bend.
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension
