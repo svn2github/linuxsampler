@@ -1348,6 +1348,8 @@ inline static BisonSymbolInfo _symbolInfoForRule(int rule, const std::vector<YYT
 
 #else // Bison 2.x or older ...
 
+//TODO: The Bison 2.x code below can probably soon just be deleted. Most Bisonx 2.x versions should be able to compile successfully with the Bison 3.x code above as well (just requires the existence of table yystos[] in the auto generated lscpparser.cpp).
+
 /**
  * Returns true if the given grammar @a rule is a terminal symbol (in *our*
  * terms).
@@ -1512,7 +1514,11 @@ static void walkAndFillExpectedSymbols(
         for (int i = 0; i < depth; ++i) printf("\t");
         printf("(default reduction)\n");
 #endif
+        #if HAVE_BISON_MAJ >= 3
         if (!nextExpectedChars.empty() || !_isRuleTerminalSymbol(n, stack)) {
+        #else
+        if (!nextExpectedChars.empty() || !_isRuleTerminalSymbol(n)) {
+        #endif
             // Return the new resolved expected symbol (left-hand symbol of grammar
             // rule), then we're done in this state. (If the same symbol can be
             // matched on different ways, then it is non-terminal symbol.)
@@ -1969,7 +1975,7 @@ namespace LinuxSampler {
 #define DEBUG_SHELL_INTERACTION 0
 
 /**
- * If LSP shell mode is enabled for the respective LSCP client connection, then
+ * If LSCP shell mode is enabled for the respective LSCP client connection, then
  * this function is called on every new byte received from that client. It will
  * check the current total input line and reply to the LSCP shell for providing
  * colored syntax highlighting and potential auto completion in the shell.
