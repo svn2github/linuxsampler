@@ -196,7 +196,7 @@ void yyerror(void* x, const char* s) {
 %type <Char> char char_base alpha_char digit digit_oct digit_hex escape_seq escape_seq_octal escape_seq_hex
 %type <Dotnum> real dotnum volume_value boolean control_value
 %type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index effect_index effect_instance effect_chain chain_pos input_control midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
-%type <String> string string_escaped text text_escaped text_escaped_base stringval stringval_escaped digits param_val_list param_val query_val filename module effect_system db_path map_name entry_name fx_send_name effect_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction send_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction format_instruction append_instruction insert_instruction
+%type <String> string string_escaped text text_escaped text_escaped_base stringval stringval_escaped digits param_val_list param_val query_val filename module effect_system db_path map_name entry_name fx_send_name effect_name engine_name line statement command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction send_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction format_instruction append_instruction insert_instruction
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list query_val_list
 %type <LoadMode> instr_load_mode
@@ -218,14 +218,17 @@ void yyerror(void* x, const char* s) {
 
 // GRAMMAR_BNF_BEGIN - do NOT delete or modify this line !!!
 
-input                 : line LF
-                      | line CR LF
+input                 :  line   { INCREMENT_LINE; if (!$1.empty()) LSCPSERVER->AnswerClient($1); return LSCP_DONE; }
+                      |  error  { INCREMENT_LINE; LSCPSERVER->AnswerClient("ERR:0:" + sLastError + "\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
                       ;
 
-line                  :  /* epsilon (empty line ignored) */ { INCREMENT_LINE; return LSCP_DONE; }
-                      |  comment  { INCREMENT_LINE; return LSCP_DONE; }
-                      |  command  { INCREMENT_LINE; LSCPSERVER->AnswerClient($1); return LSCP_DONE; }
-                      |  error    { INCREMENT_LINE; LSCPSERVER->AnswerClient("ERR:0:" + sLastError + "\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
+line                  :  statement LF     { $$ = $1; }
+                      |  statement CR LF  { $$ = $1; }
+                      ;
+
+statement             :  /* epsilon (empty statement/line ignored) */  { $$ = ""; }
+                      |  comment  { $$ = ""; }
+                      |  command
                       ;
 
 comment               :  '#'
@@ -1403,6 +1406,48 @@ inline static String _tokenName(int token) {
     return s;
 }
 
+/**
+ * Assumes the given @a token is exactly one character and returns that
+ * character. This must be changed in future, i.e. in case Unicode characters
+ * will be introduced in the LSCP grammar one day.
+ */
+inline static char _tokenChar(int token) {
+    String s = _tokenName(token);
+    if (s == "\\n") return '\n';
+    if (s == "\\r") return '\r';
+    return _tokenName(token)[0];
+}
+
+/**
+ * Implements Bison's so called "reduce" action, according to Bison's LALR(1)
+ * parser algorithm.
+ */
+inline static int _yyReduce(std::vector<YYTYPE_INT16>& stack, const int& rule) {
+    if (stack.empty()) throw 1; // severe error
+    const int len = yyr2[rule];
+    stack.resize(stack.size() - len);
+    YYTYPE_INT16 newState = yypgoto[yyr1[rule] - YYNTOKENS] + stack.back();
+    if (0 <= newState && newState <= YYLAST && yycheck[newState] == stack.back())
+        newState = yytable[newState];
+    else
+        newState = yydefgoto[yyr1[rule] - YYNTOKENS];
+    stack.push_back(newState);
+    return newState;
+}
+
+/**
+ * Implements Bison's so called "default reduce" action, according to Bison's
+ * LALR(1) parser algorithm.
+ */
+inline static int _yyDefaultReduce(std::vector<YYTYPE_INT16>& stack) {
+    if (stack.empty()) throw 2; // severe error
+    int rule = yydefact[stack.back()];
+    if (rule <= 0 || rule >= YYNRULES) throw 3; // no rule, something is wrong
+    return _yyReduce(stack, rule);
+}
+
+static bool yyValid(std::vector<YYTYPE_INT16>& stack, char ch);
+
 #define DEBUG_BISON_SYNTAX_ERROR_WALKER 0
 
 /**
@@ -1441,46 +1486,113 @@ static void walkAndFillExpectedSymbols(
     }
     printf("\n");
 #endif
+    startLabel:
 
-    if (stack.empty()) return;
+    if (stack.empty()) {
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+        for (int i = 0; i < depth; ++i) printf("\t");
+        printf("(EMPTY STACK)\n");
+#endif
+        return;
+    }
 
     int state = stack[stack.size() - 1];
     int n = yypact[state];
     if (n == YYPACT_NINF) { // default reduction required ...
         // get default reduction rule for this state
         n = yydefact[state];
-        if (n <= 0 || n >= YYNRULES) return; // no rule, something is wrong
-        // return the new resolved expected symbol (left-hand symbol of grammar
-        // rule), then we're done in this state
-        #if HAVE_BISON_MAJ >= 3
-        expectedSymbols[yytname[yyr1[n]]] = _symbolInfoForRule(n, stack, nextExpectedChars);
-        #else
-        expectedSymbols[yytname[yyr1[n]]] = _symbolInfoForRule(n, nextExpectedChars);
-        #endif
+        if (n <= 0 || n >= YYNRULES) {
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+            for (int i = 0; i < depth; ++i) printf("\t");
+            printf("(EMPTY RULE)\n");
+#endif
+            return; // no rule, something is wrong
+        }
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+        for (int i = 0; i < depth; ++i) printf("\t");
+        printf("(default reduction)\n");
+#endif
+        if (!nextExpectedChars.empty() || !_isRuleTerminalSymbol(n, stack)) {
+            // Return the new resolved expected symbol (left-hand symbol of grammar
+            // rule), then we're done in this state. (If the same symbol can be
+            // matched on different ways, then it is non-terminal symbol.)
+            bool ambigious =
+                expectedSymbols.count(yytname[yyr1[n]]) &&
+                expectedSymbols[yytname[yyr1[n]]].nextExpectedChars != nextExpectedChars;
+            #if HAVE_BISON_MAJ >= 3
+            expectedSymbols[yytname[yyr1[n]]] = _symbolInfoForRule(n, stack, nextExpectedChars);
+            #else
+            expectedSymbols[yytname[yyr1[n]]] = _symbolInfoForRule(n, nextExpectedChars);
+            #endif
+            if (ambigious)
+                expectedSymbols[yytname[yyr1[n]]].isTerminalSymbol = false;
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+            for (int i = 0; i < depth; ++i) printf("\t");
+            printf("(empty expectedChars. sym = %s)\n", yytname[yyr1[n]]);
+#endif
+            return;
+        }
+        _yyReduce(stack, n);
+        goto startLabel;
+    }
+    if (!(YYPACT_NINF < n && n <= YYLAST)) {
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+        for (int i = 0; i < depth; ++i) printf("\t");
+        printf("(invalid action B)\n");
+#endif
         return;
     }
-    if (!(YYPACT_NINF < n && n <= YYLAST)) return;
+
+    // Check for duplicate states, if duplicates exist return
+    // (this check is necessary since the introduction of the yyValid() call
+    // below, which does not care about duplicates).
+    for (int i = 0; i < stack.size(); ++i)
+        for (int k = i + 1; k < stack.size(); ++k)
+            if (stack[i] == stack[k])
+                return;
 
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
     for (int i = 0; i < depth; ++i) printf("\t");
     printf("Expected tokens:");
 #endif
     int begin = n < 0 ? -n : 0;
-    int checklim = YYLAST - n + 1;
-    int end = checklim < YYNTOKENS ? checklim : YYNTOKENS;
+    //int checklim = YYLAST - n + 1;
+    int end = YYNTOKENS;//checklim < YYNTOKENS ? checklim : YYNTOKENS;
     int rule, action, stackSize, nextExpectedCharsLen;
     for (int token = begin; token < end; ++token) {
-        if (token == YYTERROR || yycheck[n + token] != token) continue;
-#if DEBUG_BISON_SYNTAX_ERROR_WALKER
-        printf(" %s", yytname[token]);
-#endif
-
+        if (token <= YYTERROR) continue;
+        if (yytname[token] == String("$undefined")) continue;
+        if (yytname[token] == String("EXT_ASCII_CHAR")) continue;
         //if (yycheck[n + token] != token) goto default_reduction;
+        if (yycheck[n + token] != token) { // default reduction suggested ...
+            // If we are here, it means the current token in the loop would not
+            // cause a "shift", however we don't already know whether this token
+            // is valid or not. Because there might be several reductions
+            // involved until one can determine whether the token causes an
+            // error or is valid. So we use this heavy check instead:
+            std::vector<YYTYPE_INT16> stackCopy = stack; // copy required, since reduction will take place
+            if (!yyValid(stackCopy, _tokenChar(token))) continue; // invalid token
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+            printf(" ETdr(%s)", yytname[token]);
+#endif
+            // the token is valid, "stackCopy" has been reduced accordingly
+            // and now do recurse ...
+            nextExpectedChars += _tokenName(token);
+            nextExpectedCharsLen = nextExpectedChars.size();
+            walkAndFillExpectedSymbols( //FIXME: could cause stack overflow (should be a loop instead), is probably fine with our current grammar though
+                stackCopy, expectedSymbols, nextExpectedChars, depth + 1
+            );
+            nextExpectedChars.resize(nextExpectedCharsLen); // restore 'nextExpectedChars'
+            continue;
+        }
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+        printf(" ET(%s)", yytname[token]);
+#endif
 
         action = yytable[n + token];
         if (action == 0 || action == YYTABLE_NINF) {
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
-            printf(" (invalid action) "); fflush(stdout);
+            printf(" (invalid action A) "); fflush(stdout);
 #endif
             continue; // error, ignore
         }
@@ -1491,12 +1603,21 @@ static void walkAndFillExpectedSymbols(
             rule = -action;
             goto reduce;
         }
-        if (action == YYFINAL) continue; // "accept" state, we don't care about it here
+        if (action == YYFINAL) {
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+            printf(" (ACCEPT) "); fflush(stdout);
+#endif
+            continue; // "accept" state, we don't care about it here
+        }
 
         // "shift" required ...
 
-        if (std::find(stack.begin(), stack.end(), action) != stack.end())
+        if (std::find(stack.begin(), stack.end(), action) != stack.end()) {
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+            printf(" (duplicate state %d) ", action); fflush(stdout);
+#endif
             continue; // duplicate state, ignore it to avoid endless recursions
+        }
 
         // "shift" / push the new state on the state stack and call this
         // function recursively, and restore the stack after the recurse return
@@ -1519,13 +1640,24 @@ static void walkAndFillExpectedSymbols(
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
         printf(" (reduce by %d) ", rule); fflush(stdout);
 #endif
-        if (rule == 0 || rule >= YYNRULES) continue; // invalid rule, something is wrong
-        // store the left-hand symbol of the grammar rule
+        if (rule == 0 || rule >= YYNRULES) {
+#if DEBUG_BISON_SYNTAX_ERROR_WALKER
+            printf(" (invalid rule) "); fflush(stdout);
+#endif
+            continue; // invalid rule, something is wrong
+        }
+        // Store the left-hand symbol of the grammar rule. (If the same symbol
+        // can be matched on different ways, then it is non-terminal symbol.)
+        bool ambigious =
+            expectedSymbols.count(yytname[yyr1[rule]]) &&
+            expectedSymbols[yytname[yyr1[rule]]].nextExpectedChars != nextExpectedChars;
         #if HAVE_BISON_MAJ >= 3
         expectedSymbols[yytname[yyr1[rule]]] = _symbolInfoForRule(rule, stack, nextExpectedChars);
         #else
         expectedSymbols[yytname[yyr1[rule]]] = _symbolInfoForRule(rule, nextExpectedChars);
         #endif
+        if (ambigious)
+            expectedSymbols[yytname[yyr1[n]]].isTerminalSymbol = false;
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
         printf(" (SYM %s) ", yytname[yyr1[rule]]); fflush(stdout);
 #endif
@@ -1533,34 +1665,6 @@ static void walkAndFillExpectedSymbols(
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
     printf("\n");
 #endif
-}
-
-/**
- * Implements Bison's so called "reduce" action, according to Bison's LALR(1)
- * parser algorithm.
- */
-inline static int _yyReduce(std::vector<YYTYPE_INT16>& stack, const int& rule) {
-    if (stack.empty()) throw 1; // severe error
-    const int len = yyr2[rule];
-    stack.resize(stack.size() - len);
-    YYTYPE_INT16 newState = yypgoto[yyr1[rule] - YYNTOKENS] + stack.back();
-    if (0 <= newState && newState <= YYLAST && yycheck[newState] == stack.back())
-        newState = yytable[newState];
-    else
-        newState = yydefgoto[yyr1[rule] - YYNTOKENS];
-    stack.push_back(newState);
-    return newState;
-}
-
-/**
- * Implements Bison's so called "default reduce" action, according to Bison's
- * LALR(1) parser algorithm.
- */
-inline static int _yyDefaultReduce(std::vector<YYTYPE_INT16>& stack) {
-    if (stack.empty()) throw 2; // severe error
-    int rule = yydefact[stack.back()];
-    if (rule <= 0 || rule >= YYNRULES) throw 3; // no rule, something is wrong
-    return _yyReduce(stack, rule);
 }
 
 #define DEBUG_PUSH_PARSE 0
@@ -1629,9 +1733,11 @@ static bool yyPushParse(std::vector<YYTYPE_INT16>& stack, char ch) {
 }
 
 /**
- * Returns true if parsing ahead with given character @a ch is syntactially
+ * Returns true if parsing ahead with given character @a ch is syntactically
  * valid according to the LSCP grammar, it returns false if it would create a
  * parse error.
+ *
+ * The @a stack will reflect the new parser state after this call.
  *
  * This is just a wrapper ontop of yyPushParse() which converts parser
  * exceptions thrown by yyPushParse() into negative return value.
@@ -1664,9 +1770,9 @@ static int yyValidCharacters(std::vector<YYTYPE_INT16>& stack, String& line, boo
         // char here below, and since the state stack might be altered
         // (i.e. shifted or reduced) on syntax errors, we have to backup the
         // current state stack and restore it on syntax errors below
-        std::vector<YYTYPE_INT16> stackBackup = stack;
-        if (yyValid(stackBackup, line[i])) {
-            stack = stackBackup;
+        std::vector<YYTYPE_INT16> stackCopy = stack;
+        if (yyValid(stackCopy, line[i])) {
+            stack = stackCopy;
             continue;
         }
         if (bAutoCorrect) {
@@ -1692,6 +1798,8 @@ static int yyValidCharacters(std::vector<YYTYPE_INT16>& stack, String& line, boo
  * Should only be called on syntax errors: returns a set of non-terminal
  * symbols expected to appear now/next, just at the point where the syntax
  * error appeared.
+ *
+ * @returns names of the non-terminal symbols expected at this parse position
  */
 static std::set<String> yyExpectedSymbols() {
     std::map<String,BisonSymbolInfo> expectedSymbols;
@@ -1715,22 +1823,171 @@ static std::set<String> yyExpectedSymbols() {
     return result;
 }
 
+#define DEBUG_YY_AUTO_COMPLETE 0
+
+/**
+ * A set of parser state stacks. This type is used in yyAutoComplete() to keep
+ * track of all previous parser states, for detecting a parser state stack that
+ * has already been before. Because if yyAutoComplete() reaches the exactly same
+ * parser state stack again, it means there is an endless recursion in that
+ * part of the grammar tree branch and shall not be evaluated any further,
+ * because it would end up in an endless loop otherwise.
+ *
+ * This solution consumes a lot of memory, but unfortunately there is no other
+ * easy way to solve it. With our grammar and today's memory heap & memory stack
+ * it should be fine though.
+ */
+typedef std::set< std::vector<YYTYPE_INT16> > YYStackHistory;
+
+/**
+ * Generates and returns an auto completion string for the current parser
+ * state given by @a stack.
+ *
+ * Regarding @a history argument: read the description on YYStackHistory for the
+ * purpose behind this argument.
+ *
+ * @param stack - current Bison (yacc) state stack to create auto completion for
+ * @param history - only for internal purpose, keeps a history of all previous parser state stacks
+ * @param depth - just for internal debugging purposes
+ * @returns auto completion for current, given parser state
+ */
+static String yyAutoComplete(std::vector<YYTYPE_INT16>& stack, YYStackHistory& history, int depth = 0) {
+    std::map<String,BisonSymbolInfo> expectedSymbols;
+    String notUsedHere;
+    walkAndFillExpectedSymbols(stack, expectedSymbols, notUsedHere);
+    if (expectedSymbols.size() == 1) {
+        String name          = expectedSymbols.begin()->first;
+        BisonSymbolInfo info = expectedSymbols.begin()->second;
+#if DEBUG_YY_AUTO_COMPLETE
+        for (int q = 0; q < depth; ++q) printf("  ");
+        printf("(%d) Suggested Sub Completion (sz=%d): type=%s %s -> '%s'\n", depth, expectedSymbols.size(), (info.isTerminalSymbol) ? "T" : "NT", name.c_str(), info.nextExpectedChars.c_str());
+#endif
+        if (info.nextExpectedChars.empty() || !info.isTerminalSymbol) return "";
+        // parse forward with the suggested auto completion
+        std::vector<YYTYPE_INT16> stackCopy = stack;
+        yyValidCharacters(stackCopy, info.nextExpectedChars, false);
+        // detect endless recursion
+        if (history.count(stackCopy)) return "";
+        history.insert(stackCopy);
+        // recurse and return the expanded auto completion with maximum length
+        return info.nextExpectedChars + yyAutoComplete(stackCopy, history, depth + 1);
+    } else if (expectedSymbols.size() == 0) {
+#if DEBUG_YY_AUTO_COMPLETE
+        for (int q = 0; q < depth; ++q) printf("  ");
+        printf("(%d) No sub suggestion.\n", depth);
+#endif
+        return "";
+    } else if (expectedSymbols.size() > 1) {
+#if DEBUG_YY_AUTO_COMPLETE
+        for (int q = 0; q < depth; ++q) printf("  ");
+        printf("(%d) Multiple sub possibilities (before expansion):", depth);
+        for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
+             it != expectedSymbols.end(); ++it)
+        {
+            printf(" %s (..%s)", it->first.c_str(), it->second.nextExpectedChars.c_str());
+        }
+        printf("\n");
+#endif
+        // check if any of the possibilites is a non-terminal symbol, if so, we
+        // have no way for auto completion at this point
+        for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
+             it != expectedSymbols.end(); ++it)
+        {
+            if (!it->second.isTerminalSymbol) {
+#if DEBUG_YY_AUTO_COMPLETE
+                for (int q = 0; q < depth; ++q) printf("  ");
+                printf("(%d) Non-terminal exists. Stop.", depth);
+#endif
+                return "";
+            }
+        }
+#if 0 // commented out for now, since practically irrelevant and VERY slow ...
+        // all possibilities are terminal symbols, so expand all possiblities to
+        // maximum length with a recursive call for each possibility
+        for (std::map<String,BisonSymbolInfo>::iterator it = expectedSymbols.begin();
+             it != expectedSymbols.end(); ++it)
+        {
+            if (it->second.nextExpectedChars.empty() || !it->second.isTerminalSymbol) continue;
+            // parse forward with this particular suggested auto completion
+            std::vector<YYTYPE_INT16> stackCopy = stack;
+            yyValidCharacters(stackCopy, it->second.nextExpectedChars, false);
+            // detect endless recursion
+            if (history.count(stackCopy)) continue;
+            history.insert(stackCopy);
+            // recurse and return the total possible auto completion for this
+            // grammar tree branch
+            it->second.nextExpectedChars += yyAutoComplete(stackCopy, history, depth + 1);
+        }
+#endif
+        // try to find the longest common string all possibilities start with
+        // (from the left)
+        String sCommon;
+        for (int i = 0; true; ++i) {
+            char c;
+            for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
+                 it != expectedSymbols.end(); ++it)
+            {
+                if (i >= it->second.nextExpectedChars.size())
+                    goto commonSearchEndLabel;
+                if (it == expectedSymbols.begin())
+                    c = it->second.nextExpectedChars[i];
+                if (c != it->second.nextExpectedChars[i])
+                    goto commonSearchEndLabel;
+                if (it == --expectedSymbols.end())
+                    sCommon += c;
+            }
+        }
+        commonSearchEndLabel:
+#if DEBUG_YY_AUTO_COMPLETE
+        for (int q = 0; q < depth; ++q) printf("  ");
+        printf("(%d) Multiple sub possibilities (after expansion):", depth);
+        for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
+             it != expectedSymbols.end(); ++it)
+        {
+            printf(" %s (..%s)", it->first.c_str(), it->second.nextExpectedChars.c_str());
+        }
+        printf("\n");
+        for (int q = 0; q < depth; ++q) printf("  ");
+        printf("(%d) Common sub possibility: '%s'\n", depth, sCommon.c_str());
+#endif
+        return sCommon;
+    }
+    return ""; // just pro forma, should never happen though
+}
+
+/**
+ * Just a convenience wrapper on top of the actual yyAutoComplete()
+ * implementation. See description above for details.
+ */
+static String yyAutoComplete(std::vector<YYTYPE_INT16>& stack) {
+    YYStackHistory history;
+    return yyAutoComplete(stack, history);
+}
+
 namespace LinuxSampler {
 
 #define DEBUG_SHELL_INTERACTION 0
 
 /**
- * If LSP shell mode is enabled, then this function is called on every new
- * received from client. It will check the current total input line and reply
- * to the LSCP shell for providing colored syntax highlighting and potential
- * auto completion in the shell.
+ * If LSP shell mode is enabled for the respective LSCP client connection, then
+ * this function is called on every new byte received from that client. It will
+ * check the current total input line and reply to the LSCP shell for providing
+ * colored syntax highlighting and potential auto completion in the shell.
  *
  * It also performs auto correction of obvious & trivial syntax mistakes if
  * requested.
+ *
+ * The return value of this function will be sent to the client. It contains one
+ * line specially formatted for the LSCP shell, which can easily be processed by
+ * the client/shell for gettings its necessary informations like which part of
+ * the current command line is syntactically correct, which part is incorrect,
+ * what could be auto completed right now, etc.
+ *
+ * @returns LSCP shell response line to be returned to the client
  */
 String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param) {
     // first, determine how many characters (starting from the left) of the
-    // given input line are already syntactially correct
+    // given input line are already syntactically correct
     std::vector<YYTYPE_INT16> stack;
     stack.push_back(0); // every Bison symbol stack starts with state zero
     String l = line + '\n'; // '\n' to pretend ENTER as if the line was now complete
@@ -1761,61 +2018,8 @@ String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param) {
     if (!l.empty()) yyValidCharacters(stack, l, param->bShellAutoCorrect);
 
     // generate auto completion suggestion (based on the current parser stack)
-    std::map<String,BisonSymbolInfo> expectedSymbols;
-    String notUsedHere;
-    walkAndFillExpectedSymbols(stack, expectedSymbols, notUsedHere);
-    if (expectedSymbols.size() == 1) {
-        String name          = expectedSymbols.begin()->first;
-        BisonSymbolInfo info = expectedSymbols.begin()->second;
-#if DEBUG_SHELL_INTERACTION
-        printf("Suggested Completion (%d): %s '%s'\n", expectedSymbols.size(), (info.isTerminalSymbol) ? "T:" : "NT:", (name + " (" + info.nextExpectedChars + ")").c_str());
-#endif
-        result += LSCP_SHK_SUGGEST_BACK + info.nextExpectedChars;
-    } else if (expectedSymbols.size() == 0) {
-#if DEBUG_SHELL_INTERACTION
-        printf("No suggestion.\n");
-#endif
-    } else if (expectedSymbols.size() > 1) {
-#if DEBUG_SHELL_INTERACTION
-        printf("Multiple possibilities:");
-        for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
-             it != expectedSymbols.end(); ++it)
-        {
-            printf(" %s (..%s)", it->first.c_str(), it->second.nextExpectedChars.c_str());
-        }
-        printf("\n");
-#endif
-        // check if any of the possibilites is a non-terminal symbol, if so, we
-        // have no way for auto completion at this point
-        bool bNonTerminalExists = false;
-        for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
-             it != expectedSymbols.end(); ++it) if (!it->second.isTerminalSymbol) { bNonTerminalExists = true; break; };
-        if (!bNonTerminalExists) {
-            // all possibilites are terminal symbaols, so try to find the least
-            // common string all possibilites start with from the left
-            String sCommon;
-            for (int i = 0; true; ++i) {
-                char c;
-                for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
-                     it != expectedSymbols.end(); ++it)
-                {
-                    if (i >= it->second.nextExpectedChars.size())
-                        goto commonSearchEndLabel;
-                    if (it == expectedSymbols.begin())
-                        c = it->second.nextExpectedChars[i];
-                    if (c != it->second.nextExpectedChars[i])
-                        goto commonSearchEndLabel;
-                    if (it == --expectedSymbols.end())
-                        sCommon += c;
-                }
-            }
-            commonSearchEndLabel:
-            if (!sCommon.empty()) result += LSCP_SHK_SUGGEST_BACK + sCommon;
-#if DEBUG_SHELL_INTERACTION
-            printf("Common possibility: '%s'\n", sCommon.c_str());
-#endif
-        }
-    }
+    String sSuggestion = yyAutoComplete(stack);
+    if (!sSuggestion.empty()) result += LSCP_SHK_SUGGEST_BACK + sSuggestion;
 
 #if DEBUG_SHELL_INTERACTION
     printf("%s\n", result.c_str());

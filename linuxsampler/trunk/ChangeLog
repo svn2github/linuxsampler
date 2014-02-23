@@ -446,6 +446,10 @@ Version CVS HEAD (?)
       crashes and noise on such transitions).
     - ignore missing LADSPA paths without ignoring valid LADSPA paths
       (fixes #208)
+    - Fixed bug in LSCP grammar definition which caused a statement like
+      "GET SERVER INFOasdf\n" to be accepted as valid statement (was so far
+      practically irrelevant, however it caused problems with the new LSCP
+      shell's auto completion feature).
 
 Version 1.0.0 (31 July 2009)
 

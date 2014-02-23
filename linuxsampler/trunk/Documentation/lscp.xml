@@ -7992,21 +7992,27 @@ Schoenebeck'>
 
 <t>input =
 	<list>
-		<t>line LF
+		<t>line
 		</t>
-		<t>/ line CR LF
+		<t>/ error
 		</t>
 	</list>
 </t>
 <t>line =
 	<list>
-		<t>/* epsilon (empty line ignored) */
+		<t>statement LF
+		</t>
+		<t>/ statement CR LF
+		</t>
+	</list>
+</t>
+<t>statement =
+	<list>
+		<t>/* epsilon (empty statement/line ignored) */
 		</t>
 		<t>/ comment
 		</t>
 		<t>/ command
-		</t>
-		<t>/ error
 		</t>
 	</list>
 </t>
