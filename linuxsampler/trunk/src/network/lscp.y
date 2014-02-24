@@ -180,7 +180,7 @@ void yyerror(void* x, const char* s) {
 %parse-param {void* yyparse_param}
 
 // After entering the yyparse() function, store references to the parser's
-// state stack, so that we can create more helpful syntax error messages than
+// symbol stack, so that we can create more helpful syntax error messages than
 // Bison (2.x) could do.
 %initial-action {
     yyparse_param_t* p = (yyparse_param_t*) yyparse_param;
@@ -1457,17 +1457,17 @@ static bool yyValid(std::vector<YYTYPE_INT16>& stack, char ch);
  * precise parse position & state represented by @a stack, according to Bison's
  * LALR(1) parser algorithm.
  *
- * This function is given a Bison parser state stack, reflecting the parser's
+ * This function is given a Bison parser symbol stack, reflecting the parser's
  * entire state at a certain point, i.e. when a syntax error occured. This
  * function will then walk ahead the potential parse tree starting from the
- * current head of the given state stack. This function will call itself
+ * current head of the given symbol stack. This function will call itself
  * recursively to scan the individual parse tree branches. As soon as it hits
  * on the next non-terminal grammar symbol in one parse tree branch, it adds the
  * found non-terminal symbol to @a expectedSymbols and aborts scanning the
  * respective tree branch further. If any local parser state is reached a second
  * time, the respective parse tree is aborted to avoid any endless recursion.
  *
- * @param stack - current Bison (yacc) state stack to be examined
+ * @param stack - current Bison (yacc) symbol stack to be examined
  * @param expectedSymbols - will be filled with next expected grammar symbols
  * @param nextExpectedChars - just for internal purpose, due to the recursive
  *                            implementation of this function, do supply an
@@ -1482,7 +1482,7 @@ static void walkAndFillExpectedSymbols(
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
     printf("\n");
     for (int i = 0; i < depth; ++i) printf("\t");
-    printf("State stack:");
+    printf("Symbol stack:");
     for (int i = 0; i < stack.size(); ++i) {
         printf(" %d", stack[i]);
     }
@@ -1625,7 +1625,7 @@ static void walkAndFillExpectedSymbols(
             continue; // duplicate state, ignore it to avoid endless recursions
         }
 
-        // "shift" / push the new state on the state stack and call this
+        // "shift" / push the new state on the symbol stack and call this
         // function recursively, and restore the stack after the recurse return
         stackSize = stack.size();
         nextExpectedCharsLen = nextExpectedChars.size();
@@ -1688,7 +1688,7 @@ static bool yyPushParse(std::vector<YYTYPE_INT16>& stack, char ch) {
 #if DEBUG_PUSH_PARSE
     //printf("\n");
     //for (int i = 0; i < depth; ++i) printf("\t");
-    printf("State stack:");
+    printf("Symbol stack:");
     for (int i = 0; i < stack.size(); ++i) {
         printf(" %d", stack[i]);
     }
@@ -1765,7 +1765,7 @@ static bool yyValid(std::vector<YYTYPE_INT16>& stack, char ch) {
  * Returns the amount of correct characters of given @a line from the left,
  * according to the LSCP grammar.
  *
- * @param stack - a Bison symbol state stack to work with
+ * @param stack - a Bison symbol stack to work with
  * @param line  - the input line to check
  * @param bAutoCorrect - if true: try to correct obvious, trivial syntax errors
  */
@@ -1773,9 +1773,9 @@ static int yyValidCharacters(std::vector<YYTYPE_INT16>& stack, String& line, boo
     int i;
     for (i = 0; i < line.size(); ++i) {
         // since we might check the same parser state twice against the current
-        // char here below, and since the state stack might be altered
+        // char here below, and since the symbol stack might be altered
         // (i.e. shifted or reduced) on syntax errors, we have to backup the
-        // current state stack and restore it on syntax errors below
+        // current symbol stack and restore it on syntax errors below
         std::vector<YYTYPE_INT16> stackCopy = stack;
         if (yyValid(stackCopy, line[i])) {
             stack = stackCopy;
@@ -1813,7 +1813,7 @@ static std::set<String> yyExpectedSymbols() {
     YYTYPE_INT16* ss = (*param->ppStackBottom);
     YYTYPE_INT16* sp = (*param->ppStackTop);
     int iStackSize   = sp - ss + 1;
-    // copy and wrap parser's state stack into a convenient STL container
+    // copy and wrap parser's symbol stack into a convenient STL container
     std::vector<YYTYPE_INT16> stack;
     for (int i = 0; i < iStackSize; ++i) {
         stack.push_back(ss[i]);
@@ -1832,10 +1832,10 @@ static std::set<String> yyExpectedSymbols() {
 #define DEBUG_YY_AUTO_COMPLETE 0
 
 /**
- * A set of parser state stacks. This type is used in yyAutoComplete() to keep
- * track of all previous parser states, for detecting a parser state stack that
+ * A set of parser symbol stacks. This type is used in yyAutoComplete() to keep
+ * track of all previous parser states, for detecting a parser symbol stack that
  * has already been before. Because if yyAutoComplete() reaches the exactly same
- * parser state stack again, it means there is an endless recursion in that
+ * parser symbol stack again, it means there is an endless recursion in that
  * part of the grammar tree branch and shall not be evaluated any further,
  * because it would end up in an endless loop otherwise.
  *
@@ -1847,13 +1847,28 @@ typedef std::set< std::vector<YYTYPE_INT16> > YYStackHistory;
 
 /**
  * Generates and returns an auto completion string for the current parser
- * state given by @a stack.
+ * state given by @a stack. That means, this function will return the longest
+ * sequence of characters that is uniqueley expected to be sent next by the LSCP
+ * client. Or in other words, if the LSCP client would send any other
+ * character(s) than returned here, it would result in a syntax error.
+ *
+ * This function takes a Bison symbol @a stack as argument, reflecting the
+ * current Bison parser state, and evaluates the individual grammar tree
+ * branches starting from that particular position. It walks along the grammar
+ * tree as long as there is only one possible tree branch and assembles a string
+ * of input characters that would lead to that walk through the grammar tree. As
+ * soon as a position in the grammar tree is reached where there are multiple
+ * possible tree branches, this algorithm will stop, since the user could have
+ * multiple possible valid characters he could type at that point, thus auto
+ * completion would no longer be unique at that point.
  *
  * Regarding @a history argument: read the description on YYStackHistory for the
  * purpose behind this argument.
  *
- * @param stack - current Bison (yacc) state stack to create auto completion for
- * @param history - only for internal purpose, keeps a history of all previous parser state stacks
+ * @param stack - current Bison (yacc) symbol stack to create auto completion for
+ * @param history - only for internal purpose, keeps a history of all previous
+ *                  parser symbol stacks (just for avoiding endless recursion in
+ *                  this auto completion algorithm)
  * @param depth - just for internal debugging purposes
  * @returns auto completion for current, given parser state
  */
@@ -1977,17 +1992,22 @@ namespace LinuxSampler {
 /**
  * If LSCP shell mode is enabled for the respective LSCP client connection, then
  * this function is called on every new byte received from that client. It will
- * check the current total input line and reply to the LSCP shell for providing
- * colored syntax highlighting and potential auto completion in the shell.
+ * check the current total input line and reply to the LSCP shell with a
+ * specially crafted string, which allows the shell to provide colored syntax
+ * highlighting and potential auto completion in the shell.
  *
  * It also performs auto correction of obvious & trivial syntax mistakes if
  * requested.
  *
  * The return value of this function will be sent to the client. It contains one
- * line specially formatted for the LSCP shell, which can easily be processed by
- * the client/shell for gettings its necessary informations like which part of
- * the current command line is syntactically correct, which part is incorrect,
- * what could be auto completed right now, etc.
+ * line specially formatted for the LSCP shell application, which can easily be
+ * processed by the client/shell for extracting its necessary informations like
+ * which part of the current command line is syntactically correct, which part
+ * is incorrect, what could be auto completed right now, etc. So all the heavy
+ * grammar evaluation tasks are peformed by the LSCP server for the LSCP shell
+ * application (which is desgined as a thin client), so the LSCP shell
+ * application will only have to show the results of the LSCP server's
+ * evaluation to the user on the screen.
  *
  * @returns LSCP shell response line to be returned to the client
  */
@@ -2017,7 +2037,7 @@ String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param) {
 
     // get a clean parser stack to the last valid parse position
     // (due to the appended '\n' character above, and on syntax errors, the
-    // state stack might be in undesired, i.e. reduced state)
+    // symbol stack might be in undesired, i.e. reduced state)
     stack.clear();
     stack.push_back(0); // every Bison symbol stack starts with state zero
     l = line.substr(0, n);

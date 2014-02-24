@@ -113,6 +113,53 @@ static void storeCommandInHistory(const String& sCommand) {
         g_commandHistory.push_back(sCommand);
 }
 
+/**
+ * This LSCP shell application is designed as thin client. That means the heavy
+ * LSCP grammar evaluation tasks are peformed by the LSCP server and the shell
+ * application's task are simply limited to forward individual characters typed
+ * by the user to the LSCP server and showing the result of the LSCP server's
+ * evaluation to the user on the screen. This has the big advantage that the
+ * shell works perfectly with any machine running (some minimum recent version
+ * of) LinuxSampler, no matter which precise LSCP version the server side
+ * is using. Which reduces the maintenance efforts for the shell application
+ * development tremendously.
+ *
+ * As soon as this application established a TCP connection to a LSCP server, it
+ * sends this command to the LSCP server:
+ * @code
+ * SET SHELL INTERACT 1
+ * @endcode
+ * which will inform the LSCP server that this LSCP client is actually a LSCP
+ * shell application. The shell will then simply forward every single character
+ * typed by the user immediately to the LSCP server, which in turn will evaluate
+ * every single character typed by the user and will return immediately a
+ * specially formatted string to the shell application like (assuming the user's
+ * current command line was "CREATE AUasdf"):
+ * @code
+ * SHU:1:CREATE AU{{GF}}asdf{{CU}}{{SB}}DIO_OUTPUT_DEVICE
+ * @endcode
+ * which informs this shell application about the result of the LSCP grammar
+ * evaluation and allows the shell to easily show that result of the evaluation
+ * to the user on the screen. In the example reply above, the prefix "SHU:" just
+ * indicates to the shell application that this response line is the result
+ * of the latest grammar evaluation, the number followed (here 1) indicates the
+ * semantic status of the current command line:
+ *
+ * - 0: Command line is complete, thus ENTER key may be hit by the user now.
+ * - 1: Current command line contains syntax error(s).
+ * - 2: Command line is incomplete, but contains no syntax errors so far.
+ *
+ * Then the actual current command line follows, with special markers:
+ *
+ * - Left of "{{GF}}" the command line is syntactically correct, right of that
+ *   marker the command line is syntactically wrong.
+ *
+ * - Marker "{{CU}}" indicates the current cursor position of the command line.
+ *
+ * - Right of "{{SB}}" follows the current auto completion suggestion, so that
+ *   string portion was not typed by the user yet, but is expected to be typed
+ *   by him next to retain syntax correctness.
+ */
 int main(int argc, char *argv[]) {
     String host = LSCP_DEFAULT_HOST;
     int port    = LSCP_DEFAULT_PORT;
@@ -173,6 +220,25 @@ int main(int argc, char *argv[]) {
     char kbdPrevEscapeChar;
 
     // main thread's loop
+    //
+    // This application runs 3 threads:
+    //
+    // - Keyboard thread: reads constantly on stdin for new characters (which
+    //   will block this keyboard thread until new character(s) were typed by
+    //   the user) and pushes the typed characters into a FIFO buffer.
+    //
+    // - Network thread: reads constantly on the TCP connection for new bytes
+    //   being sent by the LSCP server (which will block this network thread
+    //   until new bytes were received) and pushes the received bytes into a
+    //   FIFO buffer.
+    //
+    // - Main thread: this thread runs in the loop below. The main thread sleeps
+    //   (by using the "g_todo" semaphore) until either new keys on the keyboard
+    //   were stroke by the user or until new bytes were received from the LSCP
+    //   server. The main thread will then accordingly send the typed characters
+    //   to the LSCP server and/or show the result of the LSCP server's latest
+    //   evaluation to the user on the screen (by pulling those data from the
+    //   other two thread's FIFO buffers).
     while (true) {
         // sleep until either new data from the network or from keyboard arrived
         g_todo.WaitIf(false);
