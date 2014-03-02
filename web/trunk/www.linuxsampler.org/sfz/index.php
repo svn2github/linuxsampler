@@ -592,7 +592,7 @@ include '../tmpl/header.php';
 <br>
 
 <h2>ARIA custom opcodes</h2>
-<p>The ARIA Engine from Plogue / Garritan implements some <a href="http://www.plogue.com/phpBB3/viewtopic.php?f=14&amp;t=4389">custom sfz opcodes</a>. Only some of them are listed here.</p>
+<p>The ARIA Engine from Plogue / Garritan implements some <a href="http://ariaengine.com/forums/index.php?p=/discussion/4389/aria039s-custom-opcodes">custom sfz opcodes</a>. Only some of them are listed here.</p>
 
 <table class="decocomp">
 <thead>
