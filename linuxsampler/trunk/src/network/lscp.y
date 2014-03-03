@@ -1840,8 +1840,8 @@ static std::set<String> yyExpectedSymbols() {
  * because it would end up in an endless loop otherwise.
  *
  * This solution consumes a lot of memory, but unfortunately there is no other
- * easy way to solve it. With our grammar and today's memory heap & memory stack
- * it should be fine though.
+ * easy way to solve it. With our grammar and today's memory heap size & memory
+ * stack size it should be fine though.
  */
 typedef std::set< std::vector<YYTYPE_INT16> > YYStackHistory;
 
@@ -2009,9 +2009,12 @@ namespace LinuxSampler {
  * application will only have to show the results of the LSCP server's
  * evaluation to the user on the screen.
  *
+ * @param line - the current command line to be evaluated by LSCP parser
+ * @param param = reentrant parser session parameters
+ * @param possibilities - whether all possibilities shall be shown
  * @returns LSCP shell response line to be returned to the client
  */
-String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param) {
+String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param, bool possibilities) {
     // first, determine how many characters (starting from the left) of the
     // given input line are already syntactically correct
     std::vector<YYTYPE_INT16> stack;
@@ -2044,8 +2047,45 @@ String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param) {
     if (!l.empty()) yyValidCharacters(stack, l, param->bShellAutoCorrect);
 
     // generate auto completion suggestion (based on the current parser stack)
-    String sSuggestion = yyAutoComplete(stack);
+    std::vector<YYTYPE_INT16> stackCopy = stack; // make a copy, since yyAutoComplete() might alter the stack
+    String sSuggestion = yyAutoComplete(stackCopy);
     if (!sSuggestion.empty()) result += LSCP_SHK_SUGGEST_BACK + sSuggestion;
+
+    if (!possibilities) return result;
+
+    // finally append all possible terminals and non-terminals according to
+    // current parser state
+    String notUsedHere;
+    std::map<String,BisonSymbolInfo> expectedSymbols;
+    walkAndFillExpectedSymbols(stack, expectedSymbols, notUsedHere);
+    {
+        // pretend to LSCP shell that the following terminal symbols were
+        // non-terminal symbols (since they are not human visible for auto
+        // completion on the shell's screen)
+        std::set<String> specialNonTerminals;
+        specialNonTerminals.insert("SP");
+        specialNonTerminals.insert("CR");
+        specialNonTerminals.insert("LF");
+
+        String sPossibilities;
+        int iNonTerminals = 0;
+        int iTerminals    = 0;
+        for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
+             it != expectedSymbols.end(); ++it)
+        {
+            if (!sPossibilities.empty()) sPossibilities += " | ";
+            if (it->second.isTerminalSymbol && !specialNonTerminals.count(it->first)) {
+                sPossibilities += it->first;
+                iTerminals++;
+            } else {
+                sPossibilities += "<" + it->first + ">";
+                iNonTerminals++;
+            }
+        }
+        if (!sPossibilities.empty() && (iNonTerminals || iTerminals > 1)) {
+            result += LSCP_SHK_POSSIBILITIES_BACK + sPossibilities;
+        }
+    }
 
 #if DEBUG_SHELL_INTERACTION
     printf("%s\n", result.c_str());

@@ -17,6 +17,7 @@
 #include "TerminalCtrl.h"
 #include "CFmt.h"
 #include "CCursor.h"
+#include "TerminalPrinter.h"
 
 #include "../common/global.h"
 #include "../common/global_private.h"
@@ -34,6 +35,7 @@ static Condition g_todo;
 static String g_goodPortion;
 static String g_badPortion;
 static String g_suggestedPortion;
+static int g_linesActive = 0;
 static const String g_prompt = "lscp=# ";
 static std::vector<String> g_commandHistory;
 static int g_commandHistoryIndex = -1;
@@ -268,6 +270,8 @@ int main(int argc, char *argv[]) {
                         sBad.erase(sBad.find(LSCP_SHK_CURSOR), strlen(LSCP_SHK_CURSOR)); // erase cursor marker
                     if (sBad.find(LSCP_SHK_SUGGEST_BACK) != string::npos)
                         sBad.erase(sBad.find(LSCP_SHK_SUGGEST_BACK)); // erase auto suggestion portion
+                    if (sBad.find(LSCP_SHK_POSSIBILITIES_BACK) != string::npos)
+                        sBad.erase(sBad.find(LSCP_SHK_POSSIBILITIES_BACK)); // erase possibilities portion
 
                     // extract portion that is suggested for auto completion
                     String sSuggest;
@@ -275,6 +279,15 @@ int main(int argc, char *argv[]) {
                         sSuggest = s.substr(s.find(LSCP_SHK_SUGGEST_BACK) + strlen(LSCP_SHK_SUGGEST_BACK));
                         if (sSuggest.find(LSCP_SHK_CURSOR) != string::npos)
                             sSuggest.erase(sSuggest.find(LSCP_SHK_CURSOR), strlen(LSCP_SHK_CURSOR)); // erase cursor marker
+                        if (sSuggest.find(LSCP_SHK_POSSIBILITIES_BACK) != string::npos)
+                            sSuggest.erase(sSuggest.find(LSCP_SHK_POSSIBILITIES_BACK)); // erase possibilities portion
+                    }
+
+                    // extract portion that provides all current possibilities
+                    // (that is all branches in the current grammar tree)
+                    String sPossibilities;
+                    if (s.find(LSCP_SHK_POSSIBILITIES_BACK) != string::npos) {
+                        sPossibilities = s.substr(s.find(LSCP_SHK_POSSIBILITIES_BACK) + strlen(LSCP_SHK_POSSIBILITIES_BACK));
                     }
 
                     // extract current cursor position
@@ -295,18 +308,31 @@ int main(int argc, char *argv[]) {
 
                     //printf("line '%s' good='%s' bad='%s' suggested='%s' cursor=%d\n", line.c_str(), sGood.c_str(), sBad.c_str(), sSuggest.c_str(), cursorColumn);
 
+                    // clear current command line on screen
+                    // (which may have been printed over several lines)
                     CCursor cursor = CCursor::now().toColumn(0).clearLine();
+                    for (int i = 0; i < g_linesActive; ++i)
+                        cursor = cursor.down().clearLine();
+                    if (g_linesActive) cursor = cursor.up(g_linesActive).toColumn(0);
                     printPrompt();
 
+                    // print out the gathered informations on the screen
+                    TerminalPrinter p;
                     CFmt cfmt;
                     if (code == LSCP_SHU_COMPLETE) cfmt.bold().green();
                     else cfmt.bold().white();
-                    cout << sGood << flush;
+                    p << sGood;
                     cfmt.reset().red();
-                    cout << sBad << flush;
+                    p << sBad;
                     cfmt.bold().yellow();
-                    cout << sSuggest << flush;
+                    p << sSuggest;
+                    if (!sPossibilities.empty())
+                        p << " <- " << sPossibilities;
 
+                    // move cursor back to the appropriate input position in
+                    // the command line (which may be several lines above)
+                    g_linesActive = p.linesAdvanced();
+                    if (p.linesAdvanced()) cursor.up(p.linesAdvanced());
                     cursor.toColumn(cursorColumn + promptOffset());
                 }
             } else if (line.substr(0,2) == "OK") { // single-line response expected ...
@@ -352,8 +378,6 @@ int main(int argc, char *argv[]) {
         while (g_keyboardReader->charAvailable()) {
             char c = g_keyboardReader->popChar();
 
-            CFmt cfmt;
-            cfmt.white();
             //std::cout << c << "(" << int(c) << ")" << std::endl << std::flush;
             if (iKbdEscapeCharsExpected) { // escape sequence (still) expected now ...
                 iKbdEscapeCharsExpected--;
@@ -374,16 +398,12 @@ int main(int argc, char *argv[]) {
                 iKbdEscapeCharsExpected = 2;
                 continue; // don't send ESC character to LSCP server
             } else if (c == KBD_BACKSPACE) {
-                if (promptOffset() < CCursor::now().column())
-                    cout << "\b \b" << flush;
-                c = '\b';    
+                c = '\b';
             } else if (c == '\t') { // auto completion ...
                 autoComplete();
                 continue; // don't send tab character to LSCP server
             } else if (c == '\n') {
                 storeCommandInHistory(g_goodPortion + g_badPortion);
-            } else { // don't apply RETURN stroke yet, since the typed command might still be corrected by the sampler
-                cout << c << flush;
             }
 
             g_client->send(c);

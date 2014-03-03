@@ -47,7 +47,7 @@
 
 namespace LinuxSampler {
 
-String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param);
+String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param, bool possibilities);
 
 /**
  * Returns a copy of the given string where all special characters are
@@ -722,92 +722,112 @@ extern yyparse_param_t* GetCurrentYaccSession() {
  */
 bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 	int socket = (*iter).hSession;
+	int result;
 	char c;
-	int i = 0;
+	std::vector<char> input;
+
+	// first get as many character as possible and add it to the 'input' buffer
 	while (true) {
 		#if defined(WIN32)
-		int result = recv(socket, (char *)&c, 1, 0); //Read one character at a time for now
+		result = recv(socket, (char *)&c, 1, 0); //Read one character at a time for now
 		#else
-		int result = recv(socket, (void *)&c, 1, 0); //Read one character at a time for now
+		result = recv(socket, (void *)&c, 1, 0); //Read one character at a time for now
 		#endif
-		if (result == 0) { //socket was selected, so 0 here means client has closed the connection
-			CloseConnection(iter);
-			break;
-		}
-		if (result == 1) {
-			if (c == '\r')
-				continue; //Ignore CR
-			if (c == '\n') {
-				LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_misc, "Received \'" + bufferedCommands[socket] + "\' on socket", socket));
-				bufferedCommands[socket] += "\r\n";
-				return true; //Complete command was read
-			}
-			// backspace character - should only happen with shell
-			if (c == '\b') {
-				if (!bufferedCommands[socket].empty()) {
-					bufferedCommands[socket] = bufferedCommands[socket].substr(
-						0, bufferedCommands[socket].length() - 1
-					);
-				}
-			} else bufferedCommands[socket] += c;
+		if (result == 1) input.push_back(c);
+		else break; // end of input or some error
+		if (c == '\n') break; // process line by line
+	}
+
+	// process input buffer
+	for (int i = 0; i < input.size(); ++i) {
+		c = input[i];
+		if (c == '\r') continue; //Ignore CR
+		if (c == '\n') {
 			// only if the other side is the LSCP shell application:
 			// check the current (incomplete) command line for syntax errors,
 			// possible completions and report everything back to the shell
 			if ((*iter).bShellInteract || (*iter).bShellAutoCorrect) {
-				String s = lscpParserProcessShellInteraction(bufferedCommands[socket], &(*iter));
+				String s = lscpParserProcessShellInteraction(bufferedCommands[socket], &(*iter), false);
 				if (!s.empty() && (*iter).bShellInteract) AnswerClient(s + "\n");
 			}
+
+			LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_misc, "Received \'" + bufferedCommands[socket] + "\' on socket", socket));
+			bufferedCommands[socket] += "\r\n";
+			return true; //Complete command was read
 		}
-		#if defined(WIN32)
-		if (result == SOCKET_ERROR) {
-		    int wsa_lasterror = WSAGetLastError();
-			if (wsa_lasterror == WSAEWOULDBLOCK) //Would block, try again later.
-				return false;
-			dmsg(2,("LSCPScanner: Socket error after recv() Error %d.\n", wsa_lasterror));
-			CloseConnection(iter);
-			break;
-		}
-		#else
-		if (result == -1) {
-			if (errno == EAGAIN) //Would block, try again later.
-				return false;
-			switch(errno) {
-				case EBADF:
-					dmsg(2,("LSCPScanner: The argument s is an invalid descriptor.\n"));
-					break;
-				case ECONNREFUSED:
-					dmsg(2,("LSCPScanner: A remote host refused to allow the network connection (typically because it is not running the requested service).\n"));
-					break;
-				case ENOTCONN:
-					dmsg(2,("LSCPScanner: The socket is associated with a connection-oriented protocol and has not been connected (see connect(2) and accept(2)).\n"));
-					break;
-				case ENOTSOCK:
-					dmsg(2,("LSCPScanner: The argument s does not refer to a socket.\n"));
-					break;
-				case EAGAIN:
-					dmsg(2,("LSCPScanner: The socket is marked non-blocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received.\n"));
-					break;
-				case EINTR:
-					dmsg(2,("LSCPScanner: The receive was interrupted by delivery of a signal before any data were available.\n"));
-					break;
-				case EFAULT:
-					dmsg(2,("LSCPScanner: The receive buffer pointer(s) point outside the process's address space.\n"));
-					break;
-				case EINVAL:
-					dmsg(2,("LSCPScanner: Invalid argument passed.\n"));
-					break;
-				case ENOMEM:
-					dmsg(2,("LSCPScanner: Could not allocate memory for recvmsg.\n"));
-					break;
-				default:
-					dmsg(2,("LSCPScanner: Unknown recv() error.\n"));
-					break;
+		// backspace character - should only happen with shell
+		if (c == '\b') {
+			if (!bufferedCommands[socket].empty()) {
+				bufferedCommands[socket] = bufferedCommands[socket].substr(
+					0, bufferedCommands[socket].length() - 1
+				);
 			}
-			CloseConnection(iter);
-			break;
+		} else bufferedCommands[socket] += c;
+		// only if the other side is the LSCP shell application:
+		// check the current (incomplete) command line for syntax errors,
+		// possible completions and report everything back to the shell
+		if ((*iter).bShellInteract || (*iter).bShellAutoCorrect) {
+			String s = lscpParserProcessShellInteraction(bufferedCommands[socket], &(*iter), true);
+			if (!s.empty() && (*iter).bShellInteract && i == input.size() - 1)
+				AnswerClient(s + "\n");
 		}
-		#endif
 	}
+
+	// handle network errors ...
+	if (result == 0) { //socket was selected, so 0 here means client has closed the connection
+		CloseConnection(iter);
+		return false;
+	}
+	#if defined(WIN32)
+	if (result == SOCKET_ERROR) {
+		int wsa_lasterror = WSAGetLastError();
+		if (wsa_lasterror == WSAEWOULDBLOCK) //Would block, try again later.
+			return false;
+		dmsg(2,("LSCPScanner: Socket error after recv() Error %d.\n", wsa_lasterror));
+		CloseConnection(iter);
+		return false;
+	}
+	#else
+	if (result == -1) {
+		if (errno == EAGAIN) //Would block, try again later.
+			return false;
+		switch(errno) {
+			case EBADF:
+				dmsg(2,("LSCPScanner: The argument s is an invalid descriptor.\n"));
+				return false;
+			case ECONNREFUSED:
+				dmsg(2,("LSCPScanner: A remote host refused to allow the network connection (typically because it is not running the requested service).\n"));
+				return false;
+			case ENOTCONN:
+				dmsg(2,("LSCPScanner: The socket is associated with a connection-oriented protocol and has not been connected (see connect(2) and accept(2)).\n"));
+				return false;
+			case ENOTSOCK:
+				dmsg(2,("LSCPScanner: The argument s does not refer to a socket.\n"));
+				return false;
+			case EAGAIN:
+				dmsg(2,("LSCPScanner: The socket is marked non-blocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received.\n"));
+				return false;
+			case EINTR:
+				dmsg(2,("LSCPScanner: The receive was interrupted by delivery of a signal before any data were available.\n"));
+				return false;
+			case EFAULT:
+				dmsg(2,("LSCPScanner: The receive buffer pointer(s) point outside the process's address space.\n"));
+				return false;
+			case EINVAL:
+				dmsg(2,("LSCPScanner: Invalid argument passed.\n"));
+				return false;
+			case ENOMEM:
+				dmsg(2,("LSCPScanner: Could not allocate memory for recvmsg.\n"));
+				return false;
+			default:
+				dmsg(2,("LSCPScanner: Unknown recv() error.\n"));
+				return false;
+		}
+		CloseConnection(iter);
+		return false;
+	}
+	#endif
+
 	return false;
 }
 
