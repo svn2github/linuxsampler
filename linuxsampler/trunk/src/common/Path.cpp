@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 Christian Schoenebeck                              *
+ *   Copyright (C) 2007-2014 Christian Schoenebeck                         *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,7 +27,15 @@
 
 namespace LinuxSampler {
 
-Path::Path() : drive(0) {
+Path::Path() : drive(0), absolute(false) {
+}
+
+Path::Path(std::string path) {
+    #if WIN32
+    *this = fromWindows(path);
+    #else
+    *this = fromPosix(path);
+    #endif
 }
 
 void Path::appendNode(std::string Name) {
@@ -37,6 +45,7 @@ void Path::appendNode(std::string Name) {
 
 void Path::setDrive(const char& Drive) {
     drive = Drive;
+    absolute = true;
 }
 
 std::string Path::toPosix() const {
@@ -188,6 +197,9 @@ Path Path::fromPosix(std::string path) {
             s.replace(pos, 3, pcAscii);
         }
     }
+    // check whether given string reflects an absolute path
+    // (indicated by a forward slash as first character on POSIX)
+    result.absolute = !path.empty() && path[0] == '/';
     return result;
 }
 
@@ -240,6 +252,10 @@ Path Path::fromWindows(std::string path) {
             );
         }
     }
+
+    // check whether given string reflects an absolute path
+    // (indicated either by a backslash or drive at the beginning on Windows)
+    result.absolute = result.drive || (!path.empty() && path[0] == '\\');
 
     return result;
 }
@@ -296,6 +312,10 @@ std::string Path::stripLastName(std::string path) {
     #endif
 
     return p.stripLastName();
+}
+
+bool Path::isAbsolute() const {
+    return absolute;
 }
 
 } // namespace LinuxSampler

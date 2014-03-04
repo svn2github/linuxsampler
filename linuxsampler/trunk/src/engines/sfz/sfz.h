@@ -761,6 +761,7 @@ namespace sfz
         
         /// Load an existing SFZ file
         File(std::string file, SampleManager* pSampleManager = NULL);
+        void parseFile(std::string file, SampleManager* pSampleManager);
         virtual ~File();
 
         /// Returns a pointer to the instrument object

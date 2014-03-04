@@ -274,6 +274,8 @@ Version CVS HEAD (?)
     - added FLAC support (#191)
     - sfz parser bugfix: lines starting with whitespace were ignored
     - added amplitude opcode
+    - added support for "#include" instruction
+      (modified patch which was originally posted by Sergey on LS mailing list)
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

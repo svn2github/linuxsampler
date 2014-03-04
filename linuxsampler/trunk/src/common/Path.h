@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 Christian Schoenebeck                              *
+ *   Copyright (C) 2007-2014 Christian Schoenebeck                         *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -44,7 +44,16 @@ namespace LinuxSampler {
  */
 class Path {
 public:
+    /**
+     * Default constructor.
+     */
     Path();
+
+    /**
+     * Creates a path object according to the local system's path conventions.
+     * @see fromPosix(), fromWindows(), fromDbPath()
+     */
+    Path(std::string path);
 
     /**
      * Concatenate exactly one path node or filename to the end of this Path
@@ -149,9 +158,16 @@ public:
      */
     static std::string getBaseName(std::string path);
 
+    /**
+     * Returns true if the path is reflecting an absolute path, false if it is
+     * rather a relative path.
+     */
+    bool isAbsolute() const;
+
 private:
     std::vector<std::string> elements; ///< stores the path names raw = unencoded, each element is one node of the path
     char                     drive;
+    bool                     absolute;
 };
 
 } // namespace LinuxSampler
