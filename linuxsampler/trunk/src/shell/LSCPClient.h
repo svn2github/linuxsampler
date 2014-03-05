@@ -62,6 +62,7 @@ public:
     optional<String> lookAheadLine(int index);
     optional<String> popLine();
     void setCallback(Callback_t fn);
+    void setErrorCallback(Callback_t fn);
 protected:
     int Main() OVERRIDE;
     optional<String> receiveLine();
@@ -71,6 +72,7 @@ private:
     std::list<String> m_lines;
     Mutex m_linesMutex;
     Callback_t m_callback;
+    Callback_t m_errorCallback;
     Condition m_sync;
     bool m_multiLineExpected;
     bool m_multiLineComplete;

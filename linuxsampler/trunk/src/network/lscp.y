@@ -1450,6 +1450,25 @@ inline static int _yyDefaultReduce(std::vector<YYTYPE_INT16>& stack) {
 
 static bool yyValid(std::vector<YYTYPE_INT16>& stack, char ch);
 
+/**
+ * A set of parser symbol stacks. This type is used for the recursive algorithms
+ * in a) yyAutoComplete() and b) walkAndFillExpectedSymbols() for detecting
+ * endless recursions.
+ * 
+ * This unique container is used to keep track of all previous parser states
+ * (stacks), for detecting a parser symbol stack that has already been
+ * encountered before. Because if yyAutoComplete() or
+ * walkAndFillExpectedSymbols() reach the exactly same parser symbol stack
+ * again, that means there is an endless recursion in that part of the grammar
+ * tree branch and shall not be evaluated any further, since it would end up in
+ * an endless loop of the algorithm otherwise.
+ *
+ * This solution consumes a lot of memory, but unfortunately there is no other
+ * easy way to solve it. With our grammar and today's usual memory heap size &
+ * memory stack size in modern devices, it should be fine though.
+ */
+typedef std::set< std::vector<YYTYPE_INT16> > YYStackHistory;
+
 #define DEBUG_BISON_SYNTAX_ERROR_WALKER 0
 
 /**
@@ -1472,12 +1491,15 @@ static bool yyValid(std::vector<YYTYPE_INT16>& stack, char ch);
  * @param nextExpectedChars - just for internal purpose, due to the recursive
  *                            implementation of this function, do supply an
  *                            empty character for this argument
+ * @param history - only for internal purpose, keeps a history of all previous
+ *                  parser symbol stacks (just for avoiding endless recursion in
+ *                  this recursive algorithm)
  * @param depth - just for internal debugging purposes
  */
 static void walkAndFillExpectedSymbols(
     std::vector<YYTYPE_INT16>& stack,
     std::map<String,BisonSymbolInfo>& expectedSymbols,
-    String& nextExpectedChars, int depth = 0)
+    String& nextExpectedChars, YYStackHistory& history, int depth = 0)
 {
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
     printf("\n");
@@ -1489,6 +1511,10 @@ static void walkAndFillExpectedSymbols(
     printf("\n");
 #endif
     startLabel:
+
+    // detect endless recursion
+    if (history.count(stack)) return;
+    history.insert(stack);
 
     if (stack.empty()) {
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
@@ -1586,7 +1612,7 @@ static void walkAndFillExpectedSymbols(
             nextExpectedChars += _tokenName(token);
             nextExpectedCharsLen = nextExpectedChars.size();
             walkAndFillExpectedSymbols( //FIXME: could cause stack overflow (should be a loop instead), is probably fine with our current grammar though
-                stackCopy, expectedSymbols, nextExpectedChars, depth + 1
+                stackCopy, expectedSymbols, nextExpectedChars, history, depth + 1
             );
             nextExpectedChars.resize(nextExpectedCharsLen); // restore 'nextExpectedChars'
             continue;
@@ -1632,7 +1658,7 @@ static void walkAndFillExpectedSymbols(
         stack.push_back(action);
         nextExpectedChars += _tokenName(token);
         walkAndFillExpectedSymbols( //FIXME: could cause stack overflow (should be a loop instead), is probably fine with our current grammar though
-            stack, expectedSymbols, nextExpectedChars, depth + 1
+            stack, expectedSymbols, nextExpectedChars, history, depth + 1
         );
         stack.resize(stackSize); // restore stack
         nextExpectedChars.resize(nextExpectedCharsLen); // restore 'nextExpectedChars'
@@ -1671,6 +1697,23 @@ static void walkAndFillExpectedSymbols(
 #if DEBUG_BISON_SYNTAX_ERROR_WALKER
     printf("\n");
 #endif
+}
+
+/**
+ * Just a convenience wrapper on top of the actual walkAndFillExpectedSymbols()
+ * implementation above, which can be called with less parameters than the
+ * implementing function above actually requires.
+ */
+static void walkAndFillExpectedSymbols(
+    std::vector<YYTYPE_INT16>& stack,
+    std::map<String,BisonSymbolInfo>& expectedSymbols)
+{
+    String nextExpectedChars;
+    YYStackHistory history;
+
+    walkAndFillExpectedSymbols(
+        stack, expectedSymbols, nextExpectedChars, history
+    );
 }
 
 #define DEBUG_PUSH_PARSE 0
@@ -1818,9 +1861,8 @@ static std::set<String> yyExpectedSymbols() {
     for (int i = 0; i < iStackSize; ++i) {
         stack.push_back(ss[i]);
     }
-    String notUsedHere;
     // do the actual parser work
-    walkAndFillExpectedSymbols(stack, expectedSymbols, notUsedHere);
+    walkAndFillExpectedSymbols(stack, expectedSymbols);
 
     // convert expectedSymbols to the result set
     std::set<String> result;
@@ -1830,20 +1872,6 @@ static std::set<String> yyExpectedSymbols() {
 }
 
 #define DEBUG_YY_AUTO_COMPLETE 0
-
-/**
- * A set of parser symbol stacks. This type is used in yyAutoComplete() to keep
- * track of all previous parser states, for detecting a parser symbol stack that
- * has already been before. Because if yyAutoComplete() reaches the exactly same
- * parser symbol stack again, it means there is an endless recursion in that
- * part of the grammar tree branch and shall not be evaluated any further,
- * because it would end up in an endless loop otherwise.
- *
- * This solution consumes a lot of memory, but unfortunately there is no other
- * easy way to solve it. With our grammar and today's memory heap size & memory
- * stack size it should be fine though.
- */
-typedef std::set< std::vector<YYTYPE_INT16> > YYStackHistory;
 
 /**
  * Generates and returns an auto completion string for the current parser
@@ -1874,8 +1902,7 @@ typedef std::set< std::vector<YYTYPE_INT16> > YYStackHistory;
  */
 static String yyAutoComplete(std::vector<YYTYPE_INT16>& stack, YYStackHistory& history, int depth = 0) {
     std::map<String,BisonSymbolInfo> expectedSymbols;
-    String notUsedHere;
-    walkAndFillExpectedSymbols(stack, expectedSymbols, notUsedHere);
+    walkAndFillExpectedSymbols(stack, expectedSymbols);
     if (expectedSymbols.size() == 1) {
         String name          = expectedSymbols.begin()->first;
         BisonSymbolInfo info = expectedSymbols.begin()->second;
@@ -2059,9 +2086,8 @@ String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param, b
 
     // finally append all possible terminals and non-terminals according to
     // current parser state
-    String notUsedHere;
     std::map<String,BisonSymbolInfo> expectedSymbols;
-    walkAndFillExpectedSymbols(stack, expectedSymbols, notUsedHere);
+    walkAndFillExpectedSymbols(stack, expectedSymbols);
     {
         // pretend to LSCP shell that the following terminal symbols were
         // non-terminal symbols (since they are not human visible for auto

@@ -66,6 +66,13 @@ static int promptOffset() {
     return g_prompt.size();
 }
 
+static void quitApp(int code = 0) {
+    std::cout << std::endl << std::flush;
+    if (g_client) delete g_client;
+    if (g_keyboardReader) delete g_keyboardReader;
+    exit(code);
+}
+
 // Called by the network reading thread, whenever new data arrived from the
 // network connection.
 static void onLSCPClientNewInputAvailable(LSCPClient* client) {
@@ -77,6 +84,12 @@ static void onNewKeyboardInputAvailable(KeyboardReader* reader) {
     g_todo.Set(true);
 }
 
+// Called on network error or when server side closed the TCP connection.
+static void onLSCPClientErrorOccured(LSCPClient* client) {
+    quitApp();
+}
+
+/// Will be called when the user hits tab key to trigger auto completion.
 static void autoComplete() {
     if (g_suggestedPortion.empty()) return;
     String s;
@@ -100,14 +113,17 @@ static void commandFromHistory(int offset) {
     g_client->send(command);
 }
 
+/// Will be called when the user hits arrow up key, to iterate to an older command line.
 static void previousCommand() {
     commandFromHistory(1);
 }
 
+/// Will be called when the user hits arrow down key, to iterate to a more recent command line.
 static void nextCommand() {
     commandFromHistory(-1);
 }
 
+/// Will be called whenever the user hits ENTER, to store the line in the command history.
 static void storeCommandInHistory(const String& sCommand) {
     g_commandHistoryIndex = -1; // reset history index
     // don't save the command if the previous one was the same
@@ -133,8 +149,8 @@ static void storeCommandInHistory(const String& sCommand) {
  * @endcode
  * which will inform the LSCP server that this LSCP client is actually a LSCP
  * shell application. The shell will then simply forward every single character
- * typed by the user immediately to the LSCP server, which in turn will evaluate
- * every single character typed by the user and will return immediately a
+ * typed by the user immediately to the LSCP server. The LSCP server in turn
+ * will evaluate every single character received and will return immediately a
  * specially formatted string to the shell application like (assuming the user's
  * current command line was "CREATE AUasdf"):
  * @code
@@ -160,7 +176,20 @@ static void storeCommandInHistory(const String& sCommand) {
  *
  * - Right of "{{SB}}" follows the current auto completion suggestion, so that
  *   string portion was not typed by the user yet, but is expected to be typed
- *   by him next to retain syntax correctness.
+ *   by him next, to retain syntax correctness. The auto completion portion is
+ *   added by the LSCP server only if there is one unique way to add characters
+ *   to the current command line. If there are multiple possibilities, than this
+ *   portion is missing due to ambiguity.
+ *
+ * - Optionally there might also be a "{{PB}" marker on right hand side of the
+ *   line. The text right to that marker reflects all possibilities at the
+ *   user's current input position (which cannot be auto completed) due to
+ *   ambiguity, including abstract (a.k.a. "non-terminal") symbols like:
+ *   @code
+ *   <digit>, <text>, <number>, etc.
+ *   @endcode
+ *   This portion is added by the LSCP server only if there is not a unique way
+ *   to add characters to the current command line.
  */
 int main(int argc, char *argv[]) {
     String host = LSCP_DEFAULT_HOST;
@@ -198,6 +227,7 @@ int main(int argc, char *argv[]) {
     // receiving incoming network data from the sampler's LSCP server
     g_client = new LSCPClient;
     g_client->setCallback(onLSCPClientNewInputAvailable);
+    g_client->setErrorCallback(onLSCPClientErrorOccured);
     if (!g_client->connect(host, port)) return -1;
     String sResponse = g_client->sendCommandSync(
         (autoCorrect) ? "SET SHELL AUTO_CORRECT 1" : "SET SHELL AUTO_CORRECT 0"
@@ -235,12 +265,12 @@ int main(int argc, char *argv[]) {
     //   FIFO buffer.
     //
     // - Main thread: this thread runs in the loop below. The main thread sleeps
-    //   (by using the "g_todo" semaphore) until either new keys on the keyboard
-    //   were stroke by the user or until new bytes were received from the LSCP
-    //   server. The main thread will then accordingly send the typed characters
-    //   to the LSCP server and/or show the result of the LSCP server's latest
-    //   evaluation to the user on the screen (by pulling those data from the
-    //   other two thread's FIFO buffers).
+    //   (by using the "g_todo" condition variable) until either new keys on the
+    //   keyboard were stroke by the user or until new bytes were received from
+    //   the LSCP server. The main thread will then accordingly send the typed
+    //   characters to the LSCP server and/or show the result of the LSCP
+    //   server's latest evaluation to the user on the screen (by pulling those
+    //   data from the other two thread's FIFO buffers).
     while (true) {
         // sleep until either new data from the network or from keyboard arrived
         g_todo.WaitIf(false);

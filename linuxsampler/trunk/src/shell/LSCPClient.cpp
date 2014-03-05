@@ -12,7 +12,7 @@
 
 LSCPClient::LSCPClient() :
     Thread(false, false, 1, -1),
-    hSocket(-1), m_callback(NULL),
+    hSocket(-1), m_callback(NULL), m_errorCallback(NULL),
     m_multiLineExpected(false), m_multiLineComplete(false)
 {
 }
@@ -135,6 +135,10 @@ void LSCPClient::setCallback(Callback_t fn) {
     m_callback = fn;
 }
 
+void LSCPClient::setErrorCallback(Callback_t fn) {
+    m_errorCallback = fn;
+}
+
 optional<String> LSCPClient::receiveLine() {
     if (!isConnected()) return optional<String>::nothing;
     for (char c; true; ) {
@@ -173,7 +177,7 @@ int LSCPClient::Main() {
 
             if (m_sync.GetUnsafe()) m_sync.Set(false);
             else if (m_callback) (*m_callback)(this);
-        }
+        } else if (m_errorCallback) (*m_errorCallback)(this);
         TestCancel();
     }
     return 0; // just to avoid a warning with some old compilers
