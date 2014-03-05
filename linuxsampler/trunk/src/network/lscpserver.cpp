@@ -754,15 +754,24 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 			LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_misc, "Received \'" + bufferedCommands[socket] + "\' on socket", socket));
 			bufferedCommands[socket] += "\r\n";
 			return true; //Complete command was read
-		}
-		// backspace character - should only happen with shell
-		if (c == '\b') {
-			if (!bufferedCommands[socket].empty()) {
-				bufferedCommands[socket] = bufferedCommands[socket].substr(
-					0, bufferedCommands[socket].length() - 1
-				);
+		} else if (c == 2) { // custom ASCII code usage for moving cursor left (LSCP shell)
+			if (iter->iCursorOffset + bufferedCommands[socket].size() > 0)
+				iter->iCursorOffset--;
+		} else if (c == 3) { // custom ASCII code usage for moving cursor right (LSCP shell)
+			if (iter->iCursorOffset < 0) iter->iCursorOffset++;
+		} else {
+			size_t cursorPos = bufferedCommands[socket].size() + iter->iCursorOffset;
+			// backspace character - should only happen with shell
+			if (c == '\b') {
+				if (!bufferedCommands[socket].empty() && cursorPos > 0)
+					bufferedCommands[socket].erase(cursorPos - 1, 1);
+			} else { // append (or insert) new character (at current cursor position) ...
+				if (cursorPos >= 0)
+					bufferedCommands[socket].insert(cursorPos, String(1,c)); // insert
+				else
+					bufferedCommands[socket] += c; // append
 			}
-		} else bufferedCommands[socket] += c;
+		}
 		// only if the other side is the LSCP shell application:
 		// check the current (incomplete) command line for syntax errors,
 		// possible completions and report everything back to the shell

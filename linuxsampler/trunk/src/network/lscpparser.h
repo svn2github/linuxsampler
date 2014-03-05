@@ -100,7 +100,8 @@ struct yyparse_param_t {
     bool        bShellInteract; ///< if true: then client is the LSCP shell
     bool        bShellAutoCorrect; ///< if true: try to automatically correct obvious syntax mistakes
     int         iLine;    ///< Current line (just for verbosity / messages)
-    int         iColumn;  ///< Current column (just for verbosity / messages)
+    int         iColumn;  ///< End of current line (just for verbosity / messages)
+    int         iCursorOffset;  ///< Column of cursor position in current line (reflected as offset to iColumn, range -n .. 0)
     YYTYPE_INT16** ppStackBottom; ///< Bottom end of the Bison parser's state stack.
     YYTYPE_INT16** ppStackTop;    ///< Current position (heap) of the Bison parser's state stack.
 
@@ -109,8 +110,14 @@ struct yyparse_param_t {
         hSession = -1;
         bVerbose = false;
         bShellInteract = bShellAutoCorrect = false;
-        iLine = iColumn = 0;
+        iCursorOffset = iLine = iColumn = 0;
         ppStackBottom = ppStackTop = NULL;
+    }
+
+    void onNextLine() {
+        iLine++;
+        iColumn = 0;
+        iCursorOffset = 0;
     }
 };
 #define YYPARSE_PARAM yyparse_param

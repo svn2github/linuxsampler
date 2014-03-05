@@ -387,11 +387,10 @@ int main(int argc, char *argv[]) {
                         previousCommand();
                     else if (kbdPrevEscapeChar == 91 && c == 66) // down key
                         nextCommand();
-                    else if (kbdPrevEscapeChar == 91 && c == 68) { // left key
-                        //TODO: move cursor left
-                    } else if (kbdPrevEscapeChar == 91 && c == 67) { // right key
-                        //TODO: move cursor right
-                    }
+                    else if (kbdPrevEscapeChar == 91 && c == 68) // left key
+                        g_client->send(2); // custom usage of this ASCII code
+                    else if (kbdPrevEscapeChar == 91 && c == 67) // right key
+                        g_client->send(3); // custom usage of this ASCII code
                 }
                 continue; // don't send this escape sequence character to LSCP server
             } else if (c == KBD_ESCAPE) { // escape sequence for special keys expected next ...

@@ -43,7 +43,7 @@ namespace LinuxSampler {
 // to save us typing work in the rules action definitions
 #define LSCPSERVER ((yyparse_param_t*) yyparse_param)->pServer
 #define SESSION_PARAM ((yyparse_param_t*) yyparse_param)
-#define INCREMENT_LINE { SESSION_PARAM->iLine++; SESSION_PARAM->iColumn = 0; sParsed.clear(); }
+#define INCREMENT_LINE { SESSION_PARAM->onNextLine(); sParsed.clear(); }
 
 // clears input buffer
 void restart(yyparse_param_t* pparam, int& yychar);
@@ -2029,13 +2029,17 @@ String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param, b
         line.replace(0, nMin, l.substr(0, nMin));
     }
 
+    size_t cursorPos = line.size() + param->iCursorOffset;
+    if (cursorPos < 0) cursorPos = 0;
+
     // generate an info string that will be sent to the LSCP shell for letting
     // it know which part is correct, which one is wrong, where is the cursor, etc.
     String result = line;
     result.insert(n <= result.length() ? n : result.length(), LSCP_SHK_GOOD_FRONT);
+    result.insert(cursorPos <= n ? cursorPos : cursorPos + String(LSCP_SHK_GOOD_FRONT).length(), LSCP_SHK_CURSOR);
     int code = (n > line.length()) ? LSCP_SHU_COMPLETE : (n < line.length()) ?
                LSCP_SHU_SYNTAX_ERR : LSCP_SHU_INCOMPLETE;
-    result = "SHU:" + ToString(code) + ":" + result + LSCP_SHK_CURSOR;
+    result = "SHU:" + ToString(code) + ":" + result;
     //if (n > line.length()) result += " [OK]";
 
     // get a clean parser stack to the last valid parse position

@@ -401,6 +401,10 @@ Version CVS HEAD (?)
     - Added support for auto completion by tab key.
     - Show currently available auto completion while typing.
     - Added support for browsing command history with up / down keys.
+    - Show all possible next symbols immediately right to the current command
+      line while typing (no double tab required for this feature, as it would
+      be the case in other shells).
+    - Added support for moving cursor left/right with arrow keys.
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range
