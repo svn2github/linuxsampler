@@ -276,6 +276,9 @@ Version CVS HEAD (?)
     - added amplitude opcode
     - added support for "#include" instruction
       (modified patch which was originally posted by Sergey on LS mailing list)
+    - bugfix: generation of velocity curves etc should not be done
+      after each "#include", only after the main file is parsed
+    - bugfix: line numbers in error messages were wrong after "#include"
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

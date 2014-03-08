@@ -876,118 +876,6 @@ namespace sfz
         pCurDef = _current_group;
 
         parseFile(file,pSampleManager);
-    }
-
-    void File::parseFile(std::string file, SampleManager* pSampleManager){
-        enum token_type_t { HEADER, OPCODE };
-        token_type_t token_type;
-        std::string token_string;
-
-        std::ifstream fs(file.c_str());
-        currentDir = LinuxSampler::Path::stripLastName(file);
-        std::string token;
-        std::string line;
-        currentLine = 0;
-
-        while (std::getline(fs, line))
-        {
-            currentLine++;
-            // COMMENT
-            std::string::size_type slash_index = line.find("//");
-            if (slash_index != std::string::npos)
-                line.resize(slash_index);
-
-            // #include
-            if (line.find("#include ") == 0) {
-                size_t fname_start = line.find("\"");
-                if (fname_start == std::string::npos) continue;
-
-                size_t fname_end = line.find("\"", fname_start + 1);
-                if (fname_end == std::string::npos || fname_start == fname_end)
-                    continue;
-                std::string fname = line.substr(fname_start + 1, fname_end - fname_start - 1);
-
-                if (!currentDir.empty() && !LinuxSampler::Path(fname).isAbsolute())
-                    fname = currentDir + LinuxSampler::File::DirSeparator + fname;
-
-                std::string cd = currentDir; // backup current dir
-                parseFile(fname, pSampleManager);
-                currentDir = cd; // restore currentDir (since altered by parsefile())
-                continue;
-            }
-
-            // DEFINITION
-            std::stringstream linestream(line);
-            int spaces = 0;
-            while (linestream >> token)
-            {
-                linestream >> std::noskipws;
-                if (token[0] == '<' && token[token.size()-1] == '>')
-                {
-                    // HEAD
-                    if (!token_string.empty())
-                    {
-                        switch (token_type)
-                        {
-                        case HEADER:
-                            push_header(token_string);
-                            break;
-                        case OPCODE:
-                            push_opcode(token_string);
-                            break;
-                        }
-                        token_string.erase();
-                    }
-                    token_string.append(token);
-                    token_type = HEADER;
-                }
-                else if (token.find('=') != std::string::npos)
-                {
-                    // HEAD
-                    if (!token_string.empty())
-                    {
-                        switch (token_type)
-                        {
-                        case HEADER:
-                            push_header(token_string);
-                            break;
-                        case OPCODE:
-                            push_opcode(token_string);
-                            break;
-                        }
-                        token_string.erase();
-                    }
-                    token_string.append(token);
-                    token_type = OPCODE;
-                }
-                else
-                {
-                    // TAIL
-                    token_string.append(spaces, ' ');
-                    token_string.append(token);
-                }
-                spaces = 0;
-                while (isspace(linestream.peek())) {
-                    linestream.ignore();
-                    spaces++;
-                }
-            }
-
-            // EOL
-            if (!token_string.empty())
-            {
-                switch (token_type)
-                {
-                case HEADER:
-                    push_header(token_string);
-                    break;
-                case OPCODE:
-                    push_opcode(token_string);
-                    break;
-                }
-                token_string.erase();
-            }
-        }
 
         std::set<float*> velcurves;
         for (int i = 0; i < _instrument->regions.size(); i++) {
@@ -1167,6 +1055,120 @@ namespace sfz
                 
                 copyStepValues(r->lfos[j].resonance_stepcc, r->lfos[j].resonance_oncc);
                 r->lfos[j].resonance_stepcc.clear();
+            }
+        }
+    }
+
+    void File::parseFile(std::string file, SampleManager* pSampleManager){
+        enum token_type_t { HEADER, OPCODE };
+        token_type_t token_type;
+        std::string token_string;
+
+        std::ifstream fs(file.c_str());
+        currentDir = LinuxSampler::Path::stripLastName(file);
+        std::string token;
+        std::string line;
+        currentLine = 0;
+
+        while (std::getline(fs, line))
+        {
+            currentLine++;
+            // COMMENT
+            std::string::size_type slash_index = line.find("//");
+            if (slash_index != std::string::npos)
+                line.resize(slash_index);
+
+            // #include
+            if (line.find("#include ") == 0) {
+                size_t fname_start = line.find("\"");
+                if (fname_start == std::string::npos) continue;
+
+                size_t fname_end = line.find("\"", fname_start + 1);
+                if (fname_end == std::string::npos || fname_start == fname_end)
+                    continue;
+                std::string fname = line.substr(fname_start + 1, fname_end - fname_start - 1);
+
+                if (!currentDir.empty() && !LinuxSampler::Path(fname).isAbsolute())
+                    fname = currentDir + LinuxSampler::File::DirSeparator + fname;
+
+                std::string cd = currentDir; // backup current dir
+                int cl = currentLine;
+                parseFile(fname, pSampleManager);
+                currentDir = cd; // restore currentDir (since altered by parsefile())
+                currentLine = cl;
+                continue;
+            }
+
+            // DEFINITION
+            std::stringstream linestream(line);
+            int spaces = 0;
+            while (linestream >> token)
+            {
+                linestream >> std::noskipws;
+                if (token[0] == '<' && token[token.size()-1] == '>')
+                {
+                    // HEAD
+                    if (!token_string.empty())
+                    {
+                        switch (token_type)
+                        {
+                        case HEADER:
+                            push_header(token_string);
+                            break;
+                        case OPCODE:
+                            push_opcode(token_string);
+                            break;
+                        }
+                        token_string.erase();
+                    }
+                    token_string.append(token);
+                    token_type = HEADER;
+                }
+                else if (token.find('=') != std::string::npos)
+                {
+                    // HEAD
+                    if (!token_string.empty())
+                    {
+                        switch (token_type)
+                        {
+                        case HEADER:
+                            push_header(token_string);
+                            break;
+                        case OPCODE:
+                            push_opcode(token_string);
+                            break;
+                        }
+                        token_string.erase();
+                    }
+                    token_string.append(token);
+                    token_type = OPCODE;
+                }
+                else
+                {
+                    // TAIL
+                    token_string.append(spaces, ' ');
+                    token_string.append(token);
+                }
+                spaces = 0;
+                while (isspace(linestream.peek())) {
+                    linestream.ignore();
+                    spaces++;
+                }
+            }
+
+            // EOL
+            if (!token_string.empty())
+            {
+                switch (token_type)
+                {
+                case HEADER:
+                    push_header(token_string);
+                    break;
+                case OPCODE:
+                    push_opcode(token_string);
+                    break;
+                }
+                token_string.erase();
             }
         }
     }

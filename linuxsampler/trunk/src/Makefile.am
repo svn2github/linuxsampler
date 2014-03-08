@@ -3,8 +3,10 @@ AM_CPPFLAGS= $(all_includes) $(GIG_CFLAGS) $(SQLITE3_CFLAGS)
 
 if HAVE_WINDOWS
 system_libs =
+SHELL_SUBDIR =
 else
 system_libs = -lpthread -ldl
+SHELL_SUBDIR = shell
 endif
 
 if HAVE_COREMIDI
@@ -30,7 +32,7 @@ endif
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
-SUBDIRS = db network engines common testcases drivers plugins effects . hostplugins shell
+SUBDIRS = db network engines common testcases drivers plugins effects . hostplugins $(SHELL_SUBDIR)
 
 liblinuxsamplerincludedir = $(includedir)/linuxsampler
 liblinuxsamplerinclude_HEADERS = Sampler.h EventListeners.h
