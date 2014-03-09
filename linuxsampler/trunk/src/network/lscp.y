@@ -444,6 +444,7 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' p
                       |  ECHO SP boolean                                                                  { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
                       |  SHELL SP INTERACT SP boolean                                                     { $$ = LSCPSERVER->SetShellInteract((yyparse_param_t*) yyparse_param, $5); }
                       |  SHELL SP AUTO_CORRECT SP boolean                                                 { $$ = LSCPSERVER->SetShellAutoCorrect((yyparse_param_t*) yyparse_param, $5); }
+                      |  SHELL SP DOC SP boolean                                                          { $$ = LSCPSERVER->SetShellDoc((yyparse_param_t*) yyparse_param, $5); }
                       |  VOLUME SP volume_value                                                           { $$ = LSCPSERVER->SetGlobalVolume($3);                            }
                       |  VOICES SP number                                                                 { $$ = LSCPSERVER->SetGlobalMaxVoices($3);                         }
                       |  STREAMS SP number                                                                { $$ = LSCPSERVER->SetGlobalMaxStreams($3);                        }
@@ -1281,6 +1282,9 @@ NAME                  :  'N''A''M''E'
 ECHO                  :  'E''C''H''O'
                       ;
 
+DOC                   :  'D''O''C'
+                      ;
+
 QUIT                  :  'Q''U''I''T'
                       ;
 
@@ -1490,11 +1494,11 @@ typedef std::set< std::vector<YYTYPE_INT16> > YYStackHistory;
  * @param expectedSymbols - will be filled with next expected grammar symbols
  * @param nextExpectedChars - just for internal purpose, due to the recursive
  *                            implementation of this function, do supply an
- *                            empty character for this argument
+ *                            empty string for this argument
  * @param history - only for internal purpose, keeps a history of all previous
  *                  parser symbol stacks (just for avoiding endless recursion in
- *                  this recursive algorithm)
- * @param depth - just for internal debugging purposes
+ *                  this recursive algorithm), do supply an empty history
+ * @param depth - just for internal debugging purposes, do not supply it
  */
 static void walkAndFillExpectedSymbols(
     std::vector<YYTYPE_INT16>& stack,
@@ -1719,7 +1723,7 @@ static void walkAndFillExpectedSymbols(
 #define DEBUG_PUSH_PARSE 0
 
 /**
- * Implements parsing exactly one character (given by @a c), continueing at the
+ * Implements parsing exactly one character (given by @a ch), continueing at the
  * parser position reflected by @a stack. The @a stack will hold the new parser
  * state after this call.
  *
@@ -1789,7 +1793,7 @@ static bool yyPushParse(std::vector<YYTYPE_INT16>& stack, char ch) {
  * The @a stack will reflect the new parser state after this call.
  *
  * This is just a wrapper ontop of yyPushParse() which converts parser
- * exceptions thrown by yyPushParse() into negative return value.
+ * exceptions thrown by yyPushParse() into @c false return value.
  */
 static bool yyValid(std::vector<YYTYPE_INT16>& stack, char ch) {
     try {
@@ -1896,8 +1900,8 @@ static std::set<String> yyExpectedSymbols() {
  * @param stack - current Bison (yacc) symbol stack to create auto completion for
  * @param history - only for internal purpose, keeps a history of all previous
  *                  parser symbol stacks (just for avoiding endless recursion in
- *                  this auto completion algorithm)
- * @param depth - just for internal debugging purposes
+ *                  this auto completion algorithm), do supply an empty history
+ * @param depth - just for internal debugging purposes, do not supply anything
  * @returns auto completion for current, given parser state
  */
 static String yyAutoComplete(std::vector<YYTYPE_INT16>& stack, YYStackHistory& history, int depth = 0) {
@@ -2005,7 +2009,7 @@ static String yyAutoComplete(std::vector<YYTYPE_INT16>& stack, YYStackHistory& h
 
 /**
  * Just a convenience wrapper on top of the actual yyAutoComplete()
- * implementation. See description above for details.
+ * implementation. See its description above for details.
  */
 static String yyAutoComplete(std::vector<YYTYPE_INT16>& stack) {
     YYStackHistory history;
@@ -2082,13 +2086,12 @@ String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param, b
     String sSuggestion = yyAutoComplete(stackCopy);
     if (!sSuggestion.empty()) result += LSCP_SHK_SUGGEST_BACK + sSuggestion;
 
-    if (!possibilities) return result;
+    if (possibilities) {
+        // append all possible terminals and non-terminals according to
+        // current parser state
+        std::map<String,BisonSymbolInfo> expectedSymbols;
+        walkAndFillExpectedSymbols(stack, expectedSymbols);
 
-    // finally append all possible terminals and non-terminals according to
-    // current parser state
-    std::map<String,BisonSymbolInfo> expectedSymbols;
-    walkAndFillExpectedSymbols(stack, expectedSymbols);
-    {
         // pretend to LSCP shell that the following terminal symbols were
         // non-terminal symbols (since they are not human visible for auto
         // completion on the shell's screen)

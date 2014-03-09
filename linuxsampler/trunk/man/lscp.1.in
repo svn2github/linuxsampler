@@ -1,4 +1,4 @@
-.TH "lscp" "1" "06 Feb 2014" "linuxsampler @VERSION@" "User Manuals"
+.TH "lscp" "1" "09 Mar 2014" "linuxsampler @VERSION@" "User Manuals"
 .SH NAME
 lscp \- the LinuxSampler Control Protocol (LSCP) shell
 .SH SYNOPSIS
@@ -41,6 +41,8 @@ Host name of LSCP server (default "localhost").
 TCP port number of LSCP server (default 8888).
 .IP "--no-auto-correct"
 Don't perform auto correction of obvious syntax errors.
+.IP "--no-doc"
+Don't show LSCP reference documentation on screen.
 .SH ENVIRONMENT VARIABLES
 None (yet).
 .SH "SEE ALSO"

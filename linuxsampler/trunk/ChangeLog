@@ -408,6 +408,10 @@ Version CVS HEAD (?)
       line while typing (no double tab required for this feature, as it would
       be the case in other shells).
     - Added support for moving cursor left/right with arrow keys.
+    - Added support for built-in LSCP reference documentation, which will
+      automatically show the relevant LSCP reference section on screen as soon
+      as one specific LSCP command was detected while typing on the command
+      line.
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

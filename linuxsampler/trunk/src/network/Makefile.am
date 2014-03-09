@@ -16,6 +16,7 @@ liblinuxsamplernetwork_la_SOURCES = \
 	lscpserver.cpp lscpserver.h \
 	lscpsymbols.h \
 	lscpresultset.cpp lscpresultset.h \
+	lscp_shell_reference.cpp lscp_shell_reference.h \
 	lscpevent.cpp lscpevent.h
 liblinuxsamplernetwork_la_LIBADD = $(winsocket_ldflags)
 
@@ -33,6 +34,10 @@ lscpsymbols.h: $(yacc_sources)
 lscpparser.cpp: $(yacc_sources)
 	$(top_srcdir)/scripts/generate_parser.sh
 
+# automatically (re)generate lscp_shell_reference.cpp if the
+# yacc source file or lscp.xml source have been changed
+lscp_shell_reference.cpp: $(yacc_sources) ../../Documentation/lscp.xml
+	$(top_srcdir)/scripts/generate_parser.sh
 
 .PHONY: parser
 

@@ -716,6 +716,39 @@ extern yyparse_param_t* GetCurrentYaccSession() {
 }
 
 /**
+ * Generate the relevant LSCP documentation reference section if necessary.
+ * The documentation section for the currently active command on the LSCP
+ * shell's command line will be encoded in a special format, specifically for
+ * the LSCP shell application.
+ *
+ * @param line - current LSCP command line
+ * @param param - reentrant Bison parser parameters
+ *
+ * @return encoded reference string or empty string if nothing shall be sent
+ *         to LSCP shell (client) at this point
+ */
+String LSCPServer::generateLSCPDocReply(const String& line, yyparse_param_t* param) {
+    String result;
+    lscp_ref_entry_t* ref = lscp_reference_for_command(line.c_str());
+    // Pointer comparison works here, since the function above always
+    // returns the same constant pointer for the respective LSCP
+    // command ... Only send the LSCP reference section to the client if
+    // another LSCP reference section became relevant now:
+    if (ref != param->pLSCPDocRef) {
+        param->pLSCPDocRef = ref;
+        if (ref) { // send a new LSCP doc section to client ...
+            result += "SHD:" + ToString(LSCP_SHD_MATCH) + ":" + String(ref->name) + "\n";
+            result += String(ref->section) + "\n";
+            result += "."; // dot line marks the end of the text for client
+        } else { // inform client that no LSCP doc section matches right now ...
+            result = "SHD:" + ToString(LSCP_SHD_NO_MATCH);
+        }
+    }
+    dmsg(4,("LSCP doc reply -> '%s'\n", result.c_str()));
+    return result;
+}
+
+/**
  * Will be called to try to read the command from the socket
  * If command is read, it will return true. Otherwise false is returned.
  * In any case the received portion (complete or incomplete) is saved into bufferedCommand map.
@@ -750,7 +783,12 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 				String s = lscpParserProcessShellInteraction(bufferedCommands[socket], &(*iter), false);
 				if (!s.empty() && (*iter).bShellInteract) AnswerClient(s + "\n");
 			}
-
+			// if other side is LSCP shell application, send the relevant LSCP
+			// documentation section of the current command line (if necessary)
+			if ((*iter).bShellSendLSCPDoc && (*iter).bShellInteract) {
+				String s = generateLSCPDocReply(bufferedCommands[socket], &(*iter));
+				if (!s.empty()) AnswerClient(s + "\n");
+			}
 			LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_misc, "Received \'" + bufferedCommands[socket] + "\' on socket", socket));
 			bufferedCommands[socket] += "\r\n";
 			return true; //Complete command was read
@@ -779,6 +817,12 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 			String s = lscpParserProcessShellInteraction(bufferedCommands[socket], &(*iter), true);
 			if (!s.empty() && (*iter).bShellInteract && i == input.size() - 1)
 				AnswerClient(s + "\n");
+		}
+		// if other side is LSCP shell application, send the relevant LSCP
+		// documentation section of the current command line (if necessary)
+		if ((*iter).bShellSendLSCPDoc && (*iter).bShellInteract) {
+			String s = generateLSCPDocReply(bufferedCommands[socket], &(*iter));
+			if (!s.empty()) AnswerClient(s + "\n");
 		}
 	}
 
@@ -4045,6 +4089,19 @@ String LSCPServer::SetShellAutoCorrect(yyparse_param_t* pSession, double boolean
     try {
         if      (boolean_value == 0) pSession->bShellAutoCorrect = false;
         else if (boolean_value == 1) pSession->bShellAutoCorrect = true;
+        else throw Exception("Not a boolean value, must either be 0 or 1");
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::SetShellDoc(yyparse_param_t* pSession, double boolean_value) {
+    dmsg(2,("LSCPServer: SetShellDoc(val=%f)\n", boolean_value));
+    LSCPResultSet result;
+    try {
+        if      (boolean_value == 0) pSession->bShellSendLSCPDoc = false;
+        else if (boolean_value == 1) pSession->bShellSendLSCPDoc = true;
         else throw Exception("Not a boolean value, must either be 0 or 1");
     } catch (Exception e) {
         result.Error(e);

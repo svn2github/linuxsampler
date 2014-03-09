@@ -42,6 +42,9 @@
 #define LSCP_SHU_SYNTAX_ERR		1
 #define LSCP_SHU_INCOMPLETE		2
 
+#define LSCP_SHD_NO_MATCH	0
+#define LSCP_SHD_MATCH		1
+
 // LSCP Shell Keywords
 
 #define LSCP_SHK_GOOD_FRONT		"{{GF}}"

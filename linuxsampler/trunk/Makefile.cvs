@@ -22,5 +22,6 @@ clean:
 	@rm -rvf `find . -name Makefile.in`
 	@rm -rvf missing install-sh mkinstalldirs depcomp ltmain.sh configure
 	@rm -rvf src/network/lscpparser.cpp src/network/lscpsymbols.h
+	@rm -rvf src/network/lscp_shell_reference.cpp
 	@rm -rvf linuxsampler-*.tar.*
 	@rm -rvf Doxyfile

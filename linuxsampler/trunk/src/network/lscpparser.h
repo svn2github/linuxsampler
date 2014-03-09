@@ -43,6 +43,7 @@
 #include "lscpevent.h"
 #include "../Sampler.h"
 #include "../drivers/midi/MidiInstrumentMapper.h"
+#include "lscp_shell_reference.h"
 
 namespace LinuxSampler {
 
@@ -99,19 +100,22 @@ struct yyparse_param_t {
     bool        bVerbose; ///< if true then all commands will immediately sent back (echo)
     bool        bShellInteract; ///< if true: then client is the LSCP shell
     bool        bShellAutoCorrect; ///< if true: try to automatically correct obvious syntax mistakes
+    bool        bShellSendLSCPDoc; ///< if true: send the relevant LSCP documentation reference section for the current command.
     int         iLine;    ///< Current line (just for verbosity / messages)
     int         iColumn;  ///< End of current line (just for verbosity / messages)
     int         iCursorOffset;  ///< Column of cursor position in current line (reflected as offset to iColumn, range -n .. 0)
     YYTYPE_INT16** ppStackBottom; ///< Bottom end of the Bison parser's state stack.
     YYTYPE_INT16** ppStackTop;    ///< Current position (heap) of the Bison parser's state stack.
+    lscp_ref_entry_t* pLSCPDocRef; ///< only if bShellSendLSCPDoc=true: points to the current LSCP doc reference, for being able to detect if another LSCP doc page has to be sent to the LSCP shell (client).
 
     yyparse_param_t() {
         pServer  = NULL;
         hSession = -1;
         bVerbose = false;
-        bShellInteract = bShellAutoCorrect = false;
+        bShellInteract = bShellAutoCorrect = bShellSendLSCPDoc = false;
         iCursorOffset = iLine = iColumn = 0;
         ppStackBottom = ppStackTop = NULL;
+        pLSCPDocRef = NULL;
     }
 
     void onNextLine() {

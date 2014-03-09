@@ -516,7 +516,7 @@ Schoenebeck'>
                 what parameters drivers are offering, how to retrieve their
                 possible values, etc.</t>
 
-                <section title="Getting amount of available audio output drivers" anchor="GET AVAILABLE_AUDIO_OUTPUT_DRIVERS">
+                <section title="Getting amount of available audio output drivers" anchor="GET AVAILABLE_AUDIO_OUTPUT_DRIVERS" lscp_cmd="true">
                     <t>Use the following command to get the number of
                     audio output drivers currently available for the
                     LinuxSampler instance:</t>
@@ -541,7 +541,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all available audio output drivers" anchor="LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS">
+                <section title="Getting all available audio output drivers" anchor="LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS" lscp_cmd="true">
                     <t>Use the following command to list all audio output
                     drivers currently available for the LinuxSampler
                     instance:</t>
@@ -568,7 +568,7 @@ Schoenebeck'>
                 </section>
 
                 <section title="Getting information about a specific audio
-                output driver" anchor="GET AUDIO_OUTPUT_DRIVER INFO">
+                output driver" anchor="GET AUDIO_OUTPUT_DRIVER INFO" lscp_cmd="true">
                     <t>Use the following command to get detailed information
                     about a specific audio output driver:</t>
                     <t>
@@ -641,7 +641,7 @@ Schoenebeck'>
                 </section>
 
                 <section title="Getting information about specific audio
-                output driver parameter" anchor="GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO">
+                output driver parameter" anchor="GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO" lscp_cmd="true">
                     <t>Use the following command to get detailed information
                     about a  specific audio output driver parameter:</t>
                     <t>
@@ -829,7 +829,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Creating an audio output device" anchor="CREATE AUDIO_OUTPUT_DEVICE">
+                <section title="Creating an audio output device" anchor="CREATE AUDIO_OUTPUT_DEVICE" lscp_cmd="true">
                     <t>Use the following command to create a new audio output device for  the desired audio output system:</t>
 
                     <t>
@@ -889,7 +889,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Destroying an audio output device" anchor="DESTROY AUDIO_OUTPUT_DEVICE">
+                <section title="Destroying an audio output device" anchor="DESTROY AUDIO_OUTPUT_DEVICE" lscp_cmd="true">
                     <t>Use the following command to destroy a created output device:</t>
                     <t>
                         <list>
@@ -958,7 +958,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all created audio output device list" anchor="LIST AUDIO_OUTPUT_DEVICES">
+                <section title="Getting all created audio output device list" anchor="LIST AUDIO_OUTPUT_DEVICES" lscp_cmd="true">
                     <t>Use the following command to list all created audio output devices:</t>
                     <t>
                         <list>
@@ -981,7 +981,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting current settings of an audio output device" anchor="GET AUDIO_OUTPUT_DEVICE INFO">
+                <section title="Getting current settings of an audio output device" anchor="GET AUDIO_OUTPUT_DEVICE INFO" lscp_cmd="true">
                     <t>Use the following command to get current settings of a specific, created audio output device:</t>
                     <t>
                         <list>
@@ -1054,7 +1054,7 @@ Schoenebeck'>
                 </section>
 
 
-                <section title="Changing settings of audio output devices" anchor="SET AUDIO_OUTPUT_DEVICE_PARAMETER">
+                <section title="Changing settings of audio output devices" anchor="SET AUDIO_OUTPUT_DEVICE_PARAMETER" lscp_cmd="true">
                     <t>Use the following command to alter a specific setting of a created audio output device:</t>
                     <t>
                         <list>
@@ -1099,7 +1099,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about an audio channel" anchor="GET AUDIO_OUTPUT_CHANNEL INFO">
+                <section title="Getting information about an audio channel" anchor="GET AUDIO_OUTPUT_CHANNEL INFO" lscp_cmd="true">
                     <t>Use the following command to get information about an audio channel:</t>
                     <t>
                         <list>
@@ -1199,7 +1199,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about specific audio channel parameter" anchor="GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO">
+                <section title="Getting information about specific audio channel parameter" anchor="GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO" lscp_cmd="true">
                     <t>Use the following command to get detailed information about specific audio channel parameter:</t>
 
                     <t>
@@ -1305,7 +1305,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Changing settings of audio output channels" anchor="SET AUDIO_OUTPUT_CHANNEL_PARAMETER">
+                <section title="Changing settings of audio output channels" anchor="SET AUDIO_OUTPUT_CHANNEL_PARAMETER" lscp_cmd="true">
                     <t>Use the following command to alter a specific setting of an audio output channel:</t>
                     <t>
                         <list>
@@ -1383,7 +1383,7 @@ Schoenebeck'>
                 showing how to retrieve what parameters drivers are offering, how to retrieve their
                 possible values, etc.</t>
 
-                <section title="Getting amount of available MIDI input drivers" anchor="GET AVAILABLE_MIDI_INPUT_DRIVERS">
+                <section title="Getting amount of available MIDI input drivers" anchor="GET AVAILABLE_MIDI_INPUT_DRIVERS" lscp_cmd="true">
                     <t>Use the following command to get the number of
                     MIDI input drivers currently available for the
                     LinuxSampler instance:</t>
@@ -1408,7 +1408,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all available MIDI input drivers" anchor="LIST AVAILABLE_MIDI_INPUT_DRIVERS">
+                <section title="Getting all available MIDI input drivers" anchor="LIST AVAILABLE_MIDI_INPUT_DRIVERS" lscp_cmd="true">
                     <t>Use the following command to list all MIDI input drivers currently available
                     for the LinuxSampler instance:</t>
                     <t>
@@ -1432,7 +1432,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about a specific MIDI input driver" anchor="GET MIDI_INPUT_DRIVER INFO">
+                <section title="Getting information about a specific MIDI input driver" anchor="GET MIDI_INPUT_DRIVER INFO" lscp_cmd="true">
                     <t>Use the following command to get detailed information about a specific MIDI input driver:</t>
                     <t>
                         <list>
@@ -1488,7 +1488,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about specific MIDI input driver parameter" anchor="GET MIDI_INPUT_DRIVER_PARAMETER INFO">
+                <section title="Getting information about specific MIDI input driver parameter" anchor="GET MIDI_INPUT_DRIVER_PARAMETER INFO" lscp_cmd="true">
                     <t>Use the following command to get detailed information about a specific parameter of a specific MIDI input driver:</t>
                     <t>
                         <list>
@@ -1643,7 +1643,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Creating a MIDI input device" anchor="CREATE MIDI_INPUT_DEVICE">
+                <section title="Creating a MIDI input device" anchor="CREATE MIDI_INPUT_DEVICE" lscp_cmd="true">
                     <t>Use the following command to create a new MIDI input device for  the desired MIDI input system:</t>
                     <t>
                         <list>
@@ -1693,7 +1693,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Destroying a MIDI input device" anchor="DESTROY MIDI_INPUT_DEVICE">
+                <section title="Destroying a MIDI input device" anchor="DESTROY MIDI_INPUT_DEVICE" lscp_cmd="true">
                     <t>Use the following command to destroy a created MIDI input device:</t>
                     <t>
                         <list>
@@ -1735,7 +1735,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all created MIDI input device count" anchor="GET MIDI_INPUT_DEVICES">
+                <section title="Getting all created MIDI input device count" anchor="GET MIDI_INPUT_DEVICES" lscp_cmd="true">
                     <t>Use the following command to count all created MIDI input devices:</t>
                     <t>
                         <list>
@@ -1759,7 +1759,7 @@ Schoenebeck'>
                 </section>
 
 
-                <section title="Getting all created MIDI input device list" anchor="LIST MIDI_INPUT_DEVICES">
+                <section title="Getting all created MIDI input device list" anchor="LIST MIDI_INPUT_DEVICES" lscp_cmd="true">
                     <t>Use the following command to list all created MIDI input devices:</t>
                     <t>
                         <list>
@@ -1788,7 +1788,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting current settings of a MIDI input device" anchor="GET MIDI_INPUT_DEVICE INFO">
+                <section title="Getting current settings of a MIDI input device" anchor="GET MIDI_INPUT_DEVICE INFO" lscp_cmd="true">
                     <t>Use the following command to get current settings of a specific, created MIDI input device:</t>
                     <t>
                         <list>
@@ -1854,7 +1854,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Changing settings of MIDI input devices" anchor="SET MIDI_INPUT_DEVICE_PARAMETER">
+                <section title="Changing settings of MIDI input devices" anchor="SET MIDI_INPUT_DEVICE_PARAMETER" lscp_cmd="true">
                     <t>Use the following command to alter a specific setting of a created MIDI input device:</t>
                     <t>
                         <list>
@@ -1900,7 +1900,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about a MIDI port" anchor="GET MIDI_INPUT_PORT INFO">
+                <section title="Getting information about a MIDI port" anchor="GET MIDI_INPUT_PORT INFO" lscp_cmd="true">
                     <t>Use the following command to get information about a MIDI port:</t>
                     <t>
                         <list>
@@ -1944,7 +1944,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about specific MIDI port parameter" anchor="GET MIDI_INPUT_PORT_PARAMETER INFO">
+                <section title="Getting information about specific MIDI port parameter" anchor="GET MIDI_INPUT_PORT_PARAMETER INFO" lscp_cmd="true">
                     <t>Use the following command to get detailed information about specific MIDI port parameter:</t>
                     <t>
                         <list>
@@ -2049,7 +2049,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Changing settings of MIDI input ports" anchor="SET MIDI_INPUT_PORT_PARAMETER">
+                <section title="Changing settings of MIDI input ports" anchor="SET MIDI_INPUT_PORT_PARAMETER" lscp_cmd="true">
                     <t>Use the following command to alter a specific setting of a MIDI input port:</t>
                     <t>
                         <list>
@@ -2109,7 +2109,7 @@ Schoenebeck'>
                 sampler channel with a sampler engine, load instruments and connect sampler channels to
                 MIDI and audio devices.</t>
 
-                <section title="Loading an instrument" anchor="LOAD INSTRUMENT">
+                <section title="Loading an instrument" anchor="LOAD INSTRUMENT" lscp_cmd="true">
                     <t>An instrument file can be loaded and assigned to a sampler channel by one of the following commands:</t>
                     <t>
                         <list>
@@ -2235,7 +2235,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all created sampler channel count" anchor="GET CHANNELS">
+                <section title="Getting all created sampler channel count" anchor="GET CHANNELS" lscp_cmd="true">
                     <t>The number of sampler channels can change on runtime. To get the
                     current amount of sampler channels, the front-end can send the
                     following command:</t>
@@ -2259,7 +2259,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all created sampler channel list" anchor="LIST CHANNELS">
+                <section title="Getting all created sampler channel list" anchor="LIST CHANNELS" lscp_cmd="true">
                     <t>The number of sampler channels can change on runtime. To get the
                     current list of sampler channels, the front-end can send the
                     following command:</t>
@@ -2284,7 +2284,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Adding a new sampler channel" anchor="ADD CHANNEL">
+                <section title="Adding a new sampler channel" anchor="ADD CHANNEL" lscp_cmd="true">
                     <t>A new sampler channel can be added to the end of the sampler
                     channel list by sending the following command:</t>
                     <t>
@@ -2336,7 +2336,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Removing a sampler channel" anchor="REMOVE CHANNEL">
+                <section title="Removing a sampler channel" anchor="REMOVE CHANNEL" lscp_cmd="true">
                     <t>A sampler channel can be removed by sending the following command:</t>
                     <t>
                         <list>
@@ -2382,7 +2382,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting amount of available engines" anchor="GET AVAILABLE_ENGINES">
+                <section title="Getting amount of available engines" anchor="GET AVAILABLE_ENGINES" lscp_cmd="true">
                     <t>The front-end can ask for the number of available engines by sending the following command:</t>
                     <t>
                         <list>
@@ -2404,7 +2404,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all available engines" anchor="LIST AVAILABLE_ENGINES">
+                <section title="Getting all available engines" anchor="LIST AVAILABLE_ENGINES" lscp_cmd="true">
                     <t>The front-end can ask for a list of all available engines by sending the following command:</t>
                     <t>
                         <list>
@@ -2429,7 +2429,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about an engine" anchor="GET ENGINE INFO">
+                <section title="Getting information about an engine" anchor="GET ENGINE INFO" lscp_cmd="true">
                     <t>The front-end can ask for information about a specific engine by
                     sending the following command:</t>
                     <t>
@@ -2489,7 +2489,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting sampler channel information" anchor="GET CHANNEL INFO">
+                <section title="Getting sampler channel information" anchor="GET CHANNEL INFO" lscp_cmd="true">
                     <t>The front-end can ask for the current settings of a sampler channel
                     by sending the following command:</t>
                     <t>
@@ -2671,7 +2671,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Current number of active voices" anchor="GET CHANNEL VOICE_COUNT">
+                <section title="Current number of active voices" anchor="GET CHANNEL VOICE_COUNT" lscp_cmd="true">
                     <t>The front-end can ask for the current number of active voices on a
                     sampler channel by sending the following command:</t>
                     <t>
@@ -2698,7 +2698,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Current number of active disk streams" anchor="GET CHANNEL STREAM_COUNT">
+                <section title="Current number of active disk streams" anchor="GET CHANNEL STREAM_COUNT" lscp_cmd="true">
                     <t>The front-end can ask for the current number of active disk streams
                     on a sampler channel by sending the following command:</t>
                     <t>
@@ -2727,7 +2727,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Current fill state of disk stream buffers" anchor="GET CHANNEL BUFFER_FILL">
+                <section title="Current fill state of disk stream buffers" anchor="GET CHANNEL BUFFER_FILL" lscp_cmd="true">
                     <t>The front-end can ask for the current fill state of all disk streams
                     on a sampler channel by sending the following command:</t>
                     <t>
@@ -2780,7 +2780,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting audio output device" anchor="SET CHANNEL AUDIO_OUTPUT_DEVICE">
+                <section title="Setting audio output device" anchor="SET CHANNEL AUDIO_OUTPUT_DEVICE" lscp_cmd="true">
                     <t>The front-end can set the audio output device on a specific sampler
                     channel by sending the following command:</t>
                     <t>
@@ -2826,7 +2826,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting audio output type" anchor="SET CHANNEL AUDIO_OUTPUT_TYPE">
+                <section title="Setting audio output type" anchor="SET CHANNEL AUDIO_OUTPUT_TYPE" lscp_cmd="true">
                     <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR!</t>
 
                     <t>The front-end can alter the audio output type on a specific sampler
@@ -2876,7 +2876,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting audio output channel" anchor="SET CHANNEL AUDIO_OUTPUT_CHANNEL">
+                <section title="Setting audio output channel" anchor="SET CHANNEL AUDIO_OUTPUT_CHANNEL" lscp_cmd="true">
                     <t>The front-end can alter the audio output channel on a specific
                     sampler channel by sending the following command:</t>
                     <t>
@@ -2921,7 +2921,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Add MIDI input to sampler channel" anchor="ADD CHANNEL MIDI_INPUT">
+                <section title="Add MIDI input to sampler channel" anchor="ADD CHANNEL MIDI_INPUT" lscp_cmd="true">
                     <t>The front-end can add a MIDI input on a specific sampler
                     channel by sending the following command:</t>
                     <t>
@@ -2985,7 +2985,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Remove MIDI input(s) from sampler channel" anchor="REMOVE CHANNEL MIDI_INPUT">
+                <section title="Remove MIDI input(s) from sampler channel" anchor="REMOVE CHANNEL MIDI_INPUT" lscp_cmd="true">
                     <t>The front-end can remove one ore more MIDI input(s) on a
                     specific sampler channel by sending the following command:</t>
                     <t>
@@ -3056,7 +3056,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all MIDI inputs of a sampler channel" anchor="LIST CHANNEL MIDI_INPUTS">
+                <section title="Getting all MIDI inputs of a sampler channel" anchor="LIST CHANNEL MIDI_INPUTS" lscp_cmd="true">
                     <t>The front-end can query a list of all currently connected
                     MIDI inputs of a certain sampler channel by sending the following
                     command:</t>
@@ -3100,7 +3100,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting MIDI input device" anchor="SET CHANNEL MIDI_INPUT_DEVICE">
+                <section title="Setting MIDI input device" anchor="SET CHANNEL MIDI_INPUT_DEVICE" lscp_cmd="true">
                     <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR!</t>
 
                     <t>The front-end can set the MIDI input device on a specific sampler
@@ -3164,7 +3164,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting MIDI input type" anchor="SET CHANNEL MIDI_INPUT_TYPE">
+                <section title="Setting MIDI input type" anchor="SET CHANNEL MIDI_INPUT_TYPE" lscp_cmd="true">
                     <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR!</t>
 
                     <t>The front-end can alter the MIDI input type on a specific sampler
@@ -3224,7 +3224,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting MIDI input port" anchor="SET CHANNEL MIDI_INPUT_PORT">
+                <section title="Setting MIDI input port" anchor="SET CHANNEL MIDI_INPUT_PORT" lscp_cmd="true">
                     <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR!</t>
                     
                     <t>The front-end can alter the MIDI input port on a specific sampler
@@ -3288,7 +3288,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting MIDI input channel" anchor="SET CHANNEL MIDI_INPUT_CHANNEL">
+                <section title="Setting MIDI input channel" anchor="SET CHANNEL MIDI_INPUT_CHANNEL" lscp_cmd="true">
                     <t>The front-end can alter the MIDI channel a sampler channel should
                     listen to by sending the following command:</t>
                     <t>
@@ -3334,7 +3334,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting channel volume" anchor="SET CHANNEL VOLUME">
+                <section title="Setting channel volume" anchor="SET CHANNEL VOLUME" lscp_cmd="true">
                     <t>The front-end can alter the volume of a sampler channel by sending
                     the following command:</t>
                     <t>
@@ -3377,7 +3377,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Muting a sampler channel" anchor="SET CHANNEL MUTE">
+                <section title="Muting a sampler channel" anchor="SET CHANNEL MUTE" lscp_cmd="true">
                     <t>The front-end can mute/unmute a specific sampler
                     channel by sending the following command:</t>
                     <t>
@@ -3421,7 +3421,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Soloing a sampler channel" anchor="SET CHANNEL SOLO">
+                <section title="Soloing a sampler channel" anchor="SET CHANNEL SOLO" lscp_cmd="true">
                     <t>The front-end can solo/unsolo a specific sampler channel
                     by sending the following command:</t>
                     <t>
@@ -3465,7 +3465,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Assigning a MIDI instrument map to a sampler channel" anchor="SET CHANNEL MIDI_INSTRUMENT_MAP">
+                <section title="Assigning a MIDI instrument map to a sampler channel" anchor="SET CHANNEL MIDI_INSTRUMENT_MAP" lscp_cmd="true">
                     <t>The front-end can assign a MIDI instrument map to a specific sampler channel
                     by sending the following command:</t>
                     <t>
@@ -3533,7 +3533,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Adding an effect send to a sampler channel" anchor="CREATE FX_SEND">
+                <section title="Adding an effect send to a sampler channel" anchor="CREATE FX_SEND" lscp_cmd="true">
                     <t>The front-end can create an additional effect send on a specific sampler channel
                     by sending the following command:</t>
                     <t>
@@ -3603,7 +3603,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Removing an effect send from a sampler channel" anchor="DESTROY FX_SEND">
+                <section title="Removing an effect send from a sampler channel" anchor="DESTROY FX_SEND" lscp_cmd="true">
                     <t>The front-end can remove an existing effect send on a specific sampler channel
                     by sending the following command:</t>
                     <t>
@@ -3645,7 +3645,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting amount of effect sends on a sampler channel" anchor="GET FX_SENDS">
+                <section title="Getting amount of effect sends on a sampler channel" anchor="GET FX_SENDS" lscp_cmd="true">
                     <t>The front-end can ask for the amount of effect sends on a specific sampler channel
                     by sending the following command:</t>
                     <t>
@@ -3674,7 +3674,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Listing all effect sends on a sampler channel" anchor="LIST FX_SENDS">
+                <section title="Listing all effect sends on a sampler channel" anchor="LIST FX_SENDS" lscp_cmd="true">
                     <t>The front-end can ask for a list of effect sends on a specific sampler channel
                     by sending the following command:</t>
                     <t>
@@ -3710,7 +3710,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting effect send information" anchor="GET FX_SEND INFO">
+                <section title="Getting effect send information" anchor="GET FX_SEND INFO" lscp_cmd="true">
                     <t>The front-end can ask for the current settings of an effect send entity
                     by sending the following command:</t>
                     <t>
@@ -3815,7 +3815,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Changing effect send's name" anchor="SET FX_SEND NAME">
+                <section title="Changing effect send's name" anchor="SET FX_SEND NAME" lscp_cmd="true">
                     <t>The front-end can alter the current name of an effect
                     send entity by sending the following command:</t>
                     <t>
@@ -3859,7 +3859,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Altering effect send's audio routing" anchor="SET FX_SEND AUDIO_OUTPUT_CHANNEL">
+                <section title="Altering effect send's audio routing" anchor="SET FX_SEND AUDIO_OUTPUT_CHANNEL" lscp_cmd="true">
                     <t>The front-end can alter the destination of an effect send's audio channel on a specific
                     sampler channel by sending the following command:</t>
                     <t>
@@ -3921,7 +3921,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Assigning destination effect to an effect send" anchor="SET FX_SEND EFFECT">
+                <section title="Assigning destination effect to an effect send" anchor="SET FX_SEND EFFECT" lscp_cmd="true">
                     <t>The front-end can (re-)assign a destination effect to an
                     effect send by sending the following command:</t>
                     <t>
@@ -3968,7 +3968,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Removing destination effect from an effect send" anchor="REMOVE FX_SEND EFFECT">
+                <section title="Removing destination effect from an effect send" anchor="REMOVE FX_SEND EFFECT" lscp_cmd="true">
                     <t>The front-end can (re-)assign a destination effect to an
                     effect send by sending the following command:</t>
                     <t>
@@ -4013,7 +4013,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Altering effect send's MIDI controller" anchor="SET FX_SEND MIDI_CONTROLLER">
+                <section title="Altering effect send's MIDI controller" anchor="SET FX_SEND MIDI_CONTROLLER" lscp_cmd="true">
                     <t>The front-end can alter the MIDI controller of an effect
                     send entity by sending the following command:</t>
                     <t>
@@ -4061,7 +4061,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Altering effect send's send level" anchor="SET FX_SEND LEVEL">
+                <section title="Altering effect send's send level" anchor="SET FX_SEND LEVEL" lscp_cmd="true">
                     <t>The front-end can alter the current send level of an effect
                     send entity by sending the following command:</t>
                     <t>
@@ -4110,7 +4110,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Sending MIDI messages to sampler channel" anchor="SEND CHANNEL MIDI_DATA">
+                <section title="Sending MIDI messages to sampler channel" anchor="SEND CHANNEL MIDI_DATA" lscp_cmd="true">
                     <t>The front-end can send MIDI events to a specific sampler channel
                     by sending the following command:</t>
                     <t>
@@ -4175,7 +4175,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Resetting a sampler channel" anchor="RESET CHANNEL">
+                <section title="Resetting a sampler channel" anchor="RESET CHANNEL" lscp_cmd="true">
                     <t>The front-end can reset a particular sampler channel by sending the following command:</t>
                     <t>
                         <list>
@@ -4223,7 +4223,7 @@ Schoenebeck'>
             <section title="Controlling connection">
                 <t>The following commands are used to control the connection to LinuxSampler.</t>
 
-                <section title="Register front-end for receiving event messages" anchor="SUBSCRIBE">
+                <section title="Register front-end for receiving event messages" anchor="SUBSCRIBE" lscp_cmd="true">
                     <t>The front-end can register itself to the LinuxSampler application to
                     be informed about noteworthy events by sending this command:</t>
                     <t>
@@ -4265,7 +4265,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Unregister front-end for not receiving event messages" anchor="UNSUBSCRIBE">
+                <section title="Unregister front-end for not receiving event messages" anchor="UNSUBSCRIBE" lscp_cmd="true">
                     <t>The front-end can unregister itself if it doesn't want to receive event
                     messages anymore by sending the following command:</t>
                     <t>
@@ -4307,7 +4307,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Enable or disable echo of commands" anchor="SET ECHO">
+                <section title="Enable or disable echo of commands" anchor="SET ECHO" lscp_cmd="true">
                     <t>To enable or disable back sending of commands to the client the following command can be used:</t>
                     <t>
                         <list>
@@ -4345,7 +4345,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Close client connection" anchor="QUIT">
+                <section title="Close client connection" anchor="QUIT" lscp_cmd="true">
                     <t>The client can close its network connection to LinuxSampler by sending the following command:</t>
                     <t>
                         <list>
@@ -4360,7 +4360,7 @@ Schoenebeck'>
             <section title="Global commands">
                 <t>The following commands have global impact on the sampler.</t>
 
-                <section title="Current number of active voices" anchor="GET TOTAL_VOICE_COUNT">
+                <section title="Current number of active voices" anchor="GET TOTAL_VOICE_COUNT" lscp_cmd="true">
                     <t>The front-end can ask for the current number of active voices on
                     the sampler by sending the following command:</t>
                     <t>
@@ -4378,7 +4378,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Maximum amount of active voices" anchor="GET TOTAL_VOICE_COUNT_MAX">
+                <section title="Maximum amount of active voices" anchor="GET TOTAL_VOICE_COUNT_MAX" lscp_cmd="true">
                     <t>The front-end can ask for the maximum number of active voices
                     by sending the following command:</t>
                     <t>
@@ -4396,7 +4396,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Current number of active disk streams" anchor="GET TOTAL_STREAM_COUNT">
+                <section title="Current number of active disk streams" anchor="GET TOTAL_STREAM_COUNT" lscp_cmd="true">
                     <t>The front-end can ask for the current number of active disk streams on
                     the sampler by sending the following command:</t>
                     <t>
@@ -4440,7 +4440,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="General sampler informations" anchor="GET SERVER INFO">
+                <section title="General sampler informations" anchor="GET SERVER INFO" lscp_cmd="true">
                     <t>The client can ask for general informations about the LinuxSampler
                        instance by sending the following command:</t>
                     <t>
@@ -4503,7 +4503,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting global volume attenuation" anchor="GET VOLUME">
+                <section title="Getting global volume attenuation" anchor="GET VOLUME" lscp_cmd="true">
                     <t>The client can ask for the current global sampler-wide volume
                     attenuation by sending the following command:</t>
                     <t>
@@ -4525,7 +4525,7 @@ Schoenebeck'>
                     use this parameter.</t>
                 </section>
 
-                <section title="Setting global volume attenuation" anchor="SET VOLUME">
+                <section title="Setting global volume attenuation" anchor="SET VOLUME" lscp_cmd="true">
                     <t>The client can alter the current global sampler-wide volume
                     attenuation by sending the following command:</t>
                     <t>
@@ -4562,7 +4562,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting global voice limit" anchor="GET VOICES">
+                <section title="Getting global voice limit" anchor="GET VOICES" lscp_cmd="true">
                     <t>The client can ask for the current global sampler-wide limit
                        for maximum voices by sending the following command:</t>
                     <t>
@@ -4587,7 +4587,7 @@ Schoenebeck'>
                        respective instrument and probably further criterias.</t>
                 </section>
 
-                <section title="Setting global voice limit" anchor="SET VOICES">
+                <section title="Setting global voice limit" anchor="SET VOICES" lscp_cmd="true">
                     <t>The client can alter the current global sampler-wide limit
                     for maximum voices by sending the following command:</t>
                     <t>
@@ -4631,7 +4631,7 @@ Schoenebeck'>
                         adjust the disk stream limit respectively and vice versa.</t>
                 </section>
 
-                <section title="Getting global disk stream limit" anchor="GET STREAMS">
+                <section title="Getting global disk stream limit" anchor="GET STREAMS" lscp_cmd="true">
                     <t>The client can ask for the current global sampler-wide limit
                        for maximum disk streams by sending the following command:</t>
                     <t>
@@ -4654,7 +4654,7 @@ Schoenebeck'>
                        to perform its streaming operations.</t>
                 </section>
 
-                <section title="Setting global disk stream limit" anchor="SET STREAMS">
+                <section title="Setting global disk stream limit" anchor="SET STREAMS" lscp_cmd="true">
                     <t>The client can alter the current global sampler-wide limit
                     for maximum disk streams by sending the following command:</t>
                     <t>
@@ -4728,7 +4728,7 @@ Schoenebeck'>
                 cause the sampler to switch to the respective instrument as
                 reflected by the current MIDI instrument map.</t>
 
-                <section title="Create a new MIDI instrument map" anchor="ADD MIDI_INSTRUMENT_MAP">
+                <section title="Create a new MIDI instrument map" anchor="ADD MIDI_INSTRUMENT_MAP" lscp_cmd="true">
                     <t>The front-end can add a new MIDI instrument map by sending
                     the following command:</t>
                     <t>
@@ -4784,7 +4784,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Delete one particular or all MIDI instrument maps" anchor="REMOVE MIDI_INSTRUMENT_MAP">
+                <section title="Delete one particular or all MIDI instrument maps" anchor="REMOVE MIDI_INSTRUMENT_MAP" lscp_cmd="true">
                     <t>The front-end can delete a particular MIDI instrument map
                     by sending the following command:</t>
                     <t>
@@ -4834,7 +4834,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Get amount of existing MIDI instrument maps" anchor="GET MIDI_INSTRUMENT_MAPS">
+                <section title="Get amount of existing MIDI instrument maps" anchor="GET MIDI_INSTRUMENT_MAPS" lscp_cmd="true">
                     <t>The front-end can retrieve the current amount of MIDI
                     instrument maps by sending the following command:</t>
                     <t>
@@ -4860,7 +4860,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all created MIDI instrument maps" anchor="LIST MIDI_INSTRUMENT_MAPS">
+                <section title="Getting all created MIDI instrument maps" anchor="LIST MIDI_INSTRUMENT_MAPS" lscp_cmd="true">
                     <t>The number of MIDI instrument maps can change on runtime. To get the
                     current list of MIDI instrument maps, the front-end can send the
                     following command:</t>
@@ -4885,7 +4885,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting MIDI instrument map information" anchor="GET MIDI_INSTRUMENT_MAP INFO">
+                <section title="Getting MIDI instrument map information" anchor="GET MIDI_INSTRUMENT_MAP INFO" lscp_cmd="true">
                     <t>The front-end can ask for the current settings of a MIDI
                     instrument map by sending the following command:</t>
                     <t>
@@ -4940,7 +4940,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Renaming a MIDI instrument map" anchor="SET MIDI_INSTRUMENT_MAP NAME">
+                <section title="Renaming a MIDI instrument map" anchor="SET MIDI_INSTRUMENT_MAP NAME" lscp_cmd="true">
                     <t>The front-end can alter the custom name of a MIDI
                     instrument map by sending the following command:</t>
                     <t>
@@ -4980,7 +4980,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Create or replace a MIDI instrument map entry" anchor="MAP MIDI_INSTRUMENT">
+                <section title="Create or replace a MIDI instrument map entry" anchor="MAP MIDI_INSTRUMENT" lscp_cmd="true">
                     <t>The front-end can create a new or replace an existing entry
                     in a sampler's MIDI instrument map by sending the following
                     command:</t>
@@ -5153,7 +5153,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting amount of MIDI instrument map entries" anchor="GET MIDI_INSTRUMENTS">
+                <section title="Getting amount of MIDI instrument map entries" anchor="GET MIDI_INSTRUMENTS" lscp_cmd="true">
                     <t>The front-end can query the amount of currently existing
                     entries in a MIDI instrument map by sending the following
                     command:</t>
@@ -5193,7 +5193,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting indeces of all entries of a MIDI instrument map" anchor="LIST MIDI_INSTRUMENTS">
+                <section title="Getting indeces of all entries of a MIDI instrument map" anchor="LIST MIDI_INSTRUMENTS" lscp_cmd="true">
                     <t>The front-end can query a list of all currently existing
                     entries in a certain MIDI instrument map by sending the following
                     command:</t>
@@ -5236,7 +5236,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Remove an entry from the MIDI instrument map" anchor="UNMAP MIDI_INSTRUMENT">
+                <section title="Remove an entry from the MIDI instrument map" anchor="UNMAP MIDI_INSTRUMENT" lscp_cmd="true">
                     <t>The front-end can delete an entry from a MIDI instrument
                     map by sending the following command:</t>
                     <t>
@@ -5278,7 +5278,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Get current settings of MIDI instrument map entry" anchor="GET MIDI_INSTRUMENT INFO">
+                <section title="Get current settings of MIDI instrument map entry" anchor="GET MIDI_INSTRUMENT INFO" lscp_cmd="true">
                     <t>The front-end can retrieve the current settings of a certain
                     instrument map entry by sending the following command:</t>
                     <t>
@@ -5375,7 +5375,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Clear MIDI instrument map" anchor="CLEAR MIDI_INSTRUMENTS">
+                <section title="Clear MIDI instrument map" anchor="CLEAR MIDI_INSTRUMENTS" lscp_cmd="true">
                     <t>The front-end can clear a whole MIDI instrument map, that
                     is delete all its entries by sending the following command:</t>
                     <t>
@@ -5440,7 +5440,7 @@ Schoenebeck'>
                         </list>
                     </t>
 
-                <section title="Creating a new instrument directory" anchor="ADD DB_INSTRUMENT_DIRECTORY">
+                <section title="Creating a new instrument directory" anchor="ADD DB_INSTRUMENT_DIRECTORY" lscp_cmd="true">
                     <t>The front-end can add a new instrument directory to the
                     instruments database by sending the following command:</t>
                     <t>
@@ -5478,7 +5478,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Deleting an instrument directory" anchor="REMOVE DB_INSTRUMENT_DIRECTORY">
+                <section title="Deleting an instrument directory" anchor="REMOVE DB_INSTRUMENT_DIRECTORY" lscp_cmd="true">
                     <t>The front-end can delete a particular instrument directory
                     from the instruments database by sending the following command:</t>
                     <t>
@@ -5517,7 +5517,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting amount of instrument directories" anchor="GET DB_INSTRUMENT_DIRECTORIES">
+                <section title="Getting amount of instrument directories" anchor="GET DB_INSTRUMENT_DIRECTORIES" lscp_cmd="true">
                     <t>The front-end can retrieve the current amount of
                     directories in a specific directory by sending the following command:</t>
                     <t>
@@ -5552,7 +5552,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Listing all directories in specific directory" anchor="LIST DB_INSTRUMENT_DIRECTORIES">
+                <section title="Listing all directories in specific directory" anchor="LIST DB_INSTRUMENT_DIRECTORIES" lscp_cmd="true">
                     <t>The front-end can retrieve the current list of directories
                     in specific directory by sending the following command:</t>
                     <t>
@@ -5592,7 +5592,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting instrument directory information" anchor="GET DB_INSTRUMENT_DIRECTORY INFO">
+                <section title="Getting instrument directory information" anchor="GET DB_INSTRUMENT_DIRECTORY INFO" lscp_cmd="true">
                     <t>The front-end can ask for the current settings of an
                     instrument directory by sending the following command:</t>
                     <t>
@@ -5651,7 +5651,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Renaming an instrument directory" anchor="SET DB_INSTRUMENT_DIRECTORY NAME">
+                <section title="Renaming an instrument directory" anchor="SET DB_INSTRUMENT_DIRECTORY NAME" lscp_cmd="true">
                     <t>The front-end can alter the name of a specific
                     instrument directory by sending the following command:</t>
                     <t>
@@ -5689,7 +5689,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Moving an instrument directory" anchor="MOVE DB_INSTRUMENT_DIRECTORY">
+                <section title="Moving an instrument directory" anchor="MOVE DB_INSTRUMENT_DIRECTORY" lscp_cmd="true">
                     <t>The front-end can move a specific
                     instrument directory by sending the following command:</t>
                     <t>
@@ -5731,7 +5731,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Copying instrument directories" anchor="COPY DB_INSTRUMENT_DIRECTORY">
+                <section title="Copying instrument directories" anchor="COPY DB_INSTRUMENT_DIRECTORY" lscp_cmd="true">
                     <t>The front-end can copy a specific
                     instrument directory by sending the following command:</t>
                     <t>
@@ -5773,7 +5773,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Changing the description of directory" anchor="SET DB_INSTRUMENT_DIRECTORY DESCRIPTION">
+                <section title="Changing the description of directory" anchor="SET DB_INSTRUMENT_DIRECTORY DESCRIPTION" lscp_cmd="true">
                     <t>The front-end can alter the description of a specific
                     instrument directory by sending the following command:</t>
                     <t>
@@ -5811,7 +5811,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Finding directories" anchor="FIND DB_INSTRUMENT_DIRECTORIES">
+                <section title="Finding directories" anchor="FIND DB_INSTRUMENT_DIRECTORIES" lscp_cmd="true">
                     <t>The front-end can search for directories
                     in specific directory by sending the following command:</t>
                     <t>
@@ -5901,7 +5901,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Adding instruments to the instruments database" anchor="ADD DB_INSTRUMENTS">
+                <section title="Adding instruments to the instruments database" anchor="ADD DB_INSTRUMENTS" lscp_cmd="true">
                     <t>The front-end can add one or more instruments
                     to the instruments database by sending the following command:</t>
                     <t>
@@ -5994,7 +5994,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Removing an instrument" anchor="REMOVE DB_INSTRUMENT">
+                <section title="Removing an instrument" anchor="REMOVE DB_INSTRUMENT" lscp_cmd="true">
                     <t>The front-end can remove a particular instrument
                     from the instruments database by sending the following command:</t>
                     <t>
@@ -6031,7 +6031,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting amount of instruments" anchor="GET DB_INSTRUMENTS">
+                <section title="Getting amount of instruments" anchor="GET DB_INSTRUMENTS" lscp_cmd="true">
                     <t>The front-end can retrieve the current amount of
                     instruments in a specific directory by sending the following command:</t>
                     <t>
@@ -6066,7 +6066,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Listing all instruments in specific directory" anchor="LIST DB_INSTRUMENTS">
+                <section title="Listing all instruments in specific directory" anchor="LIST DB_INSTRUMENTS" lscp_cmd="true">
                     <t>The front-end can retrieve the current list of instruments
                     in specific directory by sending the following command:</t>
                     <t>
@@ -6106,7 +6106,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting instrument information" anchor="GET DB_INSTRUMENT INFO">
+                <section title="Getting instrument information" anchor="GET DB_INSTRUMENT INFO" lscp_cmd="true">
                     <t>The front-end can ask for the current settings of an
                     instrument by sending the following command:</t>
                     <t>
@@ -6231,7 +6231,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Renaming an instrument" anchor="SET DB_INSTRUMENT NAME">
+                <section title="Renaming an instrument" anchor="SET DB_INSTRUMENT NAME" lscp_cmd="true">
                     <t>The front-end can alter the name of a specific
                     instrument by sending the following command:</t>
                     <t>
@@ -6269,7 +6269,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Moving an instrument" anchor="MOVE DB_INSTRUMENT">
+                <section title="Moving an instrument" anchor="MOVE DB_INSTRUMENT" lscp_cmd="true">
                     <t>The front-end can move a specific instrument to another directory by
                     sending the following command:</t>
                     <t>
@@ -6309,7 +6309,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Copying instruments" anchor="COPY DB_INSTRUMENT">
+                <section title="Copying instruments" anchor="COPY DB_INSTRUMENT" lscp_cmd="true">
                     <t>The front-end can copy a specific instrument to another directory by
                     sending the following command:</t>
                     <t>
@@ -6349,7 +6349,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Changing the description of instrument" anchor="SET DB_INSTRUMENT DESCRIPTION">
+                <section title="Changing the description of instrument" anchor="SET DB_INSTRUMENT DESCRIPTION" lscp_cmd="true">
                     <t>The front-end can alter the description of a specific
                     instrument by sending the following command:</t>
                     <t>
@@ -6387,7 +6387,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Finding instruments" anchor="FIND DB_INSTRUMENTS">
+                <section title="Finding instruments" anchor="FIND DB_INSTRUMENTS" lscp_cmd="true">
                     <t>The front-end can search for instruments
                     in specific directory by sending the following command:</t>
                     <t>
@@ -6528,7 +6528,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting job status information" anchor="GET DB_INSTRUMENTS_JOB INFO">
+                <section title="Getting job status information" anchor="GET DB_INSTRUMENTS_JOB INFO" lscp_cmd="true">
                     <t>The front-end can ask for the current status of a
                     particular database instruments job by sending the following command:</t>
                     <t>
@@ -6592,7 +6592,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Formatting the instruments database" anchor="FORMAT INSTRUMENTS_DB">
+                <section title="Formatting the instruments database" anchor="FORMAT INSTRUMENTS_DB" lscp_cmd="true">
                     <t>The front-end can remove all instruments and directories and re-create
                     the instruments database structure (e.g., in case of a database corruption)
                     by sending the following command:</t>
@@ -6620,7 +6620,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Checking for lost instrument files" anchor="FIND LOST DB_INSTRUMENT_FILES">
+                <section title="Checking for lost instrument files" anchor="FIND LOST DB_INSTRUMENT_FILES" lscp_cmd="true">
                     <t>The front-end can retrieve the list of all instrument files in the instruments database
                     that don't exist in the filesystem by sending the following command:</t>
                     <t>
@@ -6650,7 +6650,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Replacing an instrument file" anchor="SET DB_INSTRUMENT FILE_PATH">
+                <section title="Replacing an instrument file" anchor="SET DB_INSTRUMENT FILE_PATH" lscp_cmd="true">
                     <t>The front-end can substitute all occurrences of an instrument file
                     in the instruments database with a new one by sending the following command:</t>
                     <t>
@@ -6701,7 +6701,7 @@ Schoenebeck'>
                 <t>At the moment there is only one command for this feature set,
                 but this will most probably change in future.</t>
 
-                <section title="Opening an appropriate instrument editor application" anchor="EDIT INSTRUMENT">
+                <section title="Opening an appropriate instrument editor application" anchor="EDIT INSTRUMENT" lscp_cmd="true">
                     <t>The front-end can request to open an appropriate instrument
                     editor application by sending the following command:</t>
                     <t>
@@ -6771,7 +6771,7 @@ Schoenebeck'>
                 Using this command set allows to retrieve file informations
                 even remotely from another machine.</t>
 
-                <section title="Retrieving amount of instruments of a file" anchor="GET FILE INSTRUMENTS">
+                <section title="Retrieving amount of instruments of a file" anchor="GET FILE INSTRUMENTS" lscp_cmd="true">
                     <t>The front-end can retrieve the amount of instruments
                     within a given instrument file by sending the
                     following command:</t>
@@ -6814,7 +6814,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Retrieving all instruments of a file" anchor="LIST FILE INSTRUMENTS">
+                <section title="Retrieving all instruments of a file" anchor="LIST FILE INSTRUMENTS" lscp_cmd="true">
                     <t>The front-end can retrieve a list of all instruments
                     within a given instrument file by sending the
                     following command:</t>
@@ -6858,7 +6858,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Retrieving informations about one instrument in a file" anchor="GET FILE INSTRUMENT INFO">
+                <section title="Retrieving informations about one instrument in a file" anchor="GET FILE INSTRUMENT INFO" lscp_cmd="true">
                     <t>The front-end can retrieve detailed informations
                     about a specific instrument within a given instrument
                     file by sending the following command:</t>
@@ -6989,7 +6989,7 @@ Schoenebeck'>
                 of a send effect chain, as well as directly to any other
                 position of the send effect chain.</t>
 
-                <section title="Retrieve amount of available effects" anchor="GET AVAILABLE_EFFECTS">
+                <section title="Retrieve amount of available effects" anchor="GET AVAILABLE_EFFECTS" lscp_cmd="true">
                     <t>The front-end can retrieve the amount of internal
                     effects, available to the sampler by sending
                     the following command:</t>
@@ -7016,7 +7016,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Get list of available effects" anchor="LIST AVAILABLE_EFFECTS">
+                <section title="Get list of available effects" anchor="LIST AVAILABLE_EFFECTS" lscp_cmd="true">
                     <t>The set of available internal effects can change at
                     runtime. The front-end can retrieve the list of internal
                     effects, available to the sampler by sending the following
@@ -7048,7 +7048,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Retrieving general information about an effect" anchor="GET EFFECT INFO">
+                <section title="Retrieving general information about an effect" anchor="GET EFFECT INFO" lscp_cmd="true">
                     <t>The front-end can ask for general informations about an
                     effect by sending the following command:</t>
                     <t>
@@ -7127,7 +7127,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Creating an instance of an effect by its portable ID" anchor="CREATE EFFECT_INSTANCE">
+                <section title="Creating an instance of an effect by its portable ID" anchor="CREATE EFFECT_INSTANCE" lscp_cmd="true">
                     <t>The front-end can spawn an instance of the desired
                     effect by sending the following command:</t>
                     <t>
@@ -7258,7 +7258,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Destroy an effect instance" anchor="DESTROY EFFECT_INSTANCE">
+                <section title="Destroy an effect instance" anchor="DESTROY EFFECT_INSTANCE" lscp_cmd="true">
                     <t>The front-end can destroy an unusued effect instance and
                     thus freeing it from memory by sending the following command:</t>
                     <t>
@@ -7304,7 +7304,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Retrieve amount of effect instances" anchor="GET EFFECT_INSTANCES">
+                <section title="Retrieve amount of effect instances" anchor="GET EFFECT_INSTANCES" lscp_cmd="true">
                     <t>The front-end can retrieve the current amount of effect
                     instances by sending the following command:</t>
                     <t>
@@ -7331,7 +7331,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Get list of effect instances" anchor="LIST EFFECT_INSTANCES">
+                <section title="Get list of effect instances" anchor="LIST EFFECT_INSTANCES" lscp_cmd="true">
                     <t>The front-end can retrieve the current list of effect
                     instances by sending the following command:</t>
                     <t>
@@ -7358,7 +7358,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Retrieving current information about an effect instance" anchor="GET EFFECT_INSTANCE INFO">
+                <section title="Retrieving current information about an effect instance" anchor="GET EFFECT_INSTANCE INFO" lscp_cmd="true">
                     <t>The front-end can ask for the current informations about
                     a particular effect instance by sending the following command:</t>
                     <t>
@@ -7449,7 +7449,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Retrieving information about an effect parameter" anchor="GET EFFECT_INSTANCE_INPUT_CONTROL INFO">
+                <section title="Retrieving information about an effect parameter" anchor="GET EFFECT_INSTANCE_INPUT_CONTROL INFO" lscp_cmd="true">
                     <t>Effects typically provide a certain set of effect
                     parameters which can be altered by the user in realtime
                     (e.g. depth of a reverb effect, duration of a delay effect,
@@ -7560,7 +7560,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Altering an effect parameter" anchor="SET EFFECT_INSTANCE_INPUT_CONTROL VALUE">
+                <section title="Altering an effect parameter" anchor="SET EFFECT_INSTANCE_INPUT_CONTROL VALUE" lscp_cmd="true">
                     <t>The front-end can alter the current value of an effect
                     parameter by sending the following command:</t>
                     <t>
@@ -7605,7 +7605,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Retrieve amount of send effect chains" anchor="GET SEND_EFFECT_CHAINS">
+                <section title="Retrieve amount of send effect chains" anchor="GET SEND_EFFECT_CHAINS" lscp_cmd="true">
                     <t>The front-end can retrieve the current amount of send
                     effect chains of an audio output device by sending the
                     following command:</t>
@@ -7638,7 +7638,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Retrieve list of send effect chains" anchor="LIST SEND_EFFECT_CHAINS">
+                <section title="Retrieve list of send effect chains" anchor="LIST SEND_EFFECT_CHAINS" lscp_cmd="true">
                     <t>The front-end can retrieve the current list of send
                     effect chains of an audio output device by sending the
                     following command:</t>
@@ -7672,7 +7672,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Add send effect chain" anchor="ADD SEND_EFFECT_CHAIN">
+                <section title="Add send effect chain" anchor="ADD SEND_EFFECT_CHAIN" lscp_cmd="true">
                     <t>The front-end can add a send effect chain by sending the
                     following command:</t>
                     <t>
@@ -7714,7 +7714,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Remove send effect chain" anchor="REMOVE SEND_EFFECT_CHAIN">
+                <section title="Remove send effect chain" anchor="REMOVE SEND_EFFECT_CHAIN" lscp_cmd="true">
                     <t>The front-end can remove a send effect chain by sending
                     the following command:</t>
                     <t>
@@ -7759,7 +7759,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Retrieving information about a send effect chain" anchor="GET SEND_EFFECT_CHAIN INFO">
+                <section title="Retrieving information about a send effect chain" anchor="GET SEND_EFFECT_CHAIN INFO" lscp_cmd="true">
                     <t>The front-end can ask for informations of a send effect
                     chain by sending the following command:</t>
                     <t>
@@ -7821,7 +7821,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Append effect instance to a send effect chain" anchor="APPEND SEND_EFFECT_CHAIN EFFECT">
+                <section title="Append effect instance to a send effect chain" anchor="APPEND SEND_EFFECT_CHAIN EFFECT" lscp_cmd="true">
                     <t>The front-end can add an unused effect instance to the
                     end of a send effect chain by sending the following command:</t>
                     <t>
@@ -7873,7 +7873,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Insert effect instance to a send effect chain" anchor="INSERT SEND_EFFECT_CHAIN EFFECT">
+                <section title="Insert effect instance to a send effect chain" anchor="INSERT SEND_EFFECT_CHAIN EFFECT" lscp_cmd="true">
                     <t>The front-end can add an unused effect instance to a
                     certain position of a send effect chain by sending the
                     following command:</t>
@@ -7928,7 +7928,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Remove effect instance from send effect chain" anchor="REMOVE SEND_EFFECT_CHAIN EFFECT">
+                <section title="Remove effect instance from send effect chain" anchor="REMOVE SEND_EFFECT_CHAIN EFFECT" lscp_cmd="true">
                     <t>The front-end can remove an effect instance from a
                     certain position of a send effect chain by sending the
                     following command:</t>
@@ -8443,6 +8443,8 @@ Schoenebeck'>
 		<t>/ SHELL SP INTERACT SP boolean
 		</t>
 		<t>/ SHELL SP AUTO_CORRECT SP boolean
+		</t>
+		<t>/ SHELL SP DOC SP boolean
 		</t>
 		<t>/ VOLUME SP volume_value
 		</t>
@@ -9041,7 +9043,7 @@ Schoenebeck'>
         <section title="Events" anchor="events">
             <t>This chapter will describe all currently defined events supported by LinuxSampler.</t>
 
-            <section title="Number of audio output devices changed" anchor="SUBSCRIBE AUDIO_OUTPUT_DEVICE_COUNT">
+            <section title="Number of audio output devices changed" anchor="SUBSCRIBE AUDIO_OUTPUT_DEVICE_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the total number of audio output devices on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -9059,7 +9061,7 @@ Schoenebeck'>
                 of audio output devices.</t>
             </section>
 
-            <section title="Audio output device's settings changed" anchor="SUBSCRIBE AUDIO_OUTPUT_DEVICE_INFO">
+            <section title="Audio output device's settings changed" anchor="SUBSCRIBE AUDIO_OUTPUT_DEVICE_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when changes were made to audio output devices on the
                 back-end by issuing the following command:</t>
                 <t>
@@ -9081,7 +9083,7 @@ Schoenebeck'>
                 message is sufficient here.</t>
             </section>
 
-            <section title="Number of MIDI input devices changed" anchor="SUBSCRIBE MIDI_INPUT_DEVICE_COUNT">
+            <section title="Number of MIDI input devices changed" anchor="SUBSCRIBE MIDI_INPUT_DEVICE_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the total number of MIDI input devices on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -9099,7 +9101,7 @@ Schoenebeck'>
                 of MIDI input devices.</t>
             </section>
 
-            <section title="MIDI input device's settings changed" anchor="SUBSCRIBE MIDI_INPUT_DEVICE_INFO">
+            <section title="MIDI input device's settings changed" anchor="SUBSCRIBE MIDI_INPUT_DEVICE_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when changes were made to MIDI input devices on the
                 back-end by issuing the following command:</t>
                 <t>
@@ -9121,7 +9123,7 @@ Schoenebeck'>
                 message is sufficient here.</t>
             </section>
 
-            <section title="Number of sampler channels changed" anchor="SUBSCRIBE CHANNEL_COUNT">
+            <section title="Number of sampler channels changed" anchor="SUBSCRIBE CHANNEL_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the total number of channels on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -9139,7 +9141,7 @@ Schoenebeck'>
                 of sampler channels.</t>
             </section>
 
-            <section title="MIDI data on a sampler channel arrived" anchor="SUBSCRIBE CHANNEL_MIDI">
+            <section title="MIDI data on a sampler channel arrived" anchor="SUBSCRIBE CHANNEL_MIDI" lscp_cmd="true">
                 <t>Client may want to be notified when MIDI data arrive on sampler channels on
                 back-end side, by issuing the following command:</t>
                 <t>
@@ -9164,7 +9166,7 @@ Schoenebeck'>
                 thread unaffected by this feature.</t>
             </section>
 
-	    <section title="MIDI data on a MIDI input device arrived" anchor="SUBSCRIBE DEVICE_MIDI">
+	    <section title="MIDI data on a MIDI input device arrived" anchor="SUBSCRIBE DEVICE_MIDI" lscp_cmd="true">
 		    <t>Client may want to be notified when MIDI data arrive on MIDI input devices by issuing the following command:</t>
 		    <t>
 			    <list>
@@ -9189,7 +9191,7 @@ Schoenebeck'>
 		       thread unaffected by this feature.</t>
             </section>
 
-            <section title="Number of active voices changed" anchor="SUBSCRIBE VOICE_COUNT">
+            <section title="Number of active voices changed" anchor="SUBSCRIBE VOICE_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the number of voices on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -9208,7 +9210,7 @@ Schoenebeck'>
                 active voices on that channel.</t>
             </section>
 
-            <section title="Number of active disk streams changed" anchor="SUBSCRIBE STREAM_COUNT">
+            <section title="Number of active disk streams changed" anchor="SUBSCRIBE STREAM_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the number of streams on the back-end
                 changes by issuing the following command: SUBSCRIBE STREAM_COUNT</t>
                 <t>
@@ -9227,7 +9229,7 @@ Schoenebeck'>
                 active disk streams on that channel.</t>
             </section>
 
-            <section title="Disk stream buffer fill state changed" anchor="SUBSCRIBE BUFFER_FILL">
+            <section title="Disk stream buffer fill state changed" anchor="SUBSCRIBE BUFFER_FILL" lscp_cmd="true">
                 <t>Client may want to be notified when the buffer fill state of a disk stream
                 on the back-end changes by issuing the following command:</t>
                 <t>
@@ -9248,7 +9250,7 @@ Schoenebeck'>
                 "GET CHANNEL BUFFER_FILL PERCENTAGE"</xref> command was issued on this channel.</t>
             </section>
 
-            <section title="Channel information changed" anchor="SUBSCRIBE CHANNEL_INFO">
+            <section title="Channel information changed" anchor="SUBSCRIBE CHANNEL_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when changes were made to sampler channels on the
                 back-end by issuing the following command:</t>
                 <t>
@@ -9270,7 +9272,7 @@ Schoenebeck'>
                 message is sufficient here.</t>
             </section>
 
-            <section title="Number of effect sends changed" anchor="SUBSCRIBE FX_SEND_COUNT">
+            <section title="Number of effect sends changed" anchor="SUBSCRIBE FX_SEND_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the number of effect sends on
                 a particular sampler channel is changed by issuing the following command:</t>
                 <t>
@@ -9289,7 +9291,7 @@ Schoenebeck'>
                 be replaced by the new number of effect sends on that channel.</t>
             </section>
 
-            <section title="Effect send information changed" anchor="SUBSCRIBE FX_SEND_INFO">
+            <section title="Effect send information changed" anchor="SUBSCRIBE FX_SEND_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when changes were made to effect sends on a
                 a particular sampler channel by issuing the following command:</t>
                 <t>
@@ -9308,7 +9310,7 @@ Schoenebeck'>
                 be replaced by the numerical ID of the changed effect send.</t>
             </section>
 
-            <section title="Total number of active voices changed" anchor="SUBSCRIBE TOTAL_VOICE_COUNT">
+            <section title="Total number of active voices changed" anchor="SUBSCRIBE TOTAL_VOICE_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the total number of voices on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -9326,7 +9328,7 @@ Schoenebeck'>
                 all currently active voices.</t>
             </section>
 
-            <section title="Total number of active disk streams changed" anchor="SUBSCRIBE TOTAL_STREAM_COUNT">
+            <section title="Total number of active disk streams changed" anchor="SUBSCRIBE TOTAL_STREAM_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the total number of disk streams on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -9344,7 +9346,7 @@ Schoenebeck'>
                 all currently active disk streams.</t>
             </section>
 
-            <section title="Number of MIDI instrument maps changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT">
+            <section title="Number of MIDI instrument maps changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the number of MIDI instrument maps on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -9362,7 +9364,7 @@ Schoenebeck'>
                 of MIDI instrument maps.</t>
             </section>
 
-            <section title="MIDI instrument map information changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO">
+            <section title="MIDI instrument map information changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when changes were made to MIDI instrument maps on the
                 back-end by issuing the following command:</t>
                 <t>
@@ -9384,7 +9386,7 @@ Schoenebeck'>
                 message is sufficient here.</t>
             </section>
 
-            <section title="Number of MIDI instruments changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_COUNT">
+            <section title="Number of MIDI instruments changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the number of MIDI instrument maps on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -9403,7 +9405,7 @@ Schoenebeck'>
                 the new number of MIDI instruments in the specified map.</t>
             </section>
 
-            <section title="MIDI instrument information changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_INFO">
+            <section title="MIDI instrument information changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when changes were made to MIDI instruments on the
                 back-end by issuing the following command:</t>
                 <t>
@@ -9426,7 +9428,7 @@ Schoenebeck'>
                 message is sufficient here.</t>
             </section>
 
-            <section title="Global settings changed" anchor="SUBSCRIBE GLOBAL_INFO">
+            <section title="Global settings changed" anchor="SUBSCRIBE GLOBAL_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when changes to the global settings
                 of the sampler were made by issuing the following command:</t>
                 <t>
@@ -9457,7 +9459,7 @@ Schoenebeck'>
                 </t>
             </section>
 
-            <section title="Number of database instrument directories changed" anchor="SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT">
+            <section title="Number of database instrument directories changed" anchor="SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the number of instrument
                 directories in a particular directory in the instruments database
                 is changed by issuing the following command:</t>
@@ -9479,7 +9481,7 @@ Schoenebeck'>
                 is not sent for the subdirectories in that directory.</t>
             </section>
 
-            <section title="Database instrument directory information changed" anchor="SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO">
+            <section title="Database instrument directory information changed" anchor="SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when changes were made to directories
                 in the instruments database by issuing the following command:</t>
                 <t>
@@ -9509,7 +9511,7 @@ Schoenebeck'>
                 the new name of the directory, encapsulated into apostrophes.</t>
             </section>
 
-            <section title="Number of database instruments changed" anchor="SUBSCRIBE DB_INSTRUMENT_COUNT">
+            <section title="Number of database instruments changed" anchor="SUBSCRIBE DB_INSTRUMENT_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the number of instruments
                 in a particular directory in the instruments database
                 is changed by issuing the following command:</t>
@@ -9531,7 +9533,7 @@ Schoenebeck'>
                 is not sent for the instruments in that directory.</t>
             </section>
 
-            <section title="Database instrument information changed" anchor="SUBSCRIBE DB_INSTRUMENT_INFO">
+            <section title="Database instrument information changed" anchor="SUBSCRIBE DB_INSTRUMENT_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when changes were made to instruments
                 in the instruments database by issuing the following command:</t>
                 <t>
@@ -9561,7 +9563,7 @@ Schoenebeck'>
                 the new name of the instrument, encapsulated into apostrophes.</t>
             </section>
 
-            <section title="Database job status information changed" anchor="SUBSCRIBE DB_INSTRUMENTS_JOB_INFO">
+            <section title="Database job status information changed" anchor="SUBSCRIBE DB_INSTRUMENTS_JOB_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when the status of particular database
                 instruments job is changed by issuing the following command:</t>
                 <t>
@@ -9583,7 +9585,7 @@ Schoenebeck'>
                 message is sufficient here.</t>
             </section>
 
-            <section title="Number of effect instances changed" anchor="SUBSCRIBE EFFECT_INSTANCE_COUNT">
+            <section title="Number of effect instances changed" anchor="SUBSCRIBE EFFECT_INSTANCE_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the number of effect instances
                 is changed by issuing the following command:</t>
                 <t>
@@ -9601,7 +9603,7 @@ Schoenebeck'>
                 of effect instances.</t>
             </section>
 
-            <section title="Effect instance information changed" anchor="SUBSCRIBE EFFECT_INSTANCE_INFO">
+            <section title="Effect instance information changed" anchor="SUBSCRIBE EFFECT_INSTANCE_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when changes were made to effect instances
                 on the back-end by issuing the following command:</t>
                 <t>
@@ -9619,7 +9621,7 @@ Schoenebeck'>
                 of the effect instance.</t>
             </section>
 
-            <section title="Number of send effect chains changed" anchor="SUBSCRIBE SEND_EFFECT_CHAIN_COUNT">
+            <section title="Number of send effect chains changed" anchor="SUBSCRIBE SEND_EFFECT_CHAIN_COUNT" lscp_cmd="true">
                 <t>Client may want to be notified when the number of send effect chains
                 is changed by issuing the following command:</t>
                 <t>
@@ -9638,7 +9640,7 @@ Schoenebeck'>
                 &lt;chains&gt; will be replaced by the new number of send effect chains.</t>
             </section>
 
-            <section title="Send effect chain information changed" anchor="SUBSCRIBE SEND_EFFECT_CHAIN_INFO">
+            <section title="Send effect chain information changed" anchor="SUBSCRIBE SEND_EFFECT_CHAIN_INFO" lscp_cmd="true">
                 <t>Client may want to be notified when changes were made to send effect chains
                 on the back-end by issuing the following command:</t>
                 <t>
@@ -9660,7 +9662,7 @@ Schoenebeck'>
                 </t>
             </section>
 
-            <section title="Miscellaneous and debugging events" anchor="SUBSCRIBE MISCELLANEOUS">
+            <section title="Miscellaneous and debugging events" anchor="SUBSCRIBE MISCELLANEOUS" lscp_cmd="true">
                 <t>Client may want to be notified of miscellaneous and debugging events occurring at
                 the server by issuing the following command:</t>
                 <t>

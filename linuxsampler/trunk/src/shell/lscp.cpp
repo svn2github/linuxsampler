@@ -39,6 +39,7 @@ static int g_linesActive = 0;
 static const String g_prompt = "lscp=# ";
 static std::vector<String> g_commandHistory;
 static int g_commandHistoryIndex = -1;
+static String g_doc;
 
 static void printUsage() {
     cout << "lscp - The LinuxSampler Control Protocol (LSCP) Shell." << endl;
@@ -50,6 +51,8 @@ static void printUsage() {
     cout << "   -p  TCP port number of LSCP server (default " << LSCP_DEFAULT_PORT << ")." << endl;
     cout << endl;
     cout << "   --no-auto-correct  Don't perform auto correction of obvious syntax errors." << endl;
+    cout << endl;
+    cout << "   --no-doc  Don't show LSCP reference documentation on screen." << endl;
     cout << endl;
 }
 
@@ -131,6 +134,66 @@ static void storeCommandInHistory(const String& sCommand) {
         g_commandHistory.push_back(sCommand);
 }
 
+/// Splits the given string into individual lines for the given screen resolution.
+static std::vector<String> splitForScreen(const String& s, int cols, int rows) {
+    std::vector<String> lines;
+    if (rows <= 0 || cols <= 0) return lines;
+    String line;
+    for (int i = 0; i < s.size(); ++i) {
+        char c = s[i];
+        if (c == '\r') continue;
+        if (c == '\n') {
+            lines.push_back(line);
+            if (lines.size() >= rows) return lines;
+            line.clear();
+            continue;
+        }
+        line += c;
+        if (line.size() >= cols) {
+            lines.push_back(line);
+            if (lines.size() >= rows) return lines;
+            line.clear();
+        }
+    }
+    return lines;
+}
+
+/**
+ * Will be called whenever the LSCP documentation reference to be shown, has
+ * been changed. This call will accordingly update the screen with the new
+ * documentation text received from LSCP server.
+ */
+static void updateDoc() {
+    const int vOffset = 2;
+
+    CCursor originalCursor = CCursor::now();
+    CCursor cursor = originalCursor;
+    cursor.toColumn(0).down(vOffset);
+
+    // wipe out current documentation off screen
+    cursor.clearVerticalToBottom();
+
+    if (g_doc.empty()) {
+        // restore original cursor position
+        cursor.up(vOffset).toColumn(originalCursor.column());
+        return;
+    }
+
+    // get screen size (in characters)
+    const int cols = TerminalCtrl::columns();
+    const int rows = TerminalCtrl::rows();
+
+    // convert the string block into individual lines according to screen resolution
+    std::vector<String> lines = splitForScreen(g_doc, cols - 1, rows);
+
+    // print lines onto screen
+    for (int row = 0; row < lines.size(); ++row)
+        std::cout << lines[row] << std::endl;
+
+    // restore original cursor position
+    cursor.up(vOffset + lines.size()).toColumn(originalCursor.column());
+}
+
 /**
  * This LSCP shell application is designed as thin client. That means the heavy
  * LSCP grammar evaluation tasks are peformed by the LSCP server and the shell
@@ -195,6 +258,7 @@ int main(int argc, char *argv[]) {
     String host = LSCP_DEFAULT_HOST;
     int port    = LSCP_DEFAULT_PORT;
     bool autoCorrect = true;
+    bool showDoc = true;
 
     // parse command line arguments
     for (int i = 0; i < argc; ++i) {
@@ -217,6 +281,8 @@ int main(int argc, char *argv[]) {
             }
         } else if (s == "--no-auto-correct") {
             autoCorrect = false;
+        } else if (s == "--no-doc") {
+            showDoc = false;
         } else if (s[0] == '-') { // invalid / unknown command line argument ...
             printUsage();
             return -1;
@@ -226,9 +292,11 @@ int main(int argc, char *argv[]) {
     // try to connect to the sampler's LSCP server and start a thread for
     // receiving incoming network data from the sampler's LSCP server
     g_client = new LSCPClient;
-    g_client->setCallback(onLSCPClientNewInputAvailable);
     g_client->setErrorCallback(onLSCPClientErrorOccured);
     if (!g_client->connect(host, port)) return -1;
+    g_client->sendCommandSync(
+        (showDoc) ? "SET SHELL DOC 1" : "SET SHELL DOC 0"
+    );
     String sResponse = g_client->sendCommandSync(
         (autoCorrect) ? "SET SHELL AUTO_CORRECT 1" : "SET SHELL AUTO_CORRECT 0"
     );
@@ -237,7 +305,8 @@ int main(int argc, char *argv[]) {
         cerr << "Error: sampler too old, it does not support shell instructions\n";
         return -1;
     }
-    
+    g_client->setCallback(onLSCPClientNewInputAvailable);
+
     printWelcome();
     printPrompt();
 
@@ -365,8 +434,26 @@ int main(int argc, char *argv[]) {
                     if (p.linesAdvanced()) cursor.up(p.linesAdvanced());
                     cursor.toColumn(cursorColumn + promptOffset());
                 }
+            } else if (line.substr(0,4) == "SHD:") { // new LSCP doc reference section received ...
+                int code = LSCP_SHD_NO_MATCH;
+                int res = sscanf(line.c_str(), "SHD:%d", &code);
+                g_doc.clear();
+                if (code == LSCP_SHD_MATCH) {
+                    while (true) { // multi-line response expected (terminated by dot line) ...
+                       if (line.substr(0, 1) == ".") break;
+                       if (!g_client->lineAvailable()) break;
+                       line = *g_client->popLine();
+                       g_doc += line;
+                    }
+                }
+                updateDoc();
             } else if (line.substr(0,2) == "OK") { // single-line response expected ...
                 cout << endl << flush;
+
+                // wipe out potential current documentation off screen
+                CCursor cursor = CCursor::now();
+                cursor.clearVerticalToBottom();
+
                 CFmt cfmt;
                 cfmt.green();
                 cout << line.substr(0,2) << flush;
@@ -375,6 +462,11 @@ int main(int argc, char *argv[]) {
                 printPrompt();
             } else if (line.substr(0,3) == "WRN") { // single-line response expected ...
                 cout << endl << flush;
+
+                // wipe out potential current documentation off screen
+                CCursor cursor = CCursor::now();
+                cursor.clearVerticalToBottom();
+
                 CFmt cfmt;
                 cfmt.yellow();
                 cout << line.substr(0,3) << flush;
@@ -383,6 +475,11 @@ int main(int argc, char *argv[]) {
                 printPrompt();
             } else if (line.substr(0,3) == "ERR") { // single-line response expected ...
                 cout << endl << flush;
+
+                // wipe out potential current documentation off screen
+                CCursor cursor = CCursor::now();
+                cursor.clearVerticalToBottom();
+
                 CFmt cfmt;
                 cfmt.bold().red();
                 cout << line.substr(0,3) << flush;
@@ -391,6 +488,11 @@ int main(int argc, char *argv[]) {
                 printPrompt();
             } else if (g_client->multiLine()) { // multi-line response expected ...
                 cout << endl << flush;
+
+                // wipe out potential current documentation off screen
+                CCursor cursor = CCursor::now();
+                cursor.clearVerticalToBottom();
+
                 while (true) {                   
                    cout << line << endl << flush;
                    if (line.substr(0, 1) == ".") break;
@@ -399,7 +501,13 @@ int main(int argc, char *argv[]) {
                 }
                 printPrompt();
             } else {
-                cout << endl << line << endl << flush;
+                cout << endl << flush;
+
+                // wipe out potential current documentation off screen
+                CCursor cursor = CCursor::now();
+                cursor.clearVerticalToBottom();
+
+                cout << line << endl << flush;
                 printPrompt();
             }
         }

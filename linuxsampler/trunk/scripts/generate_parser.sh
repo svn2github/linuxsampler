@@ -32,3 +32,7 @@ echo "Done"
 echo -n "Updating Documentation/lscp.xml..."
 (cd $SCRIPTS_DIR && ./update_grammar.pl)
 echo "Done"
+
+echo -n "Generating src/network/lscp_shell_reference.cpp..."
+(cd $SCRIPTS_DIR && ./generate_lscp_shell_reference.pl)
+echo "Done"
