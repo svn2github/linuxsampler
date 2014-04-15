@@ -810,19 +810,26 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 					bufferedCommands[socket] += c; // append
 			}
 		}
-		// only if the other side is the LSCP shell application:
-		// check the current (incomplete) command line for syntax errors,
-		// possible completions and report everything back to the shell
-		if ((*iter).bShellInteract || (*iter).bShellAutoCorrect) {
-			String s = lscpParserProcessShellInteraction(bufferedCommands[socket], &(*iter), true);
-			if (!s.empty() && (*iter).bShellInteract && i == input.size() - 1)
-				AnswerClient(s + "\n");
-		}
-		// if other side is LSCP shell application, send the relevant LSCP
-		// documentation section of the current command line (if necessary)
-		if ((*iter).bShellSendLSCPDoc && (*iter).bShellInteract) {
-			String s = generateLSCPDocReply(bufferedCommands[socket], &(*iter));
-			if (!s.empty()) AnswerClient(s + "\n");
+		// Only if the other side (client) is the LSCP shell application:
+		// The following block takes care about automatic correction, auto
+		// completion (and suggestions), LSCP reference documentation, etc.
+		// The "if" statement here is for optimization reasons, so that the
+		// heavy LSCP grammar evaluation algorithm is only executed once for an
+		// entire command line received.
+		if (i == input.size() - 1) {
+			// check the current (incomplete) command line for syntax errors,
+			// possible completions and report everything back to the shell
+			if ((*iter).bShellInteract || (*iter).bShellAutoCorrect) {
+				String s = lscpParserProcessShellInteraction(bufferedCommands[socket], &(*iter), true);
+				if (!s.empty() && (*iter).bShellInteract && i == input.size() - 1)
+					AnswerClient(s + "\n");
+			}
+			// if other side is LSCP shell application, send the relevant LSCP
+			// documentation section of the current command line (if necessary)
+			if ((*iter).bShellSendLSCPDoc && (*iter).bShellInteract) {
+				String s = generateLSCPDocReply(bufferedCommands[socket], &(*iter));
+				if (!s.empty()) AnswerClient(s + "\n");
+			}
 		}
 	}
 

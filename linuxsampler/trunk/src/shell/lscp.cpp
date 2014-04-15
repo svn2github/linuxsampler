@@ -12,13 +12,17 @@
 #include <sstream>
 #include <string.h>
 
+#include "lscp.h"
 #include "LSCPClient.h"
 #include "KeyboardReader.h"
 #include "TerminalCtrl.h"
 #include "CFmt.h"
 #include "CCursor.h"
 #include "TerminalPrinter.h"
-
+#if DEBUG_LSCP_SHELL
+# include <stdarg.h>
+# include <sys/timeb.h>
+#endif // DEBUG_LSCP_SHELL
 #include "../common/global.h"
 #include "../common/global_private.h"
 #include "../common/Condition.h"
@@ -40,6 +44,32 @@ static const String g_prompt = "lscp=# ";
 static std::vector<String> g_commandHistory;
 static int g_commandHistoryIndex = -1;
 static String g_doc;
+static bool g_quitAppRequested = false;
+static int g_exitCode = 0;
+#if DEBUG_LSCP_SHELL
+static FILE* g_df; ///< handle to output log file (just for debugging)
+#endif
+
+/**
+ * Log the given debug message to a log file. This works only if
+ * DEBUG_LSCP_SHELL was turned on in lscp.h. Otherwise this function does
+ * nothing. Usage of this function is equivalent to printf().
+ */
+void lscpLog(const char* format, ...) {
+    #if DEBUG_LSCP_SHELL
+    // assemble variable argument list given to this function call
+    va_list arg;
+    va_start(arg, format);
+    // write current timestamp to log file
+    struct timeb tp;
+    ftime(&tp);
+    fprintf(g_df, "[%d.%03d] ", tp.time, tp.millitm);
+    // write actual debug message to log file
+    vfprintf(g_df, format, arg);
+    fflush(g_df);
+    va_end(arg);
+    #endif // DEBUG_LSCP_SHELL
+}
 
 static void printUsage() {
     cout << "lscp - The LinuxSampler Control Protocol (LSCP) Shell." << endl;
@@ -70,10 +100,9 @@ static int promptOffset() {
 }
 
 static void quitApp(int code = 0) {
-    std::cout << std::endl << std::flush;
-    if (g_client) delete g_client;
-    if (g_keyboardReader) delete g_keyboardReader;
-    exit(code);
+    //lscpLog("[quit app]\n");
+    g_exitCode = code;
+    g_quitAppRequested = true;
 }
 
 // Called by the network reading thread, whenever new data arrived from the
@@ -89,6 +118,7 @@ static void onNewKeyboardInputAvailable(KeyboardReader* reader) {
 
 // Called on network error or when server side closed the TCP connection.
 static void onLSCPClientErrorOccured(LSCPClient* client) {
+    //lscpLog("[client error callback]\n");
     quitApp();
 }
 
@@ -109,10 +139,11 @@ static void commandFromHistory(int offset) {
         g_commandHistoryIndex + offset >= g_commandHistory.size()) return;
     g_commandHistoryIndex += offset;
     int len = g_goodPortion.size() + g_badPortion.size();
+    String command;
     // erase current active line
-    for (int i = 0; i < len; ++i) g_client->send('\b');
+    for (int i = 0; i < len; ++i) command += '\b';
     // transmit new/old line to LSCP server
-    String command = g_commandHistory[g_commandHistory.size() - g_commandHistoryIndex - 1];
+    command += g_commandHistory[g_commandHistory.size() - g_commandHistoryIndex - 1];
     g_client->send(command);
 }
 
@@ -255,6 +286,14 @@ static void updateDoc() {
  *   to add characters to the current command line.
  */
 int main(int argc, char *argv[]) {
+    #if DEBUG_LSCP_SHELL
+    g_df = fopen("lscp.log", "w");
+    if (!g_df) {
+        std::cerr << "Could not open lscp.log for writing!\n";
+        exit(-1);
+    }
+    #endif // DEBUG_LSCP_SHELL
+
     String host = LSCP_DEFAULT_HOST;
     int port    = LSCP_DEFAULT_PORT;
     bool autoCorrect = true;
@@ -340,7 +379,7 @@ int main(int argc, char *argv[]) {
     //   characters to the LSCP server and/or show the result of the LSCP
     //   server's latest evaluation to the user on the screen (by pulling those
     //   data from the other two thread's FIFO buffers).
-    while (true) {
+    while (!g_quitAppRequested) {
         // sleep until either new data from the network or from keyboard arrived
         g_todo.WaitIf(false);
         // immediately unset the condition variable and unlock it
@@ -350,7 +389,7 @@ int main(int argc, char *argv[]) {
         // did network data arrive?
         while (g_client->messageComplete()) {
             String line = *g_client->popLine();
-            //printf("line '%s'\n", line.c_str());
+            //lscpLog("[client] '%s'\n", line.c_str());
             if (line.substr(0,4) == "SHU:") {
                 int code = 0, n = 0;
                 int res = sscanf(line.c_str(), "SHU:%d:%n", &code, &n);
@@ -515,6 +554,7 @@ int main(int argc, char *argv[]) {
         // did keyboard input arrive?
         while (g_keyboardReader->charAvailable()) {
             char c = g_keyboardReader->popChar();
+            //lscpLog("[keyboard] '%c' (dec %d%s)'\n", c, (int)c, iKbdEscapeCharsExpected ? " ESC SEQ" : "");
 
             //std::cout << c << "(" << int(c) << ")" << std::endl << std::flush;
             if (iKbdEscapeCharsExpected) { // escape sequence (still) expected now ...
@@ -547,5 +587,11 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    return 0;
+    // Application is going to exit (due to user request or server
+    // disconnection). Clean up everything ...
+    std::cout << std::endl << std::flush;
+    if (g_client) delete g_client;
+    if (g_keyboardReader) delete g_keyboardReader;
+
+    return g_exitCode;
 }

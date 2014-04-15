@@ -67,15 +67,19 @@ protected:
     int Main() OVERRIDE;
     optional<String> receiveLine();
 private:
+    struct Line {
+        String data;
+        bool isMultiLine;
+        bool isMultiLineComplete;
+    };
     int hSocket;
     String m_lineBuffer;
-    std::list<String> m_lines;
+    std::list<Line> m_lines;
     Mutex m_linesMutex;
     Callback_t m_callback;
     Callback_t m_errorCallback;
     Condition m_sync;
     bool m_multiLineExpected;
-    bool m_multiLineComplete;
 };
 
 #endif // LSCPCLIENT_H
