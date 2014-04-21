@@ -64,3 +64,47 @@ Building from CVS
 ./configure
 make
 su -c "make install"
+
+
+Internationalization: Help on Translations !
+============================================
+
+You want to help us translating gigedit into a language you speak? Good!
+This is how it works:
+
+    Updating an existing translation (at the moment only Swedish and German):
+    -------------------------------------------------------------------------
+
+    First collect all text from gigedit's current C++ source code, by typing
+    the following:
+
+    cd po
+    make update-po
+
+    The language source files (de.po, sv.po, ...) are now updated and you may
+    open one of it now either with a text editor of your choice or better: by
+    using the graphical translation tool "poedit":
+
+    poedit de.po
+
+
+    Add a new translation (for another language not yet supported):
+    ---------------------------------------------------------------
+
+    First collect all text from gigedit's current C++ source code, by typing
+    the following:
+
+    cd po
+    make update-po
+
+    There should now be a yet untranslated file "gigedit.pot". Rename it to
+    to the language you want to translate, i.e.:
+
+    mv gigedit.pot ru.po
+
+    Now either open the file ("ru.po") with a text editor of your choice or
+    better: by using the graphical translation tool "poedit":
+
+    poedit ru.po
+
+After you are done with translating the language file, please send it to us!
