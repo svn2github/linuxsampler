@@ -89,6 +89,10 @@ MainWindow::MainWindow() :
     dimreg_vbox.pack_start(dimreg_hbox, Gtk::PACK_SHRINK);
     m_HPaned.add2(dimreg_vbox);
 
+    dimreg_label.set_tooltip_text(_("To automatically apply your changes above globally to the entire instrument, check all 3 check boxes on the right."));
+    dimreg_all_regions.set_tooltip_text(_("If checked: all changes you perform above will automatically be applied to all regions of this instrument as well."));
+    dimreg_all_dimregs.set_tooltip_text(_("If checked: all changes you perform above will automatically be applied as well to all dimension splits of the region selected below."));
+    dimreg_stereo.set_tooltip_text(_("If checked: all changes you perform above will automatically be applied to both audio channel splits (only if a \"stereo\" dimension is defined below)."));
 
     m_TreeViewNotebook.append_page(m_ScrolledWindowSamples, _("Samples"));
     m_TreeViewNotebook.append_page(m_ScrolledWindow, _("Instruments"));
@@ -136,24 +140,18 @@ MainWindow::MainWindow() :
     actionGroup->add(Gtk::Action::create("MenuEdit", _("_Edit")));
 
     Glib::RefPtr<Gtk::ToggleAction> toggle_action =
-        Gtk::ToggleAction::create("CopySampleUnity", _("Copy Sample's _Unity Note"), "ffaga");
+        Gtk::ToggleAction::create("CopySampleUnity", _("Copy Sample's _Unity Note"));
     toggle_action->set_active(true);
-    //FIXME: doesn't work, why?
-    toggle_action->set_tooltip(_("Used when dragging a sample to a region's sample reference field."));
     actionGroup->add(toggle_action);
 
     toggle_action =
         Gtk::ToggleAction::create("CopySampleTune", _("Copy Sample's _Fine Tune"));
     toggle_action->set_active(true);
-    //FIXME: doesn't work, why?
-    toggle_action->set_tooltip(_("Used when dragging a sample to a region's sample reference field."));
     actionGroup->add(toggle_action);
 
     toggle_action =
         Gtk::ToggleAction::create("CopySampleLoop", _("Copy Sample's _Loop Points"));
     toggle_action->set_active(true);
-    //FIXME: doesn't work, why?
-    toggle_action->set_tooltip(_("Used when dragging a sample to a region's sample reference field."));
     actionGroup->add(toggle_action);
 
 
@@ -259,6 +257,26 @@ MainWindow::MainWindow() :
     uiManager->add_ui_from_string(ui_info);
 
     popup_menu = dynamic_cast<Gtk::Menu*>(uiManager->get_widget("/PopupMenu"));
+    
+    // Set tooltips for menu items (for some reason, setting a tooltip on the
+    // respective Gtk::Action objects above will simply be ignored, no matter
+    // if using Gtk::Action::set_tooltip() or passing the tooltip string on
+    // Gtk::Action::create()).
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuEdit/CopySampleUnity"));
+        item->set_tooltip_text(_("Used when dragging a sample to a region's sample reference field. You may disable this for example if you want to replace an existing sample in a region with a new sample, but don't want that the region's current unity note setting will be altered by this action."));
+    }
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuEdit/CopySampleTune"));
+        item->set_tooltip_text(_("Used when dragging a sample to a region's sample reference field. You may disable this for example if you want to replace an existing sample in a region with a new sample, but don't want that the region's current sample playback tuning will be altered by this action."));
+    }
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuEdit/CopySampleLoop"));
+        item->set_tooltip_text(_("Used when dragging a sample to a region's sample reference field. You may disable this for example if you want to replace an existing sample in a region with a new sample, but don't want that the region's current loop informations to be altered by this action."));
+    }
 
     instrument_menu = static_cast<Gtk::MenuItem*>(
         uiManager->get_widget("/MenuBar/MenuInstrument"))->get_submenu();
@@ -287,6 +305,7 @@ MainWindow::MainWindow() :
     // Create the Tree model:
     m_refTreeModel = Gtk::ListStore::create(m_Columns);
     m_TreeView.set_model(m_refTreeModel);
+    m_TreeView.set_tooltip_text(_("Right click here for actions on instruments & MIDI Rules."));
     instrument_name_connection = m_refTreeModel->signal_row_changed().connect(
         sigc::mem_fun(*this, &MainWindow::instrument_name_changed)
     );
@@ -298,6 +317,7 @@ MainWindow::MainWindow() :
     // create samples treeview (including its data model)
     m_refSamplesTreeModel = SamplesTreeStore::create(m_SamplesModel);
     m_TreeViewSamples.set_model(m_refSamplesTreeModel);
+    m_TreeViewSamples.set_tooltip_text(_("To actually use a sample, drag it from this list view to \"Sample\" -> \"Sample:\" on the region's settings pane on the right.\n\nRight click here for more actions on samples."));
     // m_TreeViewSamples.set_reorderable();
     m_TreeViewSamples.append_column_editable("Samples", m_SamplesModel.m_col_name);
     m_TreeViewSamples.set_headers_visible(false);

@@ -154,6 +154,7 @@ RegionChooser::RegionChooser() :
     keyboard_key_released_signal.connect(
         sigc::mem_fun(*this, &RegionChooser::on_note_off_event)
     );
+    set_tooltip_text(_("Right click here for adding new region. Use mouse pointer for moving (dragging) or resizing existing regions (by pointing at region's boundary). Right click on an existing region for more actions."));
 }
 
 RegionChooser::~RegionChooser()
@@ -328,6 +329,22 @@ void RegionChooser::draw_regions(const Cairo::RefPtr<Cairo::Context>& cr,
         cr->move_to(x + 0.5, 1);
         cr->line_to(x + 0.5, h1 - 1);
         cr->stroke();
+    }
+
+    // if there is no region yet, show the user some hint text that he may
+    // right click on this area to create a new region
+    if (!regions.first()) {
+        Glib::RefPtr<Pango::Context> context = get_pango_context();
+        Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
+        layout->set_alignment(Pango::ALIGN_CENTER);
+        layout->set_text(Glib::ustring("*** ") + _("Right click here to create a region.") + " ***");
+        layout->set_width(get_width() * Pango::SCALE);
+        Gdk::Cairo::set_source_rgba(cr, red);
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
+        pango_cairo_show_layout(cr->cobj(), layout->gobj());
+#else
+        layout->show_in_cairo_context(cr);
+#endif
     }
 }
 

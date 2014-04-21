@@ -221,12 +221,12 @@ DimRegionEdit::DimRegionEdit() :
     ePitchTrack(_("Pitch track")),
     eDimensionBypass(_("Dimension bypass")),
     ePan(_("Pan"), -64, 63),
-    eSelfMask(_("Self mask")),
+    eSelfMask(_("One note/voice per key (a.k.a \"Self mask\")")),
     eAttenuationController(_("Attenuation controller")),
     eInvertAttenuationController(_("Invert attenuation controller")),
     eAttenuationControllerThreshold(_("Attenuation controller threshold")),
     eChannelOffset(_("Channel offset"), 0, 9),
-    eSustainDefeat(_("Sustain defeat")),
+    eSustainDefeat(_("Ignore Hold Pedal (a.k.a. \"Sustain defeat\")")),
     eMSDecode(_("MS decode")),
     eSampleStartOffset(_("Sample start offset"), 0, 2000),
     eUnityNote(_("Unity note")),
@@ -397,9 +397,9 @@ DimRegionEdit::DimRegionEdit() :
     addString(_("Sample"), lSample, wSample);
     //TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
 #ifdef OLD_TOOLTIPS
-    tooltips.set_tip(*wSample, _("Drop a sample here"));
+    tooltips.set_tip(*wSample, _("Drag & drop a sample here"));
 #else
-    wSample->set_tooltip_text(_("Drop a sample here"));
+    wSample->set_tooltip_text(_("Drag & drop a sample here"));
 #endif
     addProp(eUnityNote);
     addHeader(_("Optional Settings"));
@@ -682,8 +682,11 @@ DimRegionEdit::DimRegionEdit() :
         eDimensionBypass.set_choices(choices, values);
     }
     addProp(eDimensionBypass);
+    eSelfMask.widget.set_tooltip_text(_("If enabled: high velocity notes will stop low velocity notes at the same note, that way you can save voices that wouldn't be audible anyway."));
     addProp(eSelfMask);
+    eSustainDefeat.widget.set_tooltip_text(_("If enabled: sustain pedal will not hold a note."));
     addProp(eSustainDefeat);
+    eMSDecode.widget.set_tooltip_text(_("Gigastudio specific flag: defines if Mid Side Recordings should be decoded."));
     addProp(eMSDecode);
 
     nextPage();
