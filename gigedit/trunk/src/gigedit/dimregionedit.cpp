@@ -636,7 +636,7 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader(_("Velocity Reponse"));
+    addHeader(_("Velocity Response"));
     eVelocityResponseCurve.set_choices(curve_type_texts, curve_type_values);
     addProp(eVelocityResponseCurve);
     addProp(eVelocityResponseDepth);
@@ -655,7 +655,7 @@ DimRegionEdit::DimRegionEdit() :
                           Gtk::SHRINK, Gtk::SHRINK);
     rowno++;
 
-    addHeader(_("Release Velocity Reponse"));
+    addHeader(_("Release Velocity Response"));
     eReleaseVelocityResponseCurve.set_choices(curve_type_texts,
                                               curve_type_values);
     addProp(eReleaseVelocityResponseCurve);

@@ -1,6 +1,6 @@
 # German translations for gigedit package
 # Deutsche Übersetzung für das gigedit Paket.
-# Copyright (C) 2006, 2007 Andreas Persson
+# Copyright (C) 2006-2014 Andreas Persson
 # This file is distributed under the same license as the gigedit package.
 #
 msgid ""
@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gigedit 0.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-01-12 20:34+0100\n"
-"PO-Revision-Date: 2014-04-21 21:01+0100\n"
+"PO-Revision-Date: 2014-04-22 18:34+0100\n"
 "Last-Translator: Christian Schoenebeck\n"
 "Language-Team: German\n"
 "Language: \n"
@@ -54,7 +54,7 @@ msgstr "Samples"
 
 #: ../src/gigedit/mainwindow.cpp:98
 msgid "Instruments"
-msgstr "_Instrumente"
+msgstr "Instrumente"
 
 #: ../src/gigedit/mainwindow.cpp:103
 msgid "_File"
@@ -444,23 +444,23 @@ msgstr "Stand-Alone"
 #: ../src/gigedit/dimregionedit.cpp:154
 #: ../src/gigedit/dimregionedit.cpp:173
 msgid "Pre-attack"
-msgstr ""
+msgstr "Pre-Attack"
 
 #: ../src/gigedit/dimregionedit.cpp:155
 #: ../src/gigedit/dimregionedit.cpp:174
 #: ../src/gigedit/dimregionedit.cpp:191
 msgid "Attack"
-msgstr ""
+msgstr "Attack"
 
 #: ../src/gigedit/dimregionedit.cpp:156
 #: ../src/gigedit/dimregionedit.cpp:175
 msgid "Decay 1"
-msgstr ""
+msgstr "Decay 1"
 
 #: ../src/gigedit/dimregionedit.cpp:157
 #: ../src/gigedit/dimregionedit.cpp:176
 msgid "Decay 2"
-msgstr ""
+msgstr "Decay 2"
 
 #: ../src/gigedit/dimregionedit.cpp:158
 #: ../src/gigedit/dimregionedit.cpp:177
@@ -470,12 +470,12 @@ msgstr "Unendliches Sustain"
 #: ../src/gigedit/dimregionedit.cpp:159
 #: ../src/gigedit/dimregionedit.cpp:178
 msgid "Sustain"
-msgstr ""
+msgstr "Sustain"
 
 #: ../src/gigedit/dimregionedit.cpp:160
 #: ../src/gigedit/dimregionedit.cpp:179
 msgid "Release"
-msgstr ""
+msgstr "Release"
 
 #: ../src/gigedit/dimregionedit.cpp:161
 msgid "Hold"
@@ -488,7 +488,7 @@ msgstr "Halten"
 #: ../src/gigedit/dimregionedit.cpp:196
 #: ../src/gigedit/midirules.cpp:160
 msgid "Controller"
-msgstr ""
+msgstr "Controller"
 
 #: ../src/gigedit/dimregionedit.cpp:163
 #: ../src/gigedit/dimregionedit.cpp:181
@@ -562,7 +562,7 @@ msgstr "Cutoff Controller invertieren"
 
 #: ../src/gigedit/dimregionedit.cpp:202
 msgid "Cutoff"
-msgstr ""
+msgstr "Cutoff"
 
 #: ../src/gigedit/dimregionedit.cpp:203
 msgid "Velocity curve"
@@ -594,7 +594,7 @@ msgstr "Keyboard Verfolgung"
 
 #: ../src/gigedit/dimregionedit.cpp:210
 msgid "Keyboard tracking breakpoint"
-msgstr "Keyboard Verfolgungspunkt"
+msgstr "Keyboard Verfolgung Bruchpunkt"
 
 #: ../src/gigedit/dimregionedit.cpp:211
 msgid "Velocity response curve"
@@ -638,7 +638,7 @@ msgstr "Crossfade-out Ende"
 
 #: ../src/gigedit/dimregionedit.cpp:221
 msgid "Pitch track"
-msgstr ""
+msgstr "Tonhöhe anpassen"
 
 #: ../src/gigedit/dimregionedit.cpp:222
 msgid "Dimension bypass"
@@ -666,7 +666,7 @@ msgstr "Attenuation Controller Schwellwert"
 
 #: ../src/gigedit/dimregionedit.cpp:228
 msgid "Channel offset"
-msgstr ""
+msgstr "Kanal Offset"
 
 #: ../src/gigedit/dimregionedit.cpp:229
 msgid "Ignore Hold Pedal (a.k.a. \"Sustain defeat\")"
@@ -678,7 +678,7 @@ msgstr "MS dekodieren"
 
 #: ../src/gigedit/dimregionedit.cpp:231
 msgid "Sample start offset"
-msgstr ""
+msgstr "Sample Start Offset"
 
 #: ../src/gigedit/dimregionedit.cpp:232
 msgid "Unity note"
@@ -813,6 +813,7 @@ msgstr "Amplituden Oszillator (LFO1):"
 msgid "internal"
 msgstr "intern"
 
+#. bank select MSB (hard coded in sampler, so discouraged to be used here, even though considerable)
 #: ../src/gigedit/dimregionedit.cpp:453
 #: ../src/gigedit/dimregionedit.cpp:509
 #: ../src/gigedit/dimregionedit.cpp:595
@@ -883,14 +884,14 @@ msgstr "nichts2"
 
 #: ../src/gigedit/dimregionedit.cpp:509
 #: ../src/gigedit/dimregionchooser.cpp:111
-#: ../src/gigedit/paramedit.cpp:48
+#: ../src/gigedit/paramedit.cpp:53
 msgid "effect1"
 msgstr "Effekt 1"
 
 #. "Effect Control 1",
 #: ../src/gigedit/dimregionedit.cpp:509
 #: ../src/gigedit/dimregionchooser.cpp:112
-#: ../src/gigedit/paramedit.cpp:49
+#: ../src/gigedit/paramedit.cpp:54
 msgid "effect2"
 msgstr "Effekt 2"
 
@@ -903,35 +904,35 @@ msgstr "Fuss"
 
 #: ../src/gigedit/dimregionedit.cpp:510
 #: ../src/gigedit/dimregionchooser.cpp:118
-#: ../src/gigedit/paramedit.cpp:58
+#: ../src/gigedit/paramedit.cpp:80
 msgid "sustainpedal"
 msgstr "Sustain Pedal"
 
 #. "Sustenuto On/Off",
 #: ../src/gigedit/dimregionedit.cpp:510
 #: ../src/gigedit/dimregionchooser.cpp:122
-#: ../src/gigedit/paramedit.cpp:61
+#: ../src/gigedit/paramedit.cpp:83
 msgid "softpedal"
 msgstr "Soft Pedal"
 
 #. "General Purpose Controller 6",
 #: ../src/gigedit/dimregionedit.cpp:511
 #: ../src/gigedit/dimregionchooser.cpp:125
-#: ../src/gigedit/paramedit.cpp:65
+#: ../src/gigedit/paramedit.cpp:98
 msgid "genpurpose7"
-msgstr ""
+msgstr "genpurpose7"
 
 #. "General Purpose Controller 7",
 #: ../src/gigedit/dimregionedit.cpp:511
 #: ../src/gigedit/dimregionchooser.cpp:126
-#: ../src/gigedit/paramedit.cpp:66
+#: ../src/gigedit/paramedit.cpp:99
 msgid "genpurpose8"
-msgstr ""
+msgstr "genpurpose8"
 
 #: ../src/gigedit/dimregionedit.cpp:511
 #: ../src/gigedit/dimregionedit.cpp:623
 msgid "aftertouch"
-msgstr ""
+msgstr "Aftertouch"
 
 #: ../src/gigedit/dimregionedit.cpp:531
 msgid "nonlinear"
@@ -948,29 +949,29 @@ msgstr "speziell"
 #. "General Purpose Controller 2",
 #: ../src/gigedit/dimregionedit.cpp:560
 #: ../src/gigedit/dimregionchooser.cpp:115
-#: ../src/gigedit/paramedit.cpp:53
+#: ../src/gigedit/paramedit.cpp:59
 msgid "genpurpose3"
-msgstr ""
+msgstr "genpurpose3"
 
 #. "General Purpose Controller 3",
 #: ../src/gigedit/dimregionedit.cpp:560
 #: ../src/gigedit/dimregionchooser.cpp:116
-#: ../src/gigedit/paramedit.cpp:54
+#: ../src/gigedit/paramedit.cpp:60
 msgid "genpurpose4"
-msgstr ""
+msgstr "genpurpose4"
 
 #: ../src/gigedit/dimregionedit.cpp:561
 #: ../src/gigedit/dimregionchooser.cpp:123
-#: ../src/gigedit/paramedit.cpp:63
+#: ../src/gigedit/paramedit.cpp:96
 msgid "genpurpose5"
-msgstr ""
+msgstr "genpurpose5"
 
 #. "General Purpose Controller 5",
 #: ../src/gigedit/dimregionedit.cpp:561
 #: ../src/gigedit/dimregionchooser.cpp:124
-#: ../src/gigedit/paramedit.cpp:64
+#: ../src/gigedit/paramedit.cpp:97
 msgid "genpurpose6"
-msgstr ""
+msgstr "genpurpose6"
 
 #: ../src/gigedit/dimregionedit.cpp:577
 msgid "Filter Cutoff Envelope (EG2)"
@@ -1001,26 +1002,26 @@ msgid "internal+aftertouch"
 msgstr "intern+Aftertouch"
 
 #: ../src/gigedit/dimregionedit.cpp:639
-msgid "Velocity Reponse"
-msgstr ""
+msgid "Velocity Response"
+msgstr "Velocity Response"
 
 #: ../src/gigedit/dimregionedit.cpp:658
-msgid "Release Velocity Reponse"
-msgstr ""
+msgid "Release Velocity Response"
+msgstr "Release Velocity Response"
 
 #. "Effects 3 Depth",
 #: ../src/gigedit/dimregionedit.cpp:676
 #: ../src/gigedit/dimregionchooser.cpp:134
-#: ../src/gigedit/paramedit.cpp:71
+#: ../src/gigedit/paramedit.cpp:110
 msgid "effect4depth"
-msgstr ""
+msgstr "Effect 4 Tiefe"
 
 #. "Effects 4 Depth",
 #: ../src/gigedit/dimregionedit.cpp:676
 #: ../src/gigedit/dimregionchooser.cpp:136
-#: ../src/gigedit/paramedit.cpp:72
+#: ../src/gigedit/paramedit.cpp:111
 msgid "effect5depth"
-msgstr ""
+msgstr "Effekt 5 Tiefe"
 
 #: ../src/gigedit/dimregionedit.cpp:685
 msgid "If enabled: high velocity notes will stop low velocity notes at the same note, that way you can save voices that wouldn't be audible anyway."
@@ -1044,11 +1045,11 @@ msgstr "Amplitude (2)"
 
 #: ../src/gigedit/dimregionedit.cpp:739
 msgid "Filter (1)"
-msgstr ""
+msgstr "Filter (1)"
 
 #: ../src/gigedit/dimregionedit.cpp:740
 msgid "Filter (2)"
-msgstr ""
+msgstr "Filter (2)"
 
 #: ../src/gigedit/dimregionedit.cpp:741
 msgid "Pitch"
@@ -1060,15 +1061,15 @@ msgstr "Diverses"
 
 #: ../src/gigedit/dimregionedit.cpp:932
 msgid "NULL"
-msgstr ""
+msgstr "NICHTS"
 
 #: ../src/gigedit/dimregionedit.cpp:996
 msgid "Minimum cutoff:"
-msgstr ""
+msgstr "Minimum Cutoff:"
 
 #: ../src/gigedit/dimregionedit.cpp:997
 msgid "Velocity scale:"
-msgstr ""
+msgstr "Velocity Skalierung:"
 
 #: ../src/gigedit/regionchooser.cpp:69
 msgid "Virtual Keyboard Mode"
@@ -1080,11 +1081,11 @@ msgstr "Akkord"
 
 #: ../src/gigedit/regionchooser.cpp:91
 msgid "Note-On Velocity:"
-msgstr ""
+msgstr "Note-On Velocity:"
 
 #: ../src/gigedit/regionchooser.cpp:93
 msgid "Note-Off Velocity:"
-msgstr ""
+msgstr "Note-Off Velocity:"
 
 #: ../src/gigedit/regionchooser.cpp:114
 msgid "Dimensions..."
@@ -1123,19 +1124,19 @@ msgstr "Layer"
 #: ../src/gigedit/dimensionmanager.cpp:43
 #: ../src/gigedit/midirules.cpp:188
 msgid "Velocity"
-msgstr ""
+msgstr "Velocity"
 
 #: ../src/gigedit/dimensionmanager.cpp:45
 msgid "Aftertouch"
-msgstr ""
+msgstr "Aftertouch"
 
 #: ../src/gigedit/dimensionmanager.cpp:47
 msgid "Release Trigger"
-msgstr ""
+msgstr "Release Trigger"
 
 #: ../src/gigedit/dimensionmanager.cpp:49
 msgid "Keyswitching"
-msgstr ""
+msgstr "Keyswitching"
 
 #: ../src/gigedit/dimensionmanager.cpp:51
 msgid "Round Robin"
@@ -1147,7 +1148,7 @@ msgstr "Zufallsgenerator"
 
 #: ../src/gigedit/dimensionmanager.cpp:55
 msgid "Smart MIDI"
-msgstr ""
+msgstr "Smart MIDI"
 
 #: ../src/gigedit/dimensionmanager.cpp:57
 msgid "Keyboard Round Robin"
@@ -1179,71 +1180,71 @@ msgstr "Effekt Ctrl. 2"
 
 #: ../src/gigedit/dimensionmanager.cpp:71
 msgid "General Purpose Ctrl. 1"
-msgstr ""
+msgstr "General Purpose Ctrl. 1"
 
 #: ../src/gigedit/dimensionmanager.cpp:73
 msgid "General Purpose Ctrl. 2"
-msgstr ""
+msgstr "General Purpose Ctrl. 2"
 
 #: ../src/gigedit/dimensionmanager.cpp:75
 msgid "General Purpose Ctrl. 3"
-msgstr ""
+msgstr "General Purpose Ctrl. 3"
 
 #: ../src/gigedit/dimensionmanager.cpp:77
 msgid "General Purpose Ctrl. 4"
-msgstr ""
+msgstr "General Purpose Ctrl. 4"
 
 #: ../src/gigedit/dimensionmanager.cpp:79
 msgid "Sustain Pedal"
-msgstr ""
+msgstr "Sustain Pedal"
 
 #: ../src/gigedit/dimensionmanager.cpp:81
 msgid "Portamento Ctrl."
-msgstr ""
+msgstr "Portamento Ctrl."
 
 #: ../src/gigedit/dimensionmanager.cpp:83
 msgid "Sostenuto Pedal"
-msgstr ""
+msgstr "Sostenuto Pedal"
 
 #: ../src/gigedit/dimensionmanager.cpp:85
 msgid "Soft Pedal"
-msgstr ""
+msgstr "Soft Pedal"
 
 #: ../src/gigedit/dimensionmanager.cpp:87
 msgid "General Purpose Ctrl. 5"
-msgstr ""
+msgstr "General Purpose Ctrl. 5"
 
 #: ../src/gigedit/dimensionmanager.cpp:89
 msgid "General Purpose Ctrl. 6"
-msgstr ""
+msgstr "General Purpose Ctrl. 6"
 
 #: ../src/gigedit/dimensionmanager.cpp:91
 msgid "General Purpose Ctrl. 7"
-msgstr ""
+msgstr "General Purpose Ctrl. 7"
 
 #: ../src/gigedit/dimensionmanager.cpp:93
 msgid "General Purpose Ctrl. 8"
-msgstr ""
+msgstr "General Purpose Ctrl. 8"
 
 #: ../src/gigedit/dimensionmanager.cpp:95
 msgid "Effect 1 Depth"
-msgstr ""
+msgstr "Effekt 1 Tiefe"
 
 #: ../src/gigedit/dimensionmanager.cpp:97
 msgid "Effect 2 Depth"
-msgstr ""
+msgstr "Effekt 2 Tiefe"
 
 #: ../src/gigedit/dimensionmanager.cpp:99
 msgid "Effect 3 Depth"
-msgstr ""
+msgstr "Effekt 3 Tiefe"
 
 #: ../src/gigedit/dimensionmanager.cpp:101
 msgid "Effect 4 Depth"
-msgstr ""
+msgstr "Effekt 4 Tiefe"
 
 #: ../src/gigedit/dimensionmanager.cpp:103
 msgid "Effect 5 Depth"
-msgstr ""
+msgstr "Effekt 5 Tiefe"
 
 #: ../src/gigedit/dimensionmanager.cpp:114
 msgid "Dimension not in use"
@@ -1263,7 +1264,7 @@ msgstr "Key Velocity (dies ist die einzige Dimension in gig2 bei der Bereiche ex
 
 #: ../src/gigedit/dimensionmanager.cpp:122
 msgid "Channel Key Pressure"
-msgstr ""
+msgstr "Kanal-Tastendruck"
 
 #: ../src/gigedit/dimensionmanager.cpp:124
 msgid "Special dimension for triggering samples on releasing a key"
@@ -1291,95 +1292,95 @@ msgstr "Samples werden abwechselnd beim Auslösen einer neuen Note abgespielt, j
 
 #: ../src/gigedit/dimensionmanager.cpp:136
 msgid "MIDI Controller 1"
-msgstr ""
+msgstr "MIDI Controller 1"
 
 #: ../src/gigedit/dimensionmanager.cpp:138
 msgid "MIDI Controller 2"
-msgstr ""
+msgstr "MIDI Controller 2"
 
 #: ../src/gigedit/dimensionmanager.cpp:140
 msgid "MIDI Controller 4"
-msgstr ""
+msgstr "MIDI Controller 4"
 
 #: ../src/gigedit/dimensionmanager.cpp:142
 msgid "MIDI Controller 5"
-msgstr ""
+msgstr "MIDI Controller 5"
 
 #: ../src/gigedit/dimensionmanager.cpp:144
 msgid "MIDI Controller 12"
-msgstr ""
+msgstr "MIDI Controller 12"
 
 #: ../src/gigedit/dimensionmanager.cpp:146
 msgid "MIDI Controller 13"
-msgstr ""
+msgstr "MIDI Controller 13"
 
 #: ../src/gigedit/dimensionmanager.cpp:148
 msgid "Slider, MIDI Controller 16"
-msgstr ""
+msgstr "Slider, MIDI Controller 16"
 
 #: ../src/gigedit/dimensionmanager.cpp:150
 msgid "Slider, MIDI Controller 17"
-msgstr ""
+msgstr "Slider, MIDI Controller 17"
 
 #: ../src/gigedit/dimensionmanager.cpp:152
 msgid "Slider, MIDI Controller 18"
-msgstr ""
+msgstr "Slider, MIDI Controller 18"
 
 #: ../src/gigedit/dimensionmanager.cpp:154
 msgid "Slider, MIDI Controller 19"
-msgstr ""
+msgstr "Slider, MIDI Controller 19"
 
 #: ../src/gigedit/dimensionmanager.cpp:156
 msgid "MIDI Controller 64"
-msgstr ""
+msgstr "MIDI Controller 64"
 
 #: ../src/gigedit/dimensionmanager.cpp:158
 msgid "MIDI Controller 65"
-msgstr ""
+msgstr "MIDI Controller 65"
 
 #: ../src/gigedit/dimensionmanager.cpp:160
 msgid "MIDI Controller 66"
-msgstr ""
+msgstr "MIDI Controller 66"
 
 #: ../src/gigedit/dimensionmanager.cpp:162
 msgid "MIDI Controller 67"
-msgstr ""
+msgstr "MIDI Controller 67"
 
 #: ../src/gigedit/dimensionmanager.cpp:164
 msgid "Button, MIDI Controller 80"
-msgstr ""
+msgstr "Schalter, MIDI Controller 80"
 
 #: ../src/gigedit/dimensionmanager.cpp:166
 msgid "Button, MIDI Controller 81"
-msgstr ""
+msgstr "Schalter, MIDI Controller 81"
 
 #: ../src/gigedit/dimensionmanager.cpp:168
 msgid "Button, MIDI Controller 82"
-msgstr ""
+msgstr "Schalter, MIDI Controller 82"
 
 #: ../src/gigedit/dimensionmanager.cpp:170
 msgid "Button, MIDI Controller 83"
-msgstr ""
+msgstr "Schalter, MIDI Controller 83"
 
 #: ../src/gigedit/dimensionmanager.cpp:172
 msgid "MIDI Controller 91"
-msgstr ""
+msgstr "MIDI Controller 91"
 
 #: ../src/gigedit/dimensionmanager.cpp:174
 msgid "MIDI Controller 92"
-msgstr ""
+msgstr "MIDI Controller 92"
 
 #: ../src/gigedit/dimensionmanager.cpp:176
 msgid "MIDI Controller 93"
-msgstr ""
+msgstr "MIDI Controller 93"
 
 #: ../src/gigedit/dimensionmanager.cpp:178
 msgid "MIDI Controller 94"
-msgstr ""
+msgstr "MIDI Controller 94"
 
 #: ../src/gigedit/dimensionmanager.cpp:180
 msgid "MIDI Controller 95"
-msgstr ""
+msgstr "MIDI Controller 95"
 
 #: ../src/gigedit/dimensionmanager.cpp:182
 msgid "Please report this !!!"
@@ -1395,7 +1396,7 @@ msgstr "Dimensionstyp"
 
 #: ../src/gigedit/dimensionmanager.cpp:207
 msgid "Bits"
-msgstr ""
+msgstr "Bits"
 
 #: ../src/gigedit/dimensionmanager.cpp:208
 msgid "Zones"
@@ -1443,19 +1444,19 @@ msgstr "Velocity"
 #: ../src/gigedit/dimregionchooser.cpp:97
 #: ../src/gigedit/paramedit.cpp:40
 msgid "channelaftertouch"
-msgstr ""
+msgstr "channelaftertouch"
 
 #: ../src/gigedit/dimregionchooser.cpp:99
 msgid "releasetrigger"
-msgstr ""
+msgstr "releasetrigger"
 
 #: ../src/gigedit/dimregionchooser.cpp:100
 msgid "keyswitching"
-msgstr ""
+msgstr "keyswitching"
 
 #: ../src/gigedit/dimregionchooser.cpp:101
 msgid "roundrobin"
-msgstr ""
+msgstr "roundrobin"
 
 #: ../src/gigedit/dimregionchooser.cpp:102
 msgid "random"
@@ -1463,108 +1464,239 @@ msgstr "Zufall"
 
 #: ../src/gigedit/dimregionchooser.cpp:103
 msgid "smartmidi"
-msgstr ""
+msgstr "smartmidi"
 
 #: ../src/gigedit/dimregionchooser.cpp:105
 msgid "roundrobinkeyboard"
-msgstr ""
+msgstr "roundrobinkeyboard"
 
 #. "Foot Controller",
 #: ../src/gigedit/dimregionchooser.cpp:110
 #: ../src/gigedit/paramedit.cpp:46
 msgid "portamentotime"
-msgstr ""
+msgstr "Portamento Zeit"
 
 #: ../src/gigedit/dimregionchooser.cpp:113
-#: ../src/gigedit/paramedit.cpp:51
+#: ../src/gigedit/paramedit.cpp:57
 msgid "genpurpose1"
-msgstr ""
+msgstr "genpurpose1"
 
 #. "General Purpose Controller 1",
 #: ../src/gigedit/dimregionchooser.cpp:114
-#: ../src/gigedit/paramedit.cpp:52
+#: ../src/gigedit/paramedit.cpp:58
 msgid "genpurpose2"
-msgstr ""
+msgstr "genpurpose2"
 
 #. "Damper Pedal on/off (Sustain)",
 #: ../src/gigedit/dimregionchooser.cpp:119
-#: ../src/gigedit/paramedit.cpp:59
+#: ../src/gigedit/paramedit.cpp:81
 msgid "portamento"
-msgstr ""
+msgstr "portamento"
 
 #: ../src/gigedit/dimregionchooser.cpp:121
 msgid "sostenutopedal"
-msgstr ""
+msgstr "sostenutopedal"
 
 #: ../src/gigedit/dimregionchooser.cpp:128
-#: ../src/gigedit/paramedit.cpp:68
+#: ../src/gigedit/paramedit.cpp:107
 msgid "effect1depth"
-msgstr ""
+msgstr "Effekt 1 Tiefe"
 
 #. "Effects 1 Depth",
 #: ../src/gigedit/dimregionchooser.cpp:130
-#: ../src/gigedit/paramedit.cpp:69
+#: ../src/gigedit/paramedit.cpp:108
 msgid "effect2depth"
-msgstr ""
+msgstr "Effekt 2 Tiefe"
 
 #. "Effects 2 Depth",
 #: ../src/gigedit/dimregionchooser.cpp:132
-#: ../src/gigedit/paramedit.cpp:70
+#: ../src/gigedit/paramedit.cpp:109
 msgid "effect3depth"
-msgstr ""
+msgstr "Effekt 3 Tiefe"
+
+#. "Breath Controller",
+#. "Effect Control 2",
+#. "General Purpose Controller 4",
+#. high resolution velocity prefix (so discouraged to be used here)
+#. NRPN LSB (so discouraged to be used here)
+#. NRPN MSB (so discouraged to be used here)
+#. RPN LSB (so discouraged to be used here)
+#. RPN MSB (so discouraged to be used here)
+#: ../src/gigedit/paramedit.cpp:44
+#: ../src/gigedit/paramedit.cpp:50
+#: ../src/gigedit/paramedit.cpp:55
+#: ../src/gigedit/paramedit.cpp:56
+#: ../src/gigedit/paramedit.cpp:61
+#: ../src/gigedit/paramedit.cpp:62
+#: ../src/gigedit/paramedit.cpp:63
+#: ../src/gigedit/paramedit.cpp:64
+#: ../src/gigedit/paramedit.cpp:65
+#: ../src/gigedit/paramedit.cpp:66
+#: ../src/gigedit/paramedit.cpp:67
+#: ../src/gigedit/paramedit.cpp:68
+#: ../src/gigedit/paramedit.cpp:69
+#: ../src/gigedit/paramedit.cpp:70
+#: ../src/gigedit/paramedit.cpp:71
+#: ../src/gigedit/paramedit.cpp:72
+#: ../src/gigedit/paramedit.cpp:95
+#: ../src/gigedit/paramedit.cpp:101
+#: ../src/gigedit/paramedit.cpp:102
+#: ../src/gigedit/paramedit.cpp:103
+#: ../src/gigedit/paramedit.cpp:105
+#: ../src/gigedit/paramedit.cpp:106
+#: ../src/gigedit/paramedit.cpp:118
+#: ../src/gigedit/paramedit.cpp:119
+#: ../src/gigedit/paramedit.cpp:120
+#: ../src/gigedit/paramedit.cpp:121
+#: ../src/gigedit/paramedit.cpp:122
+#: ../src/gigedit/paramedit.cpp:123
+#: ../src/gigedit/paramedit.cpp:124
+#: ../src/gigedit/paramedit.cpp:125
+#: ../src/gigedit/paramedit.cpp:126
+#: ../src/gigedit/paramedit.cpp:127
+#: ../src/gigedit/paramedit.cpp:128
+#: ../src/gigedit/paramedit.cpp:129
+#: ../src/gigedit/paramedit.cpp:130
+#: ../src/gigedit/paramedit.cpp:131
+#: ../src/gigedit/paramedit.cpp:132
+#: ../src/gigedit/paramedit.cpp:133
+#: ../src/gigedit/paramedit.cpp:134
+#: ../src/gigedit/paramedit.cpp:135
+msgid "undefined"
+msgstr "undefiniert"
+
+#. "Portamento Time",
+#: ../src/gigedit/paramedit.cpp:47
+msgid "data entry MSB"
+msgstr "Dateneingabe MSB"
+
+#: ../src/gigedit/paramedit.cpp:48
+msgid "volume"
+msgstr "Lautstärke"
+
+#: ../src/gigedit/paramedit.cpp:49
+msgid "balance"
+msgstr "Balance"
+
+#: ../src/gigedit/paramedit.cpp:51
+msgid "pan"
+msgstr "Panorama"
+
+#: ../src/gigedit/paramedit.cpp:52
+msgid "expression"
+msgstr "Expression"
 
 #. "Portamento On/Off",
-#: ../src/gigedit/paramedit.cpp:60
+#: ../src/gigedit/paramedit.cpp:82
 msgid "sostenuto"
-msgstr ""
+msgstr "Sostenuto"
 
-#: ../src/gigedit/paramedit.cpp:209
+#. "Soft Pedal On/Off",
+#: ../src/gigedit/paramedit.cpp:84
+msgid "legato"
+msgstr "Legato"
+
+#: ../src/gigedit/paramedit.cpp:85
+msgid "hold2"
+msgstr "hold2"
+
+#: ../src/gigedit/paramedit.cpp:86
+msgid "soundvariation"
+msgstr "soundvariation"
+
+#: ../src/gigedit/paramedit.cpp:87
+msgid "timbre"
+msgstr "Klangfarbe"
+
+#: ../src/gigedit/paramedit.cpp:88
+msgid "releasetime"
+msgstr "Release Zeit"
+
+#: ../src/gigedit/paramedit.cpp:89
+msgid "attacktime"
+msgstr "Attack Zeit"
+
+#: ../src/gigedit/paramedit.cpp:90
+msgid "brightness"
+msgstr "Helligkeit"
+
+#: ../src/gigedit/paramedit.cpp:91
+msgid "decaytime"
+msgstr "Decay Zeit"
+
+#: ../src/gigedit/paramedit.cpp:92
+msgid "vibratorate"
+msgstr "Vibrato Frequenz"
+
+#: ../src/gigedit/paramedit.cpp:93
+msgid "vibratodepth"
+msgstr "Vibrato Tiefe"
+
+#: ../src/gigedit/paramedit.cpp:94
+msgid "vibratodelay"
+msgstr "Vibrato Verzögerung"
+
+#. "General Purpose Controller 8",
+#: ../src/gigedit/paramedit.cpp:100
+msgid "portamentoctrl"
+msgstr "Portamento Ctrl."
+
+#. "Effects 5 Depth"
+#: ../src/gigedit/paramedit.cpp:112
+msgid "dataincrement"
+msgstr "dataincrement"
+
+#: ../src/gigedit/paramedit.cpp:113
+msgid "datadecrement"
+msgstr "datadecrement"
+
+#: ../src/gigedit/paramedit.cpp:276
 msgid "C"
-msgstr ""
+msgstr "C"
 
-#: ../src/gigedit/paramedit.cpp:209
+#: ../src/gigedit/paramedit.cpp:276
 msgid "C#"
-msgstr ""
+msgstr "C#"
 
-#: ../src/gigedit/paramedit.cpp:209
+#: ../src/gigedit/paramedit.cpp:276
 msgid "D"
-msgstr ""
+msgstr "D"
 
-#: ../src/gigedit/paramedit.cpp:209
+#: ../src/gigedit/paramedit.cpp:276
 msgid "D#"
-msgstr ""
+msgstr "D#"
 
-#: ../src/gigedit/paramedit.cpp:209
+#: ../src/gigedit/paramedit.cpp:276
 msgid "E"
-msgstr ""
+msgstr "E"
 
-#: ../src/gigedit/paramedit.cpp:209
+#: ../src/gigedit/paramedit.cpp:276
 msgid "F"
-msgstr ""
+msgstr "F"
 
-#: ../src/gigedit/paramedit.cpp:209
+#: ../src/gigedit/paramedit.cpp:276
 msgid "F#"
-msgstr ""
+msgstr "F#"
 
-#: ../src/gigedit/paramedit.cpp:210
+#: ../src/gigedit/paramedit.cpp:277
 msgid "G"
-msgstr ""
+msgstr "G"
 
-#: ../src/gigedit/paramedit.cpp:210
+#: ../src/gigedit/paramedit.cpp:277
 msgid "G#"
-msgstr ""
+msgstr "G#"
 
-#: ../src/gigedit/paramedit.cpp:210
+#: ../src/gigedit/paramedit.cpp:277
 msgid "A"
-msgstr ""
+msgstr "A"
 
-#: ../src/gigedit/paramedit.cpp:210
+#: ../src/gigedit/paramedit.cpp:277
 msgid "A#"
-msgstr ""
+msgstr "A#"
 
-#: ../src/gigedit/paramedit.cpp:210
+#: ../src/gigedit/paramedit.cpp:277
 msgid "B"
-msgstr ""
+msgstr "B"
 
 #: ../src/gigedit/midirules.cpp:27
 msgid "Midi rule:"
@@ -1584,7 +1716,7 @@ msgstr "Controller Auslösung"
 
 #: ../src/gigedit/midirules.cpp:41
 msgid "Legato"
-msgstr ""
+msgstr "Legato"
 
 #: ../src/gigedit/midirules.cpp:181
 msgid "Trigger point"
@@ -1604,11 +1736,11 @@ msgstr "Taste"
 
 #: ../src/gigedit/midirules.cpp:185
 msgid "Note off"
-msgstr ""
+msgstr "Note off"
 
 #: ../src/gigedit/midirules.cpp:186
 msgid "Switch"
-msgstr ""
+msgstr "Schalter"
 
 #: ../src/gigedit/midirules.cpp:191
 msgid "Override pedal"
@@ -1648,11 +1780,11 @@ msgstr "Release Trigger Taste"
 
 #: ../src/gigedit/midirules.cpp:509
 msgid "Alt sustain 1 key"
-msgstr ""
+msgstr "Alt sustain 1 key"
 
 #: ../src/gigedit/midirules.cpp:510
 msgid "Alt sustain 2 key"
-msgstr ""
+msgstr "Alt sustain 2 key"
 
 #, fuzzy
 #~ msgid "Self mask"
