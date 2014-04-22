@@ -38,40 +38,107 @@ gig::String gig_from_utf8(const Glib::ustring& utf8_string) {
 namespace {
     const char* const controlChangeTexts[] = {
         _("none"), _("channelaftertouch"), _("velocity"),
-        0,
+        0, // bank select MSB (hard coded in sampler, so discouraged to be used here, even though considerable)
         _("modwheel"), // "Modulation Wheel or Lever",
         _("breath"), // "Breath Controller",
-        0,
+        _("undefined"),
         _("foot"), // "Foot Controller",
         _("portamentotime"), // "Portamento Time",
-        0, 0, 0, 0, 0, 0,
+        _("data entry MSB"),
+        _("volume"),
+        _("balance"),
+        _("undefined"),
+        _("pan"),
+        _("expression"),
         _("effect1"), // "Effect Control 1",
         _("effect2"), // "Effect Control 2",
-        0, 0,
+        _("undefined"),
+        _("undefined"),
         _("genpurpose1"), // "General Purpose Controller 1",
         _("genpurpose2"), // "General Purpose Controller 2",
         _("genpurpose3"), // "General Purpose Controller 3",
         _("genpurpose4"), // "General Purpose Controller 4",
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        
+        // LSB variant of the various controllers above
+        // (so discouraged to be used here for now)
+        0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0,
+        
         _("sustainpedal"), // "Damper Pedal on/off (Sustain)",
         _("portamento"), // "Portamento On/Off",
         _("sostenuto"), // "Sustenuto On/Off",
         _("softpedal"), // "Soft Pedal On/Off",
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        _("legato"),
+        _("hold2"),
+        _("soundvariation"),
+        _("timbre"),
+        _("releasetime"),
+        _("attacktime"),
+        _("brightness"),
+        _("decaytime"),
+        _("vibratorate"),
+        _("vibratodepth"),
+        _("vibratodelay"),
+        _("undefined"),
         _("genpurpose5"), // "General Purpose Controller 5",
         _("genpurpose6"), // "General Purpose Controller 6",
         _("genpurpose7"), // "General Purpose Controller 7",
         _("genpurpose8"), // "General Purpose Controller 8",
-        0, 0, 0, 0, 0, 0, 0,
+        _("portamentoctrl"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        0, // high resolution velocity prefix (so discouraged to be used here)
+        _("undefined"),
+        _("undefined"),
         _("effect1depth"), // "Effects 1 Depth",
         _("effect2depth"), // "Effects 2 Depth",
         _("effect3depth"), // "Effects 3 Depth",
         _("effect4depth"), // "Effects 4 Depth",
         _("effect5depth"), // "Effects 5 Depth"
+        _("dataincrement"),
+        _("datadecrement"),
+        0, // NRPN LSB (so discouraged to be used here)
+        0, // NRPN MSB (so discouraged to be used here)
+        0, // RPN LSB (so discouraged to be used here)
+        0, // RPN MSB (so discouraged to be used here)
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined"),
+        _("undefined") // CC 119
+        // (all other ones that follow [CC 120- CC 127] are hard coded channel
+        // mode messages, so those are discouraged to be used here)
     };
 }
+
+#define controlChangeTextsSize  (sizeof(controlChangeTexts) / sizeof(char*))
 
 LabelWidget::LabelWidget(const char* labelText, Gtk::Widget& widget) :
     label(Glib::ustring(labelText) + ":"),
@@ -280,12 +347,16 @@ ChoiceEntryLeverageCtrl::ChoiceEntryLeverageCtrl(const char* labelText) :
     LabelWidget(labelText, align),
     align(0, 0, 0, 0)
 {
-    for (int i = 0 ; i < 99 ; i++) {
+    for (int i = 0 ; i < controlChangeTextsSize ; i++) {
         if (controlChangeTexts[i]) {
+            const int cc = i - 3;
+            Glib::ustring s = (i < 3)
+                ? controlChangeTexts[i]
+                : Glib::ustring::compose("CC%1: %2", cc, controlChangeTexts[i]);
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 24) || GTKMM_MAJOR_VERSION < 2
-            combobox.append_text(controlChangeTexts[i]);
+            combobox.append_text(s);
 #else
-            combobox.append(controlChangeTexts[i]);
+            combobox.append(s);
 #endif
         }
     }
@@ -315,7 +386,7 @@ void ChoiceEntryLeverageCtrl::value_changed()
     default:
         value.type = gig::leverage_ctrl_t::type_controlchange;
         int x = 3;
-        for (uint cc = 0 ; cc < 96 ; cc++) {
+        for (uint cc = 0 ; cc < controlChangeTextsSize - 3 ; cc++) {
             if (controlChangeTexts[cc + 3]) {
                 if (rowno == x) {
                     value.controller_number = cc;
@@ -331,35 +402,37 @@ void ChoiceEntryLeverageCtrl::value_changed()
 
 void ChoiceEntryLeverageCtrl::set_value(gig::leverage_ctrl_t value)
 {
-    int x;
+    int comboIndex;
     switch (value.type)
     {
     case gig::leverage_ctrl_t::type_none:
-        x = 0;
+        comboIndex = 0;
         break;
     case gig::leverage_ctrl_t::type_channelaftertouch:
-        x = 1;
+        comboIndex = 1;
         break;
     case gig::leverage_ctrl_t::type_velocity:
-        x = 2;
+        comboIndex = 2;
         break;
-    case gig::leverage_ctrl_t::type_controlchange:
-        x = -1;
-        for (uint cc = 0 ; cc < 96 ; cc++) {
+    case gig::leverage_ctrl_t::type_controlchange: {
+        comboIndex = -1;
+        int x = 3;
+        for (uint cc = 0 ; cc < controlChangeTextsSize - 3 ; cc++) {
             if (controlChangeTexts[cc + 3]) {
-                x++;
                 if (value.controller_number == cc) {
-                    x += 3;
+                    comboIndex = x;
                     break;
                 }
+                x++;
             }
         }
         break;
+    }
     default:
-        x = -1;
+        comboIndex = -1;
         break;
     }
-    combobox.set_active(x);
+    combobox.set_active(comboIndex);
 }
 
 

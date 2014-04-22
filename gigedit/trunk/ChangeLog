@@ -45,6 +45,9 @@ Version CVS HEAD (?)
   * added tooltips to instruments tree view and samples tree view
   * added various tooltips and adjusted some labels on the region settings
     pane
+  * fix: only a small set of possible MIDI controllers was selectable for
+    EG1 controller, EG2 controller and attenuation controller (and no CC
+    number was shown in the combo box)
 
 Version 0.2.0 (2009-07-31)
 
