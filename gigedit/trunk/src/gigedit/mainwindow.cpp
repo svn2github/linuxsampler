@@ -42,7 +42,7 @@
 #include <sndfile.h>
 
 #include "mainwindow.h"
-
+#include "Settings.h"
 #include "../../gfx/status_attached.xpm"
 #include "../../gfx/status_detached.xpm"
 
@@ -182,6 +182,18 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_action_remove_instrument)
     );
 
+
+    actionGroup->add(Gtk::Action::create("MenuSettings", _("_Settings")));
+    
+    toggle_action =
+        Gtk::ToggleAction::create("WarnUserOnExtensions", _("Show warning on format _extensions"));
+    toggle_action->set_active(Settings::singleton()->warnUserOnExtensions);
+    actionGroup->add(
+        toggle_action,
+        sigc::mem_fun(*this, &MainWindow::on_action_warn_user_on_extensions)
+    );
+
+
     // sample right-click popup actions
     actionGroup->add(
         Gtk::Action::create("SampleProperties", Gtk::Stock::PROPERTIES),
@@ -233,6 +245,9 @@ MainWindow::MainWindow() :
         "    <menu action='MenuView'>"
         "      <menuitem action='Statusbar'/>"
         "    </menu>"
+        "    <menu action='MenuSettings'>"
+        "      <menuitem action='WarnUserOnExtensions'/>"
+        "    </menu>"
         "    <menu action='MenuHelp'>"
         "      <menuitem action='About'/>"
         "    </menu>"
@@ -276,6 +291,11 @@ MainWindow::MainWindow() :
         Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
             uiManager->get_widget("/MenuBar/MenuEdit/CopySampleLoop"));
         item->set_tooltip_text(_("Used when dragging a sample to a region's sample reference field. You may disable this for example if you want to replace an existing sample in a region with a new sample, but don't want that the region's current loop informations to be altered by this action."));
+    }
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuSettings/WarnUserOnExtensions"));
+        item->set_tooltip_text(_("If checked, a warning will be shown whenever you try to use a feature which is based on a LinuxSampler extension ontop of the original gig format, which would not work with the Gigasampler/GigaStudio application."));
     }
 
     instrument_menu = static_cast<Gtk::MenuItem*>(
@@ -952,6 +972,11 @@ void MainWindow::on_action_file_properties()
 {
     propDialog.show();
     propDialog.deiconify();
+}
+
+void MainWindow::on_action_warn_user_on_extensions() {
+    Settings::singleton()->warnUserOnExtensions =
+        !Settings::singleton()->warnUserOnExtensions;
 }
 
 void MainWindow::on_action_help_about()

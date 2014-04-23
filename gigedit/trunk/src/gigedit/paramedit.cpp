@@ -23,6 +23,9 @@
 
 #include "global.h"
 #include "compat.h"
+#include "Settings.h"
+
+#include <gtkmm/messagedialog.h>
 
 std::string gig_encoding("CP1252");
 
@@ -36,109 +39,114 @@ gig::String gig_from_utf8(const Glib::ustring& utf8_string) {
 
 
 namespace {
-    const char* const controlChangeTexts[] = {
-        _("none"), _("channelaftertouch"), _("velocity"),
-        0, // bank select MSB (hard coded in sampler, so discouraged to be used here, even though considerable)
-        _("modwheel"), // "Modulation Wheel or Lever",
-        _("breath"), // "Breath Controller",
-        _("undefined"),
-        _("foot"), // "Foot Controller",
-        _("portamentotime"), // "Portamento Time",
-        _("data entry MSB"),
-        _("volume"),
-        _("balance"),
-        _("undefined"),
-        _("pan"),
-        _("expression"),
-        _("effect1"), // "Effect Control 1",
-        _("effect2"), // "Effect Control 2",
-        _("undefined"),
-        _("undefined"),
-        _("genpurpose1"), // "General Purpose Controller 1",
-        _("genpurpose2"), // "General Purpose Controller 2",
-        _("genpurpose3"), // "General Purpose Controller 3",
-        _("genpurpose4"), // "General Purpose Controller 4",
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
+    struct CCText {
+        const char* const txt;
+        bool isExtension; ///< True if this is a controller only supported by LinuxSampler, but not supperted by Gigasampler/GigaStudio.
+    };
+    static const CCText controlChangeTexts[] = {
+        // 3 special ones (not being CCs)
+        { _("none") }, { _("channelaftertouch") }, { _("velocity") },
+        {0}, // bank select MSB (hard coded in sampler, so discouraged to be used here, even though considerable)
+        { _("modwheel") }, // "Modulation Wheel or Lever",
+        { _("breath") }, // "Breath Controller",
+        { _("undefined"), true },
+        { _("foot") }, // "Foot Controller",
+        { _("portamentotime") }, // "Portamento Time",
+        { _("data entry MSB"), true },
+        { _("volume"), true },
+        { _("balance"), true },
+        { _("undefined"), true },
+        { _("pan"), true },
+        { _("expression"), true },
+        { _("effect1") }, // "Effect Control 1",
+        { _("effect2") }, // "Effect Control 2",
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("genpurpose1") }, // "General Purpose Controller 1",
+        { _("genpurpose2") }, // "General Purpose Controller 2",
+        { _("genpurpose3") }, // "General Purpose Controller 3",
+        { _("genpurpose4") }, // "General Purpose Controller 4",
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
         
         // LSB variant of the various controllers above
         // (so discouraged to be used here for now)
-        0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0,
+        {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0},
+        {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0},
+        {0}, {0}, {0}, {0},
         
-        _("sustainpedal"), // "Damper Pedal on/off (Sustain)",
-        _("portamento"), // "Portamento On/Off",
-        _("sostenuto"), // "Sustenuto On/Off",
-        _("softpedal"), // "Soft Pedal On/Off",
-        _("legato"),
-        _("hold2"),
-        _("soundvariation"),
-        _("timbre"),
-        _("releasetime"),
-        _("attacktime"),
-        _("brightness"),
-        _("decaytime"),
-        _("vibratorate"),
-        _("vibratodepth"),
-        _("vibratodelay"),
-        _("undefined"),
-        _("genpurpose5"), // "General Purpose Controller 5",
-        _("genpurpose6"), // "General Purpose Controller 6",
-        _("genpurpose7"), // "General Purpose Controller 7",
-        _("genpurpose8"), // "General Purpose Controller 8",
-        _("portamentoctrl"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        0, // high resolution velocity prefix (so discouraged to be used here)
-        _("undefined"),
-        _("undefined"),
-        _("effect1depth"), // "Effects 1 Depth",
-        _("effect2depth"), // "Effects 2 Depth",
-        _("effect3depth"), // "Effects 3 Depth",
-        _("effect4depth"), // "Effects 4 Depth",
-        _("effect5depth"), // "Effects 5 Depth"
-        _("dataincrement"),
-        _("datadecrement"),
-        0, // NRPN LSB (so discouraged to be used here)
-        0, // NRPN MSB (so discouraged to be used here)
-        0, // RPN LSB (so discouraged to be used here)
-        0, // RPN MSB (so discouraged to be used here)
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined"),
-        _("undefined") // CC 119
+        { _("sustainpedal") }, // "Damper Pedal on/off (Sustain)",
+        { _("portamento") }, // "Portamento On/Off",
+        { _("sostenuto") }, // "Sustenuto On/Off",
+        { _("softpedal") }, // "Soft Pedal On/Off",
+        { _("legato"), true },
+        { _("hold2"), true },
+        { _("soundvariation"), true },
+        { _("timbre"), true },
+        { _("releasetime"), true },
+        { _("attacktime"), true },
+        { _("brightness"), true },
+        { _("decaytime"), true },
+        { _("vibratorate"), true },
+        { _("vibratodepth"), true },
+        { _("vibratodelay"), true },
+        { _("undefined"), true },
+        { _("genpurpose5") }, // "General Purpose Controller 5",
+        { _("genpurpose6") }, // "General Purpose Controller 6",
+        { _("genpurpose7") }, // "General Purpose Controller 7",
+        { _("genpurpose8") }, // "General Purpose Controller 8",
+        { _("portamentoctrl"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        {0}, // high resolution velocity prefix (so discouraged to be used here)
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("effect1depth") }, // "Effects 1 Depth",
+        { _("effect2depth") }, // "Effects 2 Depth",
+        { _("effect3depth") }, // "Effects 3 Depth",
+        { _("effect4depth") }, // "Effects 4 Depth",
+        { _("effect5depth") }, // "Effects 5 Depth"
+        { _("dataincrement"), true },
+        { _("datadecrement"), true },
+        {0}, // NRPN LSB (so discouraged to be used here)
+        {0}, // NRPN MSB (so discouraged to be used here)
+        {0}, // RPN LSB (so discouraged to be used here)
+        {0}, // RPN MSB (so discouraged to be used here)
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true },
+        { _("undefined"), true } // CC 119
         // (all other ones that follow [CC 120- CC 127] are hard coded channel
         // mode messages, so those are discouraged to be used here)
     };
 }
 
-#define controlChangeTextsSize  (sizeof(controlChangeTexts) / sizeof(char*))
+#define controlChangeTextsSize  (sizeof(controlChangeTexts) / sizeof(CCText))
 
 LabelWidget::LabelWidget(const char* labelText, Gtk::Widget& widget) :
     label(Glib::ustring(labelText) + ":"),
@@ -348,11 +356,11 @@ ChoiceEntryLeverageCtrl::ChoiceEntryLeverageCtrl(const char* labelText) :
     align(0, 0, 0, 0)
 {
     for (int i = 0 ; i < controlChangeTextsSize ; i++) {
-        if (controlChangeTexts[i]) {
+        if (controlChangeTexts[i].txt) {
             const int cc = i - 3;
             Glib::ustring s = (i < 3)
-                ? controlChangeTexts[i]
-                : Glib::ustring::compose("CC%1: %2", cc, controlChangeTexts[i]);
+                ? controlChangeTexts[i].txt
+                : Glib::ustring::compose("CC%1: %2%3", cc, controlChangeTexts[i].txt, controlChangeTexts[i].isExtension ? " [EXT]" : "");
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 24) || GTKMM_MAJOR_VERSION < 2
             combobox.append_text(s);
 #else
@@ -387,9 +395,18 @@ void ChoiceEntryLeverageCtrl::value_changed()
         value.type = gig::leverage_ctrl_t::type_controlchange;
         int x = 3;
         for (uint cc = 0 ; cc < controlChangeTextsSize - 3 ; cc++) {
-            if (controlChangeTexts[cc + 3]) {
+            if (controlChangeTexts[cc + 3].txt) {
                 if (rowno == x) {
                     value.controller_number = cc;
+                    if (controlChangeTexts[cc + 3].isExtension &&
+                        Settings::singleton()->warnUserOnExtensions)
+                    {
+                        Glib::ustring txt = _("<b>Format Extension</b>\n\nAll controllers marked with \"<b>[EXT]</b>\" are an extension to the original gig sound format. They will only work with LinuxSampler, but they will <b>not work</b> with Gigasampler/GigaStudio!\n\n(You may disable this warning in the <i>Settings</i> menu.)");
+                        Gtk::MessageDialog msg(
+                            txt, true, Gtk::MESSAGE_WARNING
+                        );
+                        msg.run();
+                    }
                     break;
                 }
                 x++;
@@ -418,7 +435,7 @@ void ChoiceEntryLeverageCtrl::set_value(gig::leverage_ctrl_t value)
         comboIndex = -1;
         int x = 3;
         for (uint cc = 0 ; cc < controlChangeTextsSize - 3 ; cc++) {
-            if (controlChangeTexts[cc + 3]) {
+            if (controlChangeTexts[cc + 3].txt) {
                 if (value.controller_number == cc) {
                     comboIndex = x;
                     break;

@@ -281,6 +281,7 @@ protected:
     bool instr_props_set_instrument();
     void show_midi_rules();
     void on_action_view_status_bar();
+    void on_action_warn_user_on_extensions();
     void on_action_help_about();
 
     // sample right-click popup actions
