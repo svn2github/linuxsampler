@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -465,6 +465,7 @@ namespace gig {
             friend class Region;
         private:
             typedef enum { ///< Used to decode attenuation, EG1 and EG2 controller
+                // official leverage controllers as they were defined in the original Gigasampler/GigaStudio format:
                 _lev_ctrl_none              = 0x00,
                 _lev_ctrl_modwheel          = 0x03, ///< Modulation Wheel (MIDI Controller 1)
                 _lev_ctrl_breath            = 0x05, ///< Breath Controller (Coarse, MIDI Controller 2)
@@ -490,7 +491,77 @@ namespace gig {
                 _lev_ctrl_effect4depth      = 0x2b, ///< Effect 4 Depth (MIDI Controller 94)
                 _lev_ctrl_effect5depth      = 0x2d, ///< Effect 5 Depth (MIDI Controller 95)
                 _lev_ctrl_channelaftertouch = 0x2f, ///< Channel Key Pressure
-                _lev_ctrl_velocity          = 0xff  ///< Key Velocity
+                _lev_ctrl_velocity          = 0xff, ///< Key Velocity
+
+                // format extension (these controllers are so far only supported by LinuxSampler & gigedit) they will *NOT* work with Gigasampler/GigaStudio !
+                // (the assigned values here are their official MIDI CC number plus the highest bit set):
+                _lev_ctrl_CC3_EXT           = 0x83, ///< MIDI Controller 3 [gig format extension]
+
+                _lev_ctrl_CC6_EXT           = 0x86, ///< Data Entry MSB (MIDI Controller 6) [gig format extension]
+                _lev_ctrl_CC7_EXT           = 0x87, ///< Channel Volume (MIDI Controller 7) [gig format extension]
+                _lev_ctrl_CC8_EXT           = 0x88, ///< Balance (MIDI Controller 8) [gig format extension]
+                _lev_ctrl_CC9_EXT           = 0x89, ///< MIDI Controller 9 [gig format extension]
+                _lev_ctrl_CC10_EXT          = 0x8a, ///< Pan (MIDI Controller 10) [gig format extension]
+                _lev_ctrl_CC11_EXT          = 0x8b, ///< Expression Controller (MIDI Controller 11) [gig format extension]
+
+                _lev_ctrl_CC14_EXT          = 0x8e, ///< MIDI Controller 14 [gig format extension]
+                _lev_ctrl_CC15_EXT          = 0x8f, ///< MIDI Controller 15 [gig format extension]
+
+                _lev_ctrl_CC20_EXT          = 0x94, ///< MIDI Controller 20 [gig format extension]
+                _lev_ctrl_CC21_EXT          = 0x95, ///< MIDI Controller 21 [gig format extension]
+                _lev_ctrl_CC22_EXT          = 0x96, ///< MIDI Controller 22 [gig format extension]
+                _lev_ctrl_CC23_EXT          = 0x97, ///< MIDI Controller 23 [gig format extension]
+                _lev_ctrl_CC24_EXT          = 0x98, ///< MIDI Controller 24 [gig format extension]
+                _lev_ctrl_CC25_EXT          = 0x99, ///< MIDI Controller 25 [gig format extension]
+                _lev_ctrl_CC26_EXT          = 0x9a, ///< MIDI Controller 26 [gig format extension]
+                _lev_ctrl_CC27_EXT          = 0x9b, ///< MIDI Controller 27 [gig format extension]
+                _lev_ctrl_CC28_EXT          = 0x9c, ///< MIDI Controller 28 [gig format extension]
+                _lev_ctrl_CC29_EXT          = 0x9d, ///< MIDI Controller 29 [gig format extension]
+                _lev_ctrl_CC30_EXT          = 0x9e, ///< MIDI Controller 30 [gig format extension]
+                _lev_ctrl_CC31_EXT          = 0x9f, ///< MIDI Controller 31 [gig format extension]
+
+                _lev_ctrl_CC68_EXT          = 0xc4, ///< Legato Footswitch (MIDI Controller 68) [gig format extension]
+                _lev_ctrl_CC69_EXT          = 0xc5, ///< Hold 2 (MIDI Controller 69) [gig format extension]
+                _lev_ctrl_CC70_EXT          = 0xc6, ///< Sound Ctrl. 1 - Sound Variation (MIDI Controller 70) [gig format extension]
+                _lev_ctrl_CC71_EXT          = 0xc7, ///< Sound Ctrl. 2 - Timbre (MIDI Controller 71) [gig format extension]
+                _lev_ctrl_CC72_EXT          = 0xc8, ///< Sound Ctrl. 3 - Release Time (MIDI Controller 72) [gig format extension]
+                _lev_ctrl_CC73_EXT          = 0xc9, ///< Sound Ctrl. 4 - Attack Time (MIDI Controller 73) [gig format extension]
+                _lev_ctrl_CC74_EXT          = 0xca, ///< Sound Ctrl. 5 - Brightness (MIDI Controller 74) [gig format extension]
+                _lev_ctrl_CC75_EXT          = 0xcb, ///< Sound Ctrl. 6 - Decay Time (MIDI Controller 75) [gig format extension]
+                _lev_ctrl_CC76_EXT          = 0xcc, ///< Sound Ctrl. 7 - Vibrato Rate (MIDI Controller 76) [gig format extension]
+                _lev_ctrl_CC77_EXT          = 0xcd, ///< Sound Ctrl. 8 - Vibrato Depth (MIDI Controller 77) [gig format extension]
+                _lev_ctrl_CC78_EXT          = 0xce, ///< Sound Ctrl. 9 - Vibrato Delay (MIDI Controller 78) [gig format extension]
+                _lev_ctrl_CC79_EXT          = 0xcf, ///< Sound Ctrl. 10 (MIDI Controller 79) [gig format extension]
+
+                _lev_ctrl_CC84_EXT          = 0xd4, ///< Portamento Control (MIDI Controller 84) [gig format extension]
+                _lev_ctrl_CC85_EXT          = 0xd5, ///< MIDI Controller 85 [gig format extension]
+                _lev_ctrl_CC86_EXT          = 0xd6, ///< MIDI Controller 86 [gig format extension]
+                _lev_ctrl_CC87_EXT          = 0xd7, ///< MIDI Controller 87 [gig format extension]
+
+                _lev_ctrl_CC89_EXT          = 0xd9, ///< MIDI Controller 89 [gig format extension]
+                _lev_ctrl_CC90_EXT          = 0xda, ///< MIDI Controller 90 [gig format extension]
+
+                _lev_ctrl_CC96_EXT          = 0xe0, ///< Data Increment (MIDI Controller 96) [gig format extension]
+                _lev_ctrl_CC97_EXT          = 0xe1, ///< Data Decrement (MIDI Controller 97) [gig format extension]
+
+                _lev_ctrl_CC102_EXT         = 0xe6, ///< MIDI Controller 102 [gig format extension]
+                _lev_ctrl_CC103_EXT         = 0xe7, ///< MIDI Controller 103 [gig format extension]
+                _lev_ctrl_CC104_EXT         = 0xe8, ///< MIDI Controller 104 [gig format extension]
+                _lev_ctrl_CC105_EXT         = 0xe9, ///< MIDI Controller 105 [gig format extension]
+                _lev_ctrl_CC106_EXT         = 0xea, ///< MIDI Controller 106 [gig format extension]
+                _lev_ctrl_CC107_EXT         = 0xeb, ///< MIDI Controller 107 [gig format extension]
+                _lev_ctrl_CC108_EXT         = 0xec, ///< MIDI Controller 108 [gig format extension]
+                _lev_ctrl_CC109_EXT         = 0xed, ///< MIDI Controller 109 [gig format extension]
+                _lev_ctrl_CC110_EXT         = 0xee, ///< MIDI Controller 110 [gig format extension]
+                _lev_ctrl_CC111_EXT         = 0xef, ///< MIDI Controller 111 [gig format extension]
+                _lev_ctrl_CC112_EXT         = 0xf0, ///< MIDI Controller 112 [gig format extension]
+                _lev_ctrl_CC113_EXT         = 0xf1, ///< MIDI Controller 113 [gig format extension]
+                _lev_ctrl_CC114_EXT         = 0xf2, ///< MIDI Controller 114 [gig format extension]
+                _lev_ctrl_CC115_EXT         = 0xf3, ///< MIDI Controller 115 [gig format extension]
+                _lev_ctrl_CC116_EXT         = 0xf4, ///< MIDI Controller 116 [gig format extension]
+                _lev_ctrl_CC117_EXT         = 0xf5, ///< MIDI Controller 117 [gig format extension]
+                _lev_ctrl_CC118_EXT         = 0xf6, ///< MIDI Controller 118 [gig format extension]
+                _lev_ctrl_CC119_EXT         = 0xf7  ///< MIDI Controller 119 [gig format extension]
             } _lev_ctrl_t;
             typedef std::map<uint32_t, double*> VelocityTableMap;
 

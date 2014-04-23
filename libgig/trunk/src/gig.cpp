@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -2087,6 +2087,12 @@ namespace {
         return pRegion;
     }
 
+// show error if some _lev_ctrl_* enum entry is not listed in the following function
+// (commented out for now, because "diagnostic push" not supported prior GCC 4.6)
+// TODO: uncomment and add a GCC version check (see also commented "#pragma GCC diagnostic pop" below)
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic error "-Wswitch"
+
     leverage_ctrl_t DimensionRegion::DecodeLeverageController(_lev_ctrl_t EncodedController) {
         leverage_ctrl_t decodedcontroller;
         switch (EncodedController) {
@@ -2198,12 +2204,255 @@ namespace {
                 decodedcontroller.controller_number = 95;
                 break;
 
+            // format extension (these controllers are so far only supported by
+            // LinuxSampler & gigedit) they will *NOT* work with
+            // Gigasampler/GigaStudio !
+            case _lev_ctrl_CC3_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 3;
+                break;
+            case _lev_ctrl_CC6_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 6;
+                break;
+            case _lev_ctrl_CC7_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 7;
+                break;
+            case _lev_ctrl_CC8_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 8;
+                break;
+            case _lev_ctrl_CC9_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 9;
+                break;
+            case _lev_ctrl_CC10_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 10;
+                break;
+            case _lev_ctrl_CC11_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 11;
+                break;
+            case _lev_ctrl_CC14_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 14;
+                break;
+            case _lev_ctrl_CC15_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 15;
+                break;
+            case _lev_ctrl_CC20_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 20;
+                break;
+            case _lev_ctrl_CC21_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 21;
+                break;
+            case _lev_ctrl_CC22_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 22;
+                break;
+            case _lev_ctrl_CC23_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 23;
+                break;
+            case _lev_ctrl_CC24_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 24;
+                break;
+            case _lev_ctrl_CC25_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 25;
+                break;
+            case _lev_ctrl_CC26_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 26;
+                break;
+            case _lev_ctrl_CC27_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 27;
+                break;
+            case _lev_ctrl_CC28_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 28;
+                break;
+            case _lev_ctrl_CC29_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 29;
+                break;
+            case _lev_ctrl_CC30_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 30;
+                break;
+            case _lev_ctrl_CC31_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 31;
+                break;
+            case _lev_ctrl_CC68_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 68;
+                break;
+            case _lev_ctrl_CC69_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 69;
+                break;
+            case _lev_ctrl_CC70_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 70;
+                break;
+            case _lev_ctrl_CC71_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 71;
+                break;
+            case _lev_ctrl_CC72_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 72;
+                break;
+            case _lev_ctrl_CC73_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 73;
+                break;
+            case _lev_ctrl_CC74_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 74;
+                break;
+            case _lev_ctrl_CC75_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 75;
+                break;
+            case _lev_ctrl_CC76_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 76;
+                break;
+            case _lev_ctrl_CC77_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 77;
+                break;
+            case _lev_ctrl_CC78_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 78;
+                break;
+            case _lev_ctrl_CC79_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 79;
+                break;
+            case _lev_ctrl_CC84_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 84;
+                break;
+            case _lev_ctrl_CC85_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 85;
+                break;
+            case _lev_ctrl_CC86_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 86;
+                break;
+            case _lev_ctrl_CC87_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 87;
+                break;
+            case _lev_ctrl_CC89_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 89;
+                break;
+            case _lev_ctrl_CC90_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 90;
+                break;
+            case _lev_ctrl_CC96_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 96;
+                break;
+            case _lev_ctrl_CC97_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 97;
+                break;
+            case _lev_ctrl_CC102_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 102;
+                break;
+            case _lev_ctrl_CC103_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 103;
+                break;
+            case _lev_ctrl_CC104_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 104;
+                break;
+            case _lev_ctrl_CC105_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 105;
+                break;
+            case _lev_ctrl_CC106_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 106;
+                break;
+            case _lev_ctrl_CC107_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 107;
+                break;
+            case _lev_ctrl_CC108_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 108;
+                break;
+            case _lev_ctrl_CC109_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 109;
+                break;
+            case _lev_ctrl_CC110_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 110;
+                break;
+            case _lev_ctrl_CC111_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 111;
+                break;
+            case _lev_ctrl_CC112_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 112;
+                break;
+            case _lev_ctrl_CC113_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 113;
+                break;
+            case _lev_ctrl_CC114_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 114;
+                break;
+            case _lev_ctrl_CC115_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 115;
+                break;
+            case _lev_ctrl_CC116_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 116;
+                break;
+            case _lev_ctrl_CC117_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 117;
+                break;
+            case _lev_ctrl_CC118_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 118;
+                break;
+            case _lev_ctrl_CC119_EXT:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 119;
+                break;
+
             // unknown controller type
             default:
                 throw gig::Exception("Unknown leverage controller type.");
         }
         return decodedcontroller;
     }
+    
+// see above (diagnostic push not supported prior GCC 4.6)
+//#pragma GCC diagnostic pop
 
     DimensionRegion::_lev_ctrl_t DimensionRegion::EncodeLeverageController(leverage_ctrl_t DecodedController) {
         _lev_ctrl_t encodedcontroller;
@@ -2291,6 +2540,188 @@ namespace {
                     case 95:
                         encodedcontroller = _lev_ctrl_effect5depth;
                         break;
+
+                    // format extension (these controllers are so far only
+                    // supported by LinuxSampler & gigedit) they will *NOT*
+                    // work with Gigasampler/GigaStudio !
+                    case 3:
+                        encodedcontroller = _lev_ctrl_CC3_EXT;
+                        break;
+                    case 6:
+                        encodedcontroller = _lev_ctrl_CC6_EXT;
+                        break;
+                    case 7:
+                        encodedcontroller = _lev_ctrl_CC7_EXT;
+                        break;
+                    case 8:
+                        encodedcontroller = _lev_ctrl_CC8_EXT;
+                        break;
+                    case 9:
+                        encodedcontroller = _lev_ctrl_CC9_EXT;
+                        break;
+                    case 10:
+                        encodedcontroller = _lev_ctrl_CC10_EXT;
+                        break;
+                    case 11:
+                        encodedcontroller = _lev_ctrl_CC11_EXT;
+                        break;
+                    case 14:
+                        encodedcontroller = _lev_ctrl_CC14_EXT;
+                        break;
+                    case 15:
+                        encodedcontroller = _lev_ctrl_CC15_EXT;
+                        break;
+                    case 20:
+                        encodedcontroller = _lev_ctrl_CC20_EXT;
+                        break;
+                    case 21:
+                        encodedcontroller = _lev_ctrl_CC21_EXT;
+                        break;
+                    case 22:
+                        encodedcontroller = _lev_ctrl_CC22_EXT;
+                        break;
+                    case 23:
+                        encodedcontroller = _lev_ctrl_CC23_EXT;
+                        break;
+                    case 24:
+                        encodedcontroller = _lev_ctrl_CC24_EXT;
+                        break;
+                    case 25:
+                        encodedcontroller = _lev_ctrl_CC25_EXT;
+                        break;
+                    case 26:
+                        encodedcontroller = _lev_ctrl_CC26_EXT;
+                        break;
+                    case 27:
+                        encodedcontroller = _lev_ctrl_CC27_EXT;
+                        break;
+                    case 28:
+                        encodedcontroller = _lev_ctrl_CC28_EXT;
+                        break;
+                    case 29:
+                        encodedcontroller = _lev_ctrl_CC29_EXT;
+                        break;
+                    case 30:
+                        encodedcontroller = _lev_ctrl_CC30_EXT;
+                        break;
+                    case 31:
+                        encodedcontroller = _lev_ctrl_CC31_EXT;
+                        break;
+                    case 68:
+                        encodedcontroller = _lev_ctrl_CC68_EXT;
+                        break;
+                    case 69:
+                        encodedcontroller = _lev_ctrl_CC69_EXT;
+                        break;
+                    case 70:
+                        encodedcontroller = _lev_ctrl_CC70_EXT;
+                        break;
+                    case 71:
+                        encodedcontroller = _lev_ctrl_CC71_EXT;
+                        break;
+                    case 72:
+                        encodedcontroller = _lev_ctrl_CC72_EXT;
+                        break;
+                    case 73:
+                        encodedcontroller = _lev_ctrl_CC73_EXT;
+                        break;
+                    case 74:
+                        encodedcontroller = _lev_ctrl_CC74_EXT;
+                        break;
+                    case 75:
+                        encodedcontroller = _lev_ctrl_CC75_EXT;
+                        break;
+                    case 76:
+                        encodedcontroller = _lev_ctrl_CC76_EXT;
+                        break;
+                    case 77:
+                        encodedcontroller = _lev_ctrl_CC77_EXT;
+                        break;
+                    case 78:
+                        encodedcontroller = _lev_ctrl_CC78_EXT;
+                        break;
+                    case 79:
+                        encodedcontroller = _lev_ctrl_CC79_EXT;
+                        break;
+                    case 84:
+                        encodedcontroller = _lev_ctrl_CC84_EXT;
+                        break;
+                    case 85:
+                        encodedcontroller = _lev_ctrl_CC85_EXT;
+                        break;
+                    case 86:
+                        encodedcontroller = _lev_ctrl_CC86_EXT;
+                        break;
+                    case 87:
+                        encodedcontroller = _lev_ctrl_CC87_EXT;
+                        break;
+                    case 89:
+                        encodedcontroller = _lev_ctrl_CC89_EXT;
+                        break;
+                    case 90:
+                        encodedcontroller = _lev_ctrl_CC90_EXT;
+                        break;
+                    case 96:
+                        encodedcontroller = _lev_ctrl_CC96_EXT;
+                        break;
+                    case 97:
+                        encodedcontroller = _lev_ctrl_CC97_EXT;
+                        break;
+                    case 102:
+                        encodedcontroller = _lev_ctrl_CC102_EXT;
+                        break;
+                    case 103:
+                        encodedcontroller = _lev_ctrl_CC103_EXT;
+                        break;
+                    case 104:
+                        encodedcontroller = _lev_ctrl_CC104_EXT;
+                        break;
+                    case 105:
+                        encodedcontroller = _lev_ctrl_CC105_EXT;
+                        break;
+                    case 106:
+                        encodedcontroller = _lev_ctrl_CC106_EXT;
+                        break;
+                    case 107:
+                        encodedcontroller = _lev_ctrl_CC107_EXT;
+                        break;
+                    case 108:
+                        encodedcontroller = _lev_ctrl_CC108_EXT;
+                        break;
+                    case 109:
+                        encodedcontroller = _lev_ctrl_CC109_EXT;
+                        break;
+                    case 110:
+                        encodedcontroller = _lev_ctrl_CC110_EXT;
+                        break;
+                    case 111:
+                        encodedcontroller = _lev_ctrl_CC111_EXT;
+                        break;
+                    case 112:
+                        encodedcontroller = _lev_ctrl_CC112_EXT;
+                        break;
+                    case 113:
+                        encodedcontroller = _lev_ctrl_CC113_EXT;
+                        break;
+                    case 114:
+                        encodedcontroller = _lev_ctrl_CC114_EXT;
+                        break;
+                    case 115:
+                        encodedcontroller = _lev_ctrl_CC115_EXT;
+                        break;
+                    case 116:
+                        encodedcontroller = _lev_ctrl_CC116_EXT;
+                        break;
+                    case 117:
+                        encodedcontroller = _lev_ctrl_CC117_EXT;
+                        break;
+                    case 118:
+                        encodedcontroller = _lev_ctrl_CC118_EXT;
+                        break;
+                    case 119:
+                        encodedcontroller = _lev_ctrl_CC119_EXT;
+                        break;
+
                     default:
                         throw gig::Exception("leverage controller number is not supported by the gig format");
                 }

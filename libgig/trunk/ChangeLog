@@ -28,6 +28,9 @@ Version CVS HEAD (?)
     - bugfix: sample groups were sometimes created multiple times or with
       wrong textual group name
     - added new method File::AddContentOf() for merging .gig files
+    - GIG FORMAT EXTENSION: added additional MIDI controllers for leverage
+      controller types (only works with LinuxSampler & gigedit, will not
+      work with Gigasampler/GigaStudio)
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
