@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gigedit 0.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-01-12 20:34+0100\n"
-"PO-Revision-Date: 2014-04-22 18:34+0100\n"
+"PO-Revision-Date: 2014-04-26 15:41+0100\n"
 "Last-Translator: Christian Schoenebeck\n"
 "Language-Team: German\n"
 "Language: \n"
@@ -33,20 +33,37 @@ msgid "both channels"
 msgstr "beide Kanäle"
 
 #: ../src/gigedit/mainwindow.cpp:92
-msgid "To automatically apply your changes above globally to the entire instrument, check all 3 check boxes on the right."
-msgstr "Um Ihre Änderungen oben automatisch global auf das gesamte Instrument anzuwenden, aktivieren Sie alle 3 Checkboxen hier rechts."
+msgid ""
+"To automatically apply your changes above globally to the entire instrument, "
+"check all 3 check boxes on the right."
+msgstr ""
+"Um Ihre Änderungen oben automatisch global auf das gesamte Instrument "
+"anzuwenden, aktivieren Sie alle 3 Checkboxen hier rechts."
 
 #: ../src/gigedit/mainwindow.cpp:93
-msgid "If checked: all changes you perform above will automatically be applied to all regions of this instrument as well."
-msgstr "Falls gesetzt: alle Änderungen die Sie oben ausüben, werden automatisch ebenso auf alle Regions dieses Instruments angewandt."
+msgid ""
+"If checked: all changes you perform above will automatically be applied to "
+"all regions of this instrument as well."
+msgstr ""
+"Falls gesetzt: alle Änderungen die Sie oben ausüben, werden automatisch "
+"ebenso auf alle Regions dieses Instruments angewandt."
 
 #: ../src/gigedit/mainwindow.cpp:94
-msgid "If checked: all changes you perform above will automatically be applied as well to all dimension splits of the region selected below."
-msgstr "Falls gesetzt: alle Änderungen die Sie oben ausüben, werden automatisch ebenso auf alle Dimension Splits der unten gewählten Region angewandt."
+msgid ""
+"If checked: all changes you perform above will automatically be applied as "
+"well to all dimension splits of the region selected below."
+msgstr ""
+"Falls gesetzt: alle Änderungen die Sie oben ausüben, werden automatisch "
+"ebenso auf alle Dimension Splits der unten gewählten Region angewandt."
 
 #: ../src/gigedit/mainwindow.cpp:95
-msgid "If checked: all changes you perform above will automatically be applied to both audio channel splits (only if a \"stereo\" dimension is defined below)."
-msgstr "Falls gesetzt: alle Änderungen die Sie oben ausüben, werden automatisch auf beide Audio Kanal Splits angewandt (nur falls eine \"Stereo\" Dimension unten definiert ist)."
+msgid ""
+"If checked: all changes you perform above will automatically be applied to "
+"both audio channel splits (only if a \"stereo\" dimension is defined below)."
+msgstr ""
+"Falls gesetzt: alle Änderungen die Sie oben ausüben, werden automatisch auf "
+"beide Audio Kanal Splits angewandt (nur falls eine \"Stereo\" Dimension "
+"unten definiert ist)."
 
 #: ../src/gigedit/mainwindow.cpp:97
 msgid "Samples"
@@ -100,380 +117,468 @@ msgstr "_Instrument hinzufügen"
 msgid "_Duplicate Instrument"
 msgstr "_Dupliziere Instrument"
 
-#: ../src/gigedit/mainwindow.cpp:191
+#: ../src/gigedit/mainwindow.cpp:186
+msgid "_Settings"
+msgstr "_Einstellungen"
+
+#: ../src/gigedit/mainwindow.cpp:189
+msgid "Show warning on format _extensions"
+msgstr "Warnung bei Format _Erweiterungen anzeigen"
+
+#: ../src/gigedit/mainwindow.cpp:203
 msgid "Add _Group"
 msgstr "_Gruppe hinzufügen"
 
-#: ../src/gigedit/mainwindow.cpp:195
+#: ../src/gigedit/mainwindow.cpp:207
 msgid "Add _Sample(s)..."
 msgstr "_Sample(s) hinzufügen..."
 
-#: ../src/gigedit/mainwindow.cpp:204
+#: ../src/gigedit/mainwindow.cpp:216
 msgid "Replace All Samples in All Groups..."
 msgstr "Ersetze alle Samples in allen Gruppen..."
 
-#: ../src/gigedit/mainwindow.cpp:268
-msgid "Used when dragging a sample to a region's sample reference field. You may disable this for example if you want to replace an existing sample in a region with a new sample, but don't want that the region's current unity note setting will be altered by this action."
-msgstr "Verwendet wenn ein Sample zum Sample Referenzfeld einer Region gezogen wird. Sie könnten dies deaktivieren wenn Sie beispielsweise ein bereits existierendes Sample ersetzen wollen, jedoch nicht wünschen, daß die Unity Note der jeweiligen Region durch diese Aktion modifiziert wird."
+#: ../src/gigedit/mainwindow.cpp:283
+msgid ""
+"Used when dragging a sample to a region's sample reference field. You may "
+"disable this for example if you want to replace an existing sample in a "
+"region with a new sample, but don't want that the region's current unity "
+"note setting will be altered by this action."
+msgstr ""
+"Verwendet wenn ein Sample zum Sample Referenzfeld einer Region gezogen wird. "
+"Sie könnten dies deaktivieren wenn Sie beispielsweise ein bereits "
+"existierendes Sample ersetzen wollen, jedoch nicht wünschen, daß die Unity "
+"Note der jeweiligen Region durch diese Aktion modifiziert wird."
 
-#: ../src/gigedit/mainwindow.cpp:273
-msgid "Used when dragging a sample to a region's sample reference field. You may disable this for example if you want to replace an existing sample in a region with a new sample, but don't want that the region's current sample playback tuning will be altered by this action."
-msgstr "Verwendet wenn ein Sample zum Sample Referenzfeld einer Region gezogen wird. Sie könnten dies deaktivieren wenn Sie beispielsweise ein bereits existierendes Sample ersetzen wollen, jedoch nicht wünschen, daß das Fein-Tuning (Tonhöhe) der jeweiligen Region durch diese Aktion modifiziert wird."
+#: ../src/gigedit/mainwindow.cpp:288
+msgid ""
+"Used when dragging a sample to a region's sample reference field. You may "
+"disable this for example if you want to replace an existing sample in a "
+"region with a new sample, but don't want that the region's current sample "
+"playback tuning will be altered by this action."
+msgstr ""
+"Verwendet wenn ein Sample zum Sample Referenzfeld einer Region gezogen wird. "
+"Sie könnten dies deaktivieren wenn Sie beispielsweise ein bereits "
+"existierendes Sample ersetzen wollen, jedoch nicht wünschen, daß das Fein-"
+"Tuning (Tonhöhe) der jeweiligen Region durch diese Aktion modifiziert wird."
 
-#: ../src/gigedit/mainwindow.cpp:278
-msgid "Used when dragging a sample to a region's sample reference field. You may disable this for example if you want to replace an existing sample in a region with a new sample, but don't want that the region's current loop informations to be altered by this action."
-msgstr "Verwendet wenn ein Sample zum Sample Referenzfeld einer Region gezogen wird. Sie könnten dies deaktivieren wenn Sie beispielsweise ein bereits existierendes Sample ersetzen wollen, jedoch nicht wünschen, daß die Loop Informationen der jeweiligen Region durch diese Aktion modifiziert wird."
+#: ../src/gigedit/mainwindow.cpp:293
+msgid ""
+"Used when dragging a sample to a region's sample reference field. You may "
+"disable this for example if you want to replace an existing sample in a "
+"region with a new sample, but don't want that the region's current loop "
+"informations to be altered by this action."
+msgstr ""
+"Verwendet wenn ein Sample zum Sample Referenzfeld einer Region gezogen wird. "
+"Sie könnten dies deaktivieren wenn Sie beispielsweise ein bereits "
+"existierendes Sample ersetzen wollen, jedoch nicht wünschen, daß die Loop "
+"Informationen der jeweiligen Region durch diese Aktion modifiziert wird."
 
-#: ../src/gigedit/mainwindow.cpp:308
+#: ../src/gigedit/mainwindow.cpp:298
+msgid ""
+"If checked, a warning will be shown whenever you try to use a feature which "
+"is based on a LinuxSampler extension ontop of the original gig format, which "
+"would not work with the Gigasampler/GigaStudio application."
+msgstr ""
+"Falls gesetzt, wird eine Warnung angezeigt, wenn Sie versuchen sollten ein "
+"Feature zu benutzen, welches eine LinuxSampler Erweiterung des "
+"ursprünglichen gig Formates darstellt, und daher nicht mit der Gigasampler/"
+"GigaStudio Anwendung funktionieren würde."
+
+#: ../src/gigedit/mainwindow.cpp:328
 msgid "Right click here for actions on instruments & MIDI Rules."
 msgstr "Rechtsklick hier für Aktionen bezüglich Instrumente & MIDI Regeln."
 
-#: ../src/gigedit/mainwindow.cpp:320
+#: ../src/gigedit/mainwindow.cpp:340
 msgid ""
-"To actually use a sample, drag it from this list view to \"Sample\" -> \"Sample:\" on the region's settings pane on the right.\n"
+"To actually use a sample, drag it from this list view to \"Sample\" -> "
+"\"Sample:\" on the region's settings pane on the right.\n"
 "\n"
 "Right click here for more actions on samples."
 msgstr ""
-"Um ein Sample tatsächlich zu nutzen, ziehen Sie es von dieser Liste rüber zu \"Sample\" -> \"Sample:\" welches sich rechts befindet.\n"
+"Um ein Sample tatsächlich zu nutzen, ziehen Sie es von dieser Liste rüber zu "
+"\"Sample\" -> \"Sample:\" welches sich rechts befindet.\n"
 "\n"
 "Klicken Sie hier rechts für weitere Aktionen bezüglich Samples."
 
-#: ../src/gigedit/mainwindow.cpp:605
+#: ../src/gigedit/mainwindow.cpp:625
 msgid "Unnamed Instrument"
 msgstr "Unbenanntes Instrument"
 
-#: ../src/gigedit/mainwindow.cpp:612
+#: ../src/gigedit/mainwindow.cpp:632
 #, c-format
 msgid "Save changes to \"%s\" before closing?"
 msgstr "Änderungen in \"%s\" vor dem Schließen speichern?"
 
-#: ../src/gigedit/mainwindow.cpp:616
+#: ../src/gigedit/mainwindow.cpp:636
 msgid "If you close without saving, your changes will be lost."
-msgstr "Wenn Sie schließen ohne vorher zu speichern, gehen all Ihre Änderungen verloren!"
+msgstr ""
+"Wenn Sie schließen ohne vorher zu speichern, gehen all Ihre Änderungen "
+"verloren!"
 
-#: ../src/gigedit/mainwindow.cpp:617
+#: ../src/gigedit/mainwindow.cpp:637
 msgid "Close _Without Saving"
 msgstr "Ver_werfen"
 
-#: ../src/gigedit/mainwindow.cpp:628
+#: ../src/gigedit/mainwindow.cpp:648
 msgid "Detach from sampler and proceed working stand-alone?"
 msgstr "Vom Sampler trennen und Stand-Alone weiterarbeiten?"
 
-#: ../src/gigedit/mainwindow.cpp:631
-msgid "If you proceed to work on another instrument file, it won't be used by the sampler until you tell the sampler explicitly to load it."
-msgstr "Wenn Sie fortsetzen und an einer anderen Instrumenten Datei weiterarbeiten, wird diese nicht vom Sampler verwendet solange Sie den Sampler nicht explizit dazu anweisen die Datei zu laden."
+#: ../src/gigedit/mainwindow.cpp:651
+msgid ""
+"If you proceed to work on another instrument file, it won't be used by the "
+"sampler until you tell the sampler explicitly to load it."
+msgstr ""
+"Wenn Sie fortsetzen und an einer anderen Instrumenten Datei weiterarbeiten, "
+"wird diese nicht vom Sampler verwendet solange Sie den Sampler nicht "
+"explizit dazu anweisen die Datei zu laden."
 
-#: ../src/gigedit/mainwindow.cpp:634
+#: ../src/gigedit/mainwindow.cpp:654
 msgid "_Yes, Detach"
 msgstr "_Ja, Trennen"
 
-#: ../src/gigedit/mainwindow.cpp:648
+#: ../src/gigedit/mainwindow.cpp:668
 msgid "Open file"
 msgstr "Datei öffnen"
 
-#: ../src/gigedit/mainwindow.cpp:675
+#: ../src/gigedit/mainwindow.cpp:695
 msgid "Loading..."
 msgstr "Lade..."
 
-#: ../src/gigedit/mainwindow.cpp:723
+#: ../src/gigedit/mainwindow.cpp:743
 msgid "The file could not be saved because it contains no samples"
-msgstr "Die Datei konnte nicht gespeichert werden, da es keine Samples beinhaltet."
+msgstr ""
+"Die Datei konnte nicht gespeichert werden, da es keine Samples beinhaltet."
 
-#: ../src/gigedit/mainwindow.cpp:732
-msgid "The file could not be saved because there are instruments that have no regions"
-msgstr "Die Datei konnte nicht gespeichert werden, da es Instrumente gibt, die keine Regions haben."
+#: ../src/gigedit/mainwindow.cpp:752
+msgid ""
+"The file could not be saved because there are instruments that have no "
+"regions"
+msgstr ""
+"Die Datei konnte nicht gespeichert werden, da es Instrumente gibt, die keine "
+"Regions haben."
 
-#: ../src/gigedit/mainwindow.cpp:757
-#: ../src/gigedit/mainwindow.cpp:845
+#: ../src/gigedit/mainwindow.cpp:777 ../src/gigedit/mainwindow.cpp:865
 msgid "Could not save file: "
 msgstr "Konnte Datei nicht speichern: "
 
-#: ../src/gigedit/mainwindow.cpp:776
+#: ../src/gigedit/mainwindow.cpp:796
 msgid "Save as"
 msgstr "Speichern unter"
 
-#: ../src/gigedit/mainwindow.cpp:796
+#: ../src/gigedit/mainwindow.cpp:816
 msgid "copy_of_"
 msgstr "Kopie_von_"
 
-#: ../src/gigedit/mainwindow.cpp:818
+#: ../src/gigedit/mainwindow.cpp:838
 msgid ""
 "\n"
-"<b>CAUTION:</b> You <b>MUST</b> use the <span style=\"italic\">\"Save\"</span> dialog instead of <span style=\"italic\">\"Save As...\"</span> if you want to save to the same .gig file. Using <span style=\"italic\">\"Save As...\"</span> for writing to the same .gig file will end up in corrupted sample wave data!\n"
+"<b>CAUTION:</b> You <b>MUST</b> use the <span style=\"italic\">\"Save\"</"
+"span> dialog instead of <span style=\"italic\">\"Save As...\"</span> if you "
+"want to save to the same .gig file. Using <span style=\"italic\">\"Save As..."
+"\"</span> for writing to the same .gig file will end up in corrupted sample "
+"wave data!\n"
 msgstr ""
 "\n"
-"<b>ACHTUNG:</b> Sie <b>MÜSSEN</b> den Dialog unter <span style=\"italic\">\"Speichern\"</span> anstelle von <span style=\"italic\">\"Speichern Unter...\"</span> wählen, falls Sie zu der gleichen .gig Datei Speichern wollen. Die Nutzung von <span style=\"italic\">\"Speichern Unter...\"</span> um auf die selbe .gig Datei zu schreiben wird korrupte Sample Daten zur Folge haben!\n"
+"<b>ACHTUNG:</b> Sie <b>MÜSSEN</b> den Dialog unter <span style=\"italic\">"
+"\"Speichern\"</span> anstelle von <span style=\"italic\">\"Speichern Unter..."
+"\"</span> wählen, falls Sie zu der gleichen .gig Datei Speichern wollen. Die "
+"Nutzung von <span style=\"italic\">\"Speichern Unter...\"</span> um auf die "
+"selbe .gig Datei zu schreiben wird korrupte Sample Daten zur Folge haben!\n"
 
-#: ../src/gigedit/mainwindow.cpp:870
-#: ../src/gigedit/mainwindow.cpp:1639
-#: ../src/gigedit/mainwindow.cpp:1800
+#: ../src/gigedit/mainwindow.cpp:890 ../src/gigedit/mainwindow.cpp:1664
+#: ../src/gigedit/mainwindow.cpp:1825
 msgid "could not open file"
 msgstr "Konnte Datei nicht öffnen"
 
 #. close sound file
-#: ../src/gigedit/mainwindow.cpp:887
-#: ../src/gigedit/mainwindow.cpp:1655
-#: ../src/gigedit/mainwindow.cpp:1816
+#: ../src/gigedit/mainwindow.cpp:907 ../src/gigedit/mainwindow.cpp:1680
+#: ../src/gigedit/mainwindow.cpp:1841
 msgid "format not supported"
 msgstr "Format nicht unterstützt"
 
-#: ../src/gigedit/mainwindow.cpp:945
+#: ../src/gigedit/mainwindow.cpp:965
 msgid "Could not import the following sample(s):\n"
 msgstr "Konnte die folgenden Sample(s) nicht importieren:\n"
 
-#: ../src/gigedit/mainwindow.cpp:968
+#: ../src/gigedit/mainwindow.cpp:993
 msgid "Built "
 msgstr "Kompiliert "
 
-#: ../src/gigedit/mainwindow.cpp:971
+#: ../src/gigedit/mainwindow.cpp:996
 msgid ""
 "Gigedit is released under the GNU General Public License.\n"
 "\n"
-"Please notice that this is still a very young instrument editor. So better backup your Gigasampler files before editing them with this application.\n"
+"Please notice that this is still a very young instrument editor. So better "
+"backup your Gigasampler files before editing them with this application.\n"
 "\n"
 "Please report bugs to: http://bugs.linuxsampler.org"
 msgstr ""
-"Gigedit ist freigegeben unter den Bedingungen der GNU General Public License.\n"
+"Gigedit ist freigegeben unter den Bedingungen der GNU General Public "
+"License.\n"
 "\n"
-"Bitte beachten Sie, dies ist noch immer ein sehr junger Instrumenten Editor. Machen Sie also besser ein Backup Ihrer Gigasampler Dateien bevor Sie diese mit diesem Programm editieren.\n"
+"Bitte beachten Sie, dies ist noch immer ein sehr junger Instrumenten Editor. "
+"Machen Sie also besser ein Backup Ihrer Gigasampler Dateien bevor Sie diese "
+"mit diesem Programm editieren.\n"
 "\n"
 "Bitte Melden Sie Bugs auf: http://bugs.linuxsampler.org"
 
-#: ../src/gigedit/mainwindow.cpp:986
-#: ../src/gigedit/mainwindow.cpp:1097
+#: ../src/gigedit/mainwindow.cpp:1011 ../src/gigedit/mainwindow.cpp:1122
 msgid "Name"
 msgstr "Name"
 
-#: ../src/gigedit/mainwindow.cpp:987
+#: ../src/gigedit/mainwindow.cpp:1012
 msgid "Creation date"
 msgstr "Erzeugungsdatum"
 
-#: ../src/gigedit/mainwindow.cpp:988
+#: ../src/gigedit/mainwindow.cpp:1013
 msgid "Comments"
 msgstr "Kommentare"
 
-#: ../src/gigedit/mainwindow.cpp:989
+#: ../src/gigedit/mainwindow.cpp:1014
 msgid "Product"
 msgstr "Produkt"
 
-#: ../src/gigedit/mainwindow.cpp:990
+#: ../src/gigedit/mainwindow.cpp:1015
 msgid "Copyright"
 msgstr "Kopierrechte"
 
-#: ../src/gigedit/mainwindow.cpp:991
+#: ../src/gigedit/mainwindow.cpp:1016
 msgid "Artists"
 msgstr "Künstler"
 
-#: ../src/gigedit/mainwindow.cpp:992
+#: ../src/gigedit/mainwindow.cpp:1017
 msgid "Genre"
 msgstr "Genre"
 
-#: ../src/gigedit/mainwindow.cpp:993
+#: ../src/gigedit/mainwindow.cpp:1018
 msgid "Keywords"
 msgstr "Schlüsselwörter"
 
-#: ../src/gigedit/mainwindow.cpp:994
+#: ../src/gigedit/mainwindow.cpp:1019
 msgid "Engineer"
 msgstr "Ingenieur"
 
-#: ../src/gigedit/mainwindow.cpp:995
+#: ../src/gigedit/mainwindow.cpp:1020
 msgid "Technician"
 msgstr "Techniker"
 
-#: ../src/gigedit/mainwindow.cpp:996
+#: ../src/gigedit/mainwindow.cpp:1021
 msgid "Software"
 msgstr "Software"
 
-#: ../src/gigedit/mainwindow.cpp:997
+#: ../src/gigedit/mainwindow.cpp:1022
 msgid "Medium"
 msgstr "Medium"
 
-#: ../src/gigedit/mainwindow.cpp:998
+#: ../src/gigedit/mainwindow.cpp:1023
 msgid "Source"
 msgstr "Quelle"
 
-#: ../src/gigedit/mainwindow.cpp:999
+#: ../src/gigedit/mainwindow.cpp:1024
 msgid "Source form"
 msgstr "Quellformat"
 
-#: ../src/gigedit/mainwindow.cpp:1000
+#: ../src/gigedit/mainwindow.cpp:1025
 msgid "Commissioned"
 msgstr "Übertragen"
 
-#: ../src/gigedit/mainwindow.cpp:1001
+#: ../src/gigedit/mainwindow.cpp:1026
 msgid "Subject"
 msgstr "Thema"
 
-#: ../src/gigedit/mainwindow.cpp:1005
+#: ../src/gigedit/mainwindow.cpp:1030
 msgid "File Properties"
 msgstr "Datei Eigenschaften"
 
-#: ../src/gigedit/mainwindow.cpp:1098
+#: ../src/gigedit/mainwindow.cpp:1123
 msgid "Is drum"
 msgstr "Ist Drum"
 
-#: ../src/gigedit/mainwindow.cpp:1099
+#: ../src/gigedit/mainwindow.cpp:1124
 msgid "MIDI bank"
 msgstr "MIDI Bank"
 
-#: ../src/gigedit/mainwindow.cpp:1100
+#: ../src/gigedit/mainwindow.cpp:1125
 msgid "MIDI program"
 msgstr "MIDI Programm"
 
-#: ../src/gigedit/mainwindow.cpp:1101
+#: ../src/gigedit/mainwindow.cpp:1126
 msgid "Attenuation"
-msgstr "Anhebung"
+msgstr "Abschwächung"
 
-#: ../src/gigedit/mainwindow.cpp:1102
-#: ../src/gigedit/dimregionedit.cpp:235
+#: ../src/gigedit/mainwindow.cpp:1127 ../src/gigedit/dimregionedit.cpp:235
 msgid "Gain +6dB"
 msgstr "Verstärkung +6dB"
 
-#: ../src/gigedit/mainwindow.cpp:1103
+#: ../src/gigedit/mainwindow.cpp:1128
 msgid "Effect send"
 msgstr "Effekt Send"
 
-#: ../src/gigedit/mainwindow.cpp:1104
-#: ../src/gigedit/dimregionedit.cpp:233
+#: ../src/gigedit/mainwindow.cpp:1129 ../src/gigedit/dimregionedit.cpp:233
 msgid "Fine tune"
 msgstr "Fine Tuning (Tonhöhe)"
 
-#: ../src/gigedit/mainwindow.cpp:1105
+#: ../src/gigedit/mainwindow.cpp:1130
 msgid "Pitchbend range"
 msgstr "Pitchbend Bereich"
 
-#: ../src/gigedit/mainwindow.cpp:1106
+#: ../src/gigedit/mainwindow.cpp:1131
 msgid "Piano release mode"
 msgstr "Piano Release Modus"
 
-#: ../src/gigedit/mainwindow.cpp:1107
+#: ../src/gigedit/mainwindow.cpp:1132
 msgid "Keyswitching range low"
 msgstr "Keyswitching Bereich (unten)"
 
-#: ../src/gigedit/mainwindow.cpp:1108
+#: ../src/gigedit/mainwindow.cpp:1133
 msgid "Keyswitching range high"
 msgstr "Keyswitching Bereich (oben)"
 
-#: ../src/gigedit/mainwindow.cpp:1110
+#: ../src/gigedit/mainwindow.cpp:1135
 msgid "Instrument Properties"
 msgstr "Instrument Eigenschaften"
 
-#: ../src/gigedit/mainwindow.cpp:1113
-msgid "start of the keyboard area which should switch the \"keyswitching\" dimension"
-msgstr "Anfang des Keyboard Bereiches welcher die  \"Keyswitching \" Dimension auslösen soll"
+#: ../src/gigedit/mainwindow.cpp:1138
+msgid ""
+"start of the keyboard area which should switch the \"keyswitching\" dimension"
+msgstr ""
+"Anfang des Keyboard Bereiches welcher die  \"Keyswitching \" Dimension "
+"auslösen soll"
 
-#: ../src/gigedit/mainwindow.cpp:1117
-msgid "end of the keyboard area which should switch the \"keyswitching\" dimension"
-msgstr "Ende des Keyboard Bereiches welcher die  \"Keyswitching \" Dimension auslösen soll"
+#: ../src/gigedit/mainwindow.cpp:1142
+msgid ""
+"end of the keyboard area which should switch the \"keyswitching\" dimension"
+msgstr ""
+"Ende des Keyboard Bereiches welcher die  \"Keyswitching \" Dimension "
+"auslösen soll"
 
-#: ../src/gigedit/mainwindow.cpp:1197
+#: ../src/gigedit/mainwindow.cpp:1222
 msgid "Unsaved Gig File"
 msgstr "Ungespeicherte Gig Datei"
 
-#: ../src/gigedit/mainwindow.cpp:1458
+#: ../src/gigedit/mainwindow.cpp:1483
 msgid "Unnamed Instrument "
 msgstr "Unbenanntes Instrument"
 
-#: ../src/gigedit/mainwindow.cpp:1480
+#: ../src/gigedit/mainwindow.cpp:1505
 msgid "Copy"
 msgstr "Kopieren"
 
-#: ../src/gigedit/mainwindow.cpp:1490
-msgid "You cannot delete an instrument from this file, since it's currently used by the sampler."
-msgstr "Sie können kein Instrument von dieser Datei löschen, da sie gerade vom Sampler verwendet wird."
+#: ../src/gigedit/mainwindow.cpp:1515
+msgid ""
+"You cannot delete an instrument from this file, since it's currently used by "
+"the sampler."
+msgstr ""
+"Sie können kein Instrument von dieser Datei löschen, da sie gerade vom "
+"Sampler verwendet wird."
 
-#: ../src/gigedit/mainwindow.cpp:1544
+#: ../src/gigedit/mainwindow.cpp:1569
 msgid "Sorry, yet to be implemented!"
 msgstr "Sorry, noch nicht implementiert!"
 
-#: ../src/gigedit/mainwindow.cpp:1553
+#: ../src/gigedit/mainwindow.cpp:1578
 msgid "Unnamed Group"
 msgstr "Unbenannte Gruppe"
 
 #. show 'browse for file' dialog
-#: ../src/gigedit/mainwindow.cpp:1583
+#: ../src/gigedit/mainwindow.cpp:1608
 msgid "Add Sample(s)"
 msgstr "Sample(s) hinzufügen"
 
-#: ../src/gigedit/mainwindow.cpp:1601
+#: ../src/gigedit/mainwindow.cpp:1626
 msgid "Sound Files"
 msgstr "Sound Dateien"
 
-#: ../src/gigedit/mainwindow.cpp:1602
+#: ../src/gigedit/mainwindow.cpp:1627
 msgid "All Files"
 msgstr "Alle Dateien"
 
-#: ../src/gigedit/mainwindow.cpp:1734
+#: ../src/gigedit/mainwindow.cpp:1759
 msgid "Could not add the following sample(s):\n"
 msgstr "Konnte die folgenden Sample(s) nicht hinzufügen:\n"
 
-#: ../src/gigedit/mainwindow.cpp:1744
+#: ../src/gigedit/mainwindow.cpp:1769
 msgid "Select Folder"
 msgstr "Verzeichnis auswählen"
 
-#: ../src/gigedit/mainwindow.cpp:1747
+#: ../src/gigedit/mainwindow.cpp:1772
 msgid ""
-"This is a very specific function. It tries to replace all samples in the current gig file by samples located in the chosen directory.\n"
+"This is a very specific function. It tries to replace all samples in the "
+"current gig file by samples located in the chosen directory.\n"
 "\n"
-"It works like this: For each sample in the gig file, it tries to find a sample file in the selected directory with the same name as the sample in the gig file. Optionally, you can add a filename extension below, which will be added to the filename expected to be found. That is, assume you have a gig file with a sample called 'Snare', if you enter '.wav' below (like it's done by default), it expects to find a sample file called 'Snare.wav' and will replace the sample in the gig file accordingly. If you don't need an extension, blank the field below. Any gig sample where no appropriate sample file could be found will be reported and left untouched.\n"
+"It works like this: For each sample in the gig file, it tries to find a "
+"sample file in the selected directory with the same name as the sample in "
+"the gig file. Optionally, you can add a filename extension below, which will "
+"be added to the filename expected to be found. That is, assume you have a "
+"gig file with a sample called 'Snare', if you enter '.wav' below (like it's "
+"done by default), it expects to find a sample file called 'Snare.wav' and "
+"will replace the sample in the gig file accordingly. If you don't need an "
+"extension, blank the field below. Any gig sample where no appropriate sample "
+"file could be found will be reported and left untouched.\n"
 msgstr ""
-"Dies ist eine sehr spezifische Funktion. Es versucht sämtliche Samples in der derzeitig geladenen gig Datei durch Samples in einem gewählten Dateiverzeichnis zu ersetzen.\n"
+"Dies ist eine sehr spezifische Funktion. Es versucht sämtliche Samples in "
+"der derzeitig geladenen gig Datei durch Samples in einem gewählten "
+"Dateiverzeichnis zu ersetzen.\n"
 "\n"
-"Es funktioniert wie folgt: Für jedes Sample der gig Datei versucht es ein Sample im gewählten Verzeichnis zu finden mit dem gleichen Namen wie das jeweilige Sample in der gig Datei. Optional können sie Dateitypen unten hinzufügen, welche verwendet werden um erwartete Dateinamen zu suchen. Das bedeutet, nehmen wir an Sie haben ein Sample \"Snare\", wenn sie unten \".wav\" eintragen (wie es standardmäßig der Fall ist), dann erwartet es eine Datei namens \"Snare.wav\" zu finden und wird das Sample in der gig Datei dementsprechend durch das neue gefunden Sample ersetzen. Falls Sie keine Dateiendung benötigen, löschen sie das untere Feld stattdessen. Sämtliche gig Samples für die keine dementsprechende Sample Datei gefunden wurde, werden ihnen abschließend angezeigt und diese verbleiben in der gig Datei unverändert.\n"
+"Es funktioniert wie folgt: Für jedes Sample der gig Datei versucht es ein "
+"Sample im gewählten Verzeichnis zu finden mit dem gleichen Namen wie das "
+"jeweilige Sample in der gig Datei. Optional können sie Dateitypen unten "
+"hinzufügen, welche verwendet werden um erwartete Dateinamen zu suchen. Das "
+"bedeutet, nehmen wir an Sie haben ein Sample \"Snare\", wenn sie unten \".wav"
+"\" eintragen (wie es standardmäßig der Fall ist), dann erwartet es eine "
+"Datei namens \"Snare.wav\" zu finden und wird das Sample in der gig Datei "
+"dementsprechend durch das neue gefunden Sample ersetzen. Falls Sie keine "
+"Dateiendung benötigen, löschen sie das untere Feld stattdessen. Sämtliche "
+"gig Samples für die keine dementsprechende Sample Datei gefunden wurde, "
+"werden ihnen abschließend angezeigt und diese verbleiben in der gig Datei "
+"unverändert.\n"
 
-#: ../src/gigedit/mainwindow.cpp:1768
+#: ../src/gigedit/mainwindow.cpp:1793
 msgid "Add filename extension: "
 msgstr "Dateinamenserweiterung hinzufügen:"
 
-#: ../src/gigedit/mainwindow.cpp:1778
+#: ../src/gigedit/mainwindow.cpp:1803
 msgid "Select"
 msgstr "Auswählen"
 
-#: ../src/gigedit/mainwindow.cpp:1835
+#: ../src/gigedit/mainwindow.cpp:1860
 msgid "Could not replace the following sample(s):\n"
 msgstr "Konnte die folgenden Sample(s) nicht ersetzen:\n"
 
-#: ../src/gigedit/mainwindow.cpp:2082
+#: ../src/gigedit/mainwindow.cpp:2107
 msgid "live-mode"
 msgstr "Live-Modus"
 
-#: ../src/gigedit/mainwindow.cpp:2087
+#: ../src/gigedit/mainwindow.cpp:2112
 msgid "stand-alone"
 msgstr "Stand-Alone"
 
-#: ../src/gigedit/dimregionedit.cpp:154
-#: ../src/gigedit/dimregionedit.cpp:173
+#: ../src/gigedit/dimregionedit.cpp:154 ../src/gigedit/dimregionedit.cpp:173
 msgid "Pre-attack"
 msgstr "Pre-Attack"
 
-#: ../src/gigedit/dimregionedit.cpp:155
-#: ../src/gigedit/dimregionedit.cpp:174
+#: ../src/gigedit/dimregionedit.cpp:155 ../src/gigedit/dimregionedit.cpp:174
 #: ../src/gigedit/dimregionedit.cpp:191
 msgid "Attack"
 msgstr "Attack"
 
-#: ../src/gigedit/dimregionedit.cpp:156
-#: ../src/gigedit/dimregionedit.cpp:175
+#: ../src/gigedit/dimregionedit.cpp:156 ../src/gigedit/dimregionedit.cpp:175
 msgid "Decay 1"
 msgstr "Decay 1"
 
-#: ../src/gigedit/dimregionedit.cpp:157
-#: ../src/gigedit/dimregionedit.cpp:176
+#: ../src/gigedit/dimregionedit.cpp:157 ../src/gigedit/dimregionedit.cpp:176
 msgid "Decay 2"
 msgstr "Decay 2"
 
-#: ../src/gigedit/dimregionedit.cpp:158
-#: ../src/gigedit/dimregionedit.cpp:177
+#: ../src/gigedit/dimregionedit.cpp:158 ../src/gigedit/dimregionedit.cpp:177
 msgid "Infinite sustain"
 msgstr "Unendliches Sustain"
 
-#: ../src/gigedit/dimregionedit.cpp:159
-#: ../src/gigedit/dimregionedit.cpp:178
+#: ../src/gigedit/dimregionedit.cpp:159 ../src/gigedit/dimregionedit.cpp:178
 msgid "Sustain"
 msgstr "Sustain"
 
-#: ../src/gigedit/dimregionedit.cpp:160
-#: ../src/gigedit/dimregionedit.cpp:179
+#: ../src/gigedit/dimregionedit.cpp:160 ../src/gigedit/dimregionedit.cpp:179
 msgid "Release"
 msgstr "Release"
 
@@ -481,60 +586,48 @@ msgstr "Release"
 msgid "Hold"
 msgstr "Halten"
 
-#: ../src/gigedit/dimregionedit.cpp:162
-#: ../src/gigedit/dimregionedit.cpp:170
-#: ../src/gigedit/dimregionedit.cpp:180
-#: ../src/gigedit/dimregionedit.cpp:188
-#: ../src/gigedit/dimregionedit.cpp:196
-#: ../src/gigedit/midirules.cpp:160
+#: ../src/gigedit/dimregionedit.cpp:162 ../src/gigedit/dimregionedit.cpp:170
+#: ../src/gigedit/dimregionedit.cpp:180 ../src/gigedit/dimregionedit.cpp:188
+#: ../src/gigedit/dimregionedit.cpp:196 ../src/gigedit/midirules.cpp:160
 msgid "Controller"
 msgstr "Controller"
 
-#: ../src/gigedit/dimregionedit.cpp:163
-#: ../src/gigedit/dimregionedit.cpp:181
+#: ../src/gigedit/dimregionedit.cpp:163 ../src/gigedit/dimregionedit.cpp:181
 msgid "Controller invert"
 msgstr "Controller invertieren"
 
-#: ../src/gigedit/dimregionedit.cpp:164
-#: ../src/gigedit/dimregionedit.cpp:182
+#: ../src/gigedit/dimregionedit.cpp:164 ../src/gigedit/dimregionedit.cpp:182
 msgid "Controller attack influence"
 msgstr "Controller Attack Einfluss"
 
-#: ../src/gigedit/dimregionedit.cpp:165
-#: ../src/gigedit/dimregionedit.cpp:183
+#: ../src/gigedit/dimregionedit.cpp:165 ../src/gigedit/dimregionedit.cpp:183
 msgid "Controller decay influence"
 msgstr "Controller Decay Einfluss"
 
-#: ../src/gigedit/dimregionedit.cpp:166
-#: ../src/gigedit/dimregionedit.cpp:184
+#: ../src/gigedit/dimregionedit.cpp:166 ../src/gigedit/dimregionedit.cpp:184
 msgid "Controller release influence"
 msgstr "Controller Release Einfluss"
 
-#: ../src/gigedit/dimregionedit.cpp:167
-#: ../src/gigedit/dimregionedit.cpp:185
+#: ../src/gigedit/dimregionedit.cpp:167 ../src/gigedit/dimregionedit.cpp:185
 #: ../src/gigedit/dimregionedit.cpp:193
 msgid "Frequency"
 msgstr "Frequenz"
 
-#: ../src/gigedit/dimregionedit.cpp:168
-#: ../src/gigedit/dimregionedit.cpp:186
+#: ../src/gigedit/dimregionedit.cpp:168 ../src/gigedit/dimregionedit.cpp:186
 #: ../src/gigedit/dimregionedit.cpp:194
 msgid "Internal depth"
 msgstr "Interne Tiefe"
 
-#: ../src/gigedit/dimregionedit.cpp:169
-#: ../src/gigedit/dimregionedit.cpp:187
+#: ../src/gigedit/dimregionedit.cpp:169 ../src/gigedit/dimregionedit.cpp:187
 #: ../src/gigedit/dimregionedit.cpp:195
 msgid "Control depth"
 msgstr "Controller Tiefe"
 
-#: ../src/gigedit/dimregionedit.cpp:171
-#: ../src/gigedit/dimregionedit.cpp:189
+#: ../src/gigedit/dimregionedit.cpp:171 ../src/gigedit/dimregionedit.cpp:189
 msgid "Flip phase"
 msgstr "Phase umdrehen"
 
-#: ../src/gigedit/dimregionedit.cpp:172
-#: ../src/gigedit/dimregionedit.cpp:190
+#: ../src/gigedit/dimregionedit.cpp:172 ../src/gigedit/dimregionedit.cpp:190
 #: ../src/gigedit/dimregionedit.cpp:197
 msgid "Sync"
 msgstr "Synchronisieren"
@@ -543,8 +636,7 @@ msgstr "Synchronisieren"
 msgid "Depth"
 msgstr "Tiefe"
 
-#: ../src/gigedit/dimregionedit.cpp:198
-#: ../src/gigedit/dimregionedit.cpp:236
+#: ../src/gigedit/dimregionedit.cpp:198 ../src/gigedit/dimregionedit.cpp:236
 msgid "Enabled"
 msgstr "Aktiviert"
 
@@ -710,7 +802,9 @@ msgstr "Anzahl Wiederholungen"
 
 #: ../src/gigedit/dimregionedit.cpp:359
 msgid "Note this sample is associated with (a.k.a. 'root note')"
-msgstr "Referenznote mit der dieses Sample assoziiert wird (auch als 'Root Note' bezeichnet)"
+msgstr ""
+"Referenznote mit der dieses Sample assoziiert wird (auch als 'Root Note' "
+"bezeichnet)"
 
 #: ../src/gigedit/dimregionedit.cpp:361
 msgid "Sample position at which playback should be started"
@@ -725,20 +819,28 @@ msgid "Output channel where the audio signal should be routed to (0 - 9)"
 msgstr "Ausgangskanal an dem das Audiosignal ausgegeben werden soll (0 - 9)"
 
 #: ../src/gigedit/dimregionedit.cpp:367
-msgid "If true: sample will be pitched according to the key position (this would be disabled for drums for example)"
-msgstr "wenn aktiviert, wird das Sample gemäß Tastenposition gepitcht (dies würde für Drums z.B. deaktiviert sein)"
+msgid ""
+"If true: sample will be pitched according to the key position (this would be "
+"disabled for drums for example)"
+msgstr ""
+"wenn aktiviert, wird das Sample gemäß Tastenposition gepitcht (dies würde "
+"für Drums z.B. deaktiviert sein)"
 
 #: ../src/gigedit/dimregionedit.cpp:370
 msgid "If enabled: repeats to playback the sample"
 msgstr "wenn aktiviert, wird das Sample wiederholt abgespielt"
 
 #: ../src/gigedit/dimregionedit.cpp:372
-msgid "Start position within the sample (in sample points) of the area to be looped"
-msgstr "Start Position im Sample (in Sample Punkten) des Bereiches der wiederholt abgespielt werden soll"
+msgid ""
+"Start position within the sample (in sample points) of the area to be looped"
+msgstr ""
+"Start Position im Sample (in Sample Punkten) des Bereiches der wiederholt "
+"abgespielt werden soll"
 
 #: ../src/gigedit/dimregionedit.cpp:376
 msgid "Duration (in sample points) of the area to be looped"
-msgstr "Länge (in Sample Punkten) des Bereiches der wiederholt abgespielt werden soll"
+msgstr ""
+"Länge (in Sample Punkten) des Bereiches der wiederholt abgespielt werden soll"
 
 #: ../src/gigedit/dimregionedit.cpp:379
 msgid "Direction in which the loop area in the sample should be played back"
@@ -747,30 +849,32 @@ msgstr "Richtung in welcher der Loop Bereich im Sample abgespielt werden soll"
 #: ../src/gigedit/dimregionedit.cpp:382
 msgid ""
 "Whether the loop area should be played back forever\n"
-"Caution: this setting is stored on Sample side, thus is shared among all dimension regions that use this sample!"
+"Caution: this setting is stored on Sample side, thus is shared among all "
+"dimension regions that use this sample!"
 msgstr ""
 "wenn aktiviert, wird der Loop Bereich endlos wiederholt abgespielt\n"
-"Achtung: diese Einstellung wird Sample-seitig gespeichert, folglich wird sie mit allen Dimension Regions geteilt, die dasselbe Sample verwenden!"
+"Achtung: diese Einstellung wird Sample-seitig gespeichert, folglich wird sie "
+"mit allen Dimension Regions geteilt, die dasselbe Sample verwenden!"
 
 #: ../src/gigedit/dimregionedit.cpp:387
 msgid ""
 "How many times the loop area should be played back\n"
-"Caution: this setting is stored on Sample side, thus is shared among all dimension regions that use this sample!"
+"Caution: this setting is stored on Sample side, thus is shared among all "
+"dimension regions that use this sample!"
 msgstr ""
 "Anzahl der Wiederholungen mit der der Loop Bereich abgespielt werden soll\n"
-"Achtung: diese Einstellung wird Sample-seitig gespeichert, folglich wird sie mit allen Dimension Regions geteilt, die dasselbe Sample verwenden!"
+"Achtung: diese Einstellung wird Sample-seitig gespeichert, folglich wird sie "
+"mit allen Dimension Regions geteilt, die dasselbe Sample verwenden!"
 
 #: ../src/gigedit/dimregionedit.cpp:396
 msgid "Mandatory Settings"
 msgstr "Grundeinstellungen:"
 
-#: ../src/gigedit/dimregionedit.cpp:397
-#: ../src/gigedit/dimregionedit.cpp:736
+#: ../src/gigedit/dimregionedit.cpp:397 ../src/gigedit/dimregionedit.cpp:736
 msgid "Sample"
 msgstr "Sample"
 
-#: ../src/gigedit/dimregionedit.cpp:400
-#: ../src/gigedit/dimregionedit.cpp:402
+#: ../src/gigedit/dimregionedit.cpp:400 ../src/gigedit/dimregionedit.cpp:402
 msgid "Drag & drop a sample here"
 msgstr "ziehen Sie ein Sample per Drag & Drop hierher"
 
@@ -782,8 +886,7 @@ msgstr "Optionale Einstellungen:"
 msgid "Loops"
 msgstr "Loops"
 
-#: ../src/gigedit/dimregionedit.cpp:413
-#: ../src/gigedit/regionchooser.cpp:83
+#: ../src/gigedit/dimregionedit.cpp:413 ../src/gigedit/regionchooser.cpp:83
 msgid "normal"
 msgstr "normal"
 
@@ -807,32 +910,25 @@ msgstr "Amplituden Hüllkurve (EG1):"
 msgid "Amplitude Oscillator (LFO1)"
 msgstr "Amplituden Oszillator (LFO1):"
 
-#: ../src/gigedit/dimregionedit.cpp:453
-#: ../src/gigedit/dimregionedit.cpp:595
+#: ../src/gigedit/dimregionedit.cpp:453 ../src/gigedit/dimregionedit.cpp:595
 #: ../src/gigedit/dimregionedit.cpp:623
 msgid "internal"
 msgstr "intern"
 
 #. bank select MSB (hard coded in sampler, so discouraged to be used here, even though considerable)
-#: ../src/gigedit/dimregionedit.cpp:453
-#: ../src/gigedit/dimregionedit.cpp:509
-#: ../src/gigedit/dimregionedit.cpp:595
-#: ../src/gigedit/dimregionedit.cpp:623
-#: ../src/gigedit/dimregionchooser.cpp:106
-#: ../src/gigedit/paramedit.cpp:42
+#: ../src/gigedit/dimregionedit.cpp:453 ../src/gigedit/dimregionedit.cpp:509
+#: ../src/gigedit/dimregionedit.cpp:595 ../src/gigedit/dimregionedit.cpp:623
+#: ../src/gigedit/dimregionchooser.cpp:106 ../src/gigedit/paramedit.cpp:50
 msgid "modwheel"
 msgstr "Modulationsrad"
 
 #. "Modulation Wheel or Lever",
-#: ../src/gigedit/dimregionedit.cpp:453
-#: ../src/gigedit/dimregionedit.cpp:510
-#: ../src/gigedit/dimregionchooser.cpp:107
-#: ../src/gigedit/paramedit.cpp:43
+#: ../src/gigedit/dimregionedit.cpp:453 ../src/gigedit/dimregionedit.cpp:510
+#: ../src/gigedit/dimregionchooser.cpp:107 ../src/gigedit/paramedit.cpp:51
 msgid "breath"
 msgstr "Luftstrom"
 
-#: ../src/gigedit/dimregionedit.cpp:454
-#: ../src/gigedit/dimregionedit.cpp:596
+#: ../src/gigedit/dimregionedit.cpp:454 ../src/gigedit/dimregionedit.cpp:596
 #: ../src/gigedit/dimregionedit.cpp:624
 msgid "internal+modwheel"
 msgstr "Intern+Modulationsrad"
@@ -869,12 +965,10 @@ msgstr "Hochpass"
 msgid "bandreject"
 msgstr "Bandausschnitt"
 
-#: ../src/gigedit/dimregionedit.cpp:509
-#: ../src/gigedit/dimregionedit.cpp:560
-#: ../src/gigedit/dimregionedit.cpp:676
-#: ../src/gigedit/dimregionchooser.cpp:91
-#: ../src/gigedit/paramedit.cpp:40
-#: ../src/gigedit/midirules.cpp:40
+#. 3 special ones (not being CCs)
+#: ../src/gigedit/dimregionedit.cpp:509 ../src/gigedit/dimregionedit.cpp:560
+#: ../src/gigedit/dimregionedit.cpp:676 ../src/gigedit/dimregionchooser.cpp:91
+#: ../src/gigedit/paramedit.cpp:48 ../src/gigedit/midirules.cpp:40
 msgid "none"
 msgstr "nichts"
 
@@ -883,54 +977,45 @@ msgid "none2"
 msgstr "nichts2"
 
 #: ../src/gigedit/dimregionedit.cpp:509
-#: ../src/gigedit/dimregionchooser.cpp:111
-#: ../src/gigedit/paramedit.cpp:53
+#: ../src/gigedit/dimregionchooser.cpp:111 ../src/gigedit/paramedit.cpp:61
 msgid "effect1"
 msgstr "Effekt 1"
 
 #. "Effect Control 1",
 #: ../src/gigedit/dimregionedit.cpp:509
-#: ../src/gigedit/dimregionchooser.cpp:112
-#: ../src/gigedit/paramedit.cpp:54
+#: ../src/gigedit/dimregionchooser.cpp:112 ../src/gigedit/paramedit.cpp:62
 msgid "effect2"
 msgstr "Effekt 2"
 
-#: ../src/gigedit/dimregionedit.cpp:510
-#: ../src/gigedit/dimregionedit.cpp:595
-#: ../src/gigedit/dimregionchooser.cpp:108
-#: ../src/gigedit/paramedit.cpp:45
+#: ../src/gigedit/dimregionedit.cpp:510 ../src/gigedit/dimregionedit.cpp:595
+#: ../src/gigedit/dimregionchooser.cpp:108 ../src/gigedit/paramedit.cpp:53
 msgid "foot"
 msgstr "Fuss"
 
 #: ../src/gigedit/dimregionedit.cpp:510
-#: ../src/gigedit/dimregionchooser.cpp:118
-#: ../src/gigedit/paramedit.cpp:80
+#: ../src/gigedit/dimregionchooser.cpp:118 ../src/gigedit/paramedit.cpp:88
 msgid "sustainpedal"
 msgstr "Sustain Pedal"
 
 #. "Sustenuto On/Off",
 #: ../src/gigedit/dimregionedit.cpp:510
-#: ../src/gigedit/dimregionchooser.cpp:122
-#: ../src/gigedit/paramedit.cpp:83
+#: ../src/gigedit/dimregionchooser.cpp:122 ../src/gigedit/paramedit.cpp:91
 msgid "softpedal"
 msgstr "Soft Pedal"
 
 #. "General Purpose Controller 6",
 #: ../src/gigedit/dimregionedit.cpp:511
-#: ../src/gigedit/dimregionchooser.cpp:125
-#: ../src/gigedit/paramedit.cpp:98
+#: ../src/gigedit/dimregionchooser.cpp:125 ../src/gigedit/paramedit.cpp:106
 msgid "genpurpose7"
 msgstr "genpurpose7"
 
 #. "General Purpose Controller 7",
 #: ../src/gigedit/dimregionedit.cpp:511
-#: ../src/gigedit/dimregionchooser.cpp:126
-#: ../src/gigedit/paramedit.cpp:99
+#: ../src/gigedit/dimregionchooser.cpp:126 ../src/gigedit/paramedit.cpp:107
 msgid "genpurpose8"
 msgstr "genpurpose8"
 
-#: ../src/gigedit/dimregionedit.cpp:511
-#: ../src/gigedit/dimregionedit.cpp:623
+#: ../src/gigedit/dimregionedit.cpp:511 ../src/gigedit/dimregionedit.cpp:623
 msgid "aftertouch"
 msgstr "Aftertouch"
 
@@ -948,28 +1033,24 @@ msgstr "speziell"
 
 #. "General Purpose Controller 2",
 #: ../src/gigedit/dimregionedit.cpp:560
-#: ../src/gigedit/dimregionchooser.cpp:115
-#: ../src/gigedit/paramedit.cpp:59
+#: ../src/gigedit/dimregionchooser.cpp:115 ../src/gigedit/paramedit.cpp:67
 msgid "genpurpose3"
 msgstr "genpurpose3"
 
 #. "General Purpose Controller 3",
 #: ../src/gigedit/dimregionedit.cpp:560
-#: ../src/gigedit/dimregionchooser.cpp:116
-#: ../src/gigedit/paramedit.cpp:60
+#: ../src/gigedit/dimregionchooser.cpp:116 ../src/gigedit/paramedit.cpp:68
 msgid "genpurpose4"
 msgstr "genpurpose4"
 
 #: ../src/gigedit/dimregionedit.cpp:561
-#: ../src/gigedit/dimregionchooser.cpp:123
-#: ../src/gigedit/paramedit.cpp:96
+#: ../src/gigedit/dimregionchooser.cpp:123 ../src/gigedit/paramedit.cpp:104
 msgid "genpurpose5"
 msgstr "genpurpose5"
 
 #. "General Purpose Controller 5",
 #: ../src/gigedit/dimregionedit.cpp:561
-#: ../src/gigedit/dimregionchooser.cpp:124
-#: ../src/gigedit/paramedit.cpp:97
+#: ../src/gigedit/dimregionchooser.cpp:124 ../src/gigedit/paramedit.cpp:105
 msgid "genpurpose6"
 msgstr "genpurpose6"
 
@@ -1011,29 +1092,35 @@ msgstr "Release Velocity Response"
 
 #. "Effects 3 Depth",
 #: ../src/gigedit/dimregionedit.cpp:676
-#: ../src/gigedit/dimregionchooser.cpp:134
-#: ../src/gigedit/paramedit.cpp:110
+#: ../src/gigedit/dimregionchooser.cpp:134 ../src/gigedit/paramedit.cpp:118
 msgid "effect4depth"
 msgstr "Effect 4 Tiefe"
 
 #. "Effects 4 Depth",
 #: ../src/gigedit/dimregionedit.cpp:676
-#: ../src/gigedit/dimregionchooser.cpp:136
-#: ../src/gigedit/paramedit.cpp:111
+#: ../src/gigedit/dimregionchooser.cpp:136 ../src/gigedit/paramedit.cpp:119
 msgid "effect5depth"
 msgstr "Effekt 5 Tiefe"
 
 #: ../src/gigedit/dimregionedit.cpp:685
-msgid "If enabled: high velocity notes will stop low velocity notes at the same note, that way you can save voices that wouldn't be audible anyway."
-msgstr "Falls aktiviert: Noten mit hoher Velocity werden Noten mit niedrigerer Velocity stoppen, dadurch können Sie Stimmen einsparen, die ohnehin nicht hörbar wären."
+msgid ""
+"If enabled: high velocity notes will stop low velocity notes at the same "
+"note, that way you can save voices that wouldn't be audible anyway."
+msgstr ""
+"Falls aktiviert: Noten mit hoher Velocity werden Noten mit niedrigerer "
+"Velocity stoppen, dadurch können Sie Stimmen einsparen, die ohnehin nicht "
+"hörbar wären."
 
 #: ../src/gigedit/dimregionedit.cpp:687
 msgid "If enabled: sustain pedal will not hold a note."
 msgstr "Falls aktiviert: Sustain Pedal wird keine Noten halten."
 
 #: ../src/gigedit/dimregionedit.cpp:689
-msgid "Gigastudio specific flag: defines if Mid Side Recordings should be decoded."
-msgstr "Gigastudio spezifisches Flag: Definiert ob Mid Side Recordings dekodiert werden sollen."
+msgid ""
+"Gigastudio specific flag: defines if Mid Side Recordings should be decoded."
+msgstr ""
+"Gigastudio spezifisches Flag: Definiert ob Mid Side Recordings dekodiert "
+"werden sollen."
 
 #: ../src/gigedit/dimregionedit.cpp:737
 msgid "Amplitude (1)"
@@ -1092,8 +1179,15 @@ msgid "Dimensions..."
 msgstr "Dimensionen..."
 
 #: ../src/gigedit/regionchooser.cpp:157
-msgid "Right click here for adding new region. Use mouse pointer for moving (dragging) or resizing existing regions (by pointing at region's boundary). Right click on an existing region for more actions."
-msgstr "Klicken Sie hier rechts um neue Region hinzuzufügen. Benutzen Sie den Mauszeiger um bereits existierende Regionen zu verschieben (draggen) oder zu vergrößern oder zu verkleinern (durch Verschieben des Mauszeigers auf die Grenze der Region). Klicken Sie rechts für weitere Aktionen."
+msgid ""
+"Right click here for adding new region. Use mouse pointer for moving "
+"(dragging) or resizing existing regions (by pointing at region's boundary). "
+"Right click on an existing region for more actions."
+msgstr ""
+"Klicken Sie hier rechts um neue Region hinzuzufügen. Benutzen Sie den "
+"Mauszeiger um bereits existierende Regionen zu verschieben (draggen) oder zu "
+"vergrößern oder zu verkleinern (durch Verschieben des Mauszeigers auf die "
+"Grenze der Region). Klicken Sie rechts für weitere Aktionen."
 
 #: ../src/gigedit/regionchooser.cpp:340
 msgid "Right click here to create a region."
@@ -1121,8 +1215,7 @@ msgstr "Sample Kanal"
 msgid "Layer"
 msgstr "Layer"
 
-#: ../src/gigedit/dimensionmanager.cpp:43
-#: ../src/gigedit/midirules.cpp:188
+#: ../src/gigedit/dimensionmanager.cpp:43 ../src/gigedit/midirules.cpp:188
 msgid "Velocity"
 msgstr "Velocity"
 
@@ -1255,12 +1348,20 @@ msgid "If used sample has more than one channel (thus is not mono)"
 msgstr "Falls Sample mehr als einen Kanal hat (also nicht Mono ist)"
 
 #: ../src/gigedit/dimensionmanager.cpp:118
-msgid "For layering of up to 8 instruments (and eventually crossfading of 2 or 4 layers"
-msgstr "Zum Layern (Schichten) von bis zu 8 Instrumenten (und evtl. Crossfade von 2 oder 4 Layern)"
+msgid ""
+"For layering of up to 8 instruments (and eventually crossfading of 2 or 4 "
+"layers"
+msgstr ""
+"Zum Layern (Schichten) von bis zu 8 Instrumenten (und evtl. Crossfade von 2 "
+"oder 4 Layern)"
 
 #: ../src/gigedit/dimensionmanager.cpp:120
-msgid "Key Velocity (this is the only dimension in gig2 where the ranges can exactly be defined)"
-msgstr "Key Velocity (dies ist die einzige Dimension in gig2 bei der Bereiche exakt definiert werden können)"
+msgid ""
+"Key Velocity (this is the only dimension in gig2 where the ranges can "
+"exactly be defined)"
+msgstr ""
+"Key Velocity (dies ist die einzige Dimension in gig2 bei der Bereiche exakt "
+"definiert werden können)"
 
 #: ../src/gigedit/dimensionmanager.cpp:122
 msgid "Channel Key Pressure"
@@ -1275,20 +1376,30 @@ msgid "Dimension for keyswitching (keyboard)"
 msgstr "Dimension für Keyswitching (Keyboard)"
 
 #: ../src/gigedit/dimensionmanager.cpp:128
-msgid "Different samples triggered each time a note is played, dimension regions selected in sequence"
-msgstr "Samples werden abwechselnd beim Auslösen einer neuen Note abgespielt, Dimension Regions werden der Reihe nach gewählt."
+msgid ""
+"Different samples triggered each time a note is played, dimension regions "
+"selected in sequence"
+msgstr ""
+"Samples werden abwechselnd beim Auslösen einer neuen Note abgespielt, "
+"Dimension Regions werden der Reihe nach gewählt."
 
 #: ../src/gigedit/dimensionmanager.cpp:130
 msgid "Different samples triggered each time a note is played, random order"
-msgstr "Samples werden abwechselnd beim Auslösen einer neuen Note abgespielt, zufällige Reihenfolge."
+msgstr ""
+"Samples werden abwechselnd beim Auslösen einer neuen Note abgespielt, "
+"zufällige Reihenfolge."
 
 #: ../src/gigedit/dimensionmanager.cpp:132
 msgid "For MIDI tools like legato and repetition mode"
 msgstr "Für MIDI Mittel wie Legato und Repetition Modus"
 
 #: ../src/gigedit/dimensionmanager.cpp:134
-msgid "Different samples triggered each time a note is played, any key advances the counter"
-msgstr "Samples werden abwechselnd beim Auslösen einer neuen Note abgespielt, jede Note erhöht den Zähler."
+msgid ""
+"Different samples triggered each time a note is played, any key advances the "
+"counter"
+msgstr ""
+"Samples werden abwechselnd beim Auslösen einer neuen Note abgespielt, jede "
+"Note erhöht den Zähler."
 
 #: ../src/gigedit/dimensionmanager.cpp:136
 msgid "MIDI Controller 1"
@@ -1436,13 +1547,11 @@ msgstr "Sample Kanal"
 msgid "layer"
 msgstr "Layer"
 
-#: ../src/gigedit/dimregionchooser.cpp:95
-#: ../src/gigedit/paramedit.cpp:40
+#: ../src/gigedit/dimregionchooser.cpp:95 ../src/gigedit/paramedit.cpp:48
 msgid "velocity"
 msgstr "Velocity"
 
-#: ../src/gigedit/dimregionchooser.cpp:97
-#: ../src/gigedit/paramedit.cpp:40
+#: ../src/gigedit/dimregionchooser.cpp:97 ../src/gigedit/paramedit.cpp:48
 msgid "channelaftertouch"
 msgstr "channelaftertouch"
 
@@ -1471,25 +1580,21 @@ msgid "roundrobinkeyboard"
 msgstr "roundrobinkeyboard"
 
 #. "Foot Controller",
-#: ../src/gigedit/dimregionchooser.cpp:110
-#: ../src/gigedit/paramedit.cpp:46
+#: ../src/gigedit/dimregionchooser.cpp:110 ../src/gigedit/paramedit.cpp:54
 msgid "portamentotime"
 msgstr "Portamento Zeit"
 
-#: ../src/gigedit/dimregionchooser.cpp:113
-#: ../src/gigedit/paramedit.cpp:57
+#: ../src/gigedit/dimregionchooser.cpp:113 ../src/gigedit/paramedit.cpp:65
 msgid "genpurpose1"
 msgstr "genpurpose1"
 
 #. "General Purpose Controller 1",
-#: ../src/gigedit/dimregionchooser.cpp:114
-#: ../src/gigedit/paramedit.cpp:58
+#: ../src/gigedit/dimregionchooser.cpp:114 ../src/gigedit/paramedit.cpp:66
 msgid "genpurpose2"
 msgstr "genpurpose2"
 
 #. "Damper Pedal on/off (Sustain)",
-#: ../src/gigedit/dimregionchooser.cpp:119
-#: ../src/gigedit/paramedit.cpp:81
+#: ../src/gigedit/dimregionchooser.cpp:119 ../src/gigedit/paramedit.cpp:89
 msgid "portamento"
 msgstr "portamento"
 
@@ -1497,20 +1602,17 @@ msgstr "portamento"
 msgid "sostenutopedal"
 msgstr "sostenutopedal"
 
-#: ../src/gigedit/dimregionchooser.cpp:128
-#: ../src/gigedit/paramedit.cpp:107
+#: ../src/gigedit/dimregionchooser.cpp:128 ../src/gigedit/paramedit.cpp:115
 msgid "effect1depth"
 msgstr "Effekt 1 Tiefe"
 
 #. "Effects 1 Depth",
-#: ../src/gigedit/dimregionchooser.cpp:130
-#: ../src/gigedit/paramedit.cpp:108
+#: ../src/gigedit/dimregionchooser.cpp:130 ../src/gigedit/paramedit.cpp:116
 msgid "effect2depth"
 msgstr "Effekt 2 Tiefe"
 
 #. "Effects 2 Depth",
-#: ../src/gigedit/dimregionchooser.cpp:132
-#: ../src/gigedit/paramedit.cpp:109
+#: ../src/gigedit/dimregionchooser.cpp:132 ../src/gigedit/paramedit.cpp:117
 msgid "effect3depth"
 msgstr "Effekt 3 Tiefe"
 
@@ -1522,181 +1624,181 @@ msgstr "Effekt 3 Tiefe"
 #. NRPN MSB (so discouraged to be used here)
 #. RPN LSB (so discouraged to be used here)
 #. RPN MSB (so discouraged to be used here)
-#: ../src/gigedit/paramedit.cpp:44
-#: ../src/gigedit/paramedit.cpp:50
-#: ../src/gigedit/paramedit.cpp:55
-#: ../src/gigedit/paramedit.cpp:56
-#: ../src/gigedit/paramedit.cpp:61
-#: ../src/gigedit/paramedit.cpp:62
-#: ../src/gigedit/paramedit.cpp:63
-#: ../src/gigedit/paramedit.cpp:64
-#: ../src/gigedit/paramedit.cpp:65
-#: ../src/gigedit/paramedit.cpp:66
-#: ../src/gigedit/paramedit.cpp:67
-#: ../src/gigedit/paramedit.cpp:68
-#: ../src/gigedit/paramedit.cpp:69
-#: ../src/gigedit/paramedit.cpp:70
-#: ../src/gigedit/paramedit.cpp:71
-#: ../src/gigedit/paramedit.cpp:72
-#: ../src/gigedit/paramedit.cpp:95
-#: ../src/gigedit/paramedit.cpp:101
-#: ../src/gigedit/paramedit.cpp:102
-#: ../src/gigedit/paramedit.cpp:103
-#: ../src/gigedit/paramedit.cpp:105
-#: ../src/gigedit/paramedit.cpp:106
-#: ../src/gigedit/paramedit.cpp:118
-#: ../src/gigedit/paramedit.cpp:119
-#: ../src/gigedit/paramedit.cpp:120
-#: ../src/gigedit/paramedit.cpp:121
-#: ../src/gigedit/paramedit.cpp:122
-#: ../src/gigedit/paramedit.cpp:123
-#: ../src/gigedit/paramedit.cpp:124
-#: ../src/gigedit/paramedit.cpp:125
-#: ../src/gigedit/paramedit.cpp:126
-#: ../src/gigedit/paramedit.cpp:127
-#: ../src/gigedit/paramedit.cpp:128
-#: ../src/gigedit/paramedit.cpp:129
-#: ../src/gigedit/paramedit.cpp:130
-#: ../src/gigedit/paramedit.cpp:131
-#: ../src/gigedit/paramedit.cpp:132
-#: ../src/gigedit/paramedit.cpp:133
-#: ../src/gigedit/paramedit.cpp:134
-#: ../src/gigedit/paramedit.cpp:135
+#: ../src/gigedit/paramedit.cpp:52 ../src/gigedit/paramedit.cpp:58
+#: ../src/gigedit/paramedit.cpp:63 ../src/gigedit/paramedit.cpp:64
+#: ../src/gigedit/paramedit.cpp:69 ../src/gigedit/paramedit.cpp:70
+#: ../src/gigedit/paramedit.cpp:71 ../src/gigedit/paramedit.cpp:72
+#: ../src/gigedit/paramedit.cpp:73 ../src/gigedit/paramedit.cpp:74
+#: ../src/gigedit/paramedit.cpp:75 ../src/gigedit/paramedit.cpp:76
+#: ../src/gigedit/paramedit.cpp:77 ../src/gigedit/paramedit.cpp:78
+#: ../src/gigedit/paramedit.cpp:79 ../src/gigedit/paramedit.cpp:80
+#: ../src/gigedit/paramedit.cpp:103 ../src/gigedit/paramedit.cpp:109
+#: ../src/gigedit/paramedit.cpp:110 ../src/gigedit/paramedit.cpp:111
+#: ../src/gigedit/paramedit.cpp:113 ../src/gigedit/paramedit.cpp:114
+#: ../src/gigedit/paramedit.cpp:126 ../src/gigedit/paramedit.cpp:127
+#: ../src/gigedit/paramedit.cpp:128 ../src/gigedit/paramedit.cpp:129
+#: ../src/gigedit/paramedit.cpp:130 ../src/gigedit/paramedit.cpp:131
+#: ../src/gigedit/paramedit.cpp:132 ../src/gigedit/paramedit.cpp:133
+#: ../src/gigedit/paramedit.cpp:134 ../src/gigedit/paramedit.cpp:135
+#: ../src/gigedit/paramedit.cpp:136 ../src/gigedit/paramedit.cpp:137
+#: ../src/gigedit/paramedit.cpp:138 ../src/gigedit/paramedit.cpp:139
+#: ../src/gigedit/paramedit.cpp:140 ../src/gigedit/paramedit.cpp:141
+#: ../src/gigedit/paramedit.cpp:142 ../src/gigedit/paramedit.cpp:143
 msgid "undefined"
 msgstr "undefiniert"
 
 #. "Portamento Time",
-#: ../src/gigedit/paramedit.cpp:47
+#: ../src/gigedit/paramedit.cpp:55
 msgid "data entry MSB"
 msgstr "Dateneingabe MSB"
 
-#: ../src/gigedit/paramedit.cpp:48
+#: ../src/gigedit/paramedit.cpp:56
 msgid "volume"
 msgstr "Lautstärke"
 
-#: ../src/gigedit/paramedit.cpp:49
+#: ../src/gigedit/paramedit.cpp:57
 msgid "balance"
 msgstr "Balance"
 
-#: ../src/gigedit/paramedit.cpp:51
+#: ../src/gigedit/paramedit.cpp:59
 msgid "pan"
 msgstr "Panorama"
 
-#: ../src/gigedit/paramedit.cpp:52
+#: ../src/gigedit/paramedit.cpp:60
 msgid "expression"
 msgstr "Expression"
 
 #. "Portamento On/Off",
-#: ../src/gigedit/paramedit.cpp:82
+#: ../src/gigedit/paramedit.cpp:90
 msgid "sostenuto"
 msgstr "Sostenuto"
 
 #. "Soft Pedal On/Off",
-#: ../src/gigedit/paramedit.cpp:84
+#: ../src/gigedit/paramedit.cpp:92
 msgid "legato"
 msgstr "Legato"
 
-#: ../src/gigedit/paramedit.cpp:85
+#: ../src/gigedit/paramedit.cpp:93
 msgid "hold2"
 msgstr "hold2"
 
-#: ../src/gigedit/paramedit.cpp:86
+#: ../src/gigedit/paramedit.cpp:94
 msgid "soundvariation"
 msgstr "soundvariation"
 
-#: ../src/gigedit/paramedit.cpp:87
+#: ../src/gigedit/paramedit.cpp:95
 msgid "timbre"
 msgstr "Klangfarbe"
 
-#: ../src/gigedit/paramedit.cpp:88
+#: ../src/gigedit/paramedit.cpp:96
 msgid "releasetime"
 msgstr "Release Zeit"
 
-#: ../src/gigedit/paramedit.cpp:89
+#: ../src/gigedit/paramedit.cpp:97
 msgid "attacktime"
 msgstr "Attack Zeit"
 
-#: ../src/gigedit/paramedit.cpp:90
+#: ../src/gigedit/paramedit.cpp:98
 msgid "brightness"
 msgstr "Helligkeit"
 
-#: ../src/gigedit/paramedit.cpp:91
+#: ../src/gigedit/paramedit.cpp:99
 msgid "decaytime"
 msgstr "Decay Zeit"
 
-#: ../src/gigedit/paramedit.cpp:92
+#: ../src/gigedit/paramedit.cpp:100
 msgid "vibratorate"
 msgstr "Vibrato Frequenz"
 
-#: ../src/gigedit/paramedit.cpp:93
+#: ../src/gigedit/paramedit.cpp:101
 msgid "vibratodepth"
 msgstr "Vibrato Tiefe"
 
-#: ../src/gigedit/paramedit.cpp:94
+#: ../src/gigedit/paramedit.cpp:102
 msgid "vibratodelay"
 msgstr "Vibrato Verzögerung"
 
 #. "General Purpose Controller 8",
-#: ../src/gigedit/paramedit.cpp:100
+#: ../src/gigedit/paramedit.cpp:108
 msgid "portamentoctrl"
 msgstr "Portamento Ctrl."
 
 #. "Effects 5 Depth"
-#: ../src/gigedit/paramedit.cpp:112
+#: ../src/gigedit/paramedit.cpp:120
 msgid "dataincrement"
 msgstr "dataincrement"
 
-#: ../src/gigedit/paramedit.cpp:113
+#: ../src/gigedit/paramedit.cpp:121
 msgid "datadecrement"
 msgstr "datadecrement"
 
-#: ../src/gigedit/paramedit.cpp:276
+#: ../src/gigedit/paramedit.cpp:284
 msgid "C"
 msgstr "C"
 
-#: ../src/gigedit/paramedit.cpp:276
+#: ../src/gigedit/paramedit.cpp:284
 msgid "C#"
 msgstr "C#"
 
-#: ../src/gigedit/paramedit.cpp:276
+#: ../src/gigedit/paramedit.cpp:284
 msgid "D"
 msgstr "D"
 
-#: ../src/gigedit/paramedit.cpp:276
+#: ../src/gigedit/paramedit.cpp:284
 msgid "D#"
 msgstr "D#"
 
-#: ../src/gigedit/paramedit.cpp:276
+#: ../src/gigedit/paramedit.cpp:284
 msgid "E"
 msgstr "E"
 
-#: ../src/gigedit/paramedit.cpp:276
+#: ../src/gigedit/paramedit.cpp:284
 msgid "F"
 msgstr "F"
 
-#: ../src/gigedit/paramedit.cpp:276
+#: ../src/gigedit/paramedit.cpp:284
 msgid "F#"
 msgstr "F#"
 
-#: ../src/gigedit/paramedit.cpp:277
+#: ../src/gigedit/paramedit.cpp:285
 msgid "G"
 msgstr "G"
 
-#: ../src/gigedit/paramedit.cpp:277
+#: ../src/gigedit/paramedit.cpp:285
 msgid "G#"
 msgstr "G#"
 
-#: ../src/gigedit/paramedit.cpp:277
+#: ../src/gigedit/paramedit.cpp:285
 msgid "A"
 msgstr "A"
 
-#: ../src/gigedit/paramedit.cpp:277
+#: ../src/gigedit/paramedit.cpp:285
 msgid "A#"
 msgstr "A#"
 
-#: ../src/gigedit/paramedit.cpp:277
+#: ../src/gigedit/paramedit.cpp:285
 msgid "B"
 msgstr "B"
+
+#: ../src/gigedit/paramedit.cpp:404
+msgid ""
+"<b>Format Extension</b>\n"
+"\n"
+"All controllers marked with \"<b>[EXT]</b>\" are an extension to the "
+"original gig sound format. They will only work with LinuxSampler, but they "
+"will <b>not work</b> with Gigasampler/GigaStudio!\n"
+"\n"
+"(You may disable this warning in the <i>Settings</i> menu.)"
+msgstr ""
+"<b>Format Erweiterung</b>\n"
+"\n"
+"Alle Controller die mit \"<b>[EXT]</b>\" markiert sind, sind eine "
+"Erweiterung des ursprünglichen gig Sound Formates. Sie funktionieren daher "
+"nur mit LinuxSampler. Sie <b>funktionieren nicht</b> mit Gigasampler/"
+"GigaStudio!\n"
+"\n"
+"(Sie können diese Warnung im Hauptmenü unter <i>Einstellungen</i> "
+"deaktivieren.)"
 
 #: ../src/gigedit/midirules.cpp:27
 msgid "Midi rule:"
@@ -1789,4 +1891,3 @@ msgstr "Alt sustain 2 key"
 #, fuzzy
 #~ msgid "Self mask"
 #~ msgstr "Speichern unter"
-
