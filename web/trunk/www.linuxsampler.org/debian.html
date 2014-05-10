@@ -289,7 +289,16 @@ newbies and support.<br>
 No software is perfect, nor is ours, if you found bugs, please
 report them using our bug tracking system:<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://bugs.linuxsampler.org/">http://bugs.linuxsampler.org/</a>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://bugs.linuxsampler.org/">http://bugs.linuxsampler.org/</a><br>
+<br>
+In case you encountered a crash, please report it! To be able to solve such a
+problem, we need a <i>back trace</i> though. For this you need to recompile your
+LinuxSampler Debian packages like this:
+<pre>
+  DEB_BUILD_OPTIONS="nostrip noopt" fakeroot dpkg-buildpackage -b
+</pre>
+The two options at the beginning will cause the package to be compiled with
+debugging symbols turned on and all optimizations turned off.
 
 <a name="contact"></a>
 <h3>9.&nbsp; Contact</h3>
