@@ -4659,6 +4659,24 @@ namespace {
         return NULL;
     }
 
+    /**
+     * Returns the group with the given group name.
+     *
+     * Note: group names don't have to be unique in the gig format! So there
+     * can be multiple groups with the same name. This method will simply
+     * return the first group found with the given name.
+     *
+     * @param name - name of the sought group
+     * @returns sought group or NULL if there's no group with that name
+     */
+    Group* File::GetGroup(String name) {
+        if (!pGroups) LoadGroups();
+        GroupsIterator = pGroups->begin();
+        for (uint i = 0; GroupsIterator != pGroups->end(); ++GroupsIterator, ++i)
+            if ((*GroupsIterator)->Name == name) return *GroupsIterator;
+        return NULL;
+    }
+
     Group* File::AddGroup() {
         if (!pGroups) LoadGroups();
         // there must always be at least one group

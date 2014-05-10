@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This program is part of libgig.                                       *
@@ -40,45 +40,88 @@ string Revision();
 void PrintVersion();
 void PrintUsage();
 void PrintChunkList(RIFF::List* list, bool PrintSize);
+static uint32_t strToChunkID(string s);
 
 int main(int argc, char *argv[])
 {
-    int  FileArgIndex = 1;
-    bool bPrintSize   = false;
+    bool bPrintSize = false;
+    RIFF::endian_t endian = RIFF::endian_native;
+    RIFF::layout_t layout = RIFF::layout_standard;
+    bool bExpectFirstChunkID = false;
+    uint32_t uiExpectedFirstChunkID;
 
+    // validate & parse arguments provided to this program
     if (argc <= 1) {
         PrintUsage();
         return EXIT_FAILURE;
     }
-    if (argv[1][0] == '-') {
-        switch (argv[1][1]) {
-            case 's':
-                bPrintSize = true;
-                break;
-            case 'v':
+    int iArg;
+    for (iArg = 1; iArg < argc; ++iArg) {
+        const string opt = argv[iArg];
+        if (opt == "--") { // common for all command line tools: separator between initial option arguments and i.e. subsequent file arguments
+            iArg++;
+            break;
+        }
+        if (opt.substr(0, 1) != "-") break;
+
+        if (opt == "-v") {
+            PrintVersion();
+            return EXIT_SUCCESS;
+        } else if (opt == "-s") {
+            bPrintSize = true;
+        } else if (opt == "--big-endian") {
+            endian = RIFF::endian_big;
+        } else if (opt == "--little-endian") {
+            endian = RIFF::endian_little;
+        } else if (opt == "--flat") {
+            layout = RIFF::layout_flat;
+        } else if (opt == "--first-chunk-id") {
+            iArg++;
+            if (iArg >= argc) {
                 PrintVersion();
                 return EXIT_SUCCESS;
-            default:
-                cerr << "Unknown option -" << argv[1][1] << endl;
-                cerr << endl;
-                PrintUsage();
-                return EXIT_FAILURE;
+            }
+            bExpectFirstChunkID = true;
+            uiExpectedFirstChunkID = strToChunkID(argv[iArg]);
+        } else {
+            cerr << "Unknown option '" << opt << "'" << endl;
+            cerr << endl;
+            PrintUsage();
+            return EXIT_FAILURE;
         }
-        FileArgIndex++;
     }
-    if (FileArgIndex >= argc) {
-        PrintUsage();
+
+    const int nFileArguments = argc - iArg;
+    if (nFileArguments != 1) {
+        cerr << "You must provide a file argument." << endl;
         return EXIT_FAILURE;
     }
+    const int FileArgIndex = iArg;
+
     FILE* hFile = fopen(argv[FileArgIndex], "r");
     if (!hFile) {
-        cout << "Invalid file argument!" << endl;
+        cerr << "Invalid file argument!" << endl;
         return EXIT_FAILURE;
     }
     fclose(hFile);
     try {
-        RIFF::File* riff = new RIFF::File(argv[FileArgIndex]);
-        cout << "RIFF(" << riff->GetListTypeString() << ")->";
+        RIFF::File* riff = NULL;
+        switch (layout) {
+            case RIFF::layout_standard:
+                riff = new RIFF::File(argv[FileArgIndex]);
+                cout << "RIFF(" << riff->GetListTypeString() << ")->";
+                break;
+            case RIFF::layout_flat:
+                if (!bExpectFirstChunkID) {
+                    cerr << "If you are using '--flat' then you must also use '--first-chunk-id'." << endl; 
+                    return EXIT_FAILURE;
+                }
+                riff = new RIFF::File(
+                    argv[FileArgIndex], uiExpectedFirstChunkID, endian, layout
+                );
+                cout << "Flat RIFF-alike file";
+                break;
+        }
         if (bPrintSize) cout << " (" << riff->GetSize() << " Bytes)";
         cout << endl;
         PrintChunkList(riff, bPrintSize);
@@ -89,7 +132,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     catch (...) {
-        cout << "Unknown exception while trying to parse file." << endl;
+        cerr << "Unknown exception while trying to parse file." << endl;
         return EXIT_FAILURE;
     }
 
@@ -124,6 +167,19 @@ void PrintChunkList(RIFF::List* list, bool PrintSize) {
     }
 }
 
+static uint32_t strToChunkID(string s) {
+    if (s.size() != 4) {
+        cerr << "Argument after '--first-chunk-id' must be exactly 4 characters long." << endl;
+        exit(-1);
+    }
+    uint32_t result = 0;
+    for (int i = 0; i < 4; ++i) {
+       uint32_t byte = s[i];
+       result |= byte << i*8;
+    }
+    return result;
+}
+
 string Revision() {
     string s = "$Revision$";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
@@ -137,9 +193,24 @@ void PrintVersion() {
 void PrintUsage() {
     cout << "rifftree - parses an arbitrary RIFF file and prints out the RIFF tree structure." << endl;
     cout << endl;
-    cout << "Usage: rifftree [-s|-v] FILE" << endl;
+    cout << "Usage: rifftree [OPTIONS] FILE" << endl;
     cout << endl;
-    cout << "	-s  Print the size of each chunk." << endl;
-    cout << "	-v  Print version and exit." << endl;
+    cout << "Options:" << endl;
+    cout << endl;
+    cout << "  -v  Print version and exit." << endl;
+    cout << endl;
+    cout << "  -s  Print the size of each chunk." << endl;
+    cout << endl;
+    cout << "  --flat" << endl;
+    cout << "      First chunk of file is not a list (container) chunk." << endl;
+    cout << endl;
+    cout << "  --first-chunk-id CKID" << endl;
+    cout << "      32 bit chunk ID of very first chunk in file." << endl;
+    cout << endl;
+    cout << "  --big-endian" << endl;
+    cout << "      File is in big endian format." << endl;
+    cout << endl;
+    cout << "  --little-endian" << endl;
+    cout << "      File is in little endian format." << endl;
     cout << endl;
 }

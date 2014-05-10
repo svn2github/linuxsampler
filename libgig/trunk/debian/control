@@ -9,11 +9,11 @@ Package: libgig-dev
 Section: libdevel
 Architecture: any
 Depends: libgig6 (= ${Source-Version})
-Description: library for accessing Gigasampler, DLS and SoundFont files
+Description: library for accessing Gigasampler, DLS, SoundFont and KORG files
  libgig is a C++ library for reading, modifying and creating Gigasampler /
- GigaStudio (.gig) files, DLS (Downloadable Sounds) Level 1/2 files and
- SoundFont version 2 (.sf2) files. These files are typically used in modern day
- audio waveform samplers.
+ GigaStudio (.gig) files, DLS (Downloadable Sounds) Level 1/2 files, SoundFont
+ version 2 (.sf2) and KORG sound files (.KMP and .KSF). These files are
+ typically used in modern day audio waveform samplers and synthesizer keyboards.
  .
  Since the Gigasampler / GigaStudio and DLS formats are based ontop of the
  binary RIFF container format, this library also provides convenient access to
@@ -32,11 +32,11 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: libgig3c2, libgig
 Replaces: libgig3c2, libgig
-Description: library for accessing Gigasampler, DLS and SoundFont files
+Description: library for accessing Gigasampler, DLS, SoundFont and KORG files
  libgig is a C++ library for reading, modifying and creating Gigasampler /
- GigaStudio (.gig) files, DLS (Downloadable Sounds) Level 1/2 files and
- SoundFont version 2 (.sf2) files. These files are typically used in modern day
- audio waveform samplers.
+ GigaStudio (.gig) files, DLS (Downloadable Sounds) Level 1/2 files, SoundFont
+ version 2 (.sf2) files and KORG sound files (.KMP and .KSF). These files are
+ typically used in modern day audio waveform samplers and synthesizer keyboards.
  .
  Since the Gigasampler / GigaStudio and DLS formats are based ontop of the
  binary RIFF container format, this library also provides convenient access to
@@ -49,10 +49,11 @@ Package: gigtools
 Section: utils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: command line tools for Gigasampler, SF2 and DLS Level 1/2 files
+Description: command line tools for Gigasampler, SF2, DLS and KORG files
  Raw file handling for audio sampler files based on either DLS Level 1/2,
- Gigasampler / GigaStudio or SoundFont version 2. These files are typically
- used in modern day audio waveform samplers.
+ Gigasampler / GigaStudio, SoundFont version 2 and KORG sound format (.KSF and
+ .KMP). These files are typically used in modern day audio waveform samplers
+ and synthesizer keyboards.
  .
  This package contains the following command line tools:
  .
@@ -70,4 +71,7 @@ Description: command line tools for Gigasampler, SF2 and DLS Level 1/2 files
    Prints out the RIFF tree of an arbitrary RIFF container file.
  sf2dump:
    Prints out the content of a .sf2 file.
-
+ korgdump:
+   Prints out the content of KORG sound files (.KSF, .KMP).
+ korg2gig:
+   Converts KORG (.KSF, .KMP) sound files to GigaStudio (.gig) files.

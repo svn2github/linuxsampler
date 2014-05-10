@@ -4,7 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: gig
-Description: C++ library for loading, creating and modifying Gigasampler files and DLS Level 1/2 files
+Description: C++ library for accessing Gigasampler/GigaStudio, DLS, SoundFont and KORG sound files
 Version: @VERSION@
 Libs: -L${libdir} -lgig
 Cflags: -I${includedir}

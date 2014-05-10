@@ -13,8 +13,13 @@ filename of the Gigasampler file
 .TP
 .B \ -v
 print version and exit
+
 .SH "SEE ALSO"
-gigextract(1), gigmerge(1), gig2mono(1), dlsdump(1)
+.BR gigextract(1),
+.BR gigmerge(1),
+.BR gig2mono(1),
+.BR dlsdump(1)
+
 .SH "BUGS"
 None. Report bugs to http://bugs.linuxsampler.org
 .SH "Author"

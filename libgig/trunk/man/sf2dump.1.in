@@ -13,8 +13,11 @@ filename of the Soundfont file
 .TP
 .B \ -v
 print version and exit
+
 .SH "SEE ALSO"
-gigdump(1), dlsdump(1)
+.BR gigdump(1),
+.BR dlsdump(1)
+
 .SH "BUGS"
 None. Report bugs to http://bugs.linuxsampler.org
 .SH "Author"

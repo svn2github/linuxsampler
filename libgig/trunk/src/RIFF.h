@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -169,6 +169,12 @@ namespace RIFF {
         endian_native = 2
     } endian_t;
 
+    /** General chunk structure of a file. */
+    enum layout_t {
+        layout_standard = 0, ///< Standard RIFF file layout: First chunk in file is a List chunk which contains all other chunks and there are no chunks outside the scope of that very first (List) chunk.
+        layout_flat     = 1  ///< Not a "real" RIFF file: First chunk in file is an ordinary data chunk, not a List chunk, and there might be other chunks after that first chunk.
+    };
+
     /** @brief Ordinary RIFF Chunk
      *
      * Provides convenient methods to access data of ordinary RIFF chunks
@@ -179,6 +185,7 @@ namespace RIFF {
             Chunk(File* pFile, unsigned long StartPos, List* Parent);
             String         GetChunkIDString();
             uint32_t       GetChunkID() { return ChunkID; }             ///< Chunk ID in unsigned integer representation.
+            File*          GetFile()    { return pFile;   }             ///< Returns pointer to the chunk's File object.
             List*          GetParent()  { return pParent; }             ///< Returns pointer to the chunk's parent list chunk.
             unsigned long  GetSize() const { return CurrentChunkSize; } ///< Chunk size in bytes (without header, thus the chunk data body)
             unsigned long  GetNewSize() { return NewChunkSize;     }    ///< New chunk size if it was modified with Resize().
@@ -321,12 +328,14 @@ namespace RIFF {
         public:
             File(uint32_t FileType);
             File(const String& path);
+            File(const String& path, uint32_t FileType, endian_t Endian, layout_t layout);
             stream_mode_t GetMode();
             bool          SetMode(stream_mode_t NewMode);
             void SetByteOrder(endian_t Endian);
             String GetFileName();
             void SetFileName(const String& path);
             bool IsNew() const;
+            layout_t GetLayout() const;
             virtual void Save();
             virtual void Save(const String& path);
             virtual ~File();
@@ -344,6 +353,7 @@ namespace RIFF {
             String Filename;
             bool   bEndianNative;
             bool   bIsNewFile;
+            layout_t Layout; ///< An ordinary RIFF file is always set to layout_standard.
 
             void LogAsResized(Chunk* pResizedChunk);
             void UnlogResized(Chunk* pResizedChunk);
@@ -353,6 +363,7 @@ namespace RIFF {
             stream_mode_t  Mode;
             ChunkList ResizedChunks; ///< All chunks which have been resized (enlarged / shortened).
 
+            void __openExistingFile(const String& path, uint32_t* FileType = NULL);
             unsigned long GetFileSize();
             void ResizeFile(unsigned long ulNewSize);
             #if POSIX

@@ -9,12 +9,18 @@ Version CVS HEAD (?)
     - added "const" keyword to several methods
     - added new command line tool "gig2mono"
     - added man page for "sf2dump"
+    - added new command line tool "korgdump" (and a man page for it)
+    - added new command line tool "korg2gig" (and a man page for it)
 
   * SoundFont file format:
     - initial implementation
     - changed region lookup API to avoid malloc in RT threads
     - fixed GetEG1Sustain which didn't return correct value
     - bugfix: GetPan always returned -1, 0 or 1
+
+  * KORG file format:
+    - initial support for sample based instruments in KORG's file format
+      (.KMP and .KSF files)
 
   * src/gig.cpp:
     - bugfix: VCF velocity dynamic range and VCF velocity curve
@@ -31,6 +37,7 @@ Version CVS HEAD (?)
     - GIG FORMAT EXTENSION: added additional MIDI controllers for leverage
       controller types (only works with LinuxSampler & gigedit, will not
       work with Gigasampler/GigaStudio)
+    - added new method File::GetGroup(String name) for getting group by name
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
@@ -48,9 +55,17 @@ Version CVS HEAD (?)
     - added new method File::SetFileName() allowing to call File::Save()
       later on without passing a file name
     - added new method File::IsNew()
+    - added support for loading RIFF-like files with a bit different layout
+      than "real" RIFF files (used for KORG format support)
+    - added new method Chunk::GetFile()
+    - added new method Chunk::GetLayout()
 
   * src/gigextract.cpp:
     - export sample loop, unity note and fine tune with libsndfile
+
+  * src/riftree.cpp:
+    - added more command line options for being able to also dump other kind
+      of file formats similar but not equal to the RIFF format
 
 Version 3.3.0 (30 Jul 2009)
 

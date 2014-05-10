@@ -14,10 +14,10 @@ gigextract_flags = $(AUDIOFILE_CFLAGS)
 endif
 
 libgigincludedir = $(includedir)
-libgiginclude_HEADERS = RIFF.h DLS.h SF.h gig.h
+libgiginclude_HEADERS = RIFF.h DLS.h SF.h gig.h Korg.h
 
 lib_LTLIBRARIES = libgig.la
-libgig_la_SOURCES = RIFF.cpp DLS.cpp SF.cpp gig.cpp
+libgig_la_SOURCES = RIFF.cpp DLS.cpp SF.cpp gig.cpp Korg.cpp
 libgig_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
 if WIN32
 libgig_la_LIBADD = -lrpcrt4
@@ -25,7 +25,7 @@ endif
 if MAC
 libgig_la_LDFLAGS += -framework CoreFoundation
 endif
-bin_PROGRAMS = rifftree dlsdump gigdump gigextract gigmerge gig2mono sf2dump
+bin_PROGRAMS = rifftree dlsdump gigdump gigextract gigmerge gig2mono sf2dump korgdump korg2gig
 rifftree_SOURCES = rifftree.cpp
 rifftree_LDADD = libgig.la
 dlsdump_SOURCES = dlsdump.cpp
@@ -42,5 +42,9 @@ gig2mono_SOURCES = gig2mono.cpp
 gig2mono_LDADD = libgig.la
 sf2dump_SOURCES = sf2dump.cpp
 sf2dump_LDADD = libgig.la
+korgdump_SOURCES = korgdump.cpp
+korgdump_LDADD = libgig.la
+korg2gig_SOURCES = korg2gig.cpp
+korg2gig_LDADD = libgig.la
 
 EXTRA_DIST = helper.h

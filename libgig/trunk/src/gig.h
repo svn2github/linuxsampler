@@ -342,7 +342,7 @@ namespace gig {
      */
     class DimensionRegion : protected DLS::Sampler {
         public:
-            uint8_t            VelocityUpperLimit;            ///< Defines the upper velocity value limit of a velocity split (only if an user defined limit was set, thus a value not equal to 128/NumberOfSplits, else this value is 0). Only for gig2, otherwise the DimensionUpperLimts are used instead.
+            uint8_t            VelocityUpperLimit;            ///< Defines the upper velocity value limit of a velocity split (only if an user defined limit was set, thus a value not equal to 128/NumberOfSplits, else this value is 0). Only for gig2, for gig3 and above the DimensionUpperLimits are used instead.
             Sample*            pSample;                       ///< Points to the Sample which is assigned to the dimension region.
             // Sample Amplitude EG/LFO
             uint16_t           EG1PreAttack;                  ///< Preattack value of the sample amplitude EG (0 - 1000 permille).
@@ -935,6 +935,7 @@ namespace gig {
             Group*      GetFirstGroup(); ///< Returns a pointer to the first <i>Group</i> object of the file, <i>NULL</i> otherwise.
             Group*      GetNextGroup();  ///< Returns a pointer to the next <i>Group</i> object of the file, <i>NULL</i> otherwise.
             Group*      GetGroup(uint index);
+            Group*      GetGroup(String name);
             Group*      AddGroup();
             void        DeleteGroup(Group* pGroup);
             void        DeleteGroupOnly(Group* pGroup);

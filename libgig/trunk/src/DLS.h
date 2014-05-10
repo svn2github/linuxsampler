@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -204,6 +204,16 @@ namespace DLS {
     struct range_t {
         uint16_t low;  ///< Low value of range.
         uint16_t high; ///< High value of range.
+
+        inline bool operator< (const range_t& other) const {
+            if (low < other.low) return true;
+            if (low > other.low) return false;
+            return high < other.high;
+        }
+
+        inline bool operator== (const range_t& other) const {
+            return low == other.low && high == other.high;
+        }
     };
 
     /** Defines Sample Loop Points. */

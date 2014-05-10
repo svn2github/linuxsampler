@@ -4,7 +4,7 @@
 %define release 11
 %define prefix  @prefix@
 
-Summary:	C++ library for loading and modifying Gigasampler and DLS files.
+Summary:	C++ library for accessing Gigasampler, DLS, SF and KORG files.
 Name:		%{name}
 Version:	%{version}
 Release:	%{release}
@@ -19,12 +19,12 @@ BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
 C++ library for loading and modifying Gigasampler and DLS files.
 
 %package devel
-Summary:	C++ library for loading and modifying Gigasampler and DLS files.
+Summary:	C++ library for accessing Gigasampler, DLS, SF and KORG files.
 Group:		Development/Libraries
 Requires:	%{name} = %{version}
 
 %description devel
-C++ library for loading and modifying Gigasampler and DLS files.
+C++ library for accessing Gigasampler, DLS, SoundFont and KORG files.
 
 %prep
 

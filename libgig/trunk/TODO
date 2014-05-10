@@ -31,3 +31,6 @@ Gig Part:
   - optional writing of frame table to disk to speed up loading of compressed
     samples
   - support for creating and modifying compressed samples
+
+KORG Classes:
+  - support for .PCG files

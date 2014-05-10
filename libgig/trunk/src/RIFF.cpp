@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -281,7 +281,7 @@ namespace RIFF {
        #if DEBUG
        std::cout << "Chunk::Read(void*,ulong,ulong)" << std::endl;
        #endif // DEBUG
-        if (ulStartPos == 0) return 0; // is only 0 if this is a new chunk, so nothing to read (yet)
+        //if (ulStartPos == 0) return 0; // is only 0 if this is a new chunk, so nothing to read (yet)
         if (ulPos >= CurrentChunkSize) return 0;
         if (ulPos + WordCount * WordSize >= CurrentChunkSize) WordCount = (CurrentChunkSize - ulPos) / WordSize;
         #if POSIX
@@ -751,7 +751,7 @@ namespace RIFF {
      * @see ReleaseChunkData()
      */
     void* Chunk::LoadChunkData() {
-        if (!pChunkData && pFile->Filename != "" && ulStartPos != 0) {
+        if (!pChunkData && pFile->Filename != "" /*&& ulStartPos != 0*/) {
             #if POSIX
             if (lseek(pFile->hFileRead, ulStartPos, SEEK_SET) == -1) return NULL;
             #elif defined(WIN32)
@@ -1419,7 +1419,9 @@ namespace RIFF {
      * @param FileType - four-byte identifier of the RIFF file type
      * @see AddSubChunk(), AddSubList(), SetByteOrder()
      */
-    File::File(uint32_t FileType) : List(this), bIsNewFile(true) {
+    File::File(uint32_t FileType)
+        : List(this), bIsNewFile(true), Layout(layout_standard)
+    {
         //HACK: see _GET_RESIZED_CHUNKS() comment
         ResizedChunks.push_back(reinterpret_cast<Chunk*>(new std::set<Chunk*>));
         #if defined(WIN32)
@@ -1441,39 +1443,15 @@ namespace RIFF {
      * @throws RIFF::Exception if error occured while trying to load the
      *                         given RIFF file
      */
-    File::File(const String& path) : List(this), Filename(path), bIsNewFile(false) {
+    File::File(const String& path)
+        : List(this), Filename(path), bIsNewFile(false), Layout(layout_standard)
+    {
        #if DEBUG
        std::cout << "File::File("<<path<<")" << std::endl;
        #endif // DEBUG
+        bEndianNative = true;
         try {
-            bEndianNative = true;
-            //HACK: see _GET_RESIZED_CHUNKS() comment
-            ResizedChunks.push_back(reinterpret_cast<Chunk*>(new std::set<Chunk*>));
-            #if POSIX
-            hFileRead = hFileWrite = open(path.c_str(), O_RDONLY | O_NONBLOCK);
-            if (hFileRead <= 0) {
-                hFileRead = hFileWrite = 0;
-                throw RIFF::Exception("Can't open \"" + path + "\"");
-            }
-            #elif defined(WIN32)
-            hFileRead = hFileWrite = CreateFile(
-                                         path.c_str(), GENERIC_READ,
-                                         FILE_SHARE_READ | FILE_SHARE_WRITE,
-                                         NULL, OPEN_EXISTING,
-                                         FILE_ATTRIBUTE_NORMAL |
-                                         FILE_FLAG_RANDOM_ACCESS, NULL
-                                     );
-            if (hFileRead == INVALID_HANDLE_VALUE) {
-                hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
-                throw RIFF::Exception("Can't open \"" + path + "\"");
-            }
-            #else
-            hFileRead = hFileWrite = fopen(path.c_str(), "rb");
-            if (!hFileRead) throw RIFF::Exception("Can't open \"" + path + "\"");
-            #endif // POSIX
-            Mode = stream_mode_read;
-            ulStartPos = RIFF_HEADER_SIZE;
-            ReadHeader(0);
+            __openExistingFile(path);
             if (ChunkID != CHUNK_ID_RIFF && ChunkID != CHUNK_ID_RIFX) {
                 throw RIFF::Exception("Not a RIFF file");
             }
@@ -1481,6 +1459,105 @@ namespace RIFF {
         catch (...) {
             Cleanup();
             throw;
+        }
+    }
+
+    /** @brief Load existing RIFF-like file.
+     *
+     * Loads an existing file, which is not a "real" RIFF file, but similar to
+     * an ordinary RIFF file.
+     *
+     * A "real" RIFF file contains at top level a List chunk either with chunk
+     * ID "RIFF" or "RIFX". The simple constructor above expects this to be
+     * case, and if it finds the toplevel List chunk to have another chunk ID
+     * than one of those two expected ones, it would throw an Exception and
+     * would refuse to load the file accordingly.
+     *
+     * Since there are however a lot of file formats which use the same simple
+     * principles of the RIFF format, with another toplevel List chunk ID
+     * though, you can use this alternative constructor here to be able to load
+     * and handle those files in the same way as you would do with "real" RIFF
+     * files.
+     *
+     * @param path - path and file name of the RIFF-alike file to be opened
+     * @param FileType - expected toplevel List chunk ID (this is the very
+     *                   first chunk found in the file)
+     * @param Endian - whether the file uses little endian or big endian layout
+     * @param layout - general file structure type
+     * @throws RIFF::Exception if error occured while trying to load the
+     *                         given RIFF-alike file
+     */
+    File::File(const String& path, uint32_t FileType, endian_t Endian, layout_t layout)
+        : List(this), Filename(path), bIsNewFile(false), Layout(layout)
+    {
+        SetByteOrder(Endian);
+        try {
+            __openExistingFile(path, &FileType);
+        }
+        catch (...) {
+            Cleanup();
+            throw;
+        }
+    }
+
+    /**
+     * Opens an already existing RIFF file or RIFF-alike file. This method
+     * shall only be called once (in a File class constructor).
+     *
+     * @param path - path and file name of the RIFF file or RIFF-alike file to
+     *               be opened
+     * @param FileType - (optional) expected chunk ID of first chunk in file
+     * @throws RIFF::Exception if error occured while trying to load the
+     *                         given RIFF file or RIFF-alike file
+     */
+    void File::__openExistingFile(const String& path, uint32_t* FileType) {
+        //HACK: see _GET_RESIZED_CHUNKS() comment
+        ResizedChunks.push_back(reinterpret_cast<Chunk*>(new std::set<Chunk*>));
+        #if POSIX
+        hFileRead = hFileWrite = open(path.c_str(), O_RDONLY | O_NONBLOCK);
+        if (hFileRead <= 0) {
+            hFileRead = hFileWrite = 0;
+            throw RIFF::Exception("Can't open \"" + path + "\"");
+        }
+        #elif defined(WIN32)
+        hFileRead = hFileWrite = CreateFile(
+                                     path.c_str(), GENERIC_READ,
+                                     FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                     NULL, OPEN_EXISTING,
+                                     FILE_ATTRIBUTE_NORMAL |
+                                     FILE_FLAG_RANDOM_ACCESS, NULL
+                                 );
+        if (hFileRead == INVALID_HANDLE_VALUE) {
+            hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
+            throw RIFF::Exception("Can't open \"" + path + "\"");
+        }
+        #else
+        hFileRead = hFileWrite = fopen(path.c_str(), "rb");
+        if (!hFileRead) throw RIFF::Exception("Can't open \"" + path + "\"");
+        #endif // POSIX
+        Mode = stream_mode_read;
+        switch (Layout) {
+            case layout_standard: // this is a normal RIFF file
+                ulStartPos = RIFF_HEADER_SIZE;
+                ReadHeader(0);
+                if (FileType && ChunkID != *FileType)
+                    throw RIFF::Exception("Invalid file container ID");
+                break;
+            case layout_flat: // non-standard RIFF-alike file
+                ulStartPos = 0;
+                NewChunkSize = CurrentChunkSize = GetFileSize();
+                if (FileType) {
+                    uint32_t ckid;
+                    if (Read(&ckid, 4, 1) != 4) {
+                        throw RIFF::Exception("Invalid file header ID (premature end of header)");
+                    } else if (ckid != *FileType) {
+                        String s = " (expected '" + convertToString(*FileType) + "' but got '" + convertToString(ckid) + "')";
+                        throw RIFF::Exception("Invalid file header ID" + s);
+                    }
+                    SetPos(0); // reset to first byte of file
+                }
+                LoadSubChunks();
+                break;
         }
     }
 
@@ -1494,6 +1571,10 @@ namespace RIFF {
 
     stream_mode_t File::GetMode() {
         return Mode;
+    }
+
+    layout_t File::GetLayout() const {
+        return Layout;
     }
 
     /** @brief Change file access mode.
@@ -1628,6 +1709,10 @@ namespace RIFF {
      *                         chunk or any kind of IO error occured
      */
     void File::Save() {
+        //TODO: implementation for the case where first chunk is not a global container (List chunk) is not implemented yet (i.e. Korg files)
+        if (Layout == layout_flat)
+            throw Exception("Saving a RIFF file with layout_flat is not implemented yet");
+
         // make sure the RIFF tree is built (from the original file)
         LoadSubChunksRecursively();
 
@@ -1718,6 +1803,10 @@ namespace RIFF {
      */
     void File::Save(const String& path) {
         //TODO: we should make a check here if somebody tries to write to the same file and automatically call the other Save() method in that case
+
+        //TODO: implementation for the case where first chunk is not a global container (List chunk) is not implemented yet (i.e. Korg files)
+        if (Layout == layout_flat)
+            throw Exception("Saving a RIFF file with layout_flat is not implemented yet");
 
         // make sure the RIFF tree is built (from the original file)
         LoadSubChunksRecursively();

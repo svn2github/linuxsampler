@@ -28,8 +28,12 @@ Convert by using left audio channel data.
 .TP
 .B \ --right
 Convert by using right audio channel data.
+
 .SH "SEE ALSO"
-gigextract(1), gigdump(1), gigmerge(1)
+.BR gigextract(1),
+.BR gigdump(1),
+.BR gigmerge(1)
+
 .SH "BUGS"
 None. Report bugs to http://bugs.linuxsampler.org
 .SH "Author"

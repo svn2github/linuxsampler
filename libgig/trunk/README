@@ -17,6 +17,15 @@ Content
                                      provide the necessary extensions for
                                      the Gigasampler file format.
 
+  Despite its name, libgig also provides support for other sampler file
+  formats as well today:
+
+  - SoundFont classes (SF.h, SF.cpp):  They provide support for the very popular
+                                       SoundFont v1 and v2 format (.sf2).
+
+  - KORG classes (Korg.h, Korg.cpp):   Provides support for sample based sounds
+                                       used on many KORG synthesizer keyboards.
+
   Beside the actual library there are following example applications:
 
     gigdump:     Demo app that prints out the content of a .gig file.
@@ -24,6 +33,8 @@ Content
     gigmerge:    Merges several .gig files to one .gig file.
     gig2mono:    Converts .gig files from stereo to mono.
     dlsdump:     Demo app that prints out the content of a DLS file.
+    korgdump:    Prints out the content of the various KORG file types.
+    korg2gig:    Convert KORG sound file to Gigasampler/GigaStudio format.
     rifftree:    Tool that prints out the RIFF tree of an arbitrary RIFF
                  file.
 
@@ -213,12 +224,17 @@ Bugs
   You might also try to run the "Test Cases" coming with libgig (see above),
   especially in case you are running on an odd system.
 
+Trademarks
+==========
+  Tascam, Gigasampler, GigaStudio, KORG, Trinity, Triton, OASYS, M3 and Kronos
+  are trademarks of their respective owners.
+
 Credits
 =======
-  The initial library was based on the reverse engineering effort of
-  Paul Kellett and Ruben van Royen. We owe current support for the quite new
+  The initial library (Gigasampler part) was based on the reverse engineering
+  effort of Paul Kellett and Ruben van Royen. We owe current support for the
   Gigasampler v3 format to Andreas Persson. Please also have a look at the
-  ChangeLog for all those who contributed. Thanks to all of you for your
-  great work!
+  ChangeLog for all those who contributed. Thanks to all of you for your great
+  work!
 
  Christian Schoenebeck <cuse@users.sourceforge.net>
