@@ -324,6 +324,40 @@ static set<DLS::range_t> collectVelocitySplits(const InstrGroup& group, DLS::ran
     return velocityRanges;
 }
 
+/**
+ * Ensure that the given list of ranges covers the full range between 0 .. 127.
+ *
+ * @param orig - (input) original set of ranges (read only)
+ * @param corrected - (output) corrected set of ranges (will be cleared and refilled)
+ * @return map that pairs respective original range with respective corrected range
+ */
+static map<DLS::range_t,DLS::range_t> killGapsInRanges(const set<DLS::range_t>& orig, set<DLS::range_t>& corrected) {
+    map<DLS::range_t,DLS::range_t> result;
+    corrected.clear();
+    if (orig.empty()) return result;
+
+    int iLow = 0;
+    int i = 0;
+    for (set<DLS::range_t>::const_iterator it = orig.begin(); it != orig.end(); ++it, ++i) {
+        DLS::range_t r = *it;
+        r.low = iLow;
+        iLow = r.high + 1;
+        if (i == orig.size() - 1) r.high = 127;
+        corrected.insert(r);
+        result[*it] = r;
+    }
+    return result;
+}
+
+static void printRanges(const set<DLS::range_t>& ranges) {
+    cout << "{ ";
+    for (set<DLS::range_t>::const_iterator it = ranges.begin(); it != ranges.end(); ++it) {
+        if (it != ranges.begin()) cout << ", ";
+        cout << (int)it->low << ".." << (int)it->high;
+    }
+    cout << " }" << flush;
+}
+
 static vector<Korg::KSFSample*>     ksfSamples;      // input .KSF files
 static vector<Korg::KMPInstrument*> kmpInstruments;  // input .KMP files
 static gig::File* g_gig = NULL;                      // output .gig file
@@ -597,6 +631,7 @@ int main(int argc, char *argv[]) {
                             dim.dimension = gig::dimension_samplechannel;
                             dim.bits  = 1; // 2^(1) = 2
                             dim.zones = 2; // stereo = 2 audio channels = 2 split zones
+                            cout << "Adding stereo dimension." << endl;
                             gigRegion->AddDimension(&dim);
 
                             iStereoDimensionIndex = getDimensionIndex(gigRegion, gig::dimension_samplechannel);
@@ -613,9 +648,25 @@ int main(int argc, char *argv[]) {
                     DLS::range_t velRange = { 0 , 127 };
                     bool isVelocitySplit = bInterpretNames && hasNumberRangeIndicator(kmpInstr->Name());
                     if (isVelocitySplit) { // a velocity split is required for this region ...
-                        // get the amount of velocity split zones for this
-                        // particular output instrument and key range
-                        const set<DLS::range_t> velocitySplits = collectVelocitySplits(group, keyRange);
+                        // get the set of velocity split zones defined for
+                        // this particular output instrument and key range
+                        set<DLS::range_t> origVelocitySplits = collectVelocitySplits(group, keyRange);
+                        // if there are any gaps, that is if the list of velocity
+                        // split ranges do not cover the full range completely
+                        // between 0 .. 127, then auto correct it by increasing
+                        // the split zones accordingly
+                        map<DLS::range_t,DLS::range_t> velocityCorrectionMap; // maps original defined velocity range (key) -> corrected velocity range (value)
+                        {
+                            set<DLS::range_t> correctedSplits;
+                            velocityCorrectionMap = killGapsInRanges(origVelocitySplits, correctedSplits);
+                            if (correctedSplits != origVelocitySplits) {
+                                cout << "WARNING: Velocity splits did not cover the full range 0..127, auto adjusted it from " << flush;
+                                printRanges(origVelocitySplits);
+                                cout << " to " << flush;
+                                printRanges(correctedSplits);
+                                cout << endl;
+                            }
+                        }
 
                         // get the velocity range for current KORG region
                         {
@@ -624,6 +675,9 @@ int main(int argc, char *argv[]) {
                                 throw Korg::Exception("Internal error: parsing velocity range failed");
                             velRange.low  = from;
                             velRange.high = to;
+                            if (velocityCorrectionMap.find(velRange) == velocityCorrectionMap.end())
+                                throw Korg::Exception("Internal error: inconsistency in velocity split correction map");
+                            velRange = velocityCorrectionMap[velRange]; // corrected
                         }
 
                         // create velocity split dimension if it doesn't exist already ...
@@ -631,16 +685,15 @@ int main(int argc, char *argv[]) {
                         if (iVelocityDimensionIndex < 0) {
                             gig::dimension_def_t dim;
                             dim.dimension = gig::dimension_velocity;
-                            dim.zones = velocitySplits.size();
-
+                            dim.zones = origVelocitySplits.size();
                             // Find the number of bits required to hold the
                             // specified amount of zones.
                             int zoneBits = dim.zones - 1;
                             for (dim.bits = 0; zoneBits > 1; dim.bits += 2, zoneBits >>= 2);
                             dim.bits += zoneBits;
-
+                            cout << "Adding velocity dimension: zones=" << (int)dim.zones << ", bits=" << (int)dim.bits << endl;
                             gigRegion->AddDimension(&dim);
-                            
+
                             iVelocityDimensionIndex = getDimensionIndex(gigRegion, gig::dimension_velocity);
                         }
 
@@ -651,10 +704,10 @@ int main(int argc, char *argv[]) {
                         int iVelocitySplitZone = -1;
                         {
                             int i = 0;
-                            for (set<DLS::range_t>::const_iterator itVelSplit = velocitySplits.begin();
-                                 itVelSplit != velocitySplits.end(); ++itVelSplit, ++i)
+                            for (map<DLS::range_t,DLS::range_t>::const_iterator itVelSplit = velocityCorrectionMap.begin();
+                                 itVelSplit != velocityCorrectionMap.end(); ++itVelSplit, ++i)
                             {
-                                if (*itVelSplit == velRange) {
+                                if (itVelSplit->second == velRange) { // already corrected before, thus second, not first
                                     iVelocitySplitZone = i;
                                     break;
                                 }
