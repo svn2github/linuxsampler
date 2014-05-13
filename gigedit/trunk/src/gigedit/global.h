@@ -46,4 +46,13 @@ template<class T> inline std::string ToString(T o) {
     return ss.str();
 }
 
+/// Find the number of bits required to hold the specified amount of zones.
+inline int zoneCountToBits(int nZones) {
+    int iFinalBits = 0;
+    int zoneBits = nZones - 1;
+    for (; zoneBits > 1; iFinalBits += 2, zoneBits >>= 2);
+    iFinalBits += zoneBits;
+    return iFinalBits;
+}
+
 #endif // GIGEDIT_GLOBAL_H

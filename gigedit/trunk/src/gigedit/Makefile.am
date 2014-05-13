@@ -26,6 +26,7 @@ libgigedit_la_SOURCES = \
 	dimregionedit.cpp dimregionedit.h \
 	paramedit.cpp paramedit.h \
 	dimensionmanager.cpp dimensionmanager.h \
+	CombineInstrumentsDialog.cpp CombineInstrumentsDialog.h \
 	midirules.cpp midirules.h \
 	Settings.cpp Settings.h \
 	$(wraplabel) $(mac_src)

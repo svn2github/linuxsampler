@@ -335,6 +335,8 @@ protected:
     void instr_name_changed_by_instr_props(Gtk::TreeModel::iterator& it);
     sigc::connection instrument_name_connection;
 
+    void on_action_combine_instruments();
+
     void __import_queued_samples();
     void __clear();
 

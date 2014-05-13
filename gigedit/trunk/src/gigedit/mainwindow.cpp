@@ -43,6 +43,7 @@
 
 #include "mainwindow.h"
 #include "Settings.h"
+#include "CombineInstrumentsDialog.h"
 #include "../../gfx/status_attached.xpm"
 #include "../../gfx/status_detached.xpm"
 
@@ -194,6 +195,14 @@ MainWindow::MainWindow() :
     );
 
 
+    actionGroup->add(Gtk::Action::create("MenuTools", _("_Tools")));
+
+    actionGroup->add(
+        Gtk::Action::create("CombineInstruments", _("_Combine Instruments...")),
+        sigc::mem_fun(*this, &MainWindow::on_action_combine_instruments)
+    );
+
+
     // sample right-click popup actions
     actionGroup->add(
         Gtk::Action::create("SampleProperties", Gtk::Stock::PROPERTIES),
@@ -244,6 +253,9 @@ MainWindow::MainWindow() :
         "    </menu>"
         "    <menu action='MenuView'>"
         "      <menuitem action='Statusbar'/>"
+        "    </menu>"
+        "    <menu action='MenuTools'>"
+        "      <menuitem action='CombineInstruments'/>"
         "    </menu>"
         "    <menu action='MenuSettings'>"
         "      <menuitem action='WarnUserOnExtensions'/>"
@@ -2098,6 +2110,18 @@ void MainWindow::instrument_name_changed(const Gtk::TreeModel::Path& path,
 
         file_changed();
     }
+}
+
+void MainWindow::on_action_combine_instruments() {
+    CombineInstrumentsDialog* d = new CombineInstrumentsDialog(*this, file);
+    d->show_all();
+    d->resize(500, 400);
+    d->run();
+    if (d->fileWasChanged()) {
+        // update GUI with new instrument just created
+        add_instrument(d->newCombinedInstrument());
+    }
+    delete d;
 }
 
 void MainWindow::set_file_is_shared(bool b) {
