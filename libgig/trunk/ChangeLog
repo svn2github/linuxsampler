@@ -38,6 +38,9 @@ Version CVS HEAD (?)
       controller types (only works with LinuxSampler & gigedit, will not
       work with Gigasampler/GigaStudio)
     - added new method File::GetGroup(String name) for getting group by name
+    - added new method Region::GetDimensionDefinition(dimension_t type)
+    - bugfix: don't alter region pointer in DimensionRegion::CopyAssign()
+    - added some more sanity checks in Region::AddDimension()
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
@@ -45,6 +48,7 @@ Version CVS HEAD (?)
     - added new method File::GetExtensionFile(int index)
     - added new method File::SetFileName() allowing to call File::Save()
       later on without passing a file name
+    - added inline helper methods overlaps() for struct range_t
 
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: avoid calling read() with count 0 when writing a file,

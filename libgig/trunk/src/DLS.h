@@ -214,6 +214,15 @@ namespace DLS {
         inline bool operator== (const range_t& other) const {
             return low == other.low && high == other.high;
         }
+
+        inline bool overlaps(uint16_t scalar) const {
+            return low <= scalar && scalar <= high;
+        }
+
+        inline bool overlaps(const range_t& other) const {
+            return overlaps(other.low) || overlaps(other.high) ||
+                   other.overlaps(low) || other.overlaps(high);
+        }
     };
 
     /** Defines Sample Loop Points. */

@@ -1708,12 +1708,14 @@ namespace {
         //NOTE: copy code copied from assignment constructor above, see comment there as well
         
         *this = *orig; // default memberwise shallow copy of all parameters
-        pParentList = p; // restore the chunk pointer
         
-        // only take the raw sample reference & parent region reference if the
+        // restore members that shall not be altered
+        pParentList = p; // restore the chunk pointer
+        pRegion = pOriginalRegion;
+        
+        // only take the raw sample reference reference if the
         // two DimensionRegion objects are part of the same file
         if (pOriginalRegion->GetParent()->GetParent() != orig->pRegion->GetParent()->GetParent()) {
-            pRegion = pOriginalRegion;
             pSample = pOriginalSample;
         }
         
@@ -3199,6 +3201,18 @@ namespace {
      *                        dimension bits limit is violated
      */
     void Region::AddDimension(dimension_def_t* pDimDef) {
+        // some initial sanity checks of the given dimension definition
+        if (pDimDef->zones < 2)
+            throw gig::Exception("Could not add new dimension, amount of requested zones must always be at least two");
+        if (pDimDef->bits < 1)
+            throw gig::Exception("Could not add new dimension, amount of requested requested zone bits must always be at least one");
+        if (pDimDef->dimension == dimension_samplechannel) {
+            if (pDimDef->zones != 2)
+                throw gig::Exception("Could not add new 'sample channel' dimensions, the requested amount of zones must always be 2 for this dimension type");
+            if (pDimDef->bits != 1)
+                throw gig::Exception("Could not add new 'sample channel' dimensions, the requested amount of zone bits must always be 1 for this dimension type");
+        }
+
         // check if max. amount of dimensions reached
         File* file = (File*) GetParent()->GetParent();
         const int iMaxDimensions = (file->pVersion && file->pVersion->major == 3) ? 8 : 5;
@@ -3372,6 +3386,22 @@ namespace {
 
         // if this was a layer dimension, update 'Layers' attribute
         if (pDimDef->dimension == dimension_layer) Layers = 1;
+    }
+
+    /**
+     * Searches in the current Region for a dimension of the given dimension
+     * type and returns the precise configuration of that dimension in this
+     * Region.
+     *
+     * @param type - dimension type of the sought dimension
+     * @returns dimension definition or NULL if there is no dimension with
+     *          sought type in this Region.
+     */
+    dimension_def_t* Region::GetDimensionDefinition(dimension_t type) {
+        for (int i = 0; i < Dimensions; ++i)
+            if (pDimensionDefinitions[i].dimension == type)
+                return &pDimensionDefinitions[i];
+        return NULL;
     }
 
     Region::~Region() {

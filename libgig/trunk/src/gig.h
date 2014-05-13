@@ -426,7 +426,7 @@ namespace gig {
             bool               MSDecode;                      ///< Gigastudio flag: defines if Mid Side Recordings should be decoded.
             uint16_t           SampleStartOffset;             ///< Number of samples the sample start should be moved (0 - 2000).
             double             SampleAttenuation;             ///< Sample volume (calculated from DLS::Sampler::Gain)
-            uint8_t            DimensionUpperLimits[8];       ///< gig3: defines the upper limit of the dimension values for this dimension region
+            uint8_t            DimensionUpperLimits[8];       ///< gig3: defines the upper limit of the dimension values for this dimension region. In case you wondered why this is defined on DimensionRegion level and not on Region level: the zone sizes (upper limits) of the velocity dimension can indeed differ in the individual dimension regions, depending on which zones of the other dimension types are currently selected. So this is exceptional for the velocity dimension only. All other dimension types have the same dimension zone sizes for every single DimensionRegion (of the sample Region).
 
             // derived attributes from DLS::Sampler
             using DLS::Sampler::UnityNote;
@@ -685,7 +685,22 @@ namespace gig {
     };
 
     // TODO: <3dnl> list not used yet - not important though (just contains optional descriptions for the dimensions)
-    /** Defines <i>Region</i> information of an <i>Instrument</i>. */
+    /** @brief Defines Region information of an Instrument.
+     *
+     * A Region reflects a consecutive area on the keyboard. The individual
+     * regions in the gig format may not overlap with other regions (of the same
+     * instrument). Further, in the gig format a Region is merely a container
+     * for DimensionRegions (a.k.a. "Cases"). The Region itself does not provide
+     * the sample mapping or articulation informations used, even though the
+     * data structures indeed provide such informations. The latter is however
+     * just of historical nature, because the gig format was derived from the
+     * DLS format.
+     *
+     * Each Region consists of at least one or more DimensionRegions. The actual
+     * amount of DimensionRegions depends on which kind of "dimensions" are
+     * defined for this region, and on the split / zone amount for each of those
+     * dimensions.
+     */
     class Region : public DLS::Region {
         public:
             unsigned int            Dimensions;               ///< Number of defined dimensions, do not alter!
@@ -700,6 +715,7 @@ namespace gig {
             Sample*          GetSample();
             void             AddDimension(dimension_def_t* pDimDef);
             void             DeleteDimension(dimension_def_t* pDimDef);
+            dimension_def_t* GetDimensionDefinition(dimension_t type);
             // overridden methods
             virtual void     SetKeyRange(uint16_t Low, uint16_t High);
             virtual void     UpdateChunks();
