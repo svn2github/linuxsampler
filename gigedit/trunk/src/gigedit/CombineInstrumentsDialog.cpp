@@ -32,6 +32,8 @@ typedef std::map<gig::dimension_t,int> DimensionCase;
 
 typedef std::map<gig::dimension_t, int> DimensionRegionUpperLimits;
 
+typedef std::map<gig::DimensionRegion*, DimensionZones> VelocityZones;
+
 ///////////////////////////////////////////////////////////////////////////
 // private functions
 
@@ -263,7 +265,7 @@ static void fillDimValues(uint* values/*[8]*/, DimensionCase dimCase, gig::Regio
 static DimensionRegionUpperLimits getDimensionRegionUpperLimits(gig::DimensionRegion* dimRgn) {
     DimensionRegionUpperLimits limits;
     gig::Region* rgn = dimRgn->GetParent();
-    for (int d = 0; d < rgn->Dimensions; ++d) {
+    for (uint d = 0; d < rgn->Dimensions; ++d) {
         const gig::dimension_def_t& def = rgn->pDimensionDefinitions[d];
         limits[def.dimension] = dimRgn->DimensionUpperLimits[d];
     }
@@ -291,7 +293,7 @@ static void restoreDimensionRegionUpperLimits(gig::DimensionRegion* dimRgn, cons
  */
 inline int baseBits(gig::dimension_t type, gig::Region* rgn) {
     int previousBits = 0;
-    for (int i = 0; i < rgn->Dimensions; ++i) {
+    for (uint i = 0; i < rgn->Dimensions; ++i) {
         if (rgn->pDimensionDefinitions[i].dimension == type) break;
         previousBits += rgn->pDimensionDefinitions[i].bits;
     }
@@ -344,6 +346,15 @@ static DimensionZones preciseDimensionZonesFor(gig::dimension_t type, gig::Dimen
     return zones;
 }
 
+static VelocityZones getVelocityZones(gig::Region* rgn) {
+    VelocityZones zones;
+    for (uint i = 0; i < rgn->DimensionRegions; ++i) {
+        gig::DimensionRegion* dimRgn = rgn->pDimensionRegions[i];
+        zones[dimRgn] = preciseDimensionZonesFor(gig::dimension_velocity, dimRgn);
+    }
+    return zones;
+}
+
 /** @brief Copy all DimensionRegions from source Region to target Region.
  *
  * Copies the entire articulation informations (including sample reference of
@@ -364,13 +375,19 @@ static DimensionZones preciseDimensionZonesFor(gig::dimension_t type, gig::Dimen
  *                    regions shall be copied to
  * @param iSrcLayer - layer number of the source region where the dimension
  *                    regions shall be copied from
+ * @param dstVelocityZones - all precise velocity zones for destination region
+ *                           (since this information is stored on
+ *                           DimensionRegion level and this function is
+ *                           modifying target DimensionRegions, this
+ *                           informations thus needs to be retrieved before
+ *                           calling this function)
  * @param dimCase - just for internal purpose (function recursion), don't pass
  *                  anything here, this function will call itself recursively
  *                  will fill this container with concrete dimension values for
  *                  selecting the precise dimension regions during its task
  */
-static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimensions dims, int iDstLayer, int iSrcLayer, DimensionCase dimCase = DimensionCase()) {
-    if (dims.empty()) {
+static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimensions dims, int iDstLayer, int iSrcLayer, const VelocityZones& dstVelocityZones, DimensionCase dimCase = DimensionCase()) {
+    if (dims.empty()) { // finally reached end of function recursion ...
         // resolve the respective source & destination DimensionRegion ...        
         uint srcDimValues[8] = {};
         uint dstDimValues[8] = {};
@@ -388,6 +405,9 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
         fillDimValues(dstDimValues, dstDimCase, outRgn, true);
         gig::DimensionRegion* srcDimRgn = inRgn->GetDimensionRegionByValue(srcDimValues);
         gig::DimensionRegion* dstDimRgn = outRgn->GetDimensionRegionByValue(dstDimValues);
+        #if DEBUG_COMBINE_INSTRUMENTS
+        printf("srcDimRgn=%lx dstDimRgn=%lx\n", (uint64_t)srcDimRgn, (uint64_t)dstDimRgn);
+        #endif
 
         // now that we have access to the precise velocity split zone upper
         // limits, we can select the actual source & destination dimension
@@ -395,20 +415,37 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
         // a velocity dimension)
         if (outRgn->GetDimensionDefinition(gig::dimension_velocity)) {
             // re-select target dimension region
-            DimensionZones zones = preciseDimensionZonesFor(gig::dimension_velocity, dstDimRgn);
-            assert(zones.size() > 1);
-            const int iZoneIndex = dstDimCase[gig::dimension_velocity];
-            assert(iZoneIndex <= zones.size());
-            dstDimCase[gig::dimension_velocity] = zones[iZoneIndex].low; // arbitrary value between low and high
+            assert(dstVelocityZones.find(dstDimRgn) != dstVelocityZones.end());
+            DimensionZones dstZones = dstVelocityZones.find(dstDimRgn)->second;
+            assert(dstZones.size() > 1);
+            int iZoneIndex = dstDimCase[gig::dimension_velocity];
+            #if DEBUG_COMBINE_INSTRUMENTS
+            printf("dst velocity zone: %d/%d\n", iZoneIndex, dstZones.size());
+            #endif
+            assert(iZoneIndex < dstZones.size());
+            dstDimCase[gig::dimension_velocity] = dstZones[iZoneIndex].low; // arbitrary value between low and high
+            #if DEBUG_COMBINE_INSTRUMENTS
+            printf("dst velocity value = %d\n", dstDimCase[gig::dimension_velocity]);
+            #endif
             fillDimValues(dstDimValues, dstDimCase, outRgn, true);
             dstDimRgn = outRgn->GetDimensionRegionByValue(dstDimValues);
+            #if DEBUG_COMBINE_INSTRUMENTS
+            printf("reselected dstDimRgn=%lx\n", (uint64_t)dstDimRgn);
+            #endif
 
             // re-select source dimension region
             // (if it has a velocity dimension)
             if (inRgn->GetDimensionDefinition(gig::dimension_velocity)) {
-                srcDimCase[gig::dimension_velocity] = zones[iZoneIndex].low; // same value as used above for target dimension region
+                DimensionZones srcZones = preciseDimensionZonesFor(gig::dimension_velocity, srcDimRgn);
+                assert(srcZones.size() > 1);
+                if (iZoneIndex >= srcZones.size())
+                    iZoneIndex  = srcZones.size();
+                srcDimCase[gig::dimension_velocity] = srcZones[iZoneIndex].low; // same zone as used above for target dimension region (no matter what the precise zone ranges are)
                 fillDimValues(srcDimValues, srcDimCase, inRgn, false);
                 srcDimRgn = inRgn->GetDimensionRegionByValue(srcDimValues);
+                #if DEBUG_COMBINE_INSTRUMENTS
+                printf("reselected srcDimRgn=%lx\n", (uint64_t)srcDimRgn);
+                #endif
             }
         }
 
@@ -436,6 +473,11 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
         return; // end of recursion
     }
 
+    // Copying n dimensions requires n nested loops. That's why this function
+    // is calling itself recursively to provide the required amount of nested
+    // loops. With each call it pops from argument 'dims' and pushes to
+    // argument 'dimCase'.
+
     Dimensions::iterator itDimension = dims.begin();
 
     gig::dimension_t type = itDimension->first;
@@ -451,7 +493,7 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
         gig::dimension_def_t* def = outRgn->GetDimensionDefinition(type);
         dimCase[type] = (def->split_type == gig::split_type_bit) ? iZone : zoneRange.low;
         // recurse until 'dims' is exhausted (and dimCase filled up with concrete value)
-        copyDimensionRegions(outRgn, inRgn, dims, iDstLayer, iSrcLayer, dimCase);
+        copyDimensionRegions(outRgn, inRgn, dims, iDstLayer, iSrcLayer, dstVelocityZones, dimCase);
     }
 }
 
@@ -487,7 +529,7 @@ static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::
 
     // create a new output instrument
     gig::Instrument* outInstr = gig->AddInstrument();
-    outInstr->pInfo->Name = "NEW COMBINATION";
+    outInstr->pInfo->Name = _("NEW COMBINATION");
 
     // Distinguishing in the following code block between 'horizontal' and
     // 'vertical' regions. The 'horizontal' ones are meant to be the key ranges
@@ -555,8 +597,9 @@ static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::
              itRgn != itGroup->second.end(); ++itRgn) // iterate over 'vertical' / source regions ...
         {
             gig::Region* inRgn = itRgn->second;
+            VelocityZones dstVelocityZones = getVelocityZones(outRgn);
             for (uint iSrcLayer = 0; iSrcLayer < inRgn->Layers; ++iSrcLayer, ++iDstLayer) {
-                copyDimensionRegions(outRgn, inRgn, dims, iDstLayer, iSrcLayer);
+                copyDimensionRegions(outRgn, inRgn, dims, iDstLayer, iSrcLayer, dstVelocityZones);
             }
         }
     }
