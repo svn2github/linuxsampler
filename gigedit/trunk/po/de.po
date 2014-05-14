@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gigedit 0.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-01-12 20:34+0100\n"
-"PO-Revision-Date: 2014-05-13 13:10+0100\n"
+"PO-Revision-Date: 2014-05-14 02:21+0100\n"
 "Last-Translator: Christian Schoenebeck\n"
 "Language-Team: German\n"
 "Language: \n"
@@ -16,17 +16,29 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:486
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:615
 msgid "No regions found to create a new instrument with."
 msgstr "Keine Regions gefunden um daraus ein neues Instrument zu erzeugen."
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:572
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:619
+msgid "NEW COMBINATION"
+msgstr "NEUE_KOMBINATION"
+
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:702
 msgid "Combine Instruments"
 msgstr "Instrumente kombinieren"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:585
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:715
 msgid "Select at least two instruments below that shall be combined  as layers (using a \"Layer\" dimension) to a new instrument. The original instruments remain untouched."
 msgstr "Wählen Sie hier mindestens zwei Instrumente die mittels \"Layer\" Dimension als ein neues Instrument kombiniert werden sollen. Die ursprünglichen Instrumente bleiben unberührt."
+
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:723
+msgid "Use SHIFT + left click or CTRL + left click to select the instruments you want to combine."
+msgstr "Benutzen Sie UMSCHALT + Mausklick Links oder STRG + Mausklick Rechts um die Instrumente zu wählen, die Sie kombinieren wollen."
+
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:779
+msgid "You are currently using a .gig file in old v2 format. The current combine algorithm will most probably fail trying to combine instruments in this old format. So better save the file in new v3 format before trying to combine your instruments."
+msgstr "Sie benutzen derzeit eine .gig Datei im alten v2 Format. Der aktuelle Kombinieralgorithmus wird höchstwahrscheinlich scheitern Instrumente in diesem alten Format zu kombinieren. Speichern Sie deshalb besser diese Datei im neuen v3 Format ab, bevor Sie versuchen Instrumente zu kombinieren."
 
 #: ../src/gigedit/mainwindow.cpp:52
 msgid "Changes apply to:"
@@ -465,11 +477,11 @@ msgstr "Auswählen"
 msgid "Could not replace the following sample(s):\n"
 msgstr "Konnte die folgenden Sample(s) nicht ersetzen:\n"
 
-#: ../src/gigedit/mainwindow.cpp:2131
+#: ../src/gigedit/mainwindow.cpp:2133
 msgid "live-mode"
 msgstr "Live-Modus"
 
-#: ../src/gigedit/mainwindow.cpp:2136
+#: ../src/gigedit/mainwindow.cpp:2138
 msgid "stand-alone"
 msgstr "Stand-Alone"
 
@@ -1832,3 +1844,4 @@ msgstr "Alt sustain 1 key"
 #: ../src/gigedit/midirules.cpp:510
 msgid "Alt sustain 2 key"
 msgstr "Alt sustain 2 key"
+

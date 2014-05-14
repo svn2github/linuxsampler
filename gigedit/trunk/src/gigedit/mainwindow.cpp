@@ -434,6 +434,10 @@ MainWindow::MainWindow() :
 
     // start with a new gig file by default
     on_action_file_new();
+
+    // select 'Instruments' tab by default
+    // (gtk allows this only if the tab childs are visible, thats why it's here)
+    m_TreeViewNotebook.set_current_page(1); 
 }
 
 MainWindow::~MainWindow()
@@ -2010,9 +2014,11 @@ void MainWindow::on_sample_label_drop_drag_data_received(
         bool channels_changed = false;
         if (sample->Channels == 1 && stereo_dimension) {
             // remove the samplechannel dimension
+/* commented out, because it makes it impossible building up an instrument from scratch using two separate L/R samples
             region->DeleteDimension(stereo_dimension);
             channels_changed = true;
             region_changed();
+*/
         }
         dimreg_edit.set_sample(
             sample,
