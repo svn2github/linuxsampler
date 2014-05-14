@@ -518,10 +518,6 @@ int main(int argc, char *argv[]) {
     bool bForce = false;
 
     // validate & parse arguments provided to this program
-    if (argc < 3) {
-        printUsage();
-        return EXIT_FAILURE;
-    }
     int iArg;
     for (iArg = 1; iArg < argc; ++iArg) {
         const string opt = argv[iArg];
@@ -544,6 +540,10 @@ int main(int argc, char *argv[]) {
             printUsage();
             return EXIT_FAILURE;
         }
+    }
+    if (argc < 3) {
+        printUsage();
+        return EXIT_FAILURE;
     }
 
     set<string> inFileNames;
