@@ -15,6 +15,8 @@
 #include <set>
 #include <iostream>
 #include <assert.h>
+#include <stdarg.h>
+#include <string.h>
 
 #include <glibmm/ustring.h>
 #include <gtkmm/stock.h>
@@ -32,6 +34,13 @@ typedef std::map<gig::dimension_t,int> DimensionCase;
 
 typedef std::map<gig::dimension_t, int> DimensionRegionUpperLimits;
 
+typedef std::set<Glib::ustring> Warnings;
+
+///////////////////////////////////////////////////////////////////////////
+// private static data
+
+static Warnings g_warnings;
+
 ///////////////////////////////////////////////////////////////////////////
 // private functions
 
@@ -45,6 +54,24 @@ static void printRanges(const RegionGroups& regions) {
     std::cout << " }" << std::flush;
 }
 #endif
+
+/**
+ * Store a warning message that shall be stored and displayed to the user as a
+ * list of warnings after the overall operation has finished. Duplicate warning
+ * messages are automatically eliminated.
+ */
+inline void addWarning(const char* fmt, ...) {
+    va_list arg;
+    va_start(arg, fmt);
+    const int SZ = 255 + strlen(fmt);
+    char* buf = new char[SZ];
+    vsnprintf(buf, SZ, fmt, arg);
+    Glib::ustring s = buf;
+    delete [] buf;
+    va_end(arg);
+    std::cerr << _("WARNING:") << " " << s << std::endl << std::flush;
+    g_warnings.insert(s);
+}
 
 /**
  * If the two ranges overlap, then this function returns the smallest point
@@ -131,7 +158,7 @@ static RegionGroup getAllRegionsWhichOverlapRange(std::vector<gig::Instrument*>&
         std::vector<gig::Region*> v = getAllRegionsWhichOverlapRange(instr, range);
         if (v.empty()) continue;
         if (v.size() > 1) {
-            std::cerr << "WARNING: More than one region found!" << std::endl;
+            addWarning("More than one region found!");
         }
         group[instr] = v[0];
     }
@@ -175,7 +202,7 @@ static RegionGroups groupByRegionIntersections(std::vector<gig::Instrument*>& in
         if (!group.empty())
             groups[range] = group;
         else
-            std::cerr << "WARNING: empty region group!" << std::endl;
+            addWarning("Empty region group!");
     }
 
     return groups;
@@ -484,7 +511,10 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
             if (inRgn->GetDimensionDefinition(gig::dimension_velocity)) {
                 DimensionZones srcZones = preciseDimensionZonesFor(gig::dimension_velocity, srcDimRgn);
                 e.totalSrcVelocityZones = srcZones.size();
-                assert(srcZones.size() > 1);
+                assert(srcZones.size() > 0);
+                if (srcZones.size() <= 1) {
+                    addWarning("Input region has a velocity dimension with only ONE zone!");
+                }
                 if (uint(iZoneIndex) >= srcZones.size())
                     iZoneIndex  = srcZones.size() - 1;
                 srcDimCase[gig::dimension_velocity] = srcZones[iZoneIndex].low; // same zone as used above for target dimension region (no matter what the precise zone ranges are)
@@ -560,10 +590,13 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
             // allowed to differ for individual DimensionRegions in gig v3
             // format
             if (srcUpperLimits.count(gig::dimension_velocity)) {
-                assert(dstUpperLimits.count(gig::dimension_velocity));
-                dstUpperLimits[gig::dimension_velocity] =
-                    (e.velocityZone >= e.totalSrcVelocityZones)
-                        ? 127 : srcUpperLimits[gig::dimension_velocity];
+                if (!dstUpperLimits.count(gig::dimension_velocity)) {
+                    addWarning("Source instrument seems to have a velocity dimension whereas new target instrument doesn't!");
+                } else {
+                    dstUpperLimits[gig::dimension_velocity] =
+                        (e.velocityZone >= e.totalSrcVelocityZones)
+                            ? 127 : srcUpperLimits[gig::dimension_velocity];
+                }
             }
             restoreDimensionRegionUpperLimits(e.dst, dstUpperLimits);
         }
@@ -618,6 +651,9 @@ static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::
     {
         gig::Region* outRgn = outInstr->AddRegion();
         outRgn->SetKeyRange(itGroup->first.low, itGroup->first.high);
+        #if DEBUG_COMBINE_INSTRUMENTS
+        printf("---> Start target region %d..%d\n", itGroup->first.low, itGroup->first.high);
+        #endif
 
         // detect the total amount of layers required to build up this combi
         // for current key range
@@ -628,26 +664,51 @@ static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::
             gig::Region* inRgn = itRgn->second;
             iTotalLayers += inRgn->Layers;
         }
-
+        #if DEBUG_COMBINE_INSTRUMENTS
+        printf("Required total layers: %d\n", iTotalLayers);
+        #endif
+        
         // create all required dimensions for this output region
         // (except the layer dimension, which we create as next step)
         Dimensions dims = getDimensionsForRegionGroup(itGroup->second);
-        for (Dimensions::iterator itDim = dims.begin();
-             itDim != dims.end(); ++itDim)
         {
-            if (itDim->first == gig::dimension_layer) continue;
+            std::vector<gig::dimension_t> skipTheseDimensions; // used to prevent a misbehavior (i.e. crash) of the combine algorithm in case one of the source instruments has a dimension with only one zone, which is not standard conform
 
-            gig::dimension_def_t def;
-            def.dimension = itDim->first; // dimension type
-            def.zones = itDim->second.size();
-            def.bits = zoneCountToBits(def.zones);
-            #if DEBUG_COMBINE_INSTRUMENTS
-            std::cout << "Adding new regular dimension type=" << std::hex << (int)def.dimension << std::dec << ", zones=" << (int)def.zones << ", bits=" << (int)def.bits << " ... " << std::flush;
-            #endif
-            outRgn->AddDimension(&def);
-            #if DEBUG_COMBINE_INSTRUMENTS
-            std::cout << "OK" << std::endl << std::flush;
-            #endif
+            for (Dimensions::iterator itDim = dims.begin();
+                itDim != dims.end(); ++itDim)
+            {
+                // layer dimension is created separately in the next code block
+                // (outside of this loop)
+                if (itDim->first == gig::dimension_layer) continue;
+
+                gig::dimension_def_t def;
+                def.dimension = itDim->first; // dimension type
+                def.zones = itDim->second.size();
+                def.bits = zoneCountToBits(def.zones);
+                if (def.zones < 2) {
+                    addWarning(
+                        "Attempt to create dimension with type=0x%x with only "
+                        "ONE zone (because at least one of the source "
+                        "instruments seems to have such a velocity dimension "
+                        "with only ONE zone, which is odd)! Skipping this "
+                        "dimension for now.",
+                        (int)itDim->first
+                    );
+                    skipTheseDimensions.push_back(itDim->first);
+                    continue;
+                }
+                #if DEBUG_COMBINE_INSTRUMENTS
+                std::cout << "Adding new regular dimension type=" << std::hex << (int)def.dimension << std::dec << ", zones=" << (int)def.zones << ", bits=" << (int)def.bits << " ... " << std::flush;
+                #endif
+                outRgn->AddDimension(&def);
+                #if DEBUG_COMBINE_INSTRUMENTS
+                std::cout << "OK" << std::endl << std::flush;
+                #endif
+            }
+            // prevent the following dimensions to be processed further below
+            // (since the respective dimension was not created above)
+            for (int i = 0; i < skipTheseDimensions.size(); ++i)
+                dims.erase(skipTheseDimensions[i]);
         }
 
         // create the layer dimension (if necessary for current key range)
@@ -671,6 +732,9 @@ static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::
              itRgn != itGroup->second.end(); ++itRgn) // iterate over 'vertical' / source regions ...
         {
             gig::Region* inRgn = itRgn->second;
+            #if DEBUG_COMBINE_INSTRUMENTS
+            printf("[source region of '%s']\n", inRgn->GetParent()->pInfo->Name.c_str());
+            #endif
             for (uint iSrcLayer = 0; iSrcLayer < inRgn->Layers; ++iSrcLayer, ++iDstLayer) {
                 copyDimensionRegions(outRgn, inRgn, dims, iDstLayer, iSrcLayer);
             }
@@ -786,12 +850,33 @@ void CombineInstrumentsDialog::combineSelectedInstruments() {
         instruments.push_back(instrument);
     }
 
+    g_warnings.clear();
+
     try {
         combineInstruments(instruments, m_gig, m_newCombinedInstrument);
     } catch (RIFF::Exception e) {;
         Gtk::MessageDialog msg(*this, e.Message, false, Gtk::MESSAGE_ERROR);
         msg.run();
         return;
+    }
+
+    if (!g_warnings.empty()) {
+        Glib::ustring txt = _(
+            "Combined instrument was created successfully, but there were warnings:"
+        );
+        txt += "\n\n";
+        for (Warnings::const_iterator itWarn = g_warnings.begin();
+             itWarn != g_warnings.end(); ++itWarn)
+        {
+            txt += "-> " + *itWarn + "\n";
+        }
+        txt += "\n";
+        txt += _(
+            "You might also want to check the console for further warnings and "
+            "error messages."
+        );
+        Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_WARNING);
+        msg.run();
     }
 
     // no error occurred
