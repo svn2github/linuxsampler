@@ -336,9 +336,12 @@ protected:
     sigc::connection instrument_name_connection;
 
     void on_action_combine_instruments();
+    void on_action_merge_files();
+    void mergeFiles(const std::vector<std::string>& filenames);
 
     void __import_queued_samples();
     void __clear();
+    void __refreshEntireGUI();
 
     bool close_confirmation_dialog();
     bool leaving_shared_mode_dialog();

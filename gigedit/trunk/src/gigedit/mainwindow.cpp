@@ -40,6 +40,7 @@
 
 #include <stdio.h>
 #include <sndfile.h>
+#include <assert.h>
 
 #include "mainwindow.h"
 #include "Settings.h"
@@ -202,6 +203,11 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_action_combine_instruments)
     );
 
+    actionGroup->add(
+        Gtk::Action::create("MergeFiles", _("_Merge Files...")),
+        sigc::mem_fun(*this, &MainWindow::on_action_merge_files)
+    );
+
 
     // sample right-click popup actions
     actionGroup->add(
@@ -256,6 +262,7 @@ MainWindow::MainWindow() :
         "    </menu>"
         "    <menu action='MenuTools'>"
         "      <menuitem action='CombineInstruments'/>"
+        "      <menuitem action='MergeFiles'/>"
         "    </menu>"
         "    <menu action='MenuSettings'>"
         "      <menuitem action='WarnUserOnExtensions'/>"
@@ -309,6 +316,17 @@ MainWindow::MainWindow() :
             uiManager->get_widget("/MenuBar/MenuSettings/WarnUserOnExtensions"));
         item->set_tooltip_text(_("If checked, a warning will be shown whenever you try to use a feature which is based on a LinuxSampler extension ontop of the original gig format, which would not work with the Gigasampler/GigaStudio application."));
     }
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuTools/CombineInstruments"));
+        item->set_tooltip_text(_("Create combi sounds out of individual sounds of this .gig file."));
+    }
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuTools/MergeFiles"));
+        item->set_tooltip_text(_("Add instruments and samples of other .gig files to this .gig file."));
+    }
+
 
     instrument_menu = static_cast<Gtk::MenuItem*>(
         uiManager->get_widget("/MenuBar/MenuInstrument"))->get_submenu();
@@ -624,6 +642,22 @@ void MainWindow::__clear() {
     if (file && !file_is_shared) delete file;
     file = NULL;
     set_file_is_shared(false);
+}
+
+void MainWindow::__refreshEntireGUI() {
+    // clear the samples and instruments tree views
+    m_refTreeModel->clear();
+    m_refSamplesTreeModel->clear();
+    // remove all entries from "Instrument" menu
+    while (!instrument_menu->get_children().empty()) {
+        remove_instrument_from_menu(0);
+    }
+
+    if (!this->file) return;
+
+    load_gig(
+        this->file, this->file->pInfo->Name.c_str(), this->file_is_shared
+    );
 }
 
 void MainWindow::on_action_file_new()
@@ -2128,6 +2162,150 @@ void MainWindow::on_action_combine_instruments() {
         add_instrument(d->newCombinedInstrument());
     }
     delete d;
+}
+
+void MainWindow::mergeFiles(const std::vector<std::string>& filenames) {
+    struct _Source {
+        std::vector<RIFF::File*> riffs;
+        std::vector<gig::File*> gigs;
+        
+        ~_Source() {
+            for (int k = 0; k < gigs.size(); ++k) delete gigs[k];
+            for (int k = 0; k < riffs.size(); ++k) delete riffs[k];
+            riffs.clear();
+            gigs.clear();
+        }
+    } sources;
+
+    if (filenames.empty())
+        throw RIFF::Exception(_("No files selected, so nothing done."));
+
+    // first open all input files (to avoid output file corruption)
+    int i;
+    try {
+        for (i = 0; i < filenames.size(); ++i) {
+            const std::string& filename = filenames[i];
+            printf("opening file=%s\n", filename.c_str());
+
+            RIFF::File* riff = new RIFF::File(filename);
+            sources.riffs.push_back(riff);
+
+            gig::File* gig = new gig::File(riff);
+            sources.gigs.push_back(gig);
+        }
+    } catch (RIFF::Exception e) {
+        throw RIFF::Exception(
+            _("Error occurred while opening '") +
+            filenames[i] +
+            "': " +
+            e.Message
+        );
+    } catch (...) {
+        throw RIFF::Exception(
+            _("Unknown exception occurred while opening '") + 
+            filenames[i] + "'"
+        );
+    }
+
+    // now merge the opened .gig files to the main .gig file currently being
+    // open in gigedit
+    try {
+        for (i = 0; i < filenames.size(); ++i) {
+            const std::string& filename = filenames[i];
+            printf("merging file=%s\n", filename.c_str());
+            assert(i < sources.gigs.size());
+
+            this->file->AddContentOf(sources.gigs[i]);
+        }
+    } catch (RIFF::Exception e) {
+        throw RIFF::Exception(
+            _("Error occurred while merging '") +
+            filenames[i] +
+            "': " +
+            e.Message
+        );
+    } catch (...) {
+        throw RIFF::Exception(
+            _("Unknown exception occurred while merging '") + 
+            filenames[i] + "'"
+        );
+    }
+
+    // Note: requires that this file already has a filename !
+    this->file->Save();
+}
+
+void MainWindow::on_action_merge_files() {
+    if (this->file->GetFileName().empty()) {
+        Glib::ustring txt = _(
+            "You seem to have a new .gig file open that has not been saved "
+            "yet. You must save it somewhere before starting to merge it with "
+            "other .gig files though, because during the merge operation the "
+            "other files' sample data must be written on file level to the "
+            "target .gig file."
+        );
+        Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+        msg.run();
+        return;
+    }
+
+    Gtk::FileChooserDialog dialog(*this, _("Merge .gig files"));
+    dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+    dialog.add_button(_("Merge"), Gtk::RESPONSE_OK);
+    dialog.set_default_response(Gtk::RESPONSE_CANCEL);
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
+    Gtk::FileFilter filter;
+    filter.add_pattern("*.gig");
+#else
+    Glib::RefPtr<Gtk::FileFilter> filter = Gtk::FileFilter::create();
+    filter->add_pattern("*.gig");
+#endif
+    dialog.set_filter(filter);
+    if (current_gig_dir != "") {
+        dialog.set_current_folder(current_gig_dir);
+    }
+    dialog.set_select_multiple(true);
+
+    // show warning in the file picker dialog
+    Gtk::HBox descriptionArea;
+    descriptionArea.set_spacing(15);
+    Gtk::Image warningIcon(Gtk::Stock::DIALOG_WARNING, Gtk::IconSize(Gtk::ICON_SIZE_DIALOG));
+    descriptionArea.pack_start(warningIcon, Gtk::PACK_SHRINK);
+#if GTKMM_MAJOR_VERSION < 3
+    view::WrapLabel description;
+#else
+    Gtk::Label description;
+    description.set_line_wrap();
+#endif
+    description.set_markup(_(
+        "\nSelect at least one .gig file that shall be merged to the .gig file "
+        "currently being open in gigedit.\n\n"
+        "<b>Please Note:</b> Merging with other files will modify your "
+        "currently open .gig file on file level! And be aware that the current "
+        "merge algorithm does not detect duplicate samples yet. So if you are "
+        "merging files which are using equivalent sample data, those "
+        "equivalent samples will currently be treated as separate samples and "
+        "will accordingly be stored separately in the target .gig file!"
+    ));
+    descriptionArea.pack_start(description);
+    dialog.get_vbox()->pack_start(descriptionArea, Gtk::PACK_SHRINK);
+    descriptionArea.show_all();
+
+    if (dialog.run() == Gtk::RESPONSE_OK) {
+        printf("on_action_merge_files self=%x\n", Glib::Threads::Thread::self());
+        std::vector<std::string> filenames = dialog.get_filenames();
+
+        // merge the selected files to the currently open .gig file
+        try {
+            mergeFiles(filenames);
+        } catch (RIFF::Exception e) {
+            Gtk::MessageDialog msg(*this, e.Message, false, Gtk::MESSAGE_ERROR);
+            msg.run();
+        }
+
+        // update GUI
+        __refreshEntireGUI();        
+    }
 }
 
 void MainWindow::set_file_is_shared(bool b) {

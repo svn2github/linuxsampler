@@ -858,6 +858,11 @@ void CombineInstrumentsDialog::combineSelectedInstruments() {
         Gtk::MessageDialog msg(*this, e.Message, false, Gtk::MESSAGE_ERROR);
         msg.run();
         return;
+    } catch (...) {
+        Glib::ustring txt = _("An unknown exception occurred!");
+        Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+        msg.run();
+        return;
     }
 
     if (!g_warnings.empty()) {
