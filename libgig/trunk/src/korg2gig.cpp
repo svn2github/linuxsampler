@@ -668,56 +668,62 @@ int main(int argc, char *argv[]) {
                             }
                         }
 
-                        // get the velocity range for current KORG region
-                        {
-                            int from, to;
-                            if (parseNumberRange(kmpInstr->Name(), from, to) == kmpInstr->Name())
-                                throw Korg::Exception("Internal error: parsing velocity range failed");
-                            velRange.low  = from;
-                            velRange.high = to;
-                            if (velocityCorrectionMap.find(velRange) == velocityCorrectionMap.end())
-                                throw Korg::Exception("Internal error: inconsistency in velocity split correction map");
-                            velRange = velocityCorrectionMap[velRange]; // corrected
-                        }
-
-                        // create velocity split dimension if it doesn't exist already ...
-                        iVelocityDimensionIndex = getDimensionIndex(gigRegion, gig::dimension_velocity);
-                        if (iVelocityDimensionIndex < 0) {
-                            gig::dimension_def_t dim;
-                            dim.dimension = gig::dimension_velocity;
-                            dim.zones = origVelocitySplits.size();
-                            // Find the number of bits required to hold the
-                            // specified amount of zones.
-                            int zoneBits = dim.zones - 1;
-                            for (dim.bits = 0; zoneBits > 1; dim.bits += 2, zoneBits >>= 2);
-                            dim.bits += zoneBits;
-                            cout << "Adding velocity dimension: zones=" << (int)dim.zones << ", bits=" << (int)dim.bits << endl;
-                            gigRegion->AddDimension(&dim);
-
-                            iVelocityDimensionIndex = getDimensionIndex(gigRegion, gig::dimension_velocity);
-                        }
-
-                        if (iVelocityDimensionIndex < 0)
-                            throw gig::Exception("Internal error: Could not resolve target velocity dimension bit");
-
-                        // find the velocity zone for this one
-                        int iVelocitySplitZone = -1;
-                        {
-                            int i = 0;
-                            for (map<DLS::range_t,DLS::range_t>::const_iterator itVelSplit = velocityCorrectionMap.begin();
-                                 itVelSplit != velocityCorrectionMap.end(); ++itVelSplit, ++i)
+                        // only create a velocity dimension if there was really
+                        // more than one velocity split zone defined
+                        if (origVelocitySplits.size() <= 1) {
+                            cerr << "WARNING: Velocity split mentioned, but with only one zone, thus ignoring velocity split.\n";
+                        } else {
+                            // get the velocity range for current KORG region
                             {
-                                if (itVelSplit->second == velRange) { // already corrected before, thus second, not first
-                                    iVelocitySplitZone = i;
-                                    break;
-                                }
+                                int from, to;
+                                if (parseNumberRange(kmpInstr->Name(), from, to) == kmpInstr->Name())
+                                    throw Korg::Exception("Internal error: parsing velocity range failed");
+                                velRange.low  = from;
+                                velRange.high = to;
+                                if (velocityCorrectionMap.find(velRange) == velocityCorrectionMap.end())
+                                    throw Korg::Exception("Internal error: inconsistency in velocity split correction map");
+                                velRange = velocityCorrectionMap[velRange]; // corrected
                             }
-                            if (iVelocitySplitZone == -1)
-                                throw gig::Exception("Internal error: Could not resolve target velocity dimension zone");
-                        }
 
-                        // select dimension bit for this stereo dimension split
-                        iDimBits[iVelocityDimensionIndex] = iVelocitySplitZone;
+                            // create velocity split dimension if it doesn't exist already ...
+                            iVelocityDimensionIndex = getDimensionIndex(gigRegion, gig::dimension_velocity);
+                            if (iVelocityDimensionIndex < 0) {
+                                gig::dimension_def_t dim;
+                                dim.dimension = gig::dimension_velocity;
+                                dim.zones = origVelocitySplits.size();
+                                // Find the number of bits required to hold the
+                                // specified amount of zones.
+                                int zoneBits = dim.zones - 1;
+                                for (dim.bits = 0; zoneBits > 1; dim.bits += 2, zoneBits >>= 2);
+                                dim.bits += zoneBits;
+                                cout << "Adding velocity dimension: zones=" << (int)dim.zones << ", bits=" << (int)dim.bits << endl;
+                                gigRegion->AddDimension(&dim);
+
+                                iVelocityDimensionIndex = getDimensionIndex(gigRegion, gig::dimension_velocity);
+                            }
+
+                            if (iVelocityDimensionIndex < 0)
+                                throw gig::Exception("Internal error: Could not resolve target velocity dimension bit");
+
+                            // find the velocity zone for this one
+                            int iVelocitySplitZone = -1;
+                            {
+                                int i = 0;
+                                for (map<DLS::range_t,DLS::range_t>::const_iterator itVelSplit = velocityCorrectionMap.begin();
+                                    itVelSplit != velocityCorrectionMap.end(); ++itVelSplit, ++i)
+                                {
+                                    if (itVelSplit->second == velRange) { // already corrected before, thus second, not first
+                                        iVelocitySplitZone = i;
+                                        break;
+                                    }
+                                }
+                                if (iVelocitySplitZone == -1)
+                                    throw gig::Exception("Internal error: Could not resolve target velocity dimension zone");
+                            }
+
+                            // select dimension bit for this stereo dimension split
+                            iDimBits[iVelocityDimensionIndex] = iVelocitySplitZone;
+                        }
                     }
 
                     // resolve target gig::DimensionRegion for the left/right and velocity split zone detected above
