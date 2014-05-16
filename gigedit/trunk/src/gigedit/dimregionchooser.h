@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2011 Andreas Persson
+ * Copyright (C) 2006-2014 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,6 +21,8 @@
 #define GIGEDIT_DIMREGIONCHOOSER_H
 
 #include <gtkmm/drawingarea.h>
+#include <gtkmm/uimanager.h>
+#include <gtkmm/menu.h>
 #include <gdkmm/window.h>
 
 #include "compat.h"
@@ -54,6 +56,9 @@ protected:
     virtual bool on_button_release_event(GdkEventButton* event);
     virtual bool on_motion_notify_event(GdkEventMotion* event);
     virtual bool on_focus(Gtk::DirectionType direction);
+    void refresh_all();
+    void split_dimension_zone();
+    void delete_dimension_zone();
 
     Gdk::RGBA red, black, white;
 
@@ -70,6 +75,9 @@ protected:
     int label_width;
     bool labels_changed;
     int nbDimensions;
+
+    int dimtype;
+    int dimzone;
 
     // information needed during a resize
     struct {
@@ -91,6 +99,11 @@ protected:
     void update_after_resize();
 
     int h;
+
+    Glib::RefPtr<Gtk::ActionGroup> actionGroup;
+    Glib::RefPtr<Gtk::UIManager> uiManager;
+    Gtk::Menu* popup_menu_inside_dimregion;
+    Gtk::Menu* popup_menu_outside_dimregion;
 };
 
 #endif

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gigedit 0.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-01-12 20:34+0100\n"
-"PO-Revision-Date: 2014-05-14 20:59+0100\n"
+"PO-Revision-Date: 2014-05-17 00:19+0100\n"
 "Last-Translator: Christian Schoenebeck\n"
 "Language-Team: German\n"
 "Language: \n"
@@ -45,6 +45,8 @@ msgid "You are currently using a .gig file in old v2 format. The current combine
 msgstr "Sie benutzen derzeit eine .gig Datei im alten v2 Format. Der aktuelle Kombinieralgorithmus wird höchstwahrscheinlich scheitern Instrumente in diesem alten Format zu kombinieren. Speichern Sie deshalb besser diese Datei im neuen v3 Format ab, bevor Sie versuchen Instrumente zu kombinieren."
 
 #: ../src/gigedit/CombineInstrumentsDialog.cpp:862
+#: ../src/gigedit/dimregionchooser.cpp:811
+#: ../src/gigedit/dimregionchooser.cpp:829
 msgid "An unknown exception occurred!"
 msgstr "Ein unbekannter Ausnahmefehler ist aufgetreten!"
 
@@ -934,7 +936,7 @@ msgstr "intern"
 #: ../src/gigedit/dimregionedit.cpp:509
 #: ../src/gigedit/dimregionedit.cpp:595
 #: ../src/gigedit/dimregionedit.cpp:623
-#: ../src/gigedit/dimregionchooser.cpp:106
+#: ../src/gigedit/dimregionchooser.cpp:141
 #: ../src/gigedit/paramedit.cpp:50
 msgid "modwheel"
 msgstr "Modulationsrad"
@@ -942,7 +944,7 @@ msgstr "Modulationsrad"
 #. "Modulation Wheel or Lever",
 #: ../src/gigedit/dimregionedit.cpp:453
 #: ../src/gigedit/dimregionedit.cpp:510
-#: ../src/gigedit/dimregionchooser.cpp:107
+#: ../src/gigedit/dimregionchooser.cpp:142
 #: ../src/gigedit/paramedit.cpp:51
 msgid "breath"
 msgstr "Luftstrom"
@@ -989,7 +991,7 @@ msgstr "Bandausschnitt"
 #: ../src/gigedit/dimregionedit.cpp:509
 #: ../src/gigedit/dimregionedit.cpp:560
 #: ../src/gigedit/dimregionedit.cpp:676
-#: ../src/gigedit/dimregionchooser.cpp:91
+#: ../src/gigedit/dimregionchooser.cpp:126
 #: ../src/gigedit/paramedit.cpp:48
 #: ../src/gigedit/midirules.cpp:40
 msgid "none"
@@ -1000,48 +1002,48 @@ msgid "none2"
 msgstr "nichts2"
 
 #: ../src/gigedit/dimregionedit.cpp:509
-#: ../src/gigedit/dimregionchooser.cpp:111
+#: ../src/gigedit/dimregionchooser.cpp:146
 #: ../src/gigedit/paramedit.cpp:61
 msgid "effect1"
 msgstr "Effekt 1"
 
 #. "Effect Control 1",
 #: ../src/gigedit/dimregionedit.cpp:509
-#: ../src/gigedit/dimregionchooser.cpp:112
+#: ../src/gigedit/dimregionchooser.cpp:147
 #: ../src/gigedit/paramedit.cpp:62
 msgid "effect2"
 msgstr "Effekt 2"
 
 #: ../src/gigedit/dimregionedit.cpp:510
 #: ../src/gigedit/dimregionedit.cpp:595
-#: ../src/gigedit/dimregionchooser.cpp:108
+#: ../src/gigedit/dimregionchooser.cpp:143
 #: ../src/gigedit/paramedit.cpp:53
 msgid "foot"
 msgstr "Fuss"
 
 #: ../src/gigedit/dimregionedit.cpp:510
-#: ../src/gigedit/dimregionchooser.cpp:118
+#: ../src/gigedit/dimregionchooser.cpp:153
 #: ../src/gigedit/paramedit.cpp:88
 msgid "sustainpedal"
 msgstr "Sustain Pedal"
 
 #. "Sustenuto On/Off",
 #: ../src/gigedit/dimregionedit.cpp:510
-#: ../src/gigedit/dimregionchooser.cpp:122
+#: ../src/gigedit/dimregionchooser.cpp:157
 #: ../src/gigedit/paramedit.cpp:91
 msgid "softpedal"
 msgstr "Soft Pedal"
 
 #. "General Purpose Controller 6",
 #: ../src/gigedit/dimregionedit.cpp:511
-#: ../src/gigedit/dimregionchooser.cpp:125
+#: ../src/gigedit/dimregionchooser.cpp:160
 #: ../src/gigedit/paramedit.cpp:106
 msgid "genpurpose7"
 msgstr "genpurpose7"
 
 #. "General Purpose Controller 7",
 #: ../src/gigedit/dimregionedit.cpp:511
-#: ../src/gigedit/dimregionchooser.cpp:126
+#: ../src/gigedit/dimregionchooser.cpp:161
 #: ../src/gigedit/paramedit.cpp:107
 msgid "genpurpose8"
 msgstr "genpurpose8"
@@ -1065,27 +1067,27 @@ msgstr "speziell"
 
 #. "General Purpose Controller 2",
 #: ../src/gigedit/dimregionedit.cpp:560
-#: ../src/gigedit/dimregionchooser.cpp:115
+#: ../src/gigedit/dimregionchooser.cpp:150
 #: ../src/gigedit/paramedit.cpp:67
 msgid "genpurpose3"
 msgstr "genpurpose3"
 
 #. "General Purpose Controller 3",
 #: ../src/gigedit/dimregionedit.cpp:560
-#: ../src/gigedit/dimregionchooser.cpp:116
+#: ../src/gigedit/dimregionchooser.cpp:151
 #: ../src/gigedit/paramedit.cpp:68
 msgid "genpurpose4"
 msgstr "genpurpose4"
 
 #: ../src/gigedit/dimregionedit.cpp:561
-#: ../src/gigedit/dimregionchooser.cpp:123
+#: ../src/gigedit/dimregionchooser.cpp:158
 #: ../src/gigedit/paramedit.cpp:104
 msgid "genpurpose5"
 msgstr "genpurpose5"
 
 #. "General Purpose Controller 5",
 #: ../src/gigedit/dimregionedit.cpp:561
-#: ../src/gigedit/dimregionchooser.cpp:124
+#: ../src/gigedit/dimregionchooser.cpp:159
 #: ../src/gigedit/paramedit.cpp:105
 msgid "genpurpose6"
 msgstr "genpurpose6"
@@ -1128,14 +1130,14 @@ msgstr "Release Velocity Response"
 
 #. "Effects 3 Depth",
 #: ../src/gigedit/dimregionedit.cpp:676
-#: ../src/gigedit/dimregionchooser.cpp:134
+#: ../src/gigedit/dimregionchooser.cpp:169
 #: ../src/gigedit/paramedit.cpp:118
 msgid "effect4depth"
 msgstr "Effect 4 Tiefe"
 
 #. "Effects 4 Depth",
 #: ../src/gigedit/dimregionedit.cpp:676
-#: ../src/gigedit/dimregionchooser.cpp:136
+#: ../src/gigedit/dimregionchooser.cpp:171
 #: ../src/gigedit/paramedit.cpp:119
 msgid "effect5depth"
 msgstr "Effekt 5 Tiefe"
@@ -1545,88 +1547,100 @@ msgstr "Konnte Dimension nicht hinzufügen: "
 msgid "Could not remove dimension: "
 msgstr "Konnte Dimension nicht entfernen: "
 
-#: ../src/gigedit/dimregionchooser.cpp:92
+#: ../src/gigedit/dimregionchooser.cpp:47
+msgid "Split Dimensions Zone"
+msgstr "Dimensionszone aufteilen"
+
+#: ../src/gigedit/dimregionchooser.cpp:51
+msgid "Delete Dimension Zone"
+msgstr "Lösche Dimensionszone"
+
+#: ../src/gigedit/dimregionchooser.cpp:80
+msgid "Right click here for options on altering dimension zones."
+msgstr "Rechtsklick hier für Aktionen bezüglich Dimensionszonen."
+
+#: ../src/gigedit/dimregionchooser.cpp:127
 msgid "samplechannel"
 msgstr "Sample Kanal"
 
-#: ../src/gigedit/dimregionchooser.cpp:94
+#: ../src/gigedit/dimregionchooser.cpp:129
 msgid "layer"
 msgstr "Layer"
 
-#: ../src/gigedit/dimregionchooser.cpp:95
+#: ../src/gigedit/dimregionchooser.cpp:130
 #: ../src/gigedit/paramedit.cpp:48
 msgid "velocity"
 msgstr "Velocity"
 
-#: ../src/gigedit/dimregionchooser.cpp:97
+#: ../src/gigedit/dimregionchooser.cpp:132
 #: ../src/gigedit/paramedit.cpp:48
 msgid "channelaftertouch"
 msgstr "channelaftertouch"
 
-#: ../src/gigedit/dimregionchooser.cpp:99
+#: ../src/gigedit/dimregionchooser.cpp:134
 msgid "releasetrigger"
 msgstr "releasetrigger"
 
-#: ../src/gigedit/dimregionchooser.cpp:100
+#: ../src/gigedit/dimregionchooser.cpp:135
 msgid "keyswitching"
 msgstr "keyswitching"
 
-#: ../src/gigedit/dimregionchooser.cpp:101
+#: ../src/gigedit/dimregionchooser.cpp:136
 msgid "roundrobin"
 msgstr "roundrobin"
 
-#: ../src/gigedit/dimregionchooser.cpp:102
+#: ../src/gigedit/dimregionchooser.cpp:137
 msgid "random"
 msgstr "Zufall"
 
-#: ../src/gigedit/dimregionchooser.cpp:103
+#: ../src/gigedit/dimregionchooser.cpp:138
 msgid "smartmidi"
 msgstr "smartmidi"
 
-#: ../src/gigedit/dimregionchooser.cpp:105
+#: ../src/gigedit/dimregionchooser.cpp:140
 msgid "roundrobinkeyboard"
 msgstr "roundrobinkeyboard"
 
 #. "Foot Controller",
-#: ../src/gigedit/dimregionchooser.cpp:110
+#: ../src/gigedit/dimregionchooser.cpp:145
 #: ../src/gigedit/paramedit.cpp:54
 msgid "portamentotime"
 msgstr "Portamento Zeit"
 
-#: ../src/gigedit/dimregionchooser.cpp:113
+#: ../src/gigedit/dimregionchooser.cpp:148
 #: ../src/gigedit/paramedit.cpp:65
 msgid "genpurpose1"
 msgstr "genpurpose1"
 
 #. "General Purpose Controller 1",
-#: ../src/gigedit/dimregionchooser.cpp:114
+#: ../src/gigedit/dimregionchooser.cpp:149
 #: ../src/gigedit/paramedit.cpp:66
 msgid "genpurpose2"
 msgstr "genpurpose2"
 
 #. "Damper Pedal on/off (Sustain)",
-#: ../src/gigedit/dimregionchooser.cpp:119
+#: ../src/gigedit/dimregionchooser.cpp:154
 #: ../src/gigedit/paramedit.cpp:89
 msgid "portamento"
 msgstr "portamento"
 
-#: ../src/gigedit/dimregionchooser.cpp:121
+#: ../src/gigedit/dimregionchooser.cpp:156
 msgid "sostenutopedal"
 msgstr "sostenutopedal"
 
-#: ../src/gigedit/dimregionchooser.cpp:128
+#: ../src/gigedit/dimregionchooser.cpp:163
 #: ../src/gigedit/paramedit.cpp:115
 msgid "effect1depth"
 msgstr "Effekt 1 Tiefe"
 
 #. "Effects 1 Depth",
-#: ../src/gigedit/dimregionchooser.cpp:130
+#: ../src/gigedit/dimregionchooser.cpp:165
 #: ../src/gigedit/paramedit.cpp:116
 msgid "effect2depth"
 msgstr "Effekt 2 Tiefe"
 
 #. "Effects 2 Depth",
-#: ../src/gigedit/dimregionchooser.cpp:132
+#: ../src/gigedit/dimregionchooser.cpp:167
 #: ../src/gigedit/paramedit.cpp:117
 msgid "effect3depth"
 msgstr "Effekt 3 Tiefe"

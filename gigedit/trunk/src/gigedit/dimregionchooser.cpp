@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2011 Andreas Persson
+ * Copyright (C) 2006-2014 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,6 +22,9 @@
 #include <gdkmm/cursor.h>
 #include <gdkmm/general.h>
 #include <glibmm/stringutils.h>
+#include <gtkmm/stock.h>
+#include <glibmm/ustring.h>
+#include <gtkmm/messagedialog.h>
 
 #include "global.h"
 
@@ -38,11 +41,43 @@ DimRegionChooser::DimRegionChooser() :
     cursor_is_resize = false;
     h = 20;
     set_can_focus();
+
+    actionGroup = Gtk::ActionGroup::create();
+    actionGroup->add(
+        Gtk::Action::create("SplitDimZone", _("Split Dimensions Zone")),
+        sigc::mem_fun(*this, &DimRegionChooser::split_dimension_zone)
+    );
+    actionGroup->add(
+        Gtk::Action::create("DeleteDimZone", _("Delete Dimension Zone")),
+        sigc::mem_fun(*this, &DimRegionChooser::delete_dimension_zone)
+    );
+
+    uiManager = Gtk::UIManager::create();
+    uiManager->insert_action_group(actionGroup);
+    Glib::ustring ui_info =
+        "<ui>"
+        "  <popup name='PopupMenuInsideDimRegion'>"
+        "    <menuitem action='SplitDimZone'/>"
+        "    <menuitem action='DeleteDimZone'/>"
+        "  </popup>"
+//         "  <popup name='PopupMenuOutsideDimRegion'>"
+//         "    <menuitem action='Add'/>"
+//         "  </popup>"
+        "</ui>";
+    uiManager->add_ui_from_string(ui_info);
+
+    popup_menu_inside_dimregion = dynamic_cast<Gtk::Menu*>(
+        uiManager->get_widget("/PopupMenuInsideDimRegion"));
+//     popup_menu_outside_dimregion = dynamic_cast<Gtk::Menu*>(
+//         uiManager->get_widget("/PopupMenuOutsideDimRegion"));
+
     add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
                Gdk::POINTER_MOTION_HINT_MASK);
 
     for (int i = 0 ; i < 256 ; i++) dimvalue[i] = 0;
     labels_changed = true;
+
+    set_tooltip_text(_("Right click here for options on altering dimension zones."));
 }
 
 DimRegionChooser::~DimRegionChooser()
@@ -370,6 +405,9 @@ void DimRegionChooser::set_region(gig::Region* region)
     queue_resize();
 }
 
+void DimRegionChooser::refresh_all() {
+    set_region(region);
+}
 
 void DimRegionChooser::get_dimregions(const gig::Region* region, bool stereo,
                                       std::set<gig::DimensionRegion*>& dimregs) const
@@ -566,11 +604,19 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
 
             dimregno = c | (z << bitpos);
 
+            this->dimtype = dim;
+            this->dimzone = z;
+
             focus_line = dim;
             if (has_focus()) queue_draw();
             else grab_focus();
             dimreg = region->pDimensionRegions[dimregno];
             dimregion_selected();
+
+            if (event->button == 3) {
+                printf("dimregion right click\n");
+                popup_menu_inside_dimregion->popup(event->button, event->time);
+            }
         }
     }
     return true;
@@ -749,4 +795,40 @@ bool DimRegionChooser::on_focus(Gtk::DirectionType direction)
     } else {
         // TODO: öka eller minska värde!
     }
+}
+
+void DimRegionChooser::split_dimension_zone() {
+    printf("split_dimension_zone() type=%d, zone=%d\n", dimtype, dimzone);
+    try {
+        region->SplitDimensionZone(
+            region->pDimensionDefinitions[dimtype].dimension,
+            dimzone
+        );
+    } catch (RIFF::Exception e) {
+        Gtk::MessageDialog msg(e.Message, false, Gtk::MESSAGE_ERROR);
+        msg.run();
+    } catch (...) {
+        Glib::ustring txt = _("An unknown exception occurred!");
+        Gtk::MessageDialog msg(txt, false, Gtk::MESSAGE_ERROR);
+        msg.run();
+    }
+    refresh_all();
+}
+
+void DimRegionChooser::delete_dimension_zone() {
+    printf("delete_dimension_zone() type=%d, zone=%d\n", dimtype, dimzone);
+    try {
+        region->DeleteDimensionZone(
+            region->pDimensionDefinitions[dimtype].dimension,
+            dimzone
+        );
+    } catch (RIFF::Exception e) {
+        Gtk::MessageDialog msg(e.Message, false, Gtk::MESSAGE_ERROR);
+        msg.run();
+    } catch (...) {
+        Glib::ustring txt = _("An unknown exception occurred!");
+        Gtk::MessageDialog msg(txt, false, Gtk::MESSAGE_ERROR);
+        msg.run();
+    }
+    refresh_all();
 }
