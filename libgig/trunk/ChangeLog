@@ -41,6 +41,8 @@ Version CVS HEAD (?)
     - added new method Region::GetDimensionDefinition(dimension_t type)
     - bugfix: don't alter region pointer in DimensionRegion::CopyAssign()
     - added some more sanity checks in Region::AddDimension()
+    - added new method Region::DeleteDimensionZone(dimension_t, int)
+    - added new method Region::SplitDimensionZone(dimension_t, int)
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()

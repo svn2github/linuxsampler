@@ -716,6 +716,8 @@ namespace gig {
             void             AddDimension(dimension_def_t* pDimDef);
             void             DeleteDimension(dimension_def_t* pDimDef);
             dimension_def_t* GetDimensionDefinition(dimension_t type);
+            void             DeleteDimensionZone(dimension_t type, int zone);
+            void             SplitDimensionZone(dimension_t type, int zone);
             // overridden methods
             virtual void     SetKeyRange(uint16_t Low, uint16_t High);
             virtual void     UpdateChunks();
@@ -726,6 +728,7 @@ namespace gig {
             void UpdateVelocityTable();
             Sample* GetSampleFromWavePool(unsigned int WavePoolTableIndex, progress_t* pProgress = NULL);
             void CopyAssign(const Region* orig, const std::map<Sample*,Sample*>* mSamples);
+            DimensionRegion* GetDimensionRegionByBit(const std::map<dimension_t,int>& DimCase);
            ~Region();
             friend class Instrument;
     };

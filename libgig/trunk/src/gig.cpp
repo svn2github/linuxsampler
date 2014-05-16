@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <math.h>
 #include <iostream>
+#include <assert.h>
 
 /// Initial size of the sample buffer which is used for decompression of
 /// compressed sample wave streams - this value should always be bigger than
@@ -3386,6 +3387,283 @@ namespace {
 
         // if this was a layer dimension, update 'Layers' attribute
         if (pDimDef->dimension == dimension_layer) Layers = 1;
+    }
+
+    /** @brief Delete one split zone of a dimension (decrement zone amount).
+     *
+     * Instead of deleting an entire dimensions, this method will only delete
+     * one particular split zone given by @a zone of the Region's dimension
+     * given by @a type. So this method will simply decrement the amount of
+     * zones by one of the dimension in question. To be able to do that, the
+     * respective dimension must exist on this Region and it must have at least
+     * 3 zones. All DimensionRegion objects associated with the zone will be
+     * deleted.
+     *
+     * @param type - identifies the dimension where a zone shall be deleted
+     * @param zone - index of the dimension split zone that shall be deleted
+     * @throws gig::Exception if requested zone could not be deleted
+     */
+    void Region::DeleteDimensionZone(dimension_t type, int zone) {
+        dimension_def_t* oldDef = GetDimensionDefinition(type);
+        if (!oldDef)
+            throw gig::Exception("Could not delete dimension zone, no such dimension of given type");
+        if (oldDef->zones <= 2)
+            throw gig::Exception("Could not delete dimension zone, because it would end up with only one zone.");
+        if (zone < 0 || zone >= oldDef->zones)
+            throw gig::Exception("Could not delete dimension zone, requested zone index out of bounds.");
+
+        const int newZoneSize = oldDef->zones - 1;
+
+        // create a temporary Region which just acts as a temporary copy
+        // container and will be deleted at the end of this function and will
+        // also not be visible through the API during this process
+        gig::Region* tempRgn = NULL;
+        {
+            // adding these temporary chunks is probably not even necessary
+            Instrument* instr = static_cast<Instrument*>(GetParent());
+            RIFF::List* pCkInstrument = instr->pCkInstrument;
+            RIFF::List* lrgn = pCkInstrument->GetSubList(LIST_TYPE_LRGN);
+            if (!lrgn)  lrgn = pCkInstrument->AddSubList(LIST_TYPE_LRGN);
+            RIFF::List* rgn = lrgn->AddSubList(LIST_TYPE_RGN);
+            tempRgn = new Region(instr, rgn);
+        }
+
+        // copy this region's dimensions (with already the dimension split size
+        // requested by the arguments of this method call) to the temporary
+        // region, and don't use Region::CopyAssign() here for this task, since
+        // it would also alter fast lookup helper variables here and there
+        dimension_def_t newDef;
+        for (int i = 0; i < Dimensions; ++i) {
+            dimension_def_t def = pDimensionDefinitions[i]; // copy, don't reference
+            // is this the dimension requested by the method arguments? ...
+            if (def.dimension == type) { // ... if yes, decrement zone amount by one
+                def.zones = newZoneSize;
+                if ((1 << (def.bits - 1)) == def.zones) def.bits--;
+                newDef = def;
+            }
+            tempRgn->AddDimension(&def);
+        }
+
+        // find the dimension index in the tempRegion which is the dimension
+        // type passed to this method (paranoidly expecting different order)
+        int tempReducedDimensionIndex = -1;
+        for (int d = 0; d < tempRgn->Dimensions; ++d) {
+            if (tempRgn->pDimensionDefinitions[d].dimension == type) {
+                tempReducedDimensionIndex = d;
+                break;
+            }
+        }
+
+        // copy dimension regions from this region to the temporary region
+        for (int iDst = 0; iDst < 256; ++iDst) {
+            DimensionRegion* dstDimRgn = tempRgn->pDimensionRegions[iDst];
+            if (!dstDimRgn) continue;
+            std::map<dimension_t,int> dimCase;
+            bool isValidZone = true;
+            for (int d = 0, baseBits = 0; d < tempRgn->Dimensions; ++d) {
+                const int dstBits = tempRgn->pDimensionDefinitions[d].bits;
+                dimCase[tempRgn->pDimensionDefinitions[d].dimension] =
+                    (iDst >> baseBits) & ((1 << dstBits) - 1);
+                baseBits += dstBits;
+                // there are also DimensionRegion objects of unused zones, skip them
+                if (dimCase[tempRgn->pDimensionDefinitions[d].dimension] >= tempRgn->pDimensionDefinitions[d].zones) {
+                    isValidZone = false;
+                    break;
+                }
+            }
+            if (!isValidZone) continue;
+            // a bit paranoid: cope with the chance that the dimensions would
+            // have different order in source and destination regions
+            const bool isLastZone = (dimCase[type] == newZoneSize - 1);
+            if (dimCase[type] >= zone) dimCase[type]++;
+            DimensionRegion* srcDimRgn = GetDimensionRegionByBit(dimCase);
+            dstDimRgn->CopyAssign(srcDimRgn);
+            // if this is the upper most zone of the dimension passed to this
+            // method, then correct (raise) its upper limit to 127
+            if (newDef.split_type == split_type_normal && isLastZone)
+                dstDimRgn->DimensionUpperLimits[tempReducedDimensionIndex] = 127;
+        }
+
+        // now tempRegion's dimensions and DimensionRegions basically reflect
+        // what we wanted to get for this actual Region here, so we now just
+        // delete and recreate the dimension in question with the new amount
+        // zones and then copy back from tempRegion       
+        DeleteDimension(oldDef);
+        AddDimension(&newDef);
+        for (int iSrc = 0; iSrc < 256; ++iSrc) {
+            DimensionRegion* srcDimRgn = tempRgn->pDimensionRegions[iSrc];
+            if (!srcDimRgn) continue;
+            std::map<dimension_t,int> dimCase;
+            for (int d = 0, baseBits = 0; d < tempRgn->Dimensions; ++d) {
+                const int srcBits = tempRgn->pDimensionDefinitions[d].bits;
+                dimCase[tempRgn->pDimensionDefinitions[d].dimension] =
+                    (iSrc >> baseBits) & ((1 << srcBits) - 1);
+                baseBits += srcBits;
+            }
+            // a bit paranoid: cope with the chance that the dimensions would
+            // have different order in source and destination regions
+            DimensionRegion* dstDimRgn = GetDimensionRegionByBit(dimCase);
+            if (!dstDimRgn) continue;
+            dstDimRgn->CopyAssign(srcDimRgn);
+        }
+
+        // delete temporary region
+        delete tempRgn;
+    }
+
+    /** @brief Divide split zone of a dimension in two (increment zone amount).
+     *
+     * This will increment the amount of zones for the dimension (given by
+     * @a type) by one. It will do so by dividing the zone (given by @a zone)
+     * in the middle of its zone range in two. So the two zones resulting from
+     * the zone being splitted, will be an equivalent copy regarding all their
+     * articulation informations and sample reference. The two zones will only
+     * differ in their zone's upper limit
+     * (DimensionRegion::DimensionUpperLimits).
+     *
+     * @param type - identifies the dimension where a zone shall be splitted
+     * @param zone - index of the dimension split zone that shall be splitted
+     * @throws gig::Exception if requested zone could not be splitted
+     */
+    void Region::SplitDimensionZone(dimension_t type, int zone) {
+        dimension_def_t* oldDef = GetDimensionDefinition(type);
+        if (!oldDef)
+            throw gig::Exception("Could not split dimension zone, no such dimension of given type");
+        if (zone < 0 || zone >= oldDef->zones)
+            throw gig::Exception("Could not split dimension zone, requested zone index out of bounds.");
+
+        const int newZoneSize = oldDef->zones + 1;
+
+        // create a temporary Region which just acts as a temporary copy
+        // container and will be deleted at the end of this function and will
+        // also not be visible through the API during this process
+        gig::Region* tempRgn = NULL;
+        {
+            // adding these temporary chunks is probably not even necessary
+            Instrument* instr = static_cast<Instrument*>(GetParent());
+            RIFF::List* pCkInstrument = instr->pCkInstrument;
+            RIFF::List* lrgn = pCkInstrument->GetSubList(LIST_TYPE_LRGN);
+            if (!lrgn)  lrgn = pCkInstrument->AddSubList(LIST_TYPE_LRGN);
+            RIFF::List* rgn = lrgn->AddSubList(LIST_TYPE_RGN);
+            tempRgn = new Region(instr, rgn);
+        }
+
+        // copy this region's dimensions (with already the dimension split size
+        // requested by the arguments of this method call) to the temporary
+        // region, and don't use Region::CopyAssign() here for this task, since
+        // it would also alter fast lookup helper variables here and there
+        dimension_def_t newDef;
+        for (int i = 0; i < Dimensions; ++i) {
+            dimension_def_t def = pDimensionDefinitions[i]; // copy, don't reference
+            // is this the dimension requested by the method arguments? ...
+            if (def.dimension == type) { // ... if yes, increment zone amount by one
+                def.zones = newZoneSize;
+                if ((1 << oldDef->bits) < newZoneSize) def.bits++;
+                newDef = def;
+            }
+            tempRgn->AddDimension(&def);
+        }
+
+        // find the dimension index in the tempRegion which is the dimension
+        // type passed to this method (paranoidly expecting different order)
+        int tempIncreasedDimensionIndex = -1;
+        for (int d = 0; d < tempRgn->Dimensions; ++d) {
+            if (tempRgn->pDimensionDefinitions[d].dimension == type) {
+                tempIncreasedDimensionIndex = d;
+                break;
+            }
+        }
+
+        // copy dimension regions from this region to the temporary region
+        for (int iSrc = 0; iSrc < 256; ++iSrc) {
+            DimensionRegion* srcDimRgn = pDimensionRegions[iSrc];
+            if (!srcDimRgn) continue;
+            std::map<dimension_t,int> dimCase;
+            bool isValidZone = true;
+            for (int d = 0, baseBits = 0; d < Dimensions; ++d) {
+                const int srcBits = pDimensionDefinitions[d].bits;
+                dimCase[pDimensionDefinitions[d].dimension] =
+                    (iSrc >> baseBits) & ((1 << srcBits) - 1);
+                // there are also DimensionRegion objects for unused zones, skip them
+                if (dimCase[pDimensionDefinitions[d].dimension] >= pDimensionDefinitions[d].zones) {
+                    isValidZone = false;
+                    break;
+                }
+                baseBits += srcBits;
+            }
+            if (!isValidZone) continue;
+            // a bit paranoid: cope with the chance that the dimensions would
+            // have different order in source and destination regions            
+            if (dimCase[type] > zone) dimCase[type]++;
+            DimensionRegion* dstDimRgn = tempRgn->GetDimensionRegionByBit(dimCase);
+            dstDimRgn->CopyAssign(srcDimRgn);
+            // if this is the requested zone to be splitted, then also copy
+            // the source DimensionRegion to the newly created target zone
+            // and set the old zones upper limit lower
+            if (dimCase[type] == zone) {
+                // lower old zones upper limit
+                if (newDef.split_type == split_type_normal) {
+                    const int high =
+                        dstDimRgn->DimensionUpperLimits[tempIncreasedDimensionIndex];
+                    int low = 0;
+                    if (zone > 0) {
+                        std::map<dimension_t,int> lowerCase = dimCase;
+                        lowerCase[type]--;
+                        DimensionRegion* dstDimRgnLow = tempRgn->GetDimensionRegionByBit(lowerCase);
+                        low = dstDimRgnLow->DimensionUpperLimits[tempIncreasedDimensionIndex];
+                    }
+                    dstDimRgn->DimensionUpperLimits[tempIncreasedDimensionIndex] = low + (high - low) / 2;
+                }
+                // fill the newly created zone of the divided zone as well
+                dimCase[type]++;
+                dstDimRgn = tempRgn->GetDimensionRegionByBit(dimCase);
+                dstDimRgn->CopyAssign(srcDimRgn);
+            }
+        }
+
+        // now tempRegion's dimensions and DimensionRegions basically reflect
+        // what we wanted to get for this actual Region here, so we now just
+        // delete and recreate the dimension in question with the new amount
+        // zones and then copy back from tempRegion       
+        DeleteDimension(oldDef);
+        AddDimension(&newDef);
+        for (int iSrc = 0; iSrc < 256; ++iSrc) {
+            DimensionRegion* srcDimRgn = tempRgn->pDimensionRegions[iSrc];
+            if (!srcDimRgn) continue;
+            std::map<dimension_t,int> dimCase;
+            for (int d = 0, baseBits = 0; d < tempRgn->Dimensions; ++d) {
+                const int srcBits = tempRgn->pDimensionDefinitions[d].bits;
+                dimCase[tempRgn->pDimensionDefinitions[d].dimension] =
+                    (iSrc >> baseBits) & ((1 << srcBits) - 1);
+                baseBits += srcBits;
+            }
+            // a bit paranoid: cope with the chance that the dimensions would
+            // have different order in source and destination regions
+            DimensionRegion* dstDimRgn = GetDimensionRegionByBit(dimCase);
+            if (!dstDimRgn) continue;
+            dstDimRgn->CopyAssign(srcDimRgn);
+        }
+
+        // delete temporary region
+        delete tempRgn;
+    }
+
+    DimensionRegion* Region::GetDimensionRegionByBit(const std::map<dimension_t,int>& DimCase) {
+        uint8_t bits[8] = {};
+        for (std::map<dimension_t,int>::const_iterator it = DimCase.begin();
+             it != DimCase.end(); ++it)
+        {
+            for (int d = 0; d < Dimensions; ++d) {
+                if (pDimensionDefinitions[d].dimension == it->first) {
+                    bits[d] = it->second;
+                    goto nextDimCaseSlice;
+                }
+            }
+            assert(false); // do crash ... too harsh maybe ? ignore it instead ?
+            nextDimCaseSlice:
+            ; // noop
+        }
+        return GetDimensionRegionByBit(bits);
     }
 
     /**
