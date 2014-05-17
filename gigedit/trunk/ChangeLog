@@ -58,6 +58,10 @@ Version CVS HEAD (?)
   * Dimension zone amount: Support for increasing and decreasing the amount of
     dimension zones by right clicking on the respective zone and either
     selecting "delete" or "split" in the popup menu.
+  * Combine instruments: generalized this tool to allow combining instruments
+    based on any dimension, not only the 'layer' dimension.
+  * 'Dimension Manager' dialog: show dialog window with at least 460x300px on
+    initial usage (was far too small by default).
 
 Version 0.2.0 (2009-07-31)
 

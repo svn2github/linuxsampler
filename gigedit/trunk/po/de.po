@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gigedit 0.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-01-12 20:34+0100\n"
-"PO-Revision-Date: 2014-05-17 00:19+0100\n"
+"PO-Revision-Date: 2014-05-17 17:11+0100\n"
 "Last-Translator: Christian Schoenebeck\n"
 "Language-Team: German\n"
 "Language: \n"
@@ -16,45 +16,55 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:72
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:75
 msgid "WARNING:"
 msgstr "WARNUNG:"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:635
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:655
 msgid "No regions found to create a new instrument with."
 msgstr "Keine Regions gefunden um daraus ein neues Instrument zu erzeugen."
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:639
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:659
 msgid "NEW COMBINATION"
 msgstr "NEUE_KOMBINATION"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:752
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:780
 msgid "Combine Instruments"
 msgstr "Instrumente kombinieren"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:765
-msgid "Select at least two instruments below that shall be combined  as layers (using a \"Layer\" dimension) to a new instrument. The original instruments remain untouched."
-msgstr "Wählen Sie hier mindestens zwei Instrumente die mittels \"Layer\" Dimension als ein neues Instrument kombiniert werden sollen. Die ursprünglichen Instrumente bleiben unberührt."
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:784
+msgid "Combine by Dimension:"
+msgstr "Kombinieren mittels Dimension:"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:773
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:795
+msgid ""
+"Select at least two instruments below that shall be combined (as separate dimension zones of the selected dimension type) as a new instrument. The original instruments remain untouched.\n"
+"\n"
+"You may use this tool for example to combine solo instruments into a combi sound arrangement by selecting the 'layer' dimension, or you might combine similar sounding solo sounds into separate velocity split layers by using the 'velocity' dimension, and so on."
+msgstr ""
+"Wählen Sie unten mindestens zwei Instrumente aus, die (als separate Dimensionszonen des gewählten Dimensionstyps) als ein neues Instrument zusammengefasst werden sollen. Die gewählten Originalinstrumente bleiben davon unberührt.\n"
+"\n"
+"Sie könnten diese Funktion beispielsweise nutzen um Solo Instrumente in Combi Sound Arrangements zu wandeln, und zwar durch Wahl der 'Layer' Dimension, oder Sie könnten ähnlich klingende Sounds in getrennte Velocity Split Zonen zusammenfassen mittels Wahl der 'Velocity' Dimension, u.s.w."
+
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:830
 msgid "Use SHIFT + left click or CTRL + left click to select the instruments you want to combine."
 msgstr "Benutzen Sie UMSCHALT + Mausklick Links oder STRG + Mausklick Rechts um die Instrumente zu wählen, die Sie kombinieren wollen."
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:829
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:886
 msgid "You are currently using a .gig file in old v2 format. The current combine algorithm will most probably fail trying to combine instruments in this old format. So better save the file in new v3 format before trying to combine your instruments."
 msgstr "Sie benutzen derzeit eine .gig Datei im alten v2 Format. Der aktuelle Kombinieralgorithmus wird höchstwahrscheinlich scheitern Instrumente in diesem alten Format zu kombinieren. Speichern Sie deshalb besser diese Datei im neuen v3 Format ab, bevor Sie versuchen Instrumente zu kombinieren."
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:862
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:931
 #: ../src/gigedit/dimregionchooser.cpp:811
 #: ../src/gigedit/dimregionchooser.cpp:829
 msgid "An unknown exception occurred!"
 msgstr "Ein unbekannter Ausnahmefehler ist aufgetreten!"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:870
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:939
 msgid "Combined instrument was created successfully, but there were warnings:"
 msgstr "Kombiniertes Instrument wurde erfolgreich erzeugt, es gab jedoch Warnungen:"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:880
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:949
 msgid "You might also want to check the console for further warnings and error messages."
 msgstr "Kontrollieren Sie evtl. auch die Hinweise und Fehlermeldungen auf der Konsole."
 
@@ -1525,25 +1535,25 @@ msgstr "Zonen"
 msgid "Description"
 msgstr "Beschreibung"
 
-#: ../src/gigedit/dimensionmanager.cpp:254
+#: ../src/gigedit/dimensionmanager.cpp:256
 msgid "New Dimension"
 msgstr "Neue Dimension"
 
-#: ../src/gigedit/dimensionmanager.cpp:267
+#: ../src/gigedit/dimensionmanager.cpp:269
 msgid "Dimension:"
 msgstr "Dimension:"
 
-#: ../src/gigedit/dimensionmanager.cpp:272
+#: ../src/gigedit/dimensionmanager.cpp:274
 msgid "Zones:"
 msgstr "Zonen:"
 
 #. show error message
-#: ../src/gigedit/dimensionmanager.cpp:349
+#: ../src/gigedit/dimensionmanager.cpp:351
 msgid "Could not add dimension: "
 msgstr "Konnte Dimension nicht hinzufügen: "
 
 #. show error message
-#: ../src/gigedit/dimensionmanager.cpp:374
+#: ../src/gigedit/dimensionmanager.cpp:376
 msgid "Could not remove dimension: "
 msgstr "Konnte Dimension nicht entfernen: "
 
@@ -1930,4 +1940,13 @@ msgstr "Alt sustain 1 key"
 #: ../src/gigedit/midirules.cpp:510
 msgid "Alt sustain 2 key"
 msgstr "Alt sustain 2 key"
+
+#~ msgid ""
+#~ "Select at least two instruments below that shall be combined  as layers "
+#~ "(using a \"Layer\" dimension) to a new instrument. The original "
+#~ "instruments remain untouched."
+#~ msgstr ""
+#~ "Wählen Sie hier mindestens zwei Instrumente die mittels \"Layer\" "
+#~ "Dimension als ein neues Instrument kombiniert werden sollen. Die "
+#~ "ursprünglichen Instrumente bleiben unberührt."
 

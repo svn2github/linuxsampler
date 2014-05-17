@@ -15,6 +15,8 @@
 #include <gtkmm/dialog.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
+#include <gtkmm/table.h>
+#include <gtkmm/comboboxtext.h>
 
 #include "wrapLabel.hh"
 
@@ -47,6 +49,20 @@ protected:
 #else
     Gtk::Label      m_descriptionLabel;
 #endif
+    Gtk::Table      m_tableDimCombo;
+    Gtk::ComboBox   m_comboDimType;
+    Gtk::Label      m_labelDimType;
+
+    class ComboDimsModel : public Gtk::TreeModel::ColumnRecord {
+    public:
+        ComboDimsModel() {
+            add(m_type_id);
+            add(m_type_name);
+        }
+
+        Gtk::TreeModelColumn<int> m_type_id;
+        Gtk::TreeModelColumn<Glib::ustring> m_type_name;
+    } m_comboDimsModel;
 
     class ListModel : public Gtk::TreeModel::ColumnRecord {
     public:

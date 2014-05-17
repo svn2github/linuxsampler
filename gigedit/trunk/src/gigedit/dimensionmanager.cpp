@@ -30,7 +30,7 @@
 #include "compat.h"
 
 // returns a human readable name of the given dimension type
-static Glib::ustring __dimTypeAsString(gig::dimension_t d) {
+Glib::ustring dimTypeAsString(gig::dimension_t d) {
     char buf[32];
     switch (d) {
         case gig::dimension_none:
@@ -218,6 +218,8 @@ addButton(Gtk::Stock::ADD), removeButton(Gtk::Stock::REMOVE)
     );
 
     show_all_children();
+    
+    resize(460,300);
 }
 
 // update all GUI elements according to current gig::Region informations
@@ -227,7 +229,7 @@ void DimensionManager::refreshManager() {
         for (int i = 0; i < region->Dimensions; i++) {
             gig::dimension_def_t* dim = &region->pDimensionDefinitions[i];
             Gtk::TreeModel::Row row = *(refTableModel->append());
-            row[tableModel.m_dim_type] = __dimTypeAsString(dim->dimension);
+            row[tableModel.m_dim_type] = dimTypeAsString(dim->dimension);
             row[tableModel.m_bits] = dim->bits;
             row[tableModel.m_zones] = dim->zones;
             row[tableModel.m_description] = __dimDescriptionAsString(dim->dimension);
@@ -256,7 +258,7 @@ void DimensionManager::addDimension() {
         Glib::RefPtr<Gtk::ListStore> refComboModel = Gtk::ListStore::create(comboModel);
         for (int i = 0x01; i < 0xff; i++) {
             Glib::ustring sType =
-                __dimTypeAsString(static_cast<gig::dimension_t>(i));
+                dimTypeAsString(static_cast<gig::dimension_t>(i));
             if (sType.find("Unknown") != 0) {
                 Gtk::TreeModel::Row row = *(refComboModel->append());
                 row[comboModel.m_type_id]   = i;

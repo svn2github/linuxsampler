@@ -11,6 +11,7 @@
 #define DEBUG_COMBINE_INSTRUMENTS 0
 
 #include "global.h"
+#include "compat.h"
 
 #include <set>
 #include <iostream>
@@ -21,9 +22,12 @@
 #include <glibmm/ustring.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/messagedialog.h>
+#include <gtkmm/label.h>
 
 Glib::ustring gig_to_utf8(const gig::String& gig_string);
+Glib::ustring dimTypeAsString(gig::dimension_t d);
 
+typedef std::vector< std::pair<gig::Instrument*, gig::Region*> > OrderedRegionGroup;
 typedef std::map<gig::Instrument*, gig::Region*> RegionGroup;
 typedef std::map<DLS::range_t,RegionGroup> RegionGroups;
 
@@ -168,10 +172,11 @@ static RegionGroup getAllRegionsWhichOverlapRange(std::vector<gig::Instrument*>&
 /** @brief Identify required regions.
  *
  * Takes a list of @a instruments as argument (which are planned to be combined
- * as layers in one single new instrument) and fulfills the following tasks:
+ * as separate dimension zones of a certain dimension into one single new
+ * instrument) and fulfills the following tasks:
  *
  * - 1. Identification of total amount of regions required to create a new
- *      instrument to become a layered version of the given instruments.
+ *      instrument to become a combined version of the given instruments.
  * - 2. Precise key range of each of those identified required regions to be
  *      created in that new instrument.
  * - 3. Grouping the original source regions of the given original instruments
@@ -293,7 +298,7 @@ static void fillDimValues(uint* values/*[8]*/, DimensionCase dimCase, gig::Regio
         #endif
     }
     #if DEBUG_COMBINE_INSTRUMENTS
-    printf("\n");
+    printf("}\n");
     #endif
 }
 
@@ -400,42 +405,42 @@ struct CopyAssignSchedEntry {
 };
 typedef std::vector<CopyAssignSchedEntry> CopyAssignSchedule;
 
-/** @brief Copy all DimensionRegions from source Region to target Region.
+/** @brief Schedule copying DimensionRegions from source Region to target Region.
  *
- * Copies the entire articulation informations (including sample reference of
- * course) from all individual DimensionRegions of source Region @a inRgn to
- * target Region @a outRgn. There are no dimension regions created during this
- * task. It is expected that the required dimensions (thus the required
- * dimension regions) were already created before calling this function.
+ * Schedules copying the entire articulation informations (including sample
+ * reference) from all individual DimensionRegions of source Region @a inRgn to
+ * target Region @a outRgn. It is expected that the required dimensions (thus
+ * the required dimension regions) were already created before calling this
+ * function.
  *
- * To be precise, it does the task above only for the layer selected by
- * @a iSrcLayer and @a iDstLayer. All dimensions regions of other layers that
- * may exist, will not be copied by one single call of this function. So if
- * there is a layer dimension, this function needs to be called several times.
+ * To be precise, it does the task above only for the dimension zones defined by
+ * the three arguments @a mainDim, @a iSrcMainBit, @a iDstMainBit, which reflect
+ * a selection which dimension zones shall be copied. All other dimension zones
+ * will not be scheduled to be copied by a single call of this function. So this
+ * function needs to be called several time in case all dimension regions shall
+ * be copied of the entire region (@a inRgn, @a outRgn).
  *
  * @param outRgn - where the dimension regions shall be copied to
  * @param inRgn - all dimension regions that shall be copied from
  * @param dims - precise dimension definitions of target region
- * @param iDstLayer - layer index of destination region where the dimension
- *                    regions shall be copied to
- * @param iSrcLayer - layer index of the source region where the dimension
- *                    regions shall be copied from
+ * @param mainDim - this dimension type, in combination with @a iSrcMainBit and
+ *                  @a iDstMainBit defines a selection which dimension region
+ *                  zones shall be copied by this call of this function
+ * @param iDstMainBit - destination bit of @a mainDim
+ * @param iSrcMainBit - source bit of @a mainDim
+ * @param schedule - list of all DimensionRegion copy operations which is filled
+ *                   during the nested loops / recursions of this function call
  * @param dimCase - just for internal purpose (function recursion), don't pass
  *                  anything here, this function will call itself recursively
  *                  will fill this container with concrete dimension values for
  *                  selecting the precise dimension regions during its task
- * @param schedule - just for internal purpose (function recursion), don't pass
-                     anything here: list of all DimensionRegion copy operations
- *                   which is filled during the nested loops / recursions of
- *                   this function call, they will be peformed after all
- *                   function recursions have been completed
  */
-static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimensions dims, int iDstLayer, int iSrcLayer, DimensionCase dimCase = DimensionCase(), CopyAssignSchedule* schedule = NULL) {
-    const bool isHighestLevelOfRecursion = !schedule;
-
-    if (isHighestLevelOfRecursion)
-        schedule = new CopyAssignSchedule;
-
+static void scheduleCopyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn,
+                                 Dimensions dims, gig::dimension_t mainDim,
+                                 int iDstMainBit, int iSrcMainBit,
+                                 CopyAssignSchedule* schedule,
+                                 DimensionCase dimCase = DimensionCase())
+{
     if (dims.empty()) { // reached deepest level of function recursion ...
         CopyAssignSchedEntry e;
 
@@ -444,11 +449,12 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
         uint dstDimValues[8] = {};
         DimensionCase srcDimCase = dimCase;
         DimensionCase dstDimCase = dimCase;
-        srcDimCase[gig::dimension_layer] = iSrcLayer;
-        dstDimCase[gig::dimension_layer] = iDstLayer;
+        srcDimCase[mainDim] = iSrcMainBit;
+        dstDimCase[mainDim] = iDstMainBit;
 
         #if DEBUG_COMBINE_INSTRUMENTS
         printf("-------------------------------\n");
+        printf("iDstMainBit=%d iSrcMainBit=%d\n", iDstMainBit, iSrcMainBit);
         #endif
 
         // first select source & target dimension region with an arbitrary
@@ -467,7 +473,7 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
         gig::DimensionRegion* srcDimRgn = inRgn->GetDimensionRegionByValue(srcDimValues);
         gig::DimensionRegion* dstDimRgn = outRgn->GetDimensionRegionByValue(dstDimValues);
         #if DEBUG_COMBINE_INSTRUMENTS
-        printf("iDstLayer=%d iSrcLayer=%d\n", iDstLayer, iSrcLayer);
+        printf("iDstMainBit=%d iSrcMainBit=%d\n", iDstMainBit, iSrcMainBit);
         printf("srcDimRgn=%lx dstDimRgn=%lx\n", (uint64_t)srcDimRgn, (uint64_t)dstDimRgn);
         printf("srcSample='%s' dstSample='%s'\n",
                (!srcDimRgn->pSample ? "NULL" : srcDimRgn->pSample->pInfo->Name.c_str()),
@@ -486,13 +492,15 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
             // re-select target dimension region (with correct velocity zone)
             DimensionZones dstZones = preciseDimensionZonesFor(gig::dimension_velocity, dstDimRgn);
             assert(dstZones.size() > 1);
-            int iZoneIndex = dstDimCase[gig::dimension_velocity];
-            e.velocityZone = iZoneIndex;
+            const int iDstZoneIndex =
+                (mainDim == gig::dimension_velocity)
+                    ? iDstMainBit : dstDimCase[gig::dimension_velocity]; // (mainDim == gig::dimension_velocity) exception case probably unnecessary here
+            e.velocityZone = iDstZoneIndex;
             #if DEBUG_COMBINE_INSTRUMENTS
-            printf("dst velocity zone: %d/%d\n", iZoneIndex, (int)dstZones.size());
+            printf("dst velocity zone: %d/%d\n", iDstZoneIndex, (int)dstZones.size());
             #endif
-            assert(uint(iZoneIndex) < dstZones.size());
-            dstDimCase[gig::dimension_velocity] = dstZones[iZoneIndex].low; // arbitrary value between low and high
+            assert(uint(iDstZoneIndex) < dstZones.size());
+            dstDimCase[gig::dimension_velocity] = dstZones[iDstZoneIndex].low; // arbitrary value between low and high
             #if DEBUG_COMBINE_INSTRUMENTS
             printf("dst velocity value = %d\n", dstDimCase[gig::dimension_velocity]);
             printf("dst refilled "); fflush(stdout);
@@ -501,8 +509,9 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
             dstDimRgn = outRgn->GetDimensionRegionByValue(dstDimValues);
             #if DEBUG_COMBINE_INSTRUMENTS
             printf("reselected dstDimRgn=%lx\n", (uint64_t)dstDimRgn);
-            printf("dstSample='%s'\n",
-                (!dstDimRgn->pSample ? "NULL" : dstDimRgn->pSample->pInfo->Name.c_str())
+            printf("dstSample='%s'%s\n",
+                (!dstDimRgn->pSample ? "NULL" : dstDimRgn->pSample->pInfo->Name.c_str()),
+                (dstDimRgn->pSample ? " <--- ERROR ERROR ERROR !!!!!!!!! " : "")
             );
             #endif
 
@@ -515,9 +524,12 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
                 if (srcZones.size() <= 1) {
                     addWarning("Input region has a velocity dimension with only ONE zone!");
                 }
-                if (uint(iZoneIndex) >= srcZones.size())
-                    iZoneIndex  = srcZones.size() - 1;
-                srcDimCase[gig::dimension_velocity] = srcZones[iZoneIndex].low; // same zone as used above for target dimension region (no matter what the precise zone ranges are)
+                int iSrcZoneIndex =
+                    (mainDim == gig::dimension_velocity)
+                        ? iSrcMainBit : iDstZoneIndex;
+                if (uint(iSrcZoneIndex) >= srcZones.size())
+                    iSrcZoneIndex = srcZones.size() - 1;
+                srcDimCase[gig::dimension_velocity] = srcZones[iSrcZoneIndex].low; // same zone as used above for target dimension region (no matter what the precise zone ranges are)
                 #if DEBUG_COMBINE_INSTRUMENTS
                 printf("src refilled "); fflush(stdout);
                 #endif
@@ -532,7 +544,7 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
             }
         }
 
-        // Schedule copy opertion of source -> target DimensionRegion for the
+        // Schedule copy operation of source -> target DimensionRegion for the
         // time after all nested loops have been traversed. We have to postpone
         // the actual copy operations this way, because otherwise it would
         // overwrite informations inside the destination DimensionRegion object
@@ -563,52 +575,32 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
         dimCase[type] = (def->split_type == gig::split_type_bit) ? iZone : zoneRange.low;
 
         // recurse until 'dims' is exhausted (and dimCase filled up with concrete value)
-        copyDimensionRegions(outRgn, inRgn, dims, iDstLayer, iSrcLayer, dimCase, schedule);
+        scheduleCopyDimensionRegions(outRgn, inRgn, dims, mainDim, iDstMainBit, iSrcMainBit, schedule, dimCase);
     }
+}
 
-    // if current function call is the (very first) entry point ...
-    if (isHighestLevelOfRecursion) {
-        // ... then perform all scheduled DimensionRegion copy operations
-        for (uint i = 0; i < schedule->size(); ++i) {
-            CopyAssignSchedEntry& e = (*schedule)[i];
-
-            // backup the target DimensionRegion's current dimension zones upper
-            // limits (because the target DimensionRegion's upper limits are
-            // already defined correctly since calling AddDimension(), and the
-            // CopyAssign() call next, will overwrite those upper limits
-            // unfortunately
-            DimensionRegionUpperLimits dstUpperLimits = getDimensionRegionUpperLimits(e.dst);
-            DimensionRegionUpperLimits srcUpperLimits = getDimensionRegionUpperLimits(e.src);
-
-            // now actually copy over the current DimensionRegion
-            const gig::Region* const origRgn = e.dst->GetParent(); // just for sanity check below
-            e.dst->CopyAssign(e.src);
-            assert(origRgn == e.dst->GetParent()); // if gigedit is crashing here, then you must update libgig (to at least SVN r2547, v3.3.0.svn10)
-
-            // restore all original dimension zone upper limits except of the
-            // velocity dimension, because the velocity dimension zone sizes are
-            // allowed to differ for individual DimensionRegions in gig v3
-            // format
-            if (srcUpperLimits.count(gig::dimension_velocity)) {
-                if (!dstUpperLimits.count(gig::dimension_velocity)) {
-                    addWarning("Source instrument seems to have a velocity dimension whereas new target instrument doesn't!");
-                } else {
-                    dstUpperLimits[gig::dimension_velocity] =
-                        (e.velocityZone >= e.totalSrcVelocityZones)
-                            ? 127 : srcUpperLimits[gig::dimension_velocity];
-                }
-            }
-            restoreDimensionRegionUpperLimits(e.dst, dstUpperLimits);
-        }
-        delete schedule;
+static OrderedRegionGroup sortRegionGroup(const RegionGroup& group, const std::vector<gig::Instrument*>& instruments) {
+    OrderedRegionGroup result;
+    for (std::vector<gig::Instrument*>::const_iterator it = instruments.begin();
+         it != instruments.end(); ++it)
+    {
+        RegionGroup::const_iterator itRgn = group.find(*it);
+        if (itRgn == group.end()) continue;
+        result.push_back(
+            std::pair<gig::Instrument*, gig::Region*>(
+                itRgn->first, itRgn->second
+            )
+        );
     }
+    return result;
 }
 
 /** @brief Combine given list of instruments to one instrument.
  *
  * Takes a list of @a instruments as argument and combines them to one single
- * new @a output instrument. For this task, it will create a 'layer' dimension
- * in the new instrument and copies the source instruments to those layers.
+ * new @a output instrument. For this task, it will create a dimension of type
+ * given by @a mainDimension in the new instrument and copies the source
+ * instruments to those dimension zones.
  *
  * @param instruments - (input) list of instruments that shall be combined,
  *                      they will only be read, so they will be left untouched
@@ -616,9 +608,11 @@ static void copyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn, Dimens
  *              be created
  * @param output - (output) on success this pointer will be set to the new
  *                 instrument being created
+ * @param mainDimension - the dimension that shall be used to combine the
+ *                        instruments
  * @throw RIFF::Exception on any kinds of errors
  */
-static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::File* gig, gig::Instrument*& output) {
+static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::File* gig, gig::Instrument*& output, gig::dimension_t mainDimension) {
     output = NULL;
 
     // divide the individual regions to (probably even smaller) groups of
@@ -655,32 +649,36 @@ static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::
         printf("---> Start target region %d..%d\n", itGroup->first.low, itGroup->first.high);
         #endif
 
-        // detect the total amount of layers required to build up this combi
-        // for current key range
-        int iTotalLayers = 0;
+        // detect the total amount of zones required for the given main
+        // dimension to build up this combi for current key range
+        int iTotalZones = 0;
         for (RegionGroup::iterator itRgn = itGroup->second.begin();
              itRgn != itGroup->second.end(); ++itRgn)
         {
             gig::Region* inRgn = itRgn->second;
-            iTotalLayers += inRgn->Layers;
+            gig::dimension_def_t* def = inRgn->GetDimensionDefinition(mainDimension);
+            iTotalZones += (def) ? def->zones : 1;
         }
         #if DEBUG_COMBINE_INSTRUMENTS
-        printf("Required total layers: %d\n", iTotalLayers);
+        printf("Required total zones: %d\n", iTotalZones);
         #endif
-        
+
         // create all required dimensions for this output region
-        // (except the layer dimension, which we create as next step)
+        // (except the main dimension used for separating the individual
+        // instruments, we create that particular dimension as next step)
         Dimensions dims = getDimensionsForRegionGroup(itGroup->second);
+        // the given main dimension which is used to combine the instruments is
+        // created separately after the next code block, and the main dimension
+        // should not be part of dims here, because it also used for iterating
+        // all dimensions zones, which would lead to this dimensions being
+        // iterated twice
+        dims.erase(mainDimension);
         {
             std::vector<gig::dimension_t> skipTheseDimensions; // used to prevent a misbehavior (i.e. crash) of the combine algorithm in case one of the source instruments has a dimension with only one zone, which is not standard conform
 
             for (Dimensions::iterator itDim = dims.begin();
                 itDim != dims.end(); ++itDim)
             {
-                // layer dimension is created separately in the next code block
-                // (outside of this loop)
-                if (itDim->first == gig::dimension_layer) continue;
-
                 gig::dimension_def_t def;
                 def.dimension = itDim->first; // dimension type
                 def.zones = itDim->second.size();
@@ -711,14 +709,14 @@ static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::
                 dims.erase(skipTheseDimensions[i]);
         }
 
-        // create the layer dimension (if necessary for current key range)
-        if (iTotalLayers > 1) {
+        // create the main dimension (if necessary for current key range)
+        if (iTotalZones > 1) {
             gig::dimension_def_t def;
-            def.dimension = gig::dimension_layer; // dimension type
-            def.zones = iTotalLayers;
+            def.dimension = mainDimension; // dimension type
+            def.zones = iTotalZones;
             def.bits = zoneCountToBits(def.zones);
             #if DEBUG_COMBINE_INSTRUMENTS
-            std::cout << "Adding new (layer) dimension type=" << std::hex << (int)def.dimension << std::dec << ", zones=" << (int)def.zones << ", bits=" << (int)def.bits << " ... " << std::flush;
+            std::cout << "Adding new main combi dimension type=" << std::hex << (int)def.dimension << std::dec << ", zones=" << (int)def.zones << ", bits=" << (int)def.bits << " ... " << std::flush;
             #endif
             outRgn->AddDimension(&def);
             #if DEBUG_COMBINE_INSTRUMENTS
@@ -726,18 +724,74 @@ static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::
             #endif
         }
 
-        // now copy the source dimension regions to the target dimension regions
-        int iDstLayer = 0;
-        for (RegionGroup::iterator itRgn = itGroup->second.begin();
-             itRgn != itGroup->second.end(); ++itRgn) // iterate over 'vertical' / source regions ...
+        // for the next task we need to have the current RegionGroup to be
+        // sorted by instrument in the same sequence as the 'instruments' vector
+        // argument passed to this function (because the std::map behind the
+        // 'RegionGroup' type sorts by memory address instead, and that would
+        // sometimes lead to the source instruments' region to be sorted into
+        // the wrong target layer)
+        OrderedRegionGroup currentGroup = sortRegionGroup(itGroup->second, instruments);
+
+        // schedule copying the source dimension regions to the target dimension
+        // regions
+        CopyAssignSchedule schedule;
+        int iDstMainBit = 0;
+        for (OrderedRegionGroup::iterator itRgn = currentGroup.begin();
+             itRgn != currentGroup.end(); ++itRgn) // iterate over 'vertical' / source regions ...
         {
             gig::Region* inRgn = itRgn->second;
             #if DEBUG_COMBINE_INSTRUMENTS
             printf("[source region of '%s']\n", inRgn->GetParent()->pInfo->Name.c_str());
             #endif
-            for (uint iSrcLayer = 0; iSrcLayer < inRgn->Layers; ++iSrcLayer, ++iDstLayer) {
-                copyDimensionRegions(outRgn, inRgn, dims, iDstLayer, iSrcLayer);
+
+            // determine how many main dimension zones this input region requires
+            gig::dimension_def_t* def = inRgn->GetDimensionDefinition(mainDimension);
+            const int inRgnMainZones = (def) ? def->zones : 1;
+
+            for (uint iSrcMainBit = 0; iSrcMainBit < inRgnMainZones; ++iSrcMainBit, ++iDstMainBit) {
+                scheduleCopyDimensionRegions(
+                    outRgn, inRgn, dims, mainDimension,
+                    iDstMainBit, iSrcMainBit, &schedule
+                );
             }
+        }
+
+        // finally copy the scheduled source -> target dimension regions
+        for (uint i = 0; i < schedule.size(); ++i) {
+            CopyAssignSchedEntry& e = schedule[i];
+
+            // backup the target DimensionRegion's current dimension zones upper
+            // limits (because the target DimensionRegion's upper limits are
+            // already defined correctly since calling AddDimension(), and the
+            // CopyAssign() call next, will overwrite those upper limits
+            // unfortunately
+            DimensionRegionUpperLimits dstUpperLimits = getDimensionRegionUpperLimits(e.dst);
+            DimensionRegionUpperLimits srcUpperLimits = getDimensionRegionUpperLimits(e.src);
+
+            // now actually copy over the current DimensionRegion
+            const gig::Region* const origRgn = e.dst->GetParent(); // just for sanity check below
+            e.dst->CopyAssign(e.src);
+            assert(origRgn == e.dst->GetParent()); // if gigedit is crashing here, then you must update libgig (to at least SVN r2547, v3.3.0.svn10)
+
+            // restore all original dimension zone upper limits except of the
+            // velocity dimension, because the velocity dimension zone sizes are
+            // allowed to differ for individual DimensionRegions in gig v3
+            // format
+            //
+            // if the main dinension is the 'velocity' dimension, then skip
+            // restoring the source's original velocity zone limits, because
+            // dealing with merging that is not implemented yet
+            // TODO: merge custom velocity splits if main dimension is the velocity dimension (for now equal sized velocity zones are used if mainDim is 'velocity')
+            if (srcUpperLimits.count(gig::dimension_velocity) && mainDimension != gig::dimension_velocity) {
+                if (!dstUpperLimits.count(gig::dimension_velocity)) {
+                    addWarning("Source instrument seems to have a velocity dimension whereas new target instrument doesn't!");
+                } else {
+                    dstUpperLimits[gig::dimension_velocity] =
+                        (e.velocityZone >= e.totalSrcVelocityZones)
+                            ? 127 : srcUpperLimits[gig::dimension_velocity];
+                }
+            }
+            restoreDimensionRegionUpperLimits(e.dst, dstUpperLimits);
         }
     }
 
@@ -752,9 +806,11 @@ CombineInstrumentsDialog::CombineInstrumentsDialog(Gtk::Window& parent, gig::Fil
     : Gtk::Dialog(_("Combine Instruments"), parent, true),
       m_gig(gig), m_fileWasChanged(false), m_newCombinedInstrument(NULL),
       m_cancelButton(Gtk::Stock::CANCEL), m_OKButton(Gtk::Stock::OK),
-      m_descriptionLabel()
+      m_descriptionLabel(), m_tableDimCombo(2, 2), m_comboDimType(),
+      m_labelDimType(Glib::ustring(_("Combine by Dimension:")) + "  ", Gtk::ALIGN_RIGHT)
 {
     get_vbox()->pack_start(m_descriptionLabel, Gtk::PACK_SHRINK);
+    get_vbox()->pack_start(m_tableDimCombo, Gtk::PACK_SHRINK);
     get_vbox()->pack_start(m_treeView);
     get_vbox()->pack_start(m_buttonBox, Gtk::PACK_SHRINK);
 
@@ -762,10 +818,37 @@ CombineInstrumentsDialog::CombineInstrumentsDialog(Gtk::Window& parent, gig::Fil
     description.set_line_wrap();
 #endif
     m_descriptionLabel.set_text(_(
-        "Select at least two instruments below that shall be combined  "
-        "as layers (using a \"Layer\" dimension) to a new instrument. The "
-        "original instruments remain untouched.")
-    );
+        "Select at least two instruments below that shall be combined (as "
+        "separate dimension zones of the selected dimension type) as a new "
+        "instrument. The original instruments remain untouched.\n\n"
+        "You may use this tool for example to combine solo instruments into "
+        "a combi sound arrangement by selecting the 'layer' dimension, or you "
+        "might combine similar sounding solo sounds into separate velocity "
+        "split layers by using the 'velocity' dimension, and so on."
+    ));
+
+    // add dimension type combo box
+    {
+        int iLayerDimIndex = -1;
+        Glib::RefPtr<Gtk::ListStore> refComboModel = Gtk::ListStore::create(m_comboDimsModel);
+        for (int i = 0x01, iRow = 0; i < 0xff; i++) {
+            Glib::ustring sType =
+                dimTypeAsString(static_cast<gig::dimension_t>(i));
+            if (sType.find("Unknown") != 0) {
+                Gtk::TreeModel::Row row = *(refComboModel->append());
+                row[m_comboDimsModel.m_type_id]   = i;
+                row[m_comboDimsModel.m_type_name] = sType;
+                if (i == gig::dimension_layer) iLayerDimIndex = iRow;
+                iRow++;
+            }
+        }
+        m_comboDimType.set_model(refComboModel);
+        m_comboDimType.pack_start(m_comboDimsModel.m_type_id);
+        m_comboDimType.pack_start(m_comboDimsModel.m_type_name);
+        m_tableDimCombo.attach(m_labelDimType, 0, 1, 0, 1);
+        m_tableDimCombo.attach(m_comboDimType, 1, 2, 0, 1);
+        m_comboDimType.set_active(iLayerDimIndex); // preselect "layer" dimension
+    }
 
     m_refTreeModel = Gtk::ListStore::create(m_columns);
     m_treeView.set_model(m_refTreeModel);
@@ -853,7 +936,19 @@ void CombineInstrumentsDialog::combineSelectedInstruments() {
     g_warnings.clear();
 
     try {
-        combineInstruments(instruments, m_gig, m_newCombinedInstrument);
+        // which main dimension was selected in the combo box?
+        gig::dimension_t mainDimension;
+        {
+            Gtk::TreeModel::iterator iterType = m_comboDimType.get_active();
+            if (!iterType) throw gig::Exception("No dimension selected");
+            Gtk::TreeModel::Row rowType = *iterType;
+            if (!rowType) throw gig::Exception("Something is wrong regarding dimension selection");
+            int iTypeID = rowType[m_comboDimsModel.m_type_id];
+            mainDimension = static_cast<gig::dimension_t>(iTypeID);
+        }
+
+        // now start the actual cobination task ...
+        combineInstruments(instruments, m_gig, m_newCombinedInstrument, mainDimension);
     } catch (RIFF::Exception e) {;
         Gtk::MessageDialog msg(*this, e.Message, false, Gtk::MESSAGE_ERROR);
         msg.run();
