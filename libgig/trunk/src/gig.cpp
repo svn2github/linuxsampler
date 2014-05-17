@@ -3509,6 +3509,8 @@ namespace {
 
         // delete temporary region
         delete tempRgn;
+
+        UpdateVelocityTable();
     }
 
     /** @brief Divide split zone of a dimension in two (increment zone amount).
@@ -3646,6 +3648,8 @@ namespace {
 
         // delete temporary region
         delete tempRgn;
+
+        UpdateVelocityTable();
     }
 
     DimensionRegion* Region::GetDimensionRegionByBit(const std::map<dimension_t,int>& DimCase) {
