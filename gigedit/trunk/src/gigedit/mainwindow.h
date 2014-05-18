@@ -54,7 +54,9 @@ class PropDialog : public Gtk::Window,
 public:
     PropDialog();
     void set_info(DLS::Info* info);
+    void set_file(gig::File* file);
 protected:
+    ChoiceEntry<int> eFileFormat;
     StringEntry eName;
     StringEntry eCreationDate;
     StringEntryMultiLine eComments;
@@ -75,6 +77,10 @@ protected:
     Gtk::HButtonBox buttonBox;
     Gtk::Button quitButton;
     Table table;
+
+    gig::File* m_file;
+
+    void onFileFormatChanged();
 };
 
 class InstrumentProps : public Gtk::Window,

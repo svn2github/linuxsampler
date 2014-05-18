@@ -1058,7 +1058,8 @@ void MainWindow::on_action_help_about()
 }
 
 PropDialog::PropDialog()
-    : eName(_("Name")),
+    : eFileFormat(_("File Format")),
+      eName(_("Name")),
       eCreationDate(_("Creation date")),
       eComments(_("Comments")),
       eProduct(_("Product")),
@@ -1075,7 +1076,8 @@ PropDialog::PropDialog()
       eCommissioned(_("Commissioned")),
       eSubject(_("Subject")),
       quitButton(Gtk::Stock::CLOSE),
-      table(2, 1)
+      table(2, 1),
+      m_file(NULL)
 {
     set_title(_("File Properties"));
     eName.set_width_chars(50);
@@ -1097,6 +1099,7 @@ PropDialog::PropDialog()
     connect(eCommissioned, &DLS::Info::Commissioned);
     connect(eSubject, &DLS::Info::Subject);
 
+    table.add(eFileFormat);
     table.add(eName);
     table.add(eCreationDate);
     table.add(eComments);
@@ -1127,10 +1130,38 @@ PropDialog::PropDialog()
     quitButton.grab_focus();
     quitButton.signal_clicked().connect(
         sigc::mem_fun(*this, &PropDialog::hide));
+    eFileFormat.signal_value_changed().connect(
+        sigc::mem_fun(*this, &PropDialog::onFileFormatChanged));
 
     quitButton.show();
     vbox.show();
     show_all_children();
+}
+
+void PropDialog::set_file(gig::File* file)
+{
+    m_file = file;
+
+    // update file format version combo box
+    const std::string sGiga = "Gigasampler/GigaStudio v";
+    const int major = file->pVersion->major;
+    std::vector<std::string> txts;
+    std::vector<int> values;
+    txts.push_back(sGiga + "2"); values.push_back(2);
+    txts.push_back(sGiga + "3"); values.push_back(3);
+    if (major != 2 && major != 3) {
+        txts.push_back(sGiga + ToString(major)); values.push_back(major);
+    }
+    std::vector<const char*> texts;
+    for (int i = 0; i < txts.size(); ++i) texts.push_back(txts[i].c_str());
+    texts.push_back(NULL); values.push_back(NULL);
+    eFileFormat.set_choices(&texts[0], &values[0]);
+    eFileFormat.set_value(major);
+}
+
+void PropDialog::onFileFormatChanged() {
+    const int major = eFileFormat.get_value();
+    if (m_file) m_file->pVersion->major = major;
 }
 
 void PropDialog::set_info(DLS::Info* info)
@@ -1274,6 +1305,7 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
     file_has_name = filename;
     file_is_changed = false;
 
+    propDialog.set_file(gig);
     propDialog.set_info(gig->pInfo);
 
     instrument_name_connection.block();
