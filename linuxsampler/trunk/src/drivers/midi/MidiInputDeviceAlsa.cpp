@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -315,7 +315,11 @@ namespace LinuxSampler {
                             break;
 
                         case SND_SEQ_EVENT_CHANPRESS:
-                            pMidiInputPort->DispatchControlChange(128, ev->data.control.value, ev->data.control.channel);
+                            pMidiInputPort->DispatchChannelPressure(ev->data.control.value, ev->data.control.channel);
+                            break;
+
+                        case SND_SEQ_EVENT_KEYPRESS:
+                            pMidiInputPort->DispatchPolyphonicKeyPressure(ev->data.note.note, ev->data.note.velocity, ev->data.control.channel);
                             break;
 
                         case SND_SEQ_EVENT_PITCHBEND:

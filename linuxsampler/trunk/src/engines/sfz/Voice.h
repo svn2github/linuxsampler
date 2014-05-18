@@ -76,7 +76,9 @@ namespace LinuxSampler { namespace sfz {
             virtual float            CalculateFinalCutoff(float cutoffBase);
             virtual uint8_t          GetVCFCutoffCtrl() { return 0; }
             virtual uint8_t          GetVCFResonanceCtrl() { return 0; }
-            virtual void             ProcessCCEvent(RTList<Event>::Iterator& itEvent);
+            virtual void             ProcessCCEvent(RTList<Event>::Iterator& itEvent) OVERRIDE;
+            virtual void             ProcessChannelPressureEvent(RTList<Event>::Iterator& itEvent) OVERRIDE;
+            virtual void             ProcessPolyphonicKeyPressureEvent(RTList<Event>::Iterator& itEvent) OVERRIDE;
             virtual void             ProcessCutoffEvent(RTList<Event>::Iterator& itEvent) { }
             virtual double           GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
             virtual double           GetVelocityRelease(uint8_t MIDIKeyVelocity);

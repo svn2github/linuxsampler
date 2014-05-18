@@ -385,9 +385,7 @@ namespace LinuxSampler {
     }
 
     /**
-     *  Moves pitchbend event from the general (input) event list to the engine
-     *  channel's event list. It will actually processed later by the
-     *  respective voice.
+     *  Stores the latest pitchbend event as current pitchbend scalar value.
      *
      *  @param pEngineChannel - engine channel on which this event occured on
      *  @param itPitchbendEvent - absolute pitch value and time stamp of the event

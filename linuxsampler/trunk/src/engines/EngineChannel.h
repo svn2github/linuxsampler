@@ -69,6 +69,10 @@ namespace LinuxSampler {
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel) = 0;
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos) = 0;
             virtual void    SendProgramChange(uint8_t Program) = 0;
+            virtual void    SendChannelPressure(uint8_t Value, uint8_t MidiChannel) = 0;
+            virtual void    SendChannelPressure(uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos) = 0;
+            virtual void    SendPolyphonicKeyPressure(uint8_t Key, uint8_t Value, uint8_t MidiChannel) = 0;
+            virtual void    SendPolyphonicKeyPressure(uint8_t Key, uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos) = 0;
             virtual bool    StatusChanged(bool bNewStatus = false) = 0;
             virtual float   Volume() = 0;
             virtual void    Volume(float f) = 0;

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -76,7 +76,9 @@ namespace LinuxSampler {
                 type_control_change,
                 type_sysex,           ///< MIDI system exclusive message
                 type_cancel_release,  ///< transformed either from a note-on or sustain-pedal-down event
-                type_release          ///< transformed either from a note-off or sustain-pedal-up event
+                type_release,         ///< transformed either from a note-off or sustain-pedal-up event
+                type_channel_pressure, ///< a.k.a. aftertouch
+                type_note_pressure, ///< polyphonic key pressure (aftertouch)
             } Type;
             union {
                 /// Note-on and note-off event specifics
@@ -103,6 +105,17 @@ namespace LinuxSampler {
                 struct _Sysex {
                     uint Size;           ///< Data length (in bytes) of MIDI system exclusive message.
                 } Sysex;
+                /// Channel Pressure (aftertouch) event specifics
+                struct _ChannelPressure {
+                    uint8_t Value;   ///< New aftertouch / pressure value for keys on that channel.
+                    uint8_t Channel; ///< MIDI channel (0..15)
+                } ChannelPressure;
+                /// Polyphonic Note Pressure (aftertouch) event specifics
+                struct _NotePressure {
+                    uint8_t Key;     ///< MIDI note number where key pressure (polyphonic aftertouch) changed.
+                    uint8_t Value;   ///< New pressure value for note.
+                    uint8_t Channel; ///< MIDI channel (0..15)
+                } NotePressure;
             } Param;
             EngineChannel* pEngineChannel; ///< Pointer to the EngineChannel where this event occured on, NULL means Engine global event (e.g. SysEx message).
             MidiInputPort* pMidiInputPort; ///< Pointer to the MIDI input port on which this event occured (NOTE: currently only for global events, that is SysEx messages)

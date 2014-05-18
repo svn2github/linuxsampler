@@ -4,6 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2004 Grame											   *
+ *   Copyright (C) 2014 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -69,8 +70,10 @@ namespace LinuxSampler {
 		MidiAcceptType(hMidiFilter, typeKeyOn, 1);
 		MidiAcceptType(hMidiFilter, typeKeyOff, 1);
 		MidiAcceptType(hMidiFilter, typeCtrlChange, 1);
-		//MidiAcceptType(hMidiFilter, typeProgChange, 1);
+		MidiAcceptType(hMidiFilter, typeProgChange, 1);
 		MidiAcceptType(hMidiFilter, typePitchWheel, 1);
+		MidiAcceptType(hMidiFilter, typeChanPress, 1);
+		MidiAcceptType(hMidiFilter, typeKeyPress, 1);
 		  
 		/* set the filter */
 		MidiSetFilter(hRefnum, hMidiFilter);
@@ -174,7 +177,17 @@ namespace LinuxSampler {
 					driver->DispatchPitchbend(((MidiGetField(ev,0)+(MidiGetField(ev,1) << 7)) - 8192),Chan(ev));
 					MidiFreeEv(ev);
 					break;
-					
+
+				case typeChanPress:
+					driver->DispatchChannelPressure(MidiGetField(ev,0),Chan(ev));
+					MidiFreeEv(ev);
+					break;
+
+				case typeKeyPress:
+					driver->DispatchPolyphonicKeyPressure(Pitch(ev),Vel(ev),Chan(ev));
+					MidiFreeEv(ev);
+					break;
+
 				case typeNote:
 					driver->DispatchNoteOn(Pitch(ev),Vel(ev),Chan(ev));
 					MidiTask(KeyOffTask,Date(ev)+Dur(ev),ref,(long)ev,0,0);

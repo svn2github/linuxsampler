@@ -294,6 +294,8 @@ namespace LinuxSampler {
 
             virtual void    GetFirstEventOnKey(uint8_t MIDIKey, RTList<Event>::Iterator& itEvent) = 0;
             virtual void    ProcessCCEvent(RTList<Event>::Iterator& itEvent) = 0;
+            virtual void    ProcessChannelPressureEvent(RTList<Event>::Iterator& itEvent) = 0;
+            virtual void    ProcessPolyphonicKeyPressureEvent(RTList<Event>::Iterator& itEvent) = 0;
             virtual void    ProcessCutoffEvent(RTList<Event>::Iterator& itEvent) = 0;
             virtual double  GetVelocityRelease(uint8_t MIDIKeyVelocity) = 0;
 

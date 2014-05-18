@@ -99,6 +99,10 @@ Version CVS HEAD (?)
     - VirtualMidiDevice: Added support for program change.
     - VirtualMidiDevice: Added support for bank select (MSB & LSB).
     - VirtualMidiDevice: Added support for pitch bend.
+    - Aftertouch: extended API to explicitly handle channel pressure and
+      polyphonic key pressure events (so far polyphonic pressure was not
+      supported at all, and channel pressure was rerouted as CC128 but not
+      used so far).
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension
@@ -115,6 +119,7 @@ Version CVS HEAD (?)
     - Exclusive Groups: don't ever stop voices of the same note,
       doesn't sound naturally with a drumkit
     - fixed EG1 modulation when attack or release is zero
+    - Fixed support for 'aftertouch' attenuation controller.
 
   * SFZ format engine:
     - Initial implementation (not usable yet)

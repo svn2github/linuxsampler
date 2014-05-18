@@ -109,6 +109,14 @@ namespace LinuxSampler { namespace gig {
         ProcessFxSendControllers(pChannel, itControlChangeEvent);
     }
 
+    void Engine::ProcessChannelPressure(LinuxSampler::EngineChannel* pEngineChannel, Pool<Event>::Iterator& itChannelPressureEvent) {
+        // if required: engine global aftertouch handling (apart from the per voice handling)
+    }
+
+    void Engine::ProcessPolyphonicKeyPressure(LinuxSampler::EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNotePressureEvent) {
+        // if required: engine global aftertouch handling (apart from the per voice handling)
+    }
+
     DiskThread* Engine::CreateDiskThread() {
         return new DiskThread (
             iMaxDiskStreams,

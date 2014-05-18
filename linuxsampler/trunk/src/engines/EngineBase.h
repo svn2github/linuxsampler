@@ -649,6 +649,14 @@ namespace LinuxSampler {
                                 dmsg(5,("Engine: MIDI CC received\n"));
                                 ProcessControlChange((EngineChannel*)itEvent->pEngineChannel, itEvent);
                                 break;
+                            case Event::type_channel_pressure:
+                                dmsg(5,("Engine: MIDI Chan. Pressure received\n"));
+                                ProcessChannelPressure((EngineChannel*)itEvent->pEngineChannel, itEvent);
+                                break;
+                            case Event::type_note_pressure:
+                                dmsg(5,("Engine: MIDI Note Pressure received\n"));
+                                ProcessPolyphonicKeyPressure((EngineChannel*)itEvent->pEngineChannel, itEvent);
+                                break;
                             case Event::type_pitchbend:
                                 dmsg(5,("Engine: Pitchbend received\n"));
                                 ProcessPitchbend(static_cast<AbstractEngineChannel*>(itEvent->pEngineChannel), itEvent);

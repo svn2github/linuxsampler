@@ -136,6 +136,8 @@ namespace LinuxSampler {
             virtual void ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) = 0;
             virtual void ProcessNoteOff(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOffEvent) = 0;
             virtual void ProcessControlChange(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itControlChangeEvent) = 0;
+            virtual void ProcessChannelPressure(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itChannelPressureEvent) = 0;
+            virtual void ProcessPolyphonicKeyPressure(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNotePressureEvent) = 0;
             virtual int  GetMinFadeOutSamples() = 0;
 
         private:

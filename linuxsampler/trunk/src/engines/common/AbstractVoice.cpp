@@ -427,7 +427,7 @@ namespace LinuxSampler {
             fFinalCutoff    = VCFCutoffCtrl.fvalue;
             fFinalResonance = VCFResonanceCtrl.fvalue;
 
-            // process MIDI control change and pitchbend events for this subfragment
+            // process MIDI control change, aftertouch and pitchbend events for this subfragment
             processCCEvents(itCCEvent, iSubFragmentEnd);
             uint8_t pan = MIDIPan;
             if (pSignalUnitRack != NULL) pan = pSignalUnitRack->GetEndpointUnit()->CalculatePan(MIDIPan);
@@ -611,8 +611,8 @@ namespace LinuxSampler {
     }
 
     /**
-     * Process given list of MIDI control change and pitch bend events for
-     * the given time.
+     * Process given list of MIDI control change, aftertouch and pitch bend
+     * events for the given time.
      *
      * @param itEvent - iterator pointing to the next event to be processed
      * @param End     - youngest time stamp where processing should be stopped
@@ -644,6 +644,10 @@ namespace LinuxSampler {
                 }
             } else if (itEvent->Type == Event::type_pitchbend) { // if pitch bend event
                 processPitchEvent(itEvent);
+            } else if (itEvent->Type == Event::type_channel_pressure) {
+                ProcessChannelPressureEvent(itEvent);
+            } else if (itEvent->Type == Event::type_note_pressure) {
+                ProcessPolyphonicKeyPressureEvent(itEvent);
             }
 
             ProcessCCEvent(itEvent);

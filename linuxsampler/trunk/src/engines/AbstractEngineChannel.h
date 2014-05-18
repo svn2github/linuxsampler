@@ -46,7 +46,11 @@ namespace LinuxSampler {
             virtual void    SendPitchbend(int Pitch, uint8_t MidiChannel) OVERRIDE;
             virtual void    SendPitchbend(int Pitch, uint8_t MidiChannel, int32_t FragmentPos) OVERRIDE;
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel) OVERRIDE;
-            virtual void    SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos) OVERRIDE;
+            virtual void    SendControlChange(uint8_t Controller, uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos) OVERRIDE;            
+            virtual void    SendChannelPressure(uint8_t Value, uint8_t MidiChannel) OVERRIDE;
+            virtual void    SendChannelPressure(uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos) OVERRIDE;
+            virtual void    SendPolyphonicKeyPressure(uint8_t Key, uint8_t Value, uint8_t MidiChannel) OVERRIDE;
+            virtual void    SendPolyphonicKeyPressure(uint8_t Key, uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos) OVERRIDE;
             virtual bool    StatusChanged(bool bNewStatus = false) OVERRIDE;
             virtual float   Volume() OVERRIDE;
             virtual void    Volume(float f) OVERRIDE;

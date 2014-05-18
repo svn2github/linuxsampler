@@ -77,7 +77,9 @@ namespace LinuxSampler { namespace gig {
             virtual float            CalculateFinalCutoff(float cutoffBase);
             virtual uint8_t          GetVCFCutoffCtrl();
             virtual uint8_t          GetVCFResonanceCtrl();
-            virtual void             ProcessCCEvent(RTList<Event>::Iterator& itEvent);
+            virtual void             ProcessCCEvent(RTList<Event>::Iterator& itEvent) OVERRIDE;
+            virtual void             ProcessChannelPressureEvent(RTList<Event>::Iterator& itEvent) OVERRIDE;
+            virtual void             ProcessPolyphonicKeyPressureEvent(RTList<Event>::Iterator& itEvent) OVERRIDE;
             virtual void             ProcessCutoffEvent(RTList<Event>::Iterator& itEvent);
             virtual double           GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
             virtual double           GetVelocityRelease(uint8_t MIDIKeyVelocity);

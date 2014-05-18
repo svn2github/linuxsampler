@@ -124,6 +124,18 @@ namespace LinuxSampler { namespace gig {
         }
     }
 
+    void Voice::ProcessChannelPressureEvent(RTList<Event>::Iterator& itEvent) {
+        if (itEvent->Type == Event::type_channel_pressure) { // if (valid) MIDI channel pressure (aftertouch) event
+            if (pRegion->AttenuationController.type == ::gig::attenuation_ctrl_t::type_channelaftertouch) {
+                CrossfadeSmoother.update(AbstractEngine::CrossfadeCurve[CrossfadeAttenuation(itEvent->Param.ChannelPressure.Value)]);
+            }
+        }
+    }
+
+    void Voice::ProcessPolyphonicKeyPressureEvent(RTList<Event>::Iterator& itEvent) {
+        // Not used so far
+    }
+
     void Voice::ProcessCutoffEvent(RTList<Event>::Iterator& itEvent) {
         int ccvalue = itEvent->Param.CC.Value;
         if (VCFCutoffCtrl.value == ccvalue) return;

@@ -619,6 +619,72 @@ namespace LinuxSampler {
         }
     }
 
+    void AbstractEngineChannel::SendChannelPressure(uint8_t Value, uint8_t MidiChannel) {
+        if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
+            Event event = pEngine->pEventGenerator->CreateEvent();
+            event.Type                          = Event::type_channel_pressure;
+            event.Param.ChannelPressure.Value   = Value;
+            event.Param.ChannelPressure.Channel = MidiChannel;
+            event.pEngineChannel                = this;
+            if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
+            else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
+        }
+    }
+
+    void AbstractEngineChannel::SendChannelPressure(uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos) {
+        if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
+            Event event = pEngine->pEventGenerator->CreateEvent(FragmentPos);
+            event.Type                          = Event::type_channel_pressure;
+            event.Param.ChannelPressure.Value   = Value;
+            event.Param.ChannelPressure.Channel = MidiChannel;
+            event.pEngineChannel                = this;
+            if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
+            else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
+        }
+    }
+
+    void AbstractEngineChannel::SendPolyphonicKeyPressure(uint8_t Key, uint8_t Value, uint8_t MidiChannel) {
+        if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
+            Event event = pEngine->pEventGenerator->CreateEvent();
+            event.Type                       = Event::type_note_pressure;
+            event.Param.NotePressure.Key     = Key;
+            event.Param.NotePressure.Value   = Value;
+            event.Param.NotePressure.Channel = MidiChannel;
+            event.pEngineChannel             = this;
+            if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
+            else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
+        }
+    }
+
+    void AbstractEngineChannel::SendPolyphonicKeyPressure(uint8_t Key, uint8_t Value, uint8_t MidiChannel, int32_t FragmentPos) {
+        if (pEngine) {
+            // protection in case there are more than 1 MIDI input threads sending MIDI events to this EngineChannel
+            LockGuard g;
+            if (hasMultipleMIDIInputs()) g = LockGuard(MidiInputMutex);
+
+            Event event = pEngine->pEventGenerator->CreateEvent(FragmentPos);
+            event.Type                       = Event::type_note_pressure;
+            event.Param.NotePressure.Key     = Key;
+            event.Param.NotePressure.Value   = Value;
+            event.Param.NotePressure.Channel = MidiChannel;
+            event.pEngineChannel             = this;
+            if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
+            else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
+        }
+    }
+
     /**
      * Copy all events from the engine channel's input event queue buffer to
      * the internal event list. This will be done at the beginning of each

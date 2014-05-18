@@ -127,6 +127,14 @@ namespace LinuxSampler { namespace sf2 {
             }
         }*/ // TODO: ^^^
     }
+    
+    void Voice::ProcessChannelPressureEvent(RTList<Event>::Iterator& itEvent) {
+        //TODO: ...
+    }
+    
+    void Voice::ProcessPolyphonicKeyPressureEvent(RTList<Event>::Iterator& itEvent) {
+        //TODO: ...
+    }
 
     void Voice::ProcessCutoffEvent(RTList<Event>::Iterator& itEvent) {
         /*int ccvalue = itEvent->Param.CC.Value;

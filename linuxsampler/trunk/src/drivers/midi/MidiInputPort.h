@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -299,6 +299,78 @@ namespace LinuxSampler {
             void DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel, int32_t FragmentPos);
 
             /**
+             * Should be called by the implementing MIDI input device whenever
+             * a channel pressure event arrived (a.k.a. aftertouch), this will
+             * cause the channel pressure event to be forwarded to all engines
+             * on the corresponding MIDI channel.
+             *
+             * This method is meant for realtime rendering, this way an event
+             * is immediately created with the current system time as time
+             * stamp.
+             *
+             * @param Value       - MIDI channel pressure value (0..127)
+             * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
+             * @see DispatchPolyphonicKeyPressure()
+             */
+            void DispatchChannelPressure(uint8_t Value, uint MidiChannel);
+
+            /**
+             * Should be called by the implementing MIDI input device whenever
+             * a channel pressure event arrived (a.k.a. aftertouch), this will
+             * cause the channel pressure event to be forwarded to all engines
+             * on the corresponding MIDI channel.
+             *
+             * This method is meant for offline rendering and / or in case the
+             * exact fragment position of the event is already known.
+             *
+             * @param Value       - MIDI channel pressure value (0..127)
+             * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
+             * @param FragmentPos - event's sample point position in the
+             *                      current audio fragment
+             * @see DispatchPolyphonicKeyPressure()
+             */
+            void DispatchChannelPressure(uint8_t Value, uint MidiChannel, int32_t FragmentPos);
+
+            /**
+             * Should be called by the implementing MIDI input device whenever
+             * a polyphonic key pressure event arrived (a.k.a. polyphonic
+             * aftertouch), this will cause the polyphonic key pressure event
+             * to be forwarded to all engines on the corresponding MIDI channel.
+             *
+             * This method is meant for realtime rendering, this way an event
+             * is immediately created with the current system time as time
+             * stamp.
+             *
+             * @param Key         - MIDI key number of the key where pressure changed
+             * @param Value       - MIDI key pressure value (0..127)
+             * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
+             * @see DispatchChannelPressure()
+             */
+            void DispatchPolyphonicKeyPressure(uint8_t Key, uint8_t Value, uint MidiChannel);
+
+            /**
+             * Should be called by the implementing MIDI input device whenever
+             * a polyphonic key pressure event arrived (a.k.a. polyphonic
+             * aftertouch), this will cause the polyphonic key pressure event
+             * to be forwarded to all engines on the corresponding MIDI channel.
+             *
+             * This method is meant for offline rendering and / or in case the
+             * exact fragment position of the event is already known.
+             *
+             * @param Key         - MIDI key number of the key where pressure changed
+             * @param Value       - MIDI key pressure value (0..127)
+             * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
+             * @param FragmentPos - event's sample point position in the
+             *                      current audio fragment
+             * @see DispatchChannelPressure()
+             */
+            void DispatchPolyphonicKeyPressure(uint8_t Key, uint8_t Value, uint MidiChannel, int32_t FragmentPos);
+
+            /**
              * Should be called by the implementing MIDI input device
              * whenever a program change event arrived. In case the
              * respective sampler channel(s) are enabled for MIDI
@@ -320,8 +392,48 @@ namespace LinuxSampler {
              */
             void DispatchProgramChange(uint8_t Program, uint MidiChannel);
 
+            /**
+             * Should be called by the implementing MIDI input device whenever
+             * a MIDI bank select MSB (Most Significant Byte) event arrived.
+             *
+             * In case the respective sampler channel(s) are enabled for "MIDI
+             * instrument mapping", a subsequent MIDI program change event can
+             * be used to let the respective sampler engine load another
+             * instrument according to the respective entry in the MIDI
+             * instrument map.
+             *
+             * MIDI sources can either a) just send bank select MSB events, or
+             * b) just send bank select LSB events or c) they can send both bank
+             * select MSB and LSB events. The sampler will automatically detect
+             * which style the MIDI source is using and appropriately interpret
+             * it for selecting the appropriate bank.
+             *
+             * @param BankMsb     - Most Significant Byte of the bank number
+             * @param MidiChannel - MIDI channel on which this bank select
+             *                      occurred
+             */
             void DispatchBankSelectMsb(uint8_t BankMsb, uint MidiChannel);
 
+            /**
+             * Should be called by the implementing MIDI input device whenever
+             * a MIDI bank select LSB (Least Significant Byte) event arrived.
+             *
+             * In case the respective sampler channel(s) are enabled for "MIDI
+             * instrument mapping", a subsequent MIDI program change event can
+             * be used to let the respective sampler engine load another
+             * instrument according to the respective entry in the MIDI
+             * instrument map.
+             *
+             * MIDI sources can either a) just send bank select MSB events, or
+             * b) just send bank select LSB events or c) they can send both bank
+             * select MSB and LSB events. The sampler will automatically detect
+             * which style the MIDI source is using and appropriately interpret
+             * it for selecting the appropriate bank.
+             *
+             * @param BankMsb     - Most Significant Byte of the bank number
+             * @param MidiChannel - MIDI channel on which this bank select
+             *                      occurred
+             */
             void DispatchBankSelectLsb(uint8_t BankLsb, uint MidiChannel);
 
             /**

@@ -46,8 +46,9 @@ namespace LinuxSampler { namespace gig {
             virtual void ProcessControlChange (
                 LinuxSampler::EngineChannel*  pEngineChannel,
                 Pool<Event>::Iterator&        itControlChangeEvent
-            );
-
+            ) OVERRIDE;
+            virtual void ProcessChannelPressure(LinuxSampler::EngineChannel* pEngineChannel, Pool<Event>::Iterator& itChannelPressureEvent) OVERRIDE;
+            virtual void ProcessPolyphonicKeyPressure(LinuxSampler::EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNotePressureEvent) OVERRIDE;
             friend class Voice;
 
         protected:

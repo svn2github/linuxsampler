@@ -246,6 +246,78 @@ namespace LinuxSampler {
         MidiChannelMapReader.Unlock();
     }
 
+    void MidiInputPort::DispatchChannelPressure(uint8_t Value, uint MidiChannel) {
+        if (Value > 127 || MidiChannel > 16) return;
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendChannelPressure(Value, MidiChannel);
+        }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendChannelPressure(Value, MidiChannel);
+        }
+        MidiChannelMapReader.Unlock();
+    }
+
+    void MidiInputPort::DispatchChannelPressure(uint8_t Value, uint MidiChannel, int32_t FragmentPos) {
+        if (Value > 127 || MidiChannel > 16) return;
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendChannelPressure(Value, MidiChannel, FragmentPos);
+        }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendChannelPressure(Value, MidiChannel, FragmentPos);
+        }
+        MidiChannelMapReader.Unlock();
+    }
+
+    void MidiInputPort::DispatchPolyphonicKeyPressure(uint8_t Key, uint8_t Value, uint MidiChannel) {
+        if (Key > 127 || Value > 127 || MidiChannel > 16) return;
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendPolyphonicKeyPressure(Key, Value, MidiChannel);
+        }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendPolyphonicKeyPressure(Key, Value, MidiChannel);
+        }
+        MidiChannelMapReader.Unlock();
+    }
+
+    void MidiInputPort::DispatchPolyphonicKeyPressure(uint8_t Key, uint8_t Value, uint MidiChannel, int32_t FragmentPos) {
+        if (Key > 127 || Value > 127 || MidiChannel > 16) return;
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendPolyphonicKeyPressure(Key, Value, MidiChannel, FragmentPos);
+        }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendPolyphonicKeyPressure(Key, Value, MidiChannel, FragmentPos);
+        }
+        MidiChannelMapReader.Unlock();
+    }
+
     void MidiInputPort::DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel) {
         if (Controller > 128 || Value > 127 || MidiChannel > 16) return;
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
@@ -430,6 +502,9 @@ namespace LinuxSampler {
                 DispatchNoteOff(pData[1], pData[2], channel);
             }
             break;
+        case 0xA0:
+            DispatchPolyphonicKeyPressure(pData[1], pData[2], channel);
+            break;
         case 0xb0:
             if (pData[1] == 0) {
                 DispatchBankSelectMsb(pData[2], channel);
@@ -442,7 +517,7 @@ namespace LinuxSampler {
             DispatchProgramChange(pData[1], channel);
             break;
         case 0xd0:
-            DispatchControlChange(128, pData[1], channel);
+            DispatchChannelPressure(pData[1], channel);
             break;
         case 0xe0:
             DispatchPitchbend((pData[1] | pData[2] << 7) - 8192, channel);
@@ -465,6 +540,9 @@ namespace LinuxSampler {
                 DispatchNoteOff(pData[1], pData[2], channel, FragmentPos);
             }
             break;
+        case 0xA0:
+            DispatchPolyphonicKeyPressure(pData[1], pData[2], channel, FragmentPos);
+            break;
         case 0xb0:
             if (pData[1] == 0) {
                 DispatchBankSelectMsb(pData[2], channel);
@@ -477,7 +555,7 @@ namespace LinuxSampler {
             DispatchProgramChange(pData[1], channel);
             break;
         case 0xd0:
-            DispatchControlChange(128, pData[1], channel, FragmentPos);
+            DispatchChannelPressure(pData[1], channel, FragmentPos);
             break;
         case 0xe0:
             DispatchPitchbend((pData[1] | pData[2] << 7) - 8192, channel, FragmentPos);

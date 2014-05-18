@@ -156,6 +156,14 @@ namespace LinuxSampler { namespace sfz {
         }*/ // TODO: ^^^
     }
 
+    void Voice::ProcessChannelPressureEvent(RTList<Event>::Iterator& itEvent) {
+        //TODO: ...
+    }
+
+    void Voice::ProcessPolyphonicKeyPressureEvent(RTList<Event>::Iterator& itEvent) {
+        //TODO: ...
+    }
+
     double Voice::CalculateCrossfadeVolume(uint8_t MIDIKeyVelocity) {
         /*float crossfadeVolume;
         switch (pRegion->AttenuationController.type) {
