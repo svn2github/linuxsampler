@@ -63,6 +63,10 @@ static void printUsage() {
     cout << endl;
 }
 
+static bool beginsWith(const string& haystack, const string& needle) {
+    return haystack.substr(0, needle.size()) == needle;
+}
+
 static bool endsWith(const string& haystack, const string& needle) {
     return haystack.substr(haystack.size() - needle.size(), needle.size()) == needle;
 }
@@ -446,6 +450,12 @@ static gig::Sample* findOrCreateGigSampleForKSFRegion(const Korg::KMPRegion* kmp
         gigSampleGroup->Name = baseName;
     }
 
+    if (kmpRegion->SampleFileName == "SKIPPEDSAMPL" ||
+        (beginsWith(kmpRegion->SampleFileName, "INTERNAL") && !endsWith(kmpRegion->SampleFileName, ".KSF")))
+    {
+        return NULL;
+    }
+
     Korg::KSFSample* ksfSample = findKSFSampleWithFileName(kmpRegion->FullSampleFileName());
     if (!ksfSample)
         throw Korg::Exception("Internal error: Could not resolve KSFSample object");
@@ -466,6 +476,14 @@ static void loadKorgFile(const string& filename, bool bReferenced = false) {
 
             for (int i = 0; i < instr->GetRegionCount(); ++i) {
                 Korg::KMPRegion* rgn = instr->GetRegion(i);
+                if (rgn->SampleFileName == "SKIPPEDSAMPL") {
+                    cout << "WARNING: 'SKIPPEDSAMPL' as sample reference found!\n";
+                    continue;
+                } else if (beginsWith(rgn->SampleFileName, "INTERNAL") &&
+                           !endsWith(rgn->SampleFileName, ".KSF")) {
+                    cout << "WARNING: One of the KORG instrument's internal samples was referenced as sample!\n";
+                    continue;
+                }
                 // check if the sample referenced by this region was already
                 // loaded, if not then load it ...
                 if (!findKSFSampleWithFileName(rgn->FullSampleFileName()))
@@ -739,7 +757,7 @@ int main(int argc, char *argv[]) {
 
                     // assign the respective gig sample to this dimension region
                     gig::Sample* gigSample = findOrCreateGigSampleForKSFRegion(kmpRegion);
-                    dimRgn->pSample = gigSample; // might be NULL (if Korg sample had zero size)
+                    dimRgn->pSample = gigSample; // might be NULL (if Korg sample had zero size, or if the original instrument's internal samples were used)
                     if (gigSample) {
                         dimRgn->UnityNote = gigSample->MIDIUnityNote;
                         if (gigSample->Loops) {

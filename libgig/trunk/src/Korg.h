@@ -139,7 +139,7 @@ namespace Korg {
         int8_t Level; ///< -99..+99 cents
         int8_t Pan; ///< -64..+63
         int8_t FilterCutoff; ///< -50..0
-        String SampleFileName; ///< Base file name of sample file (12 bytes). Call FullSampleFileName() for getting the file name with path, which you might then pass to a KSFSample constructor to load the respective sample.
+        String SampleFileName; ///< Base file name of sample file (12 bytes). Call FullSampleFileName() for getting the file name with path, which you might then pass to a KSFSample constructor to load the respective sample. There are two special names: "SKIPPEDSAMPL" means the sample was skipped during loading on the original KORG instrument, whereas "INTERNALnnnn" means internal sample (of the original KORG instrument) with number nnnn is used. In both cases, you obviously have no other chance than skipping them.
         
         String FullSampleFileName() const;
         KMPInstrument* GetInstrument() const;
