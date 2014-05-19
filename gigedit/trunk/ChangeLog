@@ -64,6 +64,8 @@ Version CVS HEAD (?)
     initial usage (was far too small by default).
   * File Property Dialog: allow viewing and altering the Giga file format
     version (by combo box).
+  * 'Dimension Manager' dialog: added support for viewing and editing
+    dimensions of all regions simultaniously.
 
 Version 0.2.0 (2009-07-31)
 

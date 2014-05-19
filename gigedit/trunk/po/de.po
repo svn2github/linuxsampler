@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gigedit 0.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-01-12 20:34+0100\n"
-"PO-Revision-Date: 2014-05-17 17:11+0100\n"
+"PO-Revision-Date: 2014-05-19 19:08+0100\n"
 "Last-Translator: Christian Schoenebeck\n"
 "Language-Team: German\n"
 "Language: \n"
@@ -16,27 +16,27 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:75
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:76
 msgid "WARNING:"
 msgstr "WARNUNG:"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:655
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:629
 msgid "No regions found to create a new instrument with."
 msgstr "Keine Regions gefunden um daraus ein neues Instrument zu erzeugen."
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:659
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:633
 msgid "NEW COMBINATION"
 msgstr "NEUE_KOMBINATION"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:780
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:806
 msgid "Combine Instruments"
 msgstr "Instrumente kombinieren"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:784
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:810
 msgid "Combine by Dimension:"
 msgstr "Kombinieren mittels Dimension:"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:795
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:821
 msgid ""
 "Select at least two instruments below that shall be combined (as separate dimension zones of the selected dimension type) as a new instrument. The original instruments remain untouched.\n"
 "\n"
@@ -46,25 +46,27 @@ msgstr ""
 "\n"
 "Sie könnten diese Funktion beispielsweise nutzen um Solo Instrumente in Combi Sound Arrangements zu wandeln, und zwar durch Wahl der 'Layer' Dimension, oder Sie könnten ähnlich klingende Sounds in getrennte Velocity Split Zonen zusammenfassen mittels Wahl der 'Velocity' Dimension, u.s.w."
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:830
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:856
 msgid "Use SHIFT + left click or CTRL + left click to select the instruments you want to combine."
 msgstr "Benutzen Sie UMSCHALT + Mausklick Links oder STRG + Mausklick Rechts um die Instrumente zu wählen, die Sie kombinieren wollen."
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:886
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:912
 msgid "You are currently using a .gig file in old v2 format. The current combine algorithm will most probably fail trying to combine instruments in this old format. So better save the file in new v3 format before trying to combine your instruments."
 msgstr "Sie benutzen derzeit eine .gig Datei im alten v2 Format. Der aktuelle Kombinieralgorithmus wird höchstwahrscheinlich scheitern Instrumente in diesem alten Format zu kombinieren. Speichern Sie deshalb besser diese Datei im neuen v3 Format ab, bevor Sie versuchen Instrumente zu kombinieren."
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:931
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:957
 #: ../src/gigedit/dimregionchooser.cpp:811
 #: ../src/gigedit/dimregionchooser.cpp:829
 msgid "An unknown exception occurred!"
 msgstr "Ein unbekannter Ausnahmefehler ist aufgetreten!"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:939
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:965
 msgid "Combined instrument was created successfully, but there were warnings:"
 msgstr "Kombiniertes Instrument wurde erfolgreich erzeugt, es gab jedoch Warnungen:"
 
-#: ../src/gigedit/CombineInstrumentsDialog.cpp:949
+#: ../src/gigedit/CombineInstrumentsDialog.cpp:975
+#: ../src/gigedit/dimensionmanager.cpp:507
+#: ../src/gigedit/dimensionmanager.cpp:574
 msgid "You might also want to check the console for further warnings and error messages."
 msgstr "Kontrollieren Sie evtl. auch die Hinweise und Fehlermeldungen auf der Konsole."
 
@@ -289,15 +291,15 @@ msgstr ""
 "<b>ACHTUNG:</b> Sie <b>MÜSSEN</b> den Dialog unter <span style=\"italic\">\"Speichern\"</span> anstelle von <span style=\"italic\">\"Speichern Unter...\"</span> wählen, falls Sie zu der gleichen .gig Datei Speichern wollen. Die Nutzung von <span style=\"italic\">\"Speichern Unter...\"</span> um auf die selbe .gig Datei zu schreiben wird korrupte Sample Daten zur Folge haben!\n"
 
 #: ../src/gigedit/mainwindow.cpp:940
-#: ../src/gigedit/mainwindow.cpp:1714
-#: ../src/gigedit/mainwindow.cpp:1875
+#: ../src/gigedit/mainwindow.cpp:1746
+#: ../src/gigedit/mainwindow.cpp:1907
 msgid "could not open file"
 msgstr "Konnte Datei nicht öffnen"
 
 #. close sound file
 #: ../src/gigedit/mainwindow.cpp:957
-#: ../src/gigedit/mainwindow.cpp:1730
-#: ../src/gigedit/mainwindow.cpp:1891
+#: ../src/gigedit/mainwindow.cpp:1762
+#: ../src/gigedit/mainwindow.cpp:1923
 msgid "format not supported"
 msgstr "Format nicht unterstützt"
 
@@ -324,178 +326,182 @@ msgstr ""
 "Bitte Melden Sie Bugs auf: http://bugs.linuxsampler.org"
 
 #: ../src/gigedit/mainwindow.cpp:1061
-#: ../src/gigedit/mainwindow.cpp:1172
+msgid "File Format"
+msgstr "Dateiformat"
+
+#: ../src/gigedit/mainwindow.cpp:1062
+#: ../src/gigedit/mainwindow.cpp:1203
 msgid "Name"
 msgstr "Name"
 
-#: ../src/gigedit/mainwindow.cpp:1062
+#: ../src/gigedit/mainwindow.cpp:1063
 msgid "Creation date"
 msgstr "Erzeugungsdatum"
 
-#: ../src/gigedit/mainwindow.cpp:1063
+#: ../src/gigedit/mainwindow.cpp:1064
 msgid "Comments"
 msgstr "Kommentare"
 
-#: ../src/gigedit/mainwindow.cpp:1064
+#: ../src/gigedit/mainwindow.cpp:1065
 msgid "Product"
 msgstr "Produkt"
 
-#: ../src/gigedit/mainwindow.cpp:1065
+#: ../src/gigedit/mainwindow.cpp:1066
 msgid "Copyright"
 msgstr "Kopierrechte"
 
-#: ../src/gigedit/mainwindow.cpp:1066
+#: ../src/gigedit/mainwindow.cpp:1067
 msgid "Artists"
 msgstr "Künstler"
 
-#: ../src/gigedit/mainwindow.cpp:1067
+#: ../src/gigedit/mainwindow.cpp:1068
 msgid "Genre"
 msgstr "Genre"
 
-#: ../src/gigedit/mainwindow.cpp:1068
+#: ../src/gigedit/mainwindow.cpp:1069
 msgid "Keywords"
 msgstr "Schlüsselwörter"
 
-#: ../src/gigedit/mainwindow.cpp:1069
+#: ../src/gigedit/mainwindow.cpp:1070
 msgid "Engineer"
 msgstr "Ingenieur"
 
-#: ../src/gigedit/mainwindow.cpp:1070
+#: ../src/gigedit/mainwindow.cpp:1071
 msgid "Technician"
 msgstr "Techniker"
 
-#: ../src/gigedit/mainwindow.cpp:1071
+#: ../src/gigedit/mainwindow.cpp:1072
 msgid "Software"
 msgstr "Software"
 
-#: ../src/gigedit/mainwindow.cpp:1072
+#: ../src/gigedit/mainwindow.cpp:1073
 msgid "Medium"
 msgstr "Medium"
 
-#: ../src/gigedit/mainwindow.cpp:1073
+#: ../src/gigedit/mainwindow.cpp:1074
 msgid "Source"
 msgstr "Quelle"
 
-#: ../src/gigedit/mainwindow.cpp:1074
+#: ../src/gigedit/mainwindow.cpp:1075
 msgid "Source form"
 msgstr "Quellformat"
 
-#: ../src/gigedit/mainwindow.cpp:1075
+#: ../src/gigedit/mainwindow.cpp:1076
 msgid "Commissioned"
 msgstr "Übertragen"
 
-#: ../src/gigedit/mainwindow.cpp:1076
+#: ../src/gigedit/mainwindow.cpp:1077
 msgid "Subject"
 msgstr "Thema"
 
-#: ../src/gigedit/mainwindow.cpp:1080
+#: ../src/gigedit/mainwindow.cpp:1082
 msgid "File Properties"
 msgstr "Datei Eigenschaften"
 
-#: ../src/gigedit/mainwindow.cpp:1173
+#: ../src/gigedit/mainwindow.cpp:1204
 msgid "Is drum"
 msgstr "Ist Drum"
 
-#: ../src/gigedit/mainwindow.cpp:1174
+#: ../src/gigedit/mainwindow.cpp:1205
 msgid "MIDI bank"
 msgstr "MIDI Bank"
 
-#: ../src/gigedit/mainwindow.cpp:1175
+#: ../src/gigedit/mainwindow.cpp:1206
 msgid "MIDI program"
 msgstr "MIDI Programm"
 
-#: ../src/gigedit/mainwindow.cpp:1176
+#: ../src/gigedit/mainwindow.cpp:1207
 msgid "Attenuation"
 msgstr "Abschwächung"
 
-#: ../src/gigedit/mainwindow.cpp:1177
+#: ../src/gigedit/mainwindow.cpp:1208
 #: ../src/gigedit/dimregionedit.cpp:235
 msgid "Gain +6dB"
 msgstr "Verstärkung +6dB"
 
-#: ../src/gigedit/mainwindow.cpp:1178
+#: ../src/gigedit/mainwindow.cpp:1209
 msgid "Effect send"
 msgstr "Effekt Send"
 
-#: ../src/gigedit/mainwindow.cpp:1179
+#: ../src/gigedit/mainwindow.cpp:1210
 #: ../src/gigedit/dimregionedit.cpp:233
 msgid "Fine tune"
 msgstr "Fine Tuning (Tonhöhe)"
 
-#: ../src/gigedit/mainwindow.cpp:1180
+#: ../src/gigedit/mainwindow.cpp:1211
 msgid "Pitchbend range"
 msgstr "Pitchbend Bereich"
 
-#: ../src/gigedit/mainwindow.cpp:1181
+#: ../src/gigedit/mainwindow.cpp:1212
 msgid "Piano release mode"
 msgstr "Piano Release Modus"
 
-#: ../src/gigedit/mainwindow.cpp:1182
+#: ../src/gigedit/mainwindow.cpp:1213
 msgid "Keyswitching range low"
 msgstr "Keyswitching Bereich (unten)"
 
-#: ../src/gigedit/mainwindow.cpp:1183
+#: ../src/gigedit/mainwindow.cpp:1214
 msgid "Keyswitching range high"
 msgstr "Keyswitching Bereich (oben)"
 
-#: ../src/gigedit/mainwindow.cpp:1185
+#: ../src/gigedit/mainwindow.cpp:1216
 msgid "Instrument Properties"
 msgstr "Instrument Eigenschaften"
 
-#: ../src/gigedit/mainwindow.cpp:1188
+#: ../src/gigedit/mainwindow.cpp:1219
 msgid "start of the keyboard area which should switch the \"keyswitching\" dimension"
 msgstr "Anfang des Keyboard Bereiches welcher die  \"Keyswitching \" Dimension auslösen soll"
 
-#: ../src/gigedit/mainwindow.cpp:1192
+#: ../src/gigedit/mainwindow.cpp:1223
 msgid "end of the keyboard area which should switch the \"keyswitching\" dimension"
 msgstr "Ende des Keyboard Bereiches welcher die  \"Keyswitching \" Dimension auslösen soll"
 
-#: ../src/gigedit/mainwindow.cpp:1272
+#: ../src/gigedit/mainwindow.cpp:1303
 msgid "Unsaved Gig File"
 msgstr "Ungespeicherte Gig Datei"
 
-#: ../src/gigedit/mainwindow.cpp:1533
+#: ../src/gigedit/mainwindow.cpp:1565
 msgid "Unnamed Instrument "
 msgstr "Unbenanntes Instrument"
 
-#: ../src/gigedit/mainwindow.cpp:1555
+#: ../src/gigedit/mainwindow.cpp:1587
 msgid "Copy"
 msgstr "Kopieren"
 
-#: ../src/gigedit/mainwindow.cpp:1565
+#: ../src/gigedit/mainwindow.cpp:1597
 msgid "You cannot delete an instrument from this file, since it's currently used by the sampler."
 msgstr "Sie können kein Instrument von dieser Datei löschen, da sie gerade vom Sampler verwendet wird."
 
-#: ../src/gigedit/mainwindow.cpp:1619
+#: ../src/gigedit/mainwindow.cpp:1651
 msgid "Sorry, yet to be implemented!"
 msgstr "Sorry, noch nicht implementiert!"
 
-#: ../src/gigedit/mainwindow.cpp:1628
+#: ../src/gigedit/mainwindow.cpp:1660
 msgid "Unnamed Group"
 msgstr "Unbenannte Gruppe"
 
 #. show 'browse for file' dialog
-#: ../src/gigedit/mainwindow.cpp:1658
+#: ../src/gigedit/mainwindow.cpp:1690
 msgid "Add Sample(s)"
 msgstr "Sample(s) hinzufügen"
 
-#: ../src/gigedit/mainwindow.cpp:1676
+#: ../src/gigedit/mainwindow.cpp:1708
 msgid "Sound Files"
 msgstr "Sound Dateien"
 
-#: ../src/gigedit/mainwindow.cpp:1677
+#: ../src/gigedit/mainwindow.cpp:1709
 msgid "All Files"
 msgstr "Alle Dateien"
 
-#: ../src/gigedit/mainwindow.cpp:1809
+#: ../src/gigedit/mainwindow.cpp:1841
 msgid "Could not add the following sample(s):\n"
 msgstr "Konnte die folgenden Sample(s) nicht hinzufügen:\n"
 
-#: ../src/gigedit/mainwindow.cpp:1819
+#: ../src/gigedit/mainwindow.cpp:1851
 msgid "Select Folder"
 msgstr "Verzeichnis auswählen"
 
-#: ../src/gigedit/mainwindow.cpp:1822
+#: ../src/gigedit/mainwindow.cpp:1854
 msgid ""
 "This is a very specific function. It tries to replace all samples in the current gig file by samples located in the chosen directory.\n"
 "\n"
@@ -505,51 +511,51 @@ msgstr ""
 "\n"
 "Es funktioniert wie folgt: Für jedes Sample der gig Datei versucht es ein Sample im gewählten Verzeichnis zu finden mit dem gleichen Namen wie das jeweilige Sample in der gig Datei. Optional können sie Dateitypen unten hinzufügen, welche verwendet werden um erwartete Dateinamen zu suchen. Das bedeutet, nehmen wir an Sie haben ein Sample \"Snare\", wenn sie unten \".wav\" eintragen (wie es standardmäßig der Fall ist), dann erwartet es eine Datei namens \"Snare.wav\" zu finden und wird das Sample in der gig Datei dementsprechend durch das neue gefunden Sample ersetzen. Falls Sie keine Dateiendung benötigen, löschen sie das untere Feld stattdessen. Sämtliche gig Samples für die keine dementsprechende Sample Datei gefunden wurde, werden ihnen abschließend angezeigt und diese verbleiben in der gig Datei unverändert.\n"
 
-#: ../src/gigedit/mainwindow.cpp:1843
+#: ../src/gigedit/mainwindow.cpp:1875
 msgid "Add filename extension: "
 msgstr "Dateinamenserweiterung hinzufügen:"
 
-#: ../src/gigedit/mainwindow.cpp:1853
+#: ../src/gigedit/mainwindow.cpp:1885
 msgid "Select"
 msgstr "Auswählen"
 
-#: ../src/gigedit/mainwindow.cpp:1910
+#: ../src/gigedit/mainwindow.cpp:1942
 msgid "Could not replace the following sample(s):\n"
 msgstr "Konnte die folgenden Sample(s) nicht ersetzen:\n"
 
-#: ../src/gigedit/mainwindow.cpp:2181
+#: ../src/gigedit/mainwindow.cpp:2213
 msgid "No files selected, so nothing done."
 msgstr "Keine Dateien ausgewählt, also auch nichts erledigt."
 
-#: ../src/gigedit/mainwindow.cpp:2198
+#: ../src/gigedit/mainwindow.cpp:2230
 msgid "Error occurred while opening '"
 msgstr "Ein Fehler ist aufgetreten beim Öffnen von '"
 
-#: ../src/gigedit/mainwindow.cpp:2205
+#: ../src/gigedit/mainwindow.cpp:2237
 msgid "Unknown exception occurred while opening '"
 msgstr "Ein unbekannter Ausnahmefehler ist aufgetreten beim Öffnen von '"
 
-#: ../src/gigedit/mainwindow.cpp:2222
+#: ../src/gigedit/mainwindow.cpp:2254
 msgid "Error occurred while merging '"
 msgstr "Es ist ein Fehler aufgetreten beim Verschmelzen von '"
 
-#: ../src/gigedit/mainwindow.cpp:2229
+#: ../src/gigedit/mainwindow.cpp:2261
 msgid "Unknown exception occurred while merging '"
 msgstr "Ein unbekannter Ausnahmefehler ist aufgetreten beim Verschmelzen von '"
 
-#: ../src/gigedit/mainwindow.cpp:2241
+#: ../src/gigedit/mainwindow.cpp:2273
 msgid "You seem to have a new .gig file open that has not been saved yet. You must save it somewhere before starting to merge it with other .gig files though, because during the merge operation the other files' sample data must be written on file level to the target .gig file."
 msgstr "Es scheint als hätten Sie eine .gig Datei offen, die noch nicht gespeichert wurde. Sie müssen sie jedoch irgendwo abspeichern bevor sie anfangen können sie mit anderen .gig Dateien zu verschmelzen, denn während der Verschmelzung müssen die Sample Daten der anderen Dateien auf Dateiebene zur Zieldatei geschrieben werden."
 
-#: ../src/gigedit/mainwindow.cpp:2252
+#: ../src/gigedit/mainwindow.cpp:2284
 msgid "Merge .gig files"
 msgstr "Verschmelzen von .gig Dateien"
 
-#: ../src/gigedit/mainwindow.cpp:2254
+#: ../src/gigedit/mainwindow.cpp:2286
 msgid "Merge"
 msgstr "Verschmelzen"
 
-#: ../src/gigedit/mainwindow.cpp:2281
+#: ../src/gigedit/mainwindow.cpp:2313
 msgid ""
 "\n"
 "Select at least one .gig file that shall be merged to the .gig file currently being open in gigedit.\n"
@@ -561,11 +567,11 @@ msgstr ""
 "\n"
 "<b>Bitte beachten:</b> Das Verschmelzen anderer Dateien modifiziert Ihre derzeit offene .gig Datei auf Dateiebene! Und seien Sie sich bewusst, daß der aktuelle Verschmelzungsalgorithmus noch keine Sample-Duplikate erkennt. Wenn Sie also Dateien mit equivalenten Sample Daten verschmelzen, dann werden diese equivalenten Samples derzeit als separate Samples behandelt und demzufolge auch separat in der Zieldatei gespeichert!"
 
-#: ../src/gigedit/mainwindow.cpp:2315
+#: ../src/gigedit/mainwindow.cpp:2347
 msgid "live-mode"
 msgstr "Live-Modus"
 
-#: ../src/gigedit/mainwindow.cpp:2320
+#: ../src/gigedit/mainwindow.cpp:2352
 msgid "stand-alone"
 msgstr "Stand-Alone"
 
@@ -1515,47 +1521,74 @@ msgstr "MIDI Controller 95"
 msgid "Please report this !!!"
 msgstr "Bitte melden Sie dies !!!"
 
-#: ../src/gigedit/dimensionmanager.cpp:189
+#: ../src/gigedit/dimensionmanager.cpp:240
+msgid "All Regions"
+msgstr "Alle Regions"
+
+#: ../src/gigedit/dimensionmanager.cpp:242
+#: ../src/gigedit/dimensionmanager.cpp:296
 msgid "Dimensions of selected Region"
 msgstr "Dimensionen der gewählten Region"
 
-#: ../src/gigedit/dimensionmanager.cpp:206
+#: ../src/gigedit/dimensionmanager.cpp:257
+msgid "Enable this if you want to edit dimensions of all regions simultaniously."
+msgstr "Aktivieren Sie diese Checkbox um Dimensionen aller Regions gleichzeitig zu editieren."
+
+#: ../src/gigedit/dimensionmanager.cpp:263
 msgid "Dimension Type"
 msgstr "Dimensionstyp"
 
-#: ../src/gigedit/dimensionmanager.cpp:207
+#: ../src/gigedit/dimensionmanager.cpp:264
 msgid "Bits"
 msgstr "Bits"
 
-#: ../src/gigedit/dimensionmanager.cpp:208
+#: ../src/gigedit/dimensionmanager.cpp:265
 msgid "Zones"
 msgstr "Zonen"
 
-#: ../src/gigedit/dimensionmanager.cpp:209
+#: ../src/gigedit/dimensionmanager.cpp:266
 msgid "Description"
 msgstr "Beschreibung"
 
-#: ../src/gigedit/dimensionmanager.cpp:256
+#: ../src/gigedit/dimensionmanager.cpp:296
+msgid "Dimensions of all Regions"
+msgstr "Dimensionen aller Regions"
+
+#: ../src/gigedit/dimensionmanager.cpp:300
+msgid "Dimensions and numbers in gray indicates a difference among the individual regions."
+msgstr "Dimensionen und Zahlen in grau weisen auf einen Unterschied in den einzelnen Regionen hin."
+
+#: ../src/gigedit/dimensionmanager.cpp:301
+msgid "You are currently only viewing dimensions of the currently selected region."
+msgstr "Sie betrachten derzeit nur Dimensionen der aktuell gewählten Region."
+
+#: ../src/gigedit/dimensionmanager.cpp:377
 msgid "New Dimension"
 msgstr "Neue Dimension"
 
-#: ../src/gigedit/dimensionmanager.cpp:269
+#: ../src/gigedit/dimensionmanager.cpp:390
 msgid "Dimension:"
 msgstr "Dimension:"
 
-#: ../src/gigedit/dimensionmanager.cpp:274
+#: ../src/gigedit/dimensionmanager.cpp:395
 msgid "Zones:"
 msgstr "Zonen:"
 
-#. show error message
-#: ../src/gigedit/dimensionmanager.cpp:351
+#: ../src/gigedit/dimensionmanager.cpp:481
 msgid "Could not add dimension: "
 msgstr "Konnte Dimension nicht hinzufügen: "
 
-#. show error message
-#: ../src/gigedit/dimensionmanager.cpp:376
+#: ../src/gigedit/dimensionmanager.cpp:497
+msgid "The following errors occurred while trying to create the dimension on all regions:"
+msgstr "Beim Versuch die Dimension auf allen Regions anzulegen, traten die folgenden Fehler auf:"
+
+#: ../src/gigedit/dimensionmanager.cpp:548
 msgid "Could not remove dimension: "
 msgstr "Konnte Dimension nicht entfernen: "
+
+#: ../src/gigedit/dimensionmanager.cpp:564
+msgid "The following errors occurred while trying to remove the dimension from all regions:"
+msgstr "Beim Versuch die Dimension von sämtlichen Regions zu entfernen, traten die folgenden Fehler auf:"
 
 #: ../src/gigedit/dimregionchooser.cpp:47
 msgid "Split Dimensions Zone"

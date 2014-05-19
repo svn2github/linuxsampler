@@ -27,8 +27,47 @@
 #include <gtkmm/treeview.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/scrolledwindow.h>
+#include <gtkmm/checkbutton.h>
 
 #include <gig.h>
+#include <set>
+
+class DimTypeCellRenderer : public Gtk::CellRendererText {
+public:
+    Glib::PropertyProxy<gig::dimension_t> propertyDimType() {
+        return m_propertyDimType.get_proxy();
+    }
+
+    Glib::PropertyProxy<int> propertyUsageCount() {
+        return m_propertyUsageCount.get_proxy();
+    }
+
+    Glib::PropertyProxy<int> propertyTotalRegions() {
+        return m_propertyTotalRegions.get_proxy();
+    }
+
+    DimTypeCellRenderer();
+protected:
+    void typeChanged();
+    void statsChanged();
+private:
+    Glib::Property<gig::dimension_t> m_propertyDimType;
+    Glib::Property<int> m_propertyUsageCount;
+    Glib::Property<int> m_propertyTotalRegions;
+};
+
+class IntSetCellRenderer : public Gtk::CellRendererText {
+public:
+    Glib::PropertyProxy<std::set<int> > propertyValue() {
+        return m_propertyValue.get_proxy();
+    }
+
+    IntSetCellRenderer();
+protected:
+    void valueChanged();
+private:
+    Glib::Property<std::set<int> > m_propertyValue;
+};
 
 class DimensionManager : public Gtk::Window {
 public:
@@ -46,22 +85,28 @@ protected:
     Gtk::TreeView treeView;
     Gtk::Button addButton;
     Gtk::Button removeButton;
+    Gtk::CheckButton allRegionsCheckBox;
+
+    DimTypeCellRenderer m_cellRendererDimType;
+    IntSetCellRenderer m_cellRendererIntSet;
 
     class ModelColumns : public Gtk::TreeModel::ColumnRecord {
     public:
         ModelColumns() {
-            add(m_dim_type);
+            add(m_type);
             add(m_bits);
             add(m_zones);
             add(m_description);
-            add(m_definition);
+            add(m_usageCount);
+            add(m_totalRegions);
         }
 
-        Gtk::TreeModelColumn<Glib::ustring> m_dim_type;
-        Gtk::TreeModelColumn<int> m_bits;
-        Gtk::TreeModelColumn<int> m_zones;
+        Gtk::TreeModelColumn<gig::dimension_t> m_type;
+        Gtk::TreeModelColumn<std::set<int> > m_bits;
+        Gtk::TreeModelColumn<std::set<int> > m_zones;
         Gtk::TreeModelColumn<Glib::ustring> m_description;
-        Gtk::TreeModelColumn<gig::dimension_def_t*> m_definition;
+        Gtk::TreeModelColumn<int> m_usageCount;
+        Gtk::TreeModelColumn<int> m_totalRegions;
     } tableModel;
 
     class ComboModelColumns : public Gtk::TreeModel::ColumnRecord {
@@ -77,9 +122,11 @@ protected:
 
     Glib::RefPtr<Gtk::ListStore> refTableModel;
 
+    void onAllRegionsCheckBoxToggled();
     void refreshManager();
     void addDimension();
     void removeDimension();
+    bool allRegions() const;
 };
 
 #endif // GIGEDIT_DIMENSIONMANAGER_H
