@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: gigedit 0.2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-01-12 20:34+0100\n"
-"PO-Revision-Date: 2014-05-19 19:08+0100\n"
-"Last-Translator: Christian Schoenebeck\n"
+"PO-Revision-Date: 2014-05-20 15:38+0100\n"
+"Last-Translator: Christian Schoenebeck <xxxxxxxxxxx@crudebyte.com>\n"
 "Language-Team: German\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -577,24 +577,23 @@ msgstr "Stand-Alone"
 
 #: ../src/gigedit/dimregionedit.cpp:154
 #: ../src/gigedit/dimregionedit.cpp:173
-msgid "Pre-attack"
-msgstr "Pre-Attack"
+msgid "Pre-attack Level (%)"
+msgstr "Pre-Attack Level (%)"
 
 #: ../src/gigedit/dimregionedit.cpp:155
 #: ../src/gigedit/dimregionedit.cpp:174
-#: ../src/gigedit/dimregionedit.cpp:191
-msgid "Attack"
-msgstr "Attack"
+msgid "Attack Time (seconds)"
+msgstr "Attack Zeit (Sekunden)"
 
 #: ../src/gigedit/dimregionedit.cpp:156
 #: ../src/gigedit/dimregionedit.cpp:175
-msgid "Decay 1"
-msgstr "Decay 1"
+msgid "Decay 1 Time (seconds)"
+msgstr "Decay 1 Zeit (Sekunden)"
 
 #: ../src/gigedit/dimregionedit.cpp:157
 #: ../src/gigedit/dimregionedit.cpp:176
-msgid "Decay 2"
-msgstr "Decay 2"
+msgid "Decay 2 Time (seconds)"
+msgstr "Decay 2 Zeit (Sekunden)"
 
 #: ../src/gigedit/dimregionedit.cpp:158
 #: ../src/gigedit/dimregionedit.cpp:177
@@ -603,17 +602,17 @@ msgstr "Unendliches Sustain"
 
 #: ../src/gigedit/dimregionedit.cpp:159
 #: ../src/gigedit/dimregionedit.cpp:178
-msgid "Sustain"
-msgstr "Sustain"
+msgid "Sustain Level (%)"
+msgstr "Sustain Level (%)"
 
 #: ../src/gigedit/dimregionedit.cpp:160
 #: ../src/gigedit/dimregionedit.cpp:179
-msgid "Release"
-msgstr "Release"
+msgid "Release Time (seconds)"
+msgstr "Release Zeit (Sekunden)"
 
 #: ../src/gigedit/dimregionedit.cpp:161
-msgid "Hold"
-msgstr "Halten"
+msgid "Hold Attack Stage until Loop End"
+msgstr "Halte Attack Zustand bis Loop Ende"
 
 #: ../src/gigedit/dimregionedit.cpp:162
 #: ../src/gigedit/dimregionedit.cpp:170
@@ -672,6 +671,10 @@ msgstr "Phase umdrehen"
 #: ../src/gigedit/dimregionedit.cpp:197
 msgid "Sync"
 msgstr "Synchronisieren"
+
+#: ../src/gigedit/dimregionedit.cpp:191
+msgid "Attack"
+msgstr "Attack"
 
 #: ../src/gigedit/dimregionedit.cpp:192
 msgid "Depth"
@@ -783,8 +786,8 @@ msgid "Pan"
 msgstr "Panorama"
 
 #: ../src/gigedit/dimregionedit.cpp:224
-msgid "One note/voice per key (a.k.a \"Self mask\")"
-msgstr "Eine Note/Stimme pro Taste (alias \"Self mask\")"
+msgid "Kill lower velocity voices (a.k.a \"Self mask\")"
+msgstr "Töte Stimmen mit niedrigerer Velocity (alias \"Self mask\")"
 
 #: ../src/gigedit/dimregionedit.cpp:225
 msgid "Attenuation controller"
@@ -807,8 +810,8 @@ msgid "Ignore Hold Pedal (a.k.a. \"Sustain defeat\")"
 msgstr "Haltepedal ignorieren (alias \"Sustain defeat\")"
 
 #: ../src/gigedit/dimregionedit.cpp:230
-msgid "MS decode"
-msgstr "MS dekodieren"
+msgid "Decode Mid/Side Recordings"
+msgstr "Dekodiere Mid/Side Mikrofonaufnahmen"
 
 #: ../src/gigedit/dimregionedit.cpp:231
 msgid "Sample start offset"
@@ -894,315 +897,319 @@ msgstr ""
 "Anzahl der Wiederholungen mit der der Loop Bereich abgespielt werden soll\n"
 "Achtung: diese Einstellung wird Sample-seitig gespeichert, folglich wird sie mit allen Dimension Regions geteilt, die dasselbe Sample verwenden!"
 
-#: ../src/gigedit/dimregionedit.cpp:396
+#: ../src/gigedit/dimregionedit.cpp:405
+msgid "If you are not using the 'Layer' dimension, then this controller simply alters the volume. If you are using the 'Layer' dimension, then this controller is controlling the crossfade between Layers in real-time."
+msgstr "Falls Sie nicht die 'Layer' Dimension verwenden, dann verändert dieser Controller einfach die Lautstärke. Sollten Sie hingegen die 'Layer' Dimension verwenden, dann kontrolliert dieser Controller das Crossfade zwischen den einzelnen Layern in Echtzeit."
+
+#: ../src/gigedit/dimregionedit.cpp:443
 msgid "Mandatory Settings"
 msgstr "Grundeinstellungen:"
 
-#: ../src/gigedit/dimregionedit.cpp:397
-#: ../src/gigedit/dimregionedit.cpp:736
+#: ../src/gigedit/dimregionedit.cpp:444
+#: ../src/gigedit/dimregionedit.cpp:796
 msgid "Sample"
 msgstr "Sample"
 
-#: ../src/gigedit/dimregionedit.cpp:400
-#: ../src/gigedit/dimregionedit.cpp:402
+#: ../src/gigedit/dimregionedit.cpp:447
+#: ../src/gigedit/dimregionedit.cpp:449
 msgid "Drag & drop a sample here"
 msgstr "ziehen Sie ein Sample per Drag & Drop hierher"
 
-#: ../src/gigedit/dimregionedit.cpp:405
+#: ../src/gigedit/dimregionedit.cpp:452
 msgid "Optional Settings"
 msgstr "Optionale Einstellungen:"
 
-#: ../src/gigedit/dimregionedit.cpp:408
+#: ../src/gigedit/dimregionedit.cpp:455
 msgid "Loops"
 msgstr "Loops"
 
-#: ../src/gigedit/dimregionedit.cpp:413
+#: ../src/gigedit/dimregionedit.cpp:460
 #: ../src/gigedit/regionchooser.cpp:83
 msgid "normal"
 msgstr "normal"
 
-#: ../src/gigedit/dimregionedit.cpp:413
+#: ../src/gigedit/dimregionedit.cpp:460
 msgid "bidirectional"
 msgstr "bidirektional"
 
-#: ../src/gigedit/dimregionedit.cpp:413
+#: ../src/gigedit/dimregionedit.cpp:460
 msgid "backward"
 msgstr "rückwärts"
 
-#: ../src/gigedit/dimregionedit.cpp:427
+#: ../src/gigedit/dimregionedit.cpp:474
 msgid "General Amplitude Settings"
 msgstr "Allgem. Amplituden Einstellungen:"
 
-#: ../src/gigedit/dimregionedit.cpp:431
+#: ../src/gigedit/dimregionedit.cpp:478
 msgid "Amplitude Envelope (EG1)"
 msgstr "Amplituden Hüllkurve (EG1):"
 
-#: ../src/gigedit/dimregionedit.cpp:448
+#: ../src/gigedit/dimregionedit.cpp:495
 msgid "Amplitude Oscillator (LFO1)"
 msgstr "Amplituden Oszillator (LFO1):"
 
-#: ../src/gigedit/dimregionedit.cpp:453
-#: ../src/gigedit/dimregionedit.cpp:595
-#: ../src/gigedit/dimregionedit.cpp:623
+#: ../src/gigedit/dimregionedit.cpp:500
+#: ../src/gigedit/dimregionedit.cpp:642
+#: ../src/gigedit/dimregionedit.cpp:670
 msgid "internal"
 msgstr "intern"
 
 #. bank select MSB (hard coded in sampler, so discouraged to be used here, even though considerable)
-#: ../src/gigedit/dimregionedit.cpp:453
-#: ../src/gigedit/dimregionedit.cpp:509
-#: ../src/gigedit/dimregionedit.cpp:595
-#: ../src/gigedit/dimregionedit.cpp:623
+#: ../src/gigedit/dimregionedit.cpp:500
+#: ../src/gigedit/dimregionedit.cpp:556
+#: ../src/gigedit/dimregionedit.cpp:642
+#: ../src/gigedit/dimregionedit.cpp:670
 #: ../src/gigedit/dimregionchooser.cpp:141
 #: ../src/gigedit/paramedit.cpp:50
 msgid "modwheel"
 msgstr "Modulationsrad"
 
 #. "Modulation Wheel or Lever",
-#: ../src/gigedit/dimregionedit.cpp:453
-#: ../src/gigedit/dimregionedit.cpp:510
+#: ../src/gigedit/dimregionedit.cpp:500
+#: ../src/gigedit/dimregionedit.cpp:557
 #: ../src/gigedit/dimregionchooser.cpp:142
 #: ../src/gigedit/paramedit.cpp:51
 msgid "breath"
 msgstr "Luftstrom"
 
-#: ../src/gigedit/dimregionedit.cpp:454
-#: ../src/gigedit/dimregionedit.cpp:596
-#: ../src/gigedit/dimregionedit.cpp:624
+#: ../src/gigedit/dimregionedit.cpp:501
+#: ../src/gigedit/dimregionedit.cpp:643
+#: ../src/gigedit/dimregionedit.cpp:671
 msgid "internal+modwheel"
 msgstr "Intern+Modulationsrad"
 
-#: ../src/gigedit/dimregionedit.cpp:454
+#: ../src/gigedit/dimregionedit.cpp:501
 msgid "internal+breath"
 msgstr "Intern+Luftstrom"
 
-#: ../src/gigedit/dimregionedit.cpp:467
+#: ../src/gigedit/dimregionedit.cpp:514
 msgid "Crossfade"
 msgstr "Crossfade"
 
-#: ../src/gigedit/dimregionedit.cpp:493
+#: ../src/gigedit/dimregionedit.cpp:540
 msgid "General Filter Settings"
 msgstr "Allgem. Filter Einstellungen:"
 
-#: ../src/gigedit/dimregionedit.cpp:496
+#: ../src/gigedit/dimregionedit.cpp:543
 msgid "lowpass"
 msgstr "Tiefpass"
 
-#: ../src/gigedit/dimregionedit.cpp:496
+#: ../src/gigedit/dimregionedit.cpp:543
 msgid "lowpassturbo"
 msgstr "Tiefpass Turbo"
 
-#: ../src/gigedit/dimregionedit.cpp:496
+#: ../src/gigedit/dimregionedit.cpp:543
 msgid "bandpass"
 msgstr "Bandpass"
 
-#: ../src/gigedit/dimregionedit.cpp:497
+#: ../src/gigedit/dimregionedit.cpp:544
 msgid "highpass"
 msgstr "Hochpass"
 
-#: ../src/gigedit/dimregionedit.cpp:497
+#: ../src/gigedit/dimregionedit.cpp:544
 msgid "bandreject"
 msgstr "Bandausschnitt"
 
 #. 3 special ones (not being CCs)
-#: ../src/gigedit/dimregionedit.cpp:509
-#: ../src/gigedit/dimregionedit.cpp:560
-#: ../src/gigedit/dimregionedit.cpp:676
+#: ../src/gigedit/dimregionedit.cpp:556
+#: ../src/gigedit/dimregionedit.cpp:607
+#: ../src/gigedit/dimregionedit.cpp:723
 #: ../src/gigedit/dimregionchooser.cpp:126
 #: ../src/gigedit/paramedit.cpp:48
 #: ../src/gigedit/midirules.cpp:40
 msgid "none"
 msgstr "nichts"
 
-#: ../src/gigedit/dimregionedit.cpp:509
+#: ../src/gigedit/dimregionedit.cpp:556
 msgid "none2"
 msgstr "nichts2"
 
-#: ../src/gigedit/dimregionedit.cpp:509
+#: ../src/gigedit/dimregionedit.cpp:556
 #: ../src/gigedit/dimregionchooser.cpp:146
 #: ../src/gigedit/paramedit.cpp:61
 msgid "effect1"
 msgstr "Effekt 1"
 
 #. "Effect Control 1",
-#: ../src/gigedit/dimregionedit.cpp:509
+#: ../src/gigedit/dimregionedit.cpp:556
 #: ../src/gigedit/dimregionchooser.cpp:147
 #: ../src/gigedit/paramedit.cpp:62
 msgid "effect2"
 msgstr "Effekt 2"
 
-#: ../src/gigedit/dimregionedit.cpp:510
-#: ../src/gigedit/dimregionedit.cpp:595
+#: ../src/gigedit/dimregionedit.cpp:557
+#: ../src/gigedit/dimregionedit.cpp:642
 #: ../src/gigedit/dimregionchooser.cpp:143
 #: ../src/gigedit/paramedit.cpp:53
 msgid "foot"
 msgstr "Fuss"
 
-#: ../src/gigedit/dimregionedit.cpp:510
+#: ../src/gigedit/dimregionedit.cpp:557
 #: ../src/gigedit/dimregionchooser.cpp:153
 #: ../src/gigedit/paramedit.cpp:88
 msgid "sustainpedal"
 msgstr "Sustain Pedal"
 
 #. "Sustenuto On/Off",
-#: ../src/gigedit/dimregionedit.cpp:510
+#: ../src/gigedit/dimregionedit.cpp:557
 #: ../src/gigedit/dimregionchooser.cpp:157
 #: ../src/gigedit/paramedit.cpp:91
 msgid "softpedal"
 msgstr "Soft Pedal"
 
 #. "General Purpose Controller 6",
-#: ../src/gigedit/dimregionedit.cpp:511
+#: ../src/gigedit/dimregionedit.cpp:558
 #: ../src/gigedit/dimregionchooser.cpp:160
 #: ../src/gigedit/paramedit.cpp:106
 msgid "genpurpose7"
 msgstr "genpurpose7"
 
 #. "General Purpose Controller 7",
-#: ../src/gigedit/dimregionedit.cpp:511
+#: ../src/gigedit/dimregionedit.cpp:558
 #: ../src/gigedit/dimregionchooser.cpp:161
 #: ../src/gigedit/paramedit.cpp:107
 msgid "genpurpose8"
 msgstr "genpurpose8"
 
-#: ../src/gigedit/dimregionedit.cpp:511
-#: ../src/gigedit/dimregionedit.cpp:623
+#: ../src/gigedit/dimregionedit.cpp:558
+#: ../src/gigedit/dimregionedit.cpp:670
 msgid "aftertouch"
 msgstr "Aftertouch"
 
-#: ../src/gigedit/dimregionedit.cpp:531
+#: ../src/gigedit/dimregionedit.cpp:578
 msgid "nonlinear"
 msgstr "nicht linear"
 
-#: ../src/gigedit/dimregionedit.cpp:531
+#: ../src/gigedit/dimregionedit.cpp:578
 msgid "linear"
 msgstr "linear"
 
-#: ../src/gigedit/dimregionedit.cpp:531
+#: ../src/gigedit/dimregionedit.cpp:578
 msgid "special"
 msgstr "speziell"
 
 #. "General Purpose Controller 2",
-#: ../src/gigedit/dimregionedit.cpp:560
+#: ../src/gigedit/dimregionedit.cpp:607
 #: ../src/gigedit/dimregionchooser.cpp:150
 #: ../src/gigedit/paramedit.cpp:67
 msgid "genpurpose3"
 msgstr "genpurpose3"
 
 #. "General Purpose Controller 3",
-#: ../src/gigedit/dimregionedit.cpp:560
+#: ../src/gigedit/dimregionedit.cpp:607
 #: ../src/gigedit/dimregionchooser.cpp:151
 #: ../src/gigedit/paramedit.cpp:68
 msgid "genpurpose4"
 msgstr "genpurpose4"
 
-#: ../src/gigedit/dimregionedit.cpp:561
+#: ../src/gigedit/dimregionedit.cpp:608
 #: ../src/gigedit/dimregionchooser.cpp:158
 #: ../src/gigedit/paramedit.cpp:104
 msgid "genpurpose5"
 msgstr "genpurpose5"
 
 #. "General Purpose Controller 5",
-#: ../src/gigedit/dimregionedit.cpp:561
+#: ../src/gigedit/dimregionedit.cpp:608
 #: ../src/gigedit/dimregionchooser.cpp:159
 #: ../src/gigedit/paramedit.cpp:105
 msgid "genpurpose6"
 msgstr "genpurpose6"
 
-#: ../src/gigedit/dimregionedit.cpp:577
+#: ../src/gigedit/dimregionedit.cpp:624
 msgid "Filter Cutoff Envelope (EG2)"
 msgstr "Filter Cutoff Hüllkurve (EG2):"
 
-#: ../src/gigedit/dimregionedit.cpp:590
+#: ../src/gigedit/dimregionedit.cpp:637
 msgid "Filter Cutoff Oscillator (LFO2)"
 msgstr "Filter Cutoff Oszillator (LFO2):"
 
-#: ../src/gigedit/dimregionedit.cpp:596
+#: ../src/gigedit/dimregionedit.cpp:643
 msgid "internal+foot"
 msgstr "intern+Fuß"
 
-#: ../src/gigedit/dimregionedit.cpp:612
+#: ../src/gigedit/dimregionedit.cpp:659
 msgid "General Pitch Settings"
 msgstr "Allgem. Pitch Einstellungen:"
 
-#: ../src/gigedit/dimregionedit.cpp:615
+#: ../src/gigedit/dimregionedit.cpp:662
 msgid "Pitch Envelope (EG3)"
 msgstr "Pitch Hüllkurve (EG3):"
 
-#: ../src/gigedit/dimregionedit.cpp:618
+#: ../src/gigedit/dimregionedit.cpp:665
 msgid "Pitch Oscillator (LFO3)"
 msgstr "Pitch Oszillator (LFO3):"
 
-#: ../src/gigedit/dimregionedit.cpp:624
+#: ../src/gigedit/dimregionedit.cpp:671
 msgid "internal+aftertouch"
 msgstr "intern+Aftertouch"
 
-#: ../src/gigedit/dimregionedit.cpp:639
+#: ../src/gigedit/dimregionedit.cpp:686
 msgid "Velocity Response"
 msgstr "Velocity Response"
 
-#: ../src/gigedit/dimregionedit.cpp:658
+#: ../src/gigedit/dimregionedit.cpp:705
 msgid "Release Velocity Response"
 msgstr "Release Velocity Response"
 
 #. "Effects 3 Depth",
-#: ../src/gigedit/dimregionedit.cpp:676
+#: ../src/gigedit/dimregionedit.cpp:723
 #: ../src/gigedit/dimregionchooser.cpp:169
 #: ../src/gigedit/paramedit.cpp:118
 msgid "effect4depth"
 msgstr "Effect 4 Tiefe"
 
 #. "Effects 4 Depth",
-#: ../src/gigedit/dimregionedit.cpp:676
+#: ../src/gigedit/dimregionedit.cpp:723
 #: ../src/gigedit/dimregionchooser.cpp:171
 #: ../src/gigedit/paramedit.cpp:119
 msgid "effect5depth"
 msgstr "Effekt 5 Tiefe"
 
-#: ../src/gigedit/dimregionedit.cpp:685
-msgid "If enabled: high velocity notes will stop low velocity notes at the same note, that way you can save voices that wouldn't be audible anyway."
-msgstr "Falls aktiviert: Noten mit hoher Velocity werden Noten mit niedrigerer Velocity stoppen, dadurch können Sie Stimmen einsparen, die ohnehin nicht hörbar wären."
+#: ../src/gigedit/dimregionedit.cpp:733
+msgid "If enabled: new notes with higher velocity value will stop older notes with lower velocity values, that way you can save voices that would barely be audible. This is also useful for certain drum sounds."
+msgstr "Falls aktiviert: Neue Noten mit höherem Velocity Wert werden ältere Noten mit niedrigerem Velocity Wert stoppen, dadurch können Sie Stimmen einsparen, die ohnehin kaum hörbar wären. Dies ist außerdem für gewisse Drum Sounds sinnvoll."
 
-#: ../src/gigedit/dimregionedit.cpp:687
-msgid "If enabled: sustain pedal will not hold a note."
-msgstr "Falls aktiviert: Sustain Pedal wird keine Noten halten."
+#: ../src/gigedit/dimregionedit.cpp:739
+msgid "If enabled: sustain pedal will not hold a note. This way you can use the sustain pedal for other purposes, for example to switch among dimension regions."
+msgstr "Falls aktiviert: Betätigung des Sustain/Hold Pedals wird keine Note halten. Dadurch können Sie das Sustain Pedal für andere Aufgaben verwenden, z.B. zum Umschalten zwischen Dimensionsbereiche (Dimension Regions)."
 
-#: ../src/gigedit/dimregionedit.cpp:689
-msgid "Gigastudio specific flag: defines if Mid Side Recordings should be decoded."
-msgstr "Gigastudio spezifisches Flag: Definiert ob Mid Side Recordings dekodiert werden sollen."
+#: ../src/gigedit/dimregionedit.cpp:745
+msgid "Defines if Mid/Side Recordings should be decoded. Mid/Side Recordings are an alternative way to record sounds in stereo. The sampler needs to decode such samples to actually make use of them. Note: this feature is currently not supported by LinuxSampler."
+msgstr "Legt fest ob so genannte Mid/Side Aufnahmen dekodiert werden sollen. Mid/Side Aufnahmen sind eine Alternative zu herkömmlichen Stereo Aufnahmen. Der Sampler muss jedoch solche speziellen Samples erst dekodieren um davon Gebrauch zu machen. Hinweis: Dieses Feature wird derzeit nicht von LinuxSampler unterstützt."
 
-#: ../src/gigedit/dimregionedit.cpp:737
+#: ../src/gigedit/dimregionedit.cpp:797
 msgid "Amplitude (1)"
 msgstr "Amplitude (1)"
 
-#: ../src/gigedit/dimregionedit.cpp:738
+#: ../src/gigedit/dimregionedit.cpp:798
 msgid "Amplitude (2)"
 msgstr "Amplitude (2)"
 
-#: ../src/gigedit/dimregionedit.cpp:739
+#: ../src/gigedit/dimregionedit.cpp:799
 msgid "Filter (1)"
 msgstr "Filter (1)"
 
-#: ../src/gigedit/dimregionedit.cpp:740
+#: ../src/gigedit/dimregionedit.cpp:800
 msgid "Filter (2)"
 msgstr "Filter (2)"
 
-#: ../src/gigedit/dimregionedit.cpp:741
+#: ../src/gigedit/dimregionedit.cpp:801
 msgid "Pitch"
 msgstr "Pitch (Tonhöhe)"
 
-#: ../src/gigedit/dimregionedit.cpp:742
+#: ../src/gigedit/dimregionedit.cpp:802
 msgid "Misc"
 msgstr "Diverses"
 
-#: ../src/gigedit/dimregionedit.cpp:932
+#: ../src/gigedit/dimregionedit.cpp:992
 msgid "NULL"
 msgstr "NICHTS"
 
-#: ../src/gigedit/dimregionedit.cpp:996
+#: ../src/gigedit/dimregionedit.cpp:1056
 msgid "Minimum cutoff:"
 msgstr "Minimum Cutoff:"
 
-#: ../src/gigedit/dimregionedit.cpp:997
+#: ../src/gigedit/dimregionedit.cpp:1057
 msgid "Velocity scale:"
 msgstr "Velocity Skalierung:"
 
@@ -1974,6 +1981,26 @@ msgstr "Alt sustain 1 key"
 msgid "Alt sustain 2 key"
 msgstr "Alt sustain 2 key"
 
+#~ msgid "Decay 1"
+#~ msgstr "Decay 1"
+#~ msgid "Decay 2"
+#~ msgstr "Decay 2"
+#~ msgid "Sustain"
+#~ msgstr "Sustain"
+#~ msgid "Release"
+#~ msgstr "Release"
+#~ msgid "Hold"
+#~ msgstr "Halten"
+#~ msgid "MS decode"
+#~ msgstr "MS dekodieren"
+#~ msgid "If enabled: sustain pedal will not hold a note."
+#~ msgstr "Falls aktiviert: Sustain Pedal wird keine Noten halten."
+#~ msgid ""
+#~ "Gigastudio specific flag: defines if Mid Side Recordings should be "
+#~ "decoded."
+#~ msgstr ""
+#~ "Gigastudio spezifisches Flag: Definiert ob Mid Side Recordings dekodiert "
+#~ "werden sollen."
 #~ msgid ""
 #~ "Select at least two instruments below that shall be combined  as layers "
 #~ "(using a \"Layer\" dimension) to a new instrument. The original "

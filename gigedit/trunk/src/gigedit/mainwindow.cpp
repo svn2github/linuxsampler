@@ -1148,7 +1148,7 @@ void PropDialog::set_file(gig::File* file)
     std::vector<std::string> txts;
     std::vector<int> values;
     txts.push_back(sGiga + "2"); values.push_back(2);
-    txts.push_back(sGiga + "3"); values.push_back(3);
+    txts.push_back(sGiga + "3/v4"); values.push_back(3);
     if (major != 2 && major != 3) {
         txts.push_back(sGiga + ToString(major)); values.push_back(major);
     }

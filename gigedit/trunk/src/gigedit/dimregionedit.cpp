@@ -151,14 +151,14 @@ DimRegionEdit::DimRegionEdit() :
     velocity_curve(&gig::DimensionRegion::GetVelocityAttenuation),
     release_curve(&gig::DimensionRegion::GetVelocityRelease),
     cutoff_curve(&gig::DimensionRegion::GetVelocityCutoff),
-    eEG1PreAttack(_("Pre-attack"), 0, 100, 2),
-    eEG1Attack(_("Attack"), 0, 60, 3),
-    eEG1Decay1(_("Decay 1"), 0.005, 60, 3),
-    eEG1Decay2(_("Decay 2"), 0, 60, 3),
+    eEG1PreAttack(_("Pre-attack Level (%)"), 0, 100, 2),
+    eEG1Attack(_("Attack Time (seconds)"), 0, 60, 3),
+    eEG1Decay1(_("Decay 1 Time (seconds)"), 0.005, 60, 3),
+    eEG1Decay2(_("Decay 2 Time (seconds)"), 0, 60, 3),
     eEG1InfiniteSustain(_("Infinite sustain")),
-    eEG1Sustain(_("Sustain"), 0, 100, 2),
-    eEG1Release(_("Release"), 0, 60, 3),
-    eEG1Hold(_("Hold")),
+    eEG1Sustain(_("Sustain Level (%)"), 0, 100, 2),
+    eEG1Release(_("Release Time (seconds)"), 0, 60, 3),
+    eEG1Hold(_("Hold Attack Stage until Loop End")),
     eEG1Controller(_("Controller")),
     eEG1ControllerInvert(_("Controller invert")),
     eEG1ControllerAttackInfluence(_("Controller attack influence"), 0, 3),
@@ -170,13 +170,13 @@ DimRegionEdit::DimRegionEdit() :
     eLFO1Controller(_("Controller")),
     eLFO1FlipPhase(_("Flip phase")),
     eLFO1Sync(_("Sync")),
-    eEG2PreAttack(_("Pre-attack"), 0, 100, 2),
-    eEG2Attack(_("Attack"), 0, 60, 3),
-    eEG2Decay1(_("Decay 1"), 0.005, 60, 3),
-    eEG2Decay2(_("Decay 2"), 0, 60, 3),
+    eEG2PreAttack(_("Pre-attack Level (%)"), 0, 100, 2),
+    eEG2Attack(_("Attack Time (seconds)"), 0, 60, 3),
+    eEG2Decay1(_("Decay 1 Time (seconds)"), 0.005, 60, 3),
+    eEG2Decay2(_("Decay 2 Time (seconds)"), 0, 60, 3),
     eEG2InfiniteSustain(_("Infinite sustain")),
-    eEG2Sustain(_("Sustain"), 0, 100, 2),
-    eEG2Release(_("Release"), 0, 60, 3),
+    eEG2Sustain(_("Sustain Level (%)"), 0, 100, 2),
+    eEG2Release(_("Release Time (seconds)"), 0, 60, 3),
     eEG2Controller(_("Controller")),
     eEG2ControllerInvert(_("Controller invert")),
     eEG2ControllerAttackInfluence(_("Controller attack influence"), 0, 3),
@@ -221,13 +221,13 @@ DimRegionEdit::DimRegionEdit() :
     ePitchTrack(_("Pitch track")),
     eDimensionBypass(_("Dimension bypass")),
     ePan(_("Pan"), -64, 63),
-    eSelfMask(_("One note/voice per key (a.k.a \"Self mask\")")),
+    eSelfMask(_("Kill lower velocity voices (a.k.a \"Self mask\")")),
     eAttenuationController(_("Attenuation controller")),
     eInvertAttenuationController(_("Invert attenuation controller")),
     eAttenuationControllerThreshold(_("Attenuation controller threshold")),
     eChannelOffset(_("Channel offset"), 0, 9),
     eSustainDefeat(_("Ignore Hold Pedal (a.k.a. \"Sustain defeat\")")),
-    eMSDecode(_("MS decode")),
+    eMSDecode(_("Decode Mid/Side Recordings")),
     eSampleStartOffset(_("Sample start offset"), 0, 2000),
     eUnityNote(_("Unity note")),
     eFineTune(_("Fine tune"), -49, 50),
@@ -388,6 +388,53 @@ DimRegionEdit::DimRegionEdit() :
           "Caution: this setting is stored on Sample side, thus is shared "
           "among all dimension regions that use this sample!")
     );
+    
+    eEG1PreAttack.set_tip(
+        "Very first level this EG starts with. It rises then in Attack Time "
+        "seconds from this initial level to 100%."
+    );
+    eEG1Attack.set_tip(
+        "Duration of the EG's Attack stage, which raises its level from "
+        "Pre-Attack Level to 100%."
+    );
+    eEG1Hold.set_tip(
+       "On looped sounds, enabling this will cause the Decay 1 stage not to "
+       "enter before the loop has been passed one time."
+    );
+    eAttenuationController.set_tip(_(
+        "If you are not using the 'Layer' dimension, then this controller "
+        "simply alters the volume. If you are using the 'Layer' dimension, "
+        "then this controller is controlling the crossfade between Layers in "
+        "real-time."
+    ));
+
+    eLFO1Sync.set_tip(
+        "If not checked, every voice will use its own LFO instance, which "
+        "causes voices triggered at different points in time to have different "
+        "LFO levels. By enabling 'Sync' here the voices will instead use and "
+        "share one single LFO, causing all voices to have the same LFO level, "
+        "no matter when the individual notes have been triggered."
+    );
+    eLFO2Sync.set_tip(
+        "If not checked, every voice will use its own LFO instance, which "
+        "causes voices triggered at different points in time to have different "
+        "LFO levels. By enabling 'Sync' here the voices will instead use and "
+        "share one single LFO, causing all voices to have the same LFO level, "
+        "no matter when the individual notes have been triggered."
+    );
+    eLFO3Sync.set_tip(
+        "If not checked, every voice will use its own LFO instance, which "
+        "causes voices triggered at different points in time to have different "
+        "LFO levels. By enabling 'Sync' here the voices will instead use and "
+        "share one single LFO, causing all voices to have the same LFO level, "
+        "no matter when the individual notes have been triggered."
+    );
+    eLFO1FlipPhase.set_tip(
+       "Inverts the LFO's generated wave vertically."
+    );
+    eLFO2FlipPhase.set_tip(
+       "Inverts the LFO's generated wave vertically."
+    );
 
     pageno = 0;
     rowno = 0;
@@ -431,12 +478,12 @@ DimRegionEdit::DimRegionEdit() :
     addHeader(_("Amplitude Envelope (EG1)"));
     addProp(eEG1PreAttack);
     addProp(eEG1Attack);
+    addProp(eEG1Hold);
     addProp(eEG1Decay1);
     addProp(eEG1Decay2);
     addProp(eEG1InfiniteSustain);
     addProp(eEG1Sustain);
     addProp(eEG1Release);
-    addProp(eEG1Hold);
     addProp(eEG1Controller);
     addProp(eEG1ControllerInvert);
     addProp(eEG1ControllerAttackInfluence);
@@ -682,11 +729,24 @@ DimRegionEdit::DimRegionEdit() :
         eDimensionBypass.set_choices(choices, values);
     }
     addProp(eDimensionBypass);
-    eSelfMask.widget.set_tooltip_text(_("If enabled: high velocity notes will stop low velocity notes at the same note, that way you can save voices that wouldn't be audible anyway."));
+    eSelfMask.widget.set_tooltip_text(_(
+        "If enabled: new notes with higher velocity value will stop older "
+        "notes with lower velocity values, that way you can save voices that "
+        "would barely be audible. This is also useful for certain drum sounds."
+    ));
     addProp(eSelfMask);
-    eSustainDefeat.widget.set_tooltip_text(_("If enabled: sustain pedal will not hold a note."));
+    eSustainDefeat.widget.set_tooltip_text(_(
+        "If enabled: sustain pedal will not hold a note. This way you can use "
+        "the sustain pedal for other purposes, for example to switch among "
+        "dimension regions."
+    ));
     addProp(eSustainDefeat);
-    eMSDecode.widget.set_tooltip_text(_("Gigastudio specific flag: defines if Mid Side Recordings should be decoded."));
+    eMSDecode.widget.set_tooltip_text(_(
+        "Defines if Mid/Side Recordings should be decoded. Mid/Side Recordings "
+        "are an alternative way to record sounds in stereo. The sampler needs "
+        "to decode such samples to actually make use of them. Note: this "
+        "feature is currently not supported by LinuxSampler."
+    ));
     addProp(eMSDecode);
 
     nextPage();

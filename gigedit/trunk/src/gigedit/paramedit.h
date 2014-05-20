@@ -260,6 +260,9 @@ public:
     ChoiceEntryLeverageCtrl(const char* labelText);
     gig::leverage_ctrl_t get_value() const { return value; }
     void set_value(gig::leverage_ctrl_t value);
+    void set_tip(const Glib::ustring& tip_text) {
+        combobox.set_tooltip_text(tip_text);
+    }
 };
 
 
