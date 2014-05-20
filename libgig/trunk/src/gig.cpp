@@ -3743,16 +3743,18 @@ namespace {
             }
             bitpos += pDimensionDefinitions[i].bits;
         }
-        DimensionRegion* dimreg = pDimensionRegions[dimregidx];
+        DimensionRegion* dimreg = pDimensionRegions[dimregidx & 255];
+        if (!dimreg) return NULL;
         if (veldim != -1) {
             // (dimreg is now the dimension region for the lowest velocity)
             if (dimreg->VelocityTable) // custom defined zone ranges
-                bits = dimreg->VelocityTable[DimValues[veldim]];
+                bits = dimreg->VelocityTable[DimValues[veldim] & 127];
             else // normal split type
-                bits = uint8_t(DimValues[veldim] / pDimensionDefinitions[veldim].zone_size);
+                bits = uint8_t((DimValues[veldim] & 127) / pDimensionDefinitions[veldim].zone_size);
 
-            dimregidx |= bits << velbitpos;
-            dimreg = pDimensionRegions[dimregidx];
+            const uint8_t limiter_mask = (1 << pDimensionDefinitions[veldim].bits) - 1;
+            dimregidx |= (bits & limiter_mask) << velbitpos;
+            dimreg = pDimensionRegions[dimregidx & 255];
         }
         return dimreg;
     }

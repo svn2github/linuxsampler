@@ -43,6 +43,9 @@ Version CVS HEAD (?)
     - added some more sanity checks in Region::AddDimension()
     - added new method Region::DeleteDimensionZone(dimension_t, int)
     - added new method Region::SplitDimensionZone(dimension_t, int)
+    - Fixed crash caused by Region::GetDimensionRegionByValue() that happened
+      with certain velocity split sounds under certain conditions (added bound
+      constraints to prevent that)
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
