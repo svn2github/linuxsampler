@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2004, 2005 Grame                                        *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -112,7 +112,7 @@ namespace LinuxSampler {
 // *
 	
 	MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterAutoBind::ParameterAutoBind(MidiInputPortCoreMidi* pPort)
-		: DeviceRuntimeParameterBool(false)
+		: DeviceRuntimeParameterBool(true)
 	{
 		this->pPort = pPort;
 	}

@@ -354,6 +354,8 @@ Version CVS HEAD (?)
     - Implemented missing handling of MIDI "running status".
     - CoreMIDI fix: a MIDIPacket can contain more than one event per packet.
     - MME bugfix: driver wasn't closed properly
+    - CoreMIDI: automatically connect to all input sources by default (driver
+      parameter "AUTO_BIND").
 
   * audio driver:
     - ASIO driver fixes for newer gcc versions (fix from PortAudio)
