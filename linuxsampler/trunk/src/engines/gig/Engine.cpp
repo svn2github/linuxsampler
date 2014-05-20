@@ -301,6 +301,7 @@ namespace LinuxSampler { namespace gig {
         if (ReleaseTriggerVoice && !(VoiceType & Voice::type_release_trigger)) return Pool<Voice>::Iterator();
 
         ::gig::DimensionRegion* pDimRgn = pRegion->GetDimensionRegionByValue(DimValues);
+        if (!pDimRgn) return Pool<Voice>::Iterator(); // error (could not resolve dimension region)
 
         // no need to continue if sample is silent
         if (!pDimRgn->pSample || !pDimRgn->pSample->SamplesTotal) return Pool<Voice>::Iterator();

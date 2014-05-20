@@ -120,6 +120,8 @@ Version CVS HEAD (?)
       doesn't sound naturally with a drumkit
     - fixed EG1 modulation when attack or release is zero
     - Fixed support for 'aftertouch' attenuation controller.
+    - Fixed crash that happened with velocity split sounds under certain
+      conditions (see also previous commit on libgig).
 
   * SFZ format engine:
     - Initial implementation (not usable yet)
