@@ -11,6 +11,7 @@ Version CVS HEAD (?)
     - added man page for "sf2dump"
     - added new command line tool "korgdump" (and a man page for it)
     - added new command line tool "korg2gig" (and a man page for it)
+    - moved source files of command line tools to new subdir src/tools
 
   * SoundFont file format:
     - initial implementation

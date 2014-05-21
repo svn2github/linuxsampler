@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *   Copyright (C) 2009 by Grigor Iliev  <grigor@grigoriliev.com>          *
  *                                                                         *
@@ -34,7 +34,7 @@
 #include <sstream>
 
 #include "SF.h"
-#include "helper.h"
+#include "../helper.h"
 
 using namespace std;
 

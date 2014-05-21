@@ -113,6 +113,7 @@ AC_CONFIG_FILES([\
     Makefile \
     src/Makefile \
     src/testcases/Makefile \
+    src/tools/Makefile \
     doc/Makefile \
     man/Makefile \
     man/dlsdump.1 \
