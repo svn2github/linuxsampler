@@ -73,7 +73,8 @@ mkdir -p $DIST
 cd $WIN/bin
 cp libgig-6.dll \
     rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
-    gig2mono.exe linuxsampler.exe \
+    gig2mono.exe korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
+    sf2dump.exe linuxsampler.exe \
     $DIST
 cd $WIN/lib/bin
 cp liblinuxsampler-3.dll $DIST
