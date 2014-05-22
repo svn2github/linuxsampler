@@ -1,6 +1,6 @@
 ; LinuxSampler Windows installer
 ;
-; Copyright (C) 2007-2013, The LinuxSampler Developers
+; Copyright (C) 2007-2014, The LinuxSampler Developers
 ;
 ; All-in-one Installer for all subprojects / software components of the
 ; LinuxSampler Project.
@@ -509,6 +509,11 @@ Section "libgig 3.3.0" Seclibgig
   File bin\64\gigextract.exe
   File bin\64\gigmerge.exe
   File bin\64\gig2mono.exe
+  File bin\64\korg2gig.exe
+  File bin\64\korgdump.exe
+  File bin\64\akaidump.exe
+  File bin\64\akaiextract.exe
+  File bin\64\sf2dump.exe
   ; special dependencies for the 64 bit version
   File bin\64\libgcc_s_sjlj-1.dll
   File bin\64\libstdc++-6.dll
@@ -532,6 +537,11 @@ Section "libgig 3.3.0" Seclibgig
   File bin\686sse\gigextract.exe
   File bin\686sse\gigmerge.exe
   File bin\686sse\gig2mono.exe
+  File bin\686sse\korg2gig.exe
+  File bin\686sse\korgdump.exe
+  File bin\686sse\akaidump.exe
+  File bin\686sse\akaiextract.exe
+  File bin\686sse\sf2dump.exe
   Goto done
 
   libgig686:
@@ -543,6 +553,11 @@ Section "libgig 3.3.0" Seclibgig
   File bin\686\gigextract.exe
   File bin\686\gigmerge.exe
   File bin\686\gig2mono.exe
+  File bin\686\korg2gig.exe
+  File bin\686\korgdump.exe
+  File bin\686\akaidump.exe
+  File bin\686\akaiextract.exe
+  File bin\686\sf2dump.exe
   Goto done
 
   done:

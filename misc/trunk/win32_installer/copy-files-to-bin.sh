@@ -15,7 +15,9 @@ cd $WIN/bin
 cp libgig-6.dll libsndfile-1.dll libsqlite3-0.dll \
     libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
     rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
-    gig2mono.exe linuxsampler.exe \
+    gig2mono.exe korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
+    sf2dump.exe \
+    linuxsampler.exe \
     gigedit.exe \
     liblscp-6.dll qsampler.exe \
     $DIST
@@ -89,7 +91,9 @@ cd $WIN/bin
 cp libgig-6.dll libsndfile-1.dll libsqlite3-0.dll \
     libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
     rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
-    gig2mono.exe linuxsampler.exe gigedit.exe \
+    gig2mono.exe korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
+    sf2dump.exe \
+    linuxsampler.exe gigedit.exe \
     $DIST
 cd $WIN/gtkmm/bin
 cp libatk-1.0-0.dll libatkmm-1.6-1.dll libcairo-2.dll \
