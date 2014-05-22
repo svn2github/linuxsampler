@@ -32,7 +32,7 @@
 #include <string>
 #include <cstdlib>
 
-#include "RIFF.h"
+#include "../RIFF.h"
 
 using namespace std;
 

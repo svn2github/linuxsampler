@@ -22,7 +22,7 @@ if WIN32
 libakai_la_LIBADD = -lrpcrt4
 endif
 if MAC
-libakai_la_LDFLAGS += -framework CoreFoundation
+libakai_la_LDFLAGS += -framework CoreFoundation -framework IOKit
 endif
 
 EXTRA_DIST = helper.h

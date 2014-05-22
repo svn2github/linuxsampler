@@ -34,8 +34,8 @@
 # include <unistd.h>
 #endif
 
-#include "Korg.h"
-#include "gig.h"
+#include "../Korg.h"
+#include "../gig.h"
 
 using namespace std;
 

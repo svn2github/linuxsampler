@@ -33,7 +33,7 @@
 #include <string>
 #include <sstream>
 
-#include "SF.h"
+#include "../SF.h"
 #include "../helper.h"
 
 using namespace std;

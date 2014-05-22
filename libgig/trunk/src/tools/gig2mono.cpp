@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This program is part of libgig.                                       *
@@ -42,7 +42,7 @@
 # define DIR_SEPARATOR '/'
 #endif
 
-#include "gig.h"
+#include "../gig.h"
 
 using namespace std;
 

@@ -28,6 +28,8 @@ Version CVS HEAD (?)
       under LGPL terms while libgig is released under GPL terms. To handle this
       license difference appropriately the AKAI support part is built as
       separate DLL (.so file).
+    - Fixed Mac OSX support so that the Akai lib files and tools compile without
+      any exotic third party libraries.
 
   * src/gig.cpp:
     - bugfix: VCF velocity dynamic range and VCF velocity curve

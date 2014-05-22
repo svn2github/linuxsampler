@@ -27,11 +27,16 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#if defined (__GNUC__) && (__GNUC__ >= 4)
+#include <sys/disk.h>
+#else
+#include <dev/disk.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <paths.h>
-#ifdef _CARBON_
+#if defined(_CARBON_) || defined(__APPLE__)
 #include <sys/param.h>
 #include <IOKit/IOKitLib.h>
 #include <IOKit/IOBSD.h>
@@ -41,6 +46,262 @@
 #include <IOKit/storage/IOCDTypes.h>
 #include <CoreFoundation/CoreFoundation.h>
 #endif
+
+#if defined(_CARBON_) || defined(__APPLE__)
+
+// These definitions were taken from mount_cd9660.c
+// There are some similar definitions in IOCDTypes.h
+// however there seems to be some dissagreement in
+// the definition of CDTOC.length
+struct _CDMSF {
+    u_char   minute;
+    u_char   second;
+    u_char   frame;
+};
+
+#define MSF_TO_LBA(msf)                \
+     (((((msf).minute * 60UL) + (msf).second) * 75UL) + (msf).frame - 150)
+
+struct _CDTOC_Desc {
+    u_char        session;
+    u_char        ctrl_adr;  /* typed to be machine and compiler independent */
+    u_char        tno;
+    u_char        point;
+    struct _CDMSF address;
+    u_char        zero;
+    struct _CDMSF p;
+};
+
+struct _CDTOC {
+    u_short            length;  /* in native cpu endian */
+    u_char             first_session;
+    u_char             last_session;
+    struct _CDTOC_Desc trackdesc[1];
+};
+
+// Most of the following Mac CDROM IO functions were taken from Apple's IOKit
+// examples (BSD style license). ReadTOC() function was taken from the Bochs x86
+// Emulator (LGPL). Most probably they have taken it however also from some
+// other BSD style licensed example code as well ...
+
+// Returns an iterator across all CD media (class IOCDMedia). Caller is responsible for releasing
+// the iterator when iteration is complete.
+static kern_return_t FindEjectableCDMedia(io_iterator_t *mediaIterator) {
+    kern_return_t kernResult;
+    CFMutableDictionaryRef classesToMatch;
+
+    // CD media are instances of class kIOCDMediaClass
+    classesToMatch = IOServiceMatching(kIOCDMediaClass);
+    if (classesToMatch == NULL) {
+        printf("IOServiceMatching returned a NULL dictionary.\n");
+    } else {
+        CFDictionarySetValue(classesToMatch, CFSTR(kIOMediaEjectableKey), kCFBooleanTrue);
+        // Each IOMedia object has a property with key kIOMediaEjectableKey which is true if the
+        // media is indeed ejectable. So add this property to the CFDictionary we're matching on.
+    }
+
+    kernResult = IOServiceGetMatchingServices(kIOMasterPortDefault, classesToMatch, mediaIterator);
+    
+    return kernResult;
+}
+
+// Given an iterator across a set of CD media, return the BSD path to the
+// next one. If no CD media was found the path name is set to an empty string.
+static kern_return_t GetBSDPath(io_iterator_t mediaIterator, char *bsdPath, CFIndex maxPathSize) {
+    io_object_t nextMedia;
+    kern_return_t kernResult = KERN_FAILURE;
+    
+    *bsdPath = '\0';
+    
+    nextMedia = IOIteratorNext(mediaIterator);
+    if (nextMedia) {
+        CFTypeRef bsdPathAsCFString;
+        
+        bsdPathAsCFString = IORegistryEntryCreateCFProperty(nextMedia,
+                                                            CFSTR(kIOBSDNameKey),
+                                                            kCFAllocatorDefault,
+                                                            0);
+        if (bsdPathAsCFString) {
+            strlcpy(bsdPath, _PATH_DEV, maxPathSize);
+            
+            // Add "r" before the BSD node name from the I/O Registry to specify the raw disk
+            // node. The raw disk nodes receive I/O requests directly and do not go through
+            // the buffer cache.
+            
+            strlcat(bsdPath, "r", maxPathSize);
+            
+            size_t devPathLength = strlen(bsdPath);
+            
+            if (CFStringGetCString((CFStringRef)bsdPathAsCFString,
+                                   bsdPath + devPathLength,
+                                   maxPathSize - devPathLength,
+                                   kCFStringEncodingUTF8)) {
+                printf("BSD path: %s\n", bsdPath);
+                kernResult = KERN_SUCCESS;
+            }
+            
+            CFRelease(bsdPathAsCFString);
+        }
+    
+        IOObjectRelease(nextMedia);
+    }
+    
+    return kernResult;
+}
+
+// Given the path to a CD drive, open the drive.
+// Return the file descriptor associated with the device.
+static int OpenDrive(const char *bsdPath) {
+    int fileDescriptor;
+    
+    // This open() call will fail with a permissions error if the sample has been changed to
+    // look for non-removable media. This is because device nodes for fixed-media devices are
+    // owned by root instead of the current console user.
+
+    fileDescriptor = open(bsdPath, O_RDONLY);
+    
+    if (fileDescriptor == -1) {
+        printf("Error opening device %s: ", bsdPath);
+        perror(NULL);
+    }
+    
+    return fileDescriptor;
+}
+
+// Given the file descriptor for a whole-media CD device, read a sector from the drive.
+// Return true if successful, otherwise false.
+static Boolean ReadSector(int fileDescriptor) {
+    char *buffer;
+    ssize_t numBytes;
+    u_int32_t blockSize;
+    
+    // This ioctl call retrieves the preferred block size for the media. It is functionally
+    // equivalent to getting the value of the whole media object's "Preferred Block Size"
+    // property from the IORegistry.
+    if (ioctl(fileDescriptor, DKIOCGETBLOCKSIZE, &blockSize)) {
+        perror("Error getting preferred block size");
+        
+        // Set a reasonable default if we can't get the actual preferred block size. A real
+        // app would probably want to bail at this point.
+        blockSize = kCDSectorSizeCDDA;
+    }
+    
+    printf("Media has block size of %d bytes.\n", blockSize);
+    
+    // Allocate a buffer of the preferred block size. In a real application, performance
+    // can be improved by reading as many blocks at once as you can.
+    buffer = (char*) malloc(blockSize);
+    
+    // Do the read. Note that we use read() here, not fread(), since this is a raw device
+    // node.
+    numBytes = read(fileDescriptor, buffer, blockSize);
+        
+    // Free our buffer. Of course, a real app would do something useful with the data first.
+    free(buffer);
+    
+    return numBytes == blockSize ? true : false;
+}
+
+// Given the file descriptor for a device, close that device.
+static void CloseDrive(int fileDescriptor) {
+    close(fileDescriptor);
+}
+
+// path is the BSD path to a raw device such as /dev/rdisk1
+static struct _CDTOC * ReadTOC(const char *devpath) {
+    struct _CDTOC * toc_p = NULL;
+    io_iterator_t iterator = 0;
+    io_registry_entry_t service = 0;
+    CFDictionaryRef properties = 0;
+    CFDataRef data = 0;
+    mach_port_t port = 0;
+    char *devname;
+
+    if ((devname = strrchr(devpath, '/')) != NULL) {
+        ++devname;
+    } else {
+        devname = (char *) devpath;
+    }
+
+    if (IOMasterPort(bootstrap_port, &port) != KERN_SUCCESS) {
+        fprintf(stderr, "IOMasterPort failed\n");
+        goto Exit;
+    }
+
+    if (IOServiceGetMatchingServices(port, IOBSDNameMatching(port, 0, devname),
+                                     &iterator) != KERN_SUCCESS) {
+        fprintf(stderr, "IOServiceGetMatchingServices failed\n");
+        goto Exit;
+    }
+
+    service = IOIteratorNext(iterator);
+
+    IOObjectRelease(iterator);
+
+    iterator = 0;
+
+    while (service && !IOObjectConformsTo(service, "IOCDMedia")) {
+        if (IORegistryEntryGetParentIterator(service, kIOServicePlane,
+                                             &iterator) != KERN_SUCCESS)
+        {
+            fprintf(stderr, "IORegistryEntryGetParentIterator failed\n");
+            goto Exit;
+        }
+ 
+        IOObjectRelease(service);
+        service = IOIteratorNext(iterator);
+        IOObjectRelease(iterator);
+    }
+
+    if (!service) {
+        fprintf(stderr, "CD media not found\n");
+        goto Exit;
+    }
+
+    if (IORegistryEntryCreateCFProperties(service, (__CFDictionary **) &properties,
+                                          kCFAllocatorDefault,
+                                          kNilOptions) != KERN_SUCCESS)
+    {
+        fprintf(stderr, "IORegistryEntryGetParentIterator failed\n");
+        goto Exit;
+    }
+
+    data = (CFDataRef) CFDictionaryGetValue(properties, CFSTR(kIOCDMediaTOCKey));
+    if (data == NULL) {
+        fprintf(stderr, "CFDictionaryGetValue failed\n");
+        goto Exit;
+    } else {
+        CFRange range;
+        CFIndex buflen;
+
+        buflen = CFDataGetLength(data) + 1;
+        range = CFRangeMake(0, buflen);
+        toc_p = (struct _CDTOC *) malloc(buflen);
+        if (toc_p == NULL) {
+            fprintf(stderr, "Out of memory\n");
+            goto Exit;
+        } else {
+            CFDataGetBytes(data, range, (unsigned char *) toc_p);
+        }
+
+       /*
+        fprintf(stderr, "Table of contents\n length %d first %d last %d\n",
+                toc_p->length, toc_p->first_session, toc_p->last_session);
+        */
+
+        CFRelease(properties);
+    }
+
+    Exit:
+
+    if (service) {
+        IOObjectRelease(service);
+    }
+ 
+    return toc_p;
+}
+
+#endif // defined(_CARBON_) || defined(__APPLE__)
 
 //////////////////////////////////
 // AkaiSample:
@@ -565,7 +826,7 @@ AkaiVolume::AkaiVolume(DiskImage* pDisk, AkaiPartition* pParent, const AkaiDirEn
   if (mDirEntry.mType != AKAI_TYPE_DIR_S1000 && mDirEntry.mType != AKAI_TYPE_DIR_S3000)
   {
     printf("Creating Unknown Volume type! %d\n",mDirEntry.mType);
-#ifdef _WIN32_
+#ifdef WIN32
     OutputDebugString("Creating Unknown Volume type!\n");
 #endif
   }
@@ -1241,7 +1502,7 @@ DiskImage::DiskImage(int disk)
     mSize = dg.BytesPerSector * dg.SectorsPerTrack * dg.TracksPerCylinder * dg.Cylinders.LowPart;
     mClusterSize = dg.BytesPerSector;
   }
-#elif defined _CARBON_
+#elif defined(_CARBON_) || defined(__APPLE__)
   kern_return_t  kernResult;
   io_iterator_t mediaIterator;
   char  bsdPath[ MAXPATHLEN ];
@@ -1320,7 +1581,7 @@ void DiskImage::Init()
   mCluster     = (uint)-1;
   mStartFrame  = -1;
   mEndFrame    = -1;
-#ifdef _WIN32_
+#ifdef WIN32
   mpCache = (char*) VirtualAlloc(NULL,mClusterSize,MEM_COMMIT,PAGE_READWRITE);
 #else
   mpCache = NULL; // we allocate the cache later when we know what type of media we access
@@ -1329,12 +1590,12 @@ void DiskImage::Init()
 
 DiskImage::~DiskImage()
 {
-#ifdef _WIN32_
+#ifdef WIN32
   if (mFile != INVALID_HANDLE_VALUE)
   {
     CloseHandle(mFile);
   }
-#elif defined _CARBON_ || LINUX
+#elif defined _CARBON_ || defined(__APPLE__) || LINUX
   if (mFile)
   {
     close(mFile);
@@ -1342,9 +1603,9 @@ DiskImage::~DiskImage()
 #endif
   if (mpCache)
   {
-#ifdef _WIN32_
+#ifdef WIN32
     VirtualFree(mpCache, 0, MEM_RELEASE);
-#elif defined _CARBON_ || LINUX
+#elif defined(_CARBON_) || defined(__APPLE__) || LINUX
     free(mpCache);
 #endif
   }
@@ -1403,7 +1664,7 @@ int DiskImage::Read(void* pData, uint WordCount, uint WordSize)
                                           : mPos / mClusterSize + mStartFrame;
     if (mCluster != requestedCluster) { // read the requested cluster into cache
       mCluster = requestedCluster;
-#ifdef _WIN32_
+#ifdef WIN32
       if (mCluster * mClusterSize != SetFilePointer(mFile, mCluster * mClusterSize, NULL, FILE_BEGIN)) {
         printf("ERROR: couldn't seek device!\n");
         if ((readbytes > 0) && (mEndian != eEndianNative)) {
@@ -1417,7 +1678,7 @@ int DiskImage::Read(void* pData, uint WordCount, uint WordSize)
       }
       DWORD size;
       ReadFile(mFile, mpCache, mClusterSize, &size, NULL);
-#elif defined _CARBON_ || LINUX
+#elif defined(_CARBON_) || defined(__APPLE__) || LINUX
       if (mCluster * mClusterSize != lseek(mFile, mCluster * mClusterSize, SEEK_SET))
         return readbytes / WordSize;
 //          printf("trying to read %d bytes from device!\n",mClusterSize);
@@ -1519,12 +1780,12 @@ uint32_t DiskImage::ReadInt32()
 }
 
 void DiskImage::OpenStream(const char* path) {
-#ifdef _WIN32_
+#ifdef WIN32
   mFile = CreateFile(path, GENERIC_READ,0,NULL,OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS,NULL);
   BY_HANDLE_FILE_INFORMATION FileInfo;
   GetFileInformationByHandle(mFile,&FileInfo);
   mSize = FileInfo.nFileSizeLow;
-#elif _CARBON_ || LINUX
+#elif defined(_CARBON_) || defined(__APPLE__) || LINUX
   struct stat filestat;
   stat(path,&filestat);
   mFile = open(path, O_RDONLY | O_NONBLOCK);
@@ -1540,8 +1801,10 @@ void DiskImage::OpenStream(const char* path) {
     mSize        = filestat.st_size;
     mClusterSize = DISK_CLUSTER_SIZE;
     mpCache = (char*) malloc(mClusterSize);
-  }
-  else { // CDROM
+  } else { // CDROM
+#if defined(_CARBON_) || defined(__APPLE__)
+    printf("Can't open %s: not a regular file\n", path);
+#else // Linux ...
     mRegularFile = false;
     mClusterSize = CD_FRAMESIZE;
     mpCache = (char*) malloc(mClusterSize);
@@ -1601,13 +1864,14 @@ void DiskImage::OpenStream(const char* path) {
     mStartFrame = start;
     mEndFrame   = end;
     mSize       = length * CD_FRAMESIZE;
+#endif
   } // CDROM
 #endif
 }
 
 bool DiskImage::WriteImage(const char* path)
 {
-#if _CARBON_ || LINUX
+#if defined(_CARBON_) || defined(__APPLE__) || LINUX
   const uint bufferSize = 524288; // 512 kB
   int fOut = open(path, O_WRONLY | O_NONBLOCK | O_CREAT | O_TRUNC);
   if (mFile <= 0) {

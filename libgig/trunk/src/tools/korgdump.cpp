@@ -30,7 +30,7 @@
 #include <string>
 #include <set>
 
-#include "Korg.h"
+#include "../Korg.h"
 
 using namespace std;
 

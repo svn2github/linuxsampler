@@ -27,10 +27,10 @@
 
 // for use with autoconf
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+# include <config.h>
 #endif
 
-#if !defined(_CARBON_) && !defined(_WIN32_)
+#if !defined(_CARBON_) && !defined(__APPLE__) && !defined(_WIN32_)
 # define LINUX 1
 #endif
 
@@ -42,12 +42,14 @@
 #include <list>
 #include <fstream>
 
-#if LINUX
+#if defined(_CARBON_) || defined(__APPLE__) || LINUX
 # include <sys/types.h>
 # include <sys/stat.h>
 # include <sys/fcntl.h>
 # include <sys/ioctl.h>
 # include <unistd.h>
+#endif
+#if LINUX
 # include <linux/cdrom.h>
 #endif
 
@@ -139,9 +141,9 @@ public:
   }*/
 
 protected:
-#ifdef _WIN32_
+#ifdef WIN32
   HANDLE mFile;
-#elif defined _CARBON_ || LINUX
+#elif defined _CARBON_ || defined(__APPLE__) || LINUX
   int mFile;
 #endif
   bool mRegularFile;
@@ -149,11 +151,9 @@ protected:
   int mCluster;
   int mClusterSize;
   int mSize; /* in bytes */
-#if LINUX
   /* start and end of the data track we chose (if we're reading from CDROM) */
   int mStartFrame;
   int mEndFrame;
-#endif // LINUX
   char* mpCache;
 
   void OpenStream(const char* path);
