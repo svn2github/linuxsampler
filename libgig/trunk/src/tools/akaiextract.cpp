@@ -25,17 +25,19 @@
 #include <config.h>
 #endif
 
-#ifdef _WIN32_
+#ifdef WIN32
 # define _WIN32_WINNT 0x0500
 # include <windows.h>
 # include <conio.h>
 #else
-# include <sys/types.h>
-# include <sys/stat.h>
-# include <dirent.h>
 # include <errno.h>
 # include <dlfcn.h>
 #endif
+
+#include <unistd.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 // for testing the disk streaming methods
 #define USE_DISK_STREAMING 1
@@ -95,7 +97,7 @@ template<class T> inline std::string ToString(T o) {
 
 void PrintLastError(char* file, int line)
 {
-#ifdef _WIN32_
+#ifdef WIN32
   LPVOID lpMsgBuf;
   FormatMessage(
       FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -121,7 +123,7 @@ void PrintLastError(char* file, int line)
 #define SHOWERROR PrintLastError(__FILE__,__LINE__)
 
 static void printUsage() {
-#ifdef _WIN32_
+#ifdef WIN32
     printf(
         "akaiextract <source-drive-letter>: <destination-dir>\n"
         "by Sebastien Métrot (meeloo@meeloo.net)\n\n"
@@ -188,7 +190,7 @@ int main(int argc, char** argv) {
 
     // open input source
     DiskImage* pImage = NULL;
-#ifdef _WIN32_
+#ifdef WIN32
     char drive = toupper(*(argv[1]))-'A';
     printf("opening drive %c:\n",drive+'a'); 
     pImage = new DiskImage(drive);
@@ -304,21 +306,33 @@ int main(int argc, char** argv) {
       if (!dir) {
           if (errno == ENOENT) {
               struct stat filestat;
+#ifdef WIN32
+              if (stat(outPath, &filestat) < 0) {
+#else
               if (lstat(outPath, &filestat) < 0) {
+#endif
                   printf("Creating output directory '%s'...", outPath);
                   fflush(stdout);
+#ifdef WIN32
+                  if (mkdir(outPath) < 0) {
+#else
                   if (mkdir(outPath, 0770) < 0) {
+#endif
                       perror("failed");
                       errorOccured = true;
                   }
                   else printf("ok\n");
               }
               else {
+#if !defined(WIN32)
                   if (!S_ISLNK(filestat.st_mode)) {
+#endif
                       printf("Cannot create output directory '%s': ", outPath);
                       printf("a file of that name already exists\n");
                       errorOccured = true;
+#if !defined(WIN32)
                   }
+#endif
               }
           }
           else {
@@ -436,7 +450,7 @@ int main(int argc, char** argv) {
 
   delete pAkai;
   delete pImage;
-#if _WIN32_
+#if WIN32
   while(!_kbhit());
 #endif
 }

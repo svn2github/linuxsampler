@@ -25,7 +25,7 @@
 #include <config.h>
 #endif
 
-#ifdef _WIN32_
+#ifdef WIN32
 #define _WIN32_WINNT 0x0500
 
 #include <windows.h>
@@ -37,7 +37,7 @@
 
 static void PrintLastError(char* file, int line)
 {
-#ifdef _WIN32_
+#ifdef WIN32
   LPVOID lpMsgBuf;
   FormatMessage( 
       FORMAT_MESSAGE_ALLOCATE_BUFFER | 
@@ -64,7 +64,7 @@ static void PrintLastError(char* file, int line)
 #define SHOWERROR PrintLastError(__FILE__,__LINE__)
 
 static void printUsage() {
-#ifdef _WIN32_
+#ifdef WIN32
     printf(
         "akaidump <source-drive-letter>: <destination-filename>\n"
         "by Sebastien Métrot (meeloo@meeloo.net)\n\n"
@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
 
     // open input source
     DiskImage* pImage = NULL;
-#ifdef _WIN32_
+#ifdef WIN32
     char drive = toupper(*(argv[1]))-'A';
     printf("opening drive %c:\n",drive+'a'); 
     pImage = new DiskImage(drive);

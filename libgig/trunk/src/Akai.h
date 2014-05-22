@@ -30,7 +30,7 @@
 # include <config.h>
 #endif
 
-#if !defined(_CARBON_) && !defined(__APPLE__) && !defined(_WIN32_)
+#if !defined(_CARBON_) && !defined(__APPLE__) && !defined(WIN32)
 # define LINUX 1
 #endif
 
@@ -41,13 +41,16 @@
 #include <iostream>
 #include <list>
 #include <fstream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/fcntl.h>
 
 #if defined(_CARBON_) || defined(__APPLE__) || LINUX
-# include <sys/types.h>
-# include <sys/stat.h>
-# include <sys/fcntl.h>
 # include <sys/ioctl.h>
 # include <unistd.h>
+#elif defined(WIN32)
+# include <windows.h>
+  typedef unsigned int   uint;
 #endif
 #if LINUX
 # include <linux/cdrom.h>

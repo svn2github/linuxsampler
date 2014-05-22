@@ -26,17 +26,19 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/ioctl.h>
-#if defined (__GNUC__) && (__GNUC__ >= 4)
-#include <sys/disk.h>
-#else
-#include <dev/disk.h>
+#if defined(_CARBON_) || defined(__APPLE__)
+# if defined (__GNUC__) && (__GNUC__ >= 4)
+#  include <sys/disk.h>
+# else
+#  include <dev/disk.h>
+# endif
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <paths.h>
 #if defined(_CARBON_) || defined(__APPLE__)
+#include <paths.h>
+#include <sys/ioctl.h>
 #include <sys/param.h>
 #include <IOKit/IOKitLib.h>
 #include <IOKit/IOBSD.h>
@@ -1667,6 +1669,7 @@ int DiskImage::Read(void* pData, uint WordCount, uint WordSize)
 #ifdef WIN32
       if (mCluster * mClusterSize != SetFilePointer(mFile, mCluster * mClusterSize, NULL, FILE_BEGIN)) {
         printf("ERROR: couldn't seek device!\n");
+#if 0 // FIXME: endian correction is missing correct detection
         if ((readbytes > 0) && (mEndian != eEndianNative)) {
           switch (WordSize) {
             case 2: bswap_16_s ((uint16*)pData, readbytes); break;
@@ -1674,6 +1677,7 @@ int DiskImage::Read(void* pData, uint WordCount, uint WordSize)
             case 8: bswap_64_s ((uint64*)pData, readbytes); break;
           }
         }
+#endif
         return readbytes / WordSize;
       }
       DWORD size;
@@ -1701,7 +1705,7 @@ int DiskImage::Read(void* pData, uint WordCount, uint WordSize)
 //      printf("new pos %d\n",mPos);
   }
 
-#if 0
+#if 0 // FIXME: endian correction is missing correct detection
   if ((readbytes > 0) && (mEndian != eEndianNative))
     switch (WordSize)
     {
@@ -1888,6 +1892,7 @@ bool DiskImage::WriteImage(const char* path)
   close(fOut);
   return true;
 #endif // _CARBON_ || LINUX
+  return false;
 }
 
 inline void DiskImage::swapBytes_16(void* Word) {

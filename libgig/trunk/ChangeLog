@@ -30,6 +30,7 @@ Version CVS HEAD (?)
       separate DLL (.so file).
     - Fixed Mac OSX support so that the Akai lib files and tools compile without
       any exotic third party libraries.
+    - Fixed various compilation errors for Windows.
 
   * src/gig.cpp:
     - bugfix: VCF velocity dynamic range and VCF velocity curve
