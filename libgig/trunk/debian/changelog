@@ -1,3 +1,14 @@
+libgig (3.3.0-4) unstable; urgency=low
+
+  * Added Linux/POSIX ported version of libakai. Note that libakai is released
+    under LGPL terms while libgig is released under GPL terms. To handle this
+    license difference appropriately the AKAI support part is built as separate
+    DLL (.so file). Due to its low expected demand however, no separate package
+    is created for the AKAI part for now though.
+  * Updated package descriptions.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Thu, 22 May 2014 00:58:12 +0200
+
 libgig (3.3.0-3) unstable; urgency=low
 
   * Updated package descriptions.

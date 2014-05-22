@@ -1,30 +1,56 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 11
+%define release 12
 %define prefix  @prefix@
 
-Summary:	C++ library for accessing Gigasampler, DLS, SF and KORG files.
+Summary:	C++ library for accessing Gigasampler, DLS, SF, KORG, AKAI files.
 Name:		%{name}
 Version:	%{version}
 Release:	%{release}
 Prefix:		%{prefix}
-License:	GPL
+License:	GPL / LGPL
 Group:		Sound
 Source0:	%{name}-%{version}.tar.bz2
-URL:		http://www.linuxsampler.org/libgig/
+URL:		http://www.linuxsampler.org
 BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
 
 %description
-C++ library for loading and modifying Gigasampler and DLS files.
+libgig is a C++ library for reading, modifying and creating Gigasampler /
+GigaStudio (.gig) files, DLS (Downloadable Sounds) Level 1/2 files, SoundFont
+version 2 (.sf2) and KORG sound files (.KMP and .KSF). These files are
+typically used in modern day audio waveform samplers and synthesizer keyboards.
+.
+Since the Gigasampler / GigaStudio and DLS formats are based ontop of the
+binary RIFF container format, this library also provides convenient access to
+RIFF files in general.
+.
+This package also contains a Linux/POSIX ported version of libakai, which
+provides support for reading Akai formated medias (CDRoms, HDs, Zip disks).
+Currently Akai S1000, S01, S2000 and S3000 series are supported.
 
 %package devel
-Summary:	C++ library for accessing Gigasampler, DLS, SF and KORG files.
+Summary:	C++ library for accessing Gigasampler, DLS, SF, KORG, AKAI files.
 Group:		Development/Libraries
 Requires:	%{name} = %{version}
 
 %description devel
-C++ library for accessing Gigasampler, DLS, SoundFont and KORG files.
+libgig is a C++ library for reading, modifying and creating Gigasampler /
+GigaStudio (.gig) files, DLS (Downloadable Sounds) Level 1/2 files, SoundFont
+version 2 (.sf2) and KORG sound files (.KMP and .KSF). These files are
+typically used in modern day audio waveform samplers and synthesizer keyboards.
+.
+Since the Gigasampler / GigaStudio and DLS formats are based ontop of the
+binary RIFF container format, this library also provides convenient access to
+RIFF files in general.
+.
+This package also contains a Linux/POSIX ported version of libakai, which
+provides support for reading Akai formated medias (CDRoms, HDs, Zip disks).
+Currently Akai S1000, S01, S2000 and S3000 series are supported.
+.
+This package contains the header files needed for development with libgig.
+You will need this only if you intend to compile programs that use this
+library.
 
 %prep
 
@@ -55,6 +81,7 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %doc AUTHORS COPYING ChangeLog NEWS README TODO
 %{prefix}/bin/*
 %{prefix}/lib/libgig.so*
+%{prefix}/lib/libakai.so*
 %{prefix}/share/man/man1/*
 
 %files devel
@@ -63,9 +90,19 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/lib/libgig.a
 %{prefix}/lib/libgig.la
 %{prefix}/lib/pkgconfig/gig.pc
+%{prefix}/lib/libakai.a
+%{prefix}/lib/libakai.la
+%{prefix}/lib/pkgconfig/akai.pc
 %{prefix}/include/*
 
 %changelog
+* Thu May 22 2014 Christian Schoenebeck <cuse@users.sourceforge.net>
+- Added libakai files. Note that libakai is released under LGPL terms while
+  libgig is released under GPL terms. To handle this license difference
+  appropriately the AKAI support part is built as separate DLL (.so file).
+  Due to its low expected demand however, no separate package is created for
+  the AKAI part for now though.
+- Updated package descriptions.
 * Thu Jul 30 2009 Christian Schoenebeck <cuse@users.sourceforge.net>
 - prepared for release 3.3.0
 * Wed Dec 03 2008 Christian Schoenebeck <cuse@users.sourceforge.net>

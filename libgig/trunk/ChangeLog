@@ -23,6 +23,12 @@ Version CVS HEAD (?)
     - initial support for sample based instruments in KORG's file format
       (.KMP and .KSF files)
 
+  * AKAI file format:
+    - Added Linux/POSIX ported version of libakai. Note that libakai is released
+      under LGPL terms while libgig is released under GPL terms. To handle this
+      license difference appropriately the AKAI support part is built as
+      separate DLL (.so file).
+
   * src/gig.cpp:
     - bugfix: VCF velocity dynamic range and VCF velocity curve
       weren't saved correctly

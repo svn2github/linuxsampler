@@ -26,6 +26,9 @@ Content
   - KORG classes (Korg.h, Korg.cpp):   Provides support for sample based sounds
                                        used on many KORG synthesizer keyboards.
 
+  - Akai classes (Akai.h):             Currently S1000, S01, S2000 and S3000
+                                       series are supported.
+
   Beside the actual library there are following example applications:
 
     gigdump:     Demo app that prints out the content of a .gig file.
@@ -37,6 +40,10 @@ Content
     korg2gig:    Convert KORG sound file to Gigasampler/GigaStudio format.
     rifftree:    Tool that prints out the RIFF tree of an arbitrary RIFF
                  file.
+    akaidump:    Dump an AKAI media i.e. from a CDROM drive as disk image file
+                 to your hard disk drive.
+    akaiextract: Extracts samples from an Akai disk image, either from a media
+                 (i.e. CDROM or Zip drive) for from a AKAI disk image file.
 
   Since version 3.0.0 libgig also provides write support, that is for
   creating modifying .gig, DLS and RIFF files.
@@ -204,7 +211,11 @@ Test Cases
 
 License
 =======
-  libgig and its tools are released under the GNU General Public License.
+  libgig and its tools are released under the GNU General Public License (GPL).
+
+  libakai and its tools are released under the GNU Lesser General Public (LGPL).
+  Due to its different license model the Akai support part is built as separate
+  DLL (.so) file.
 
 API Documentation
 =================
@@ -226,15 +237,21 @@ Bugs
 
 Trademarks
 ==========
-  Tascam, Gigasampler, GigaStudio, KORG, Trinity, Triton, OASYS, M3 and Kronos
-  are trademarks of their respective owners.
+  Tascam, Gigasampler, GigaStudio, KORG, Trinity, Triton, OASYS, M3, Kronos
+  and Akai are trademarks of their respective owners.
 
 Credits
 =======
   The initial library (Gigasampler part) was based on the reverse engineering
   effort of Paul Kellett and Ruben van Royen. We owe current support for the
-  Gigasampler v3 format to Andreas Persson. Please also have a look at the
-  ChangeLog for all those who contributed. Thanks to all of you for your great
-  work!
+  Gigasampler v3/v4 format to Andreas Persson. Please also have a look at the
+  ChangeLog for all those who contributed.
+
+  Akai support files are a ported version of Sébastien Métrot's libakai. The
+  original libakai only supported Mac and Windows. This forked version of
+  libakai now also supports Linux and other POSIX compliant operating systems
+  as well.
+
+  Thanks to all of you for your great work!
 
  Christian Schoenebeck <cuse@users.sourceforge.net>

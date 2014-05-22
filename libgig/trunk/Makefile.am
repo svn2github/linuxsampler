@@ -7,7 +7,7 @@ SUBDIRS = doc man src debian win32 osx
 AM_CXXFLAGS = -pedantic
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = gig.pc
+pkgconfig_DATA = gig.pc akai.pc
 
 EXTRA_DIST = libgig.kdevelop
 
