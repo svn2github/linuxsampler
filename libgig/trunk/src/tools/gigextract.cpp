@@ -48,7 +48,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "gig.h"
+#include "../gig.h"
 
 #ifdef _MSC_VER
 #define S_ISDIR(x) (S_IFDIR & (x))
