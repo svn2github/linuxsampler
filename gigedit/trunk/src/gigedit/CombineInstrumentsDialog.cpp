@@ -807,7 +807,7 @@ CombineInstrumentsDialog::CombineInstrumentsDialog(Gtk::Window& parent, gig::Fil
       m_gig(gig), m_fileWasChanged(false), m_newCombinedInstrument(NULL),
       m_cancelButton(Gtk::Stock::CANCEL), m_OKButton(Gtk::Stock::OK),
       m_descriptionLabel(), m_tableDimCombo(2, 2), m_comboDimType(),
-      m_labelDimType(Glib::ustring(_("Combine by Dimension:")) + "  ", Gtk::ALIGN_RIGHT)
+      m_labelDimType(Glib::ustring(_("Combine by Dimension:")) + "  ", Gtk::ALIGN_END)
 {
     get_vbox()->pack_start(m_descriptionLabel, Gtk::PACK_SHRINK);
     get_vbox()->pack_start(m_tableDimCombo, Gtk::PACK_SHRINK);
@@ -815,7 +815,7 @@ CombineInstrumentsDialog::CombineInstrumentsDialog(Gtk::Window& parent, gig::Fil
     get_vbox()->pack_start(m_buttonBox, Gtk::PACK_SHRINK);
 
 #if GTKMM_MAJOR_VERSION >= 3
-    description.set_line_wrap();
+    m_descriptionLabel.set_line_wrap();
 #endif
     m_descriptionLabel.set_text(_(
         "Select at least two instruments below that shall be combined (as "

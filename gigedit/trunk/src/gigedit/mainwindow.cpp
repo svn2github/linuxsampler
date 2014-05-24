@@ -1154,7 +1154,7 @@ void PropDialog::set_file(gig::File* file)
     }
     std::vector<const char*> texts;
     for (int i = 0; i < txts.size(); ++i) texts.push_back(txts[i].c_str());
-    texts.push_back(NULL); values.push_back(NULL);
+    texts.push_back(NULL); values.push_back(0);
     eFileFormat.set_choices(&texts[0], &values[0]);
     eFileFormat.set_value(major);
 }
