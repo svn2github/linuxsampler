@@ -90,6 +90,21 @@ namespace LinuxSampler {
             }
 
             /**
+             * Increase or decrease the size of this list to the new amount of
+             * elements given by \a cnt.
+             */
+            void resize(int cnt) {
+                T* pNewArray = new T[cnt];
+                if (pData) {
+                    for (int i = 0; i < cnt; i++)
+                        pNewArray[i] = pData[i];
+                    delete[] pData;
+                }
+                pData = pNewArray;
+                iSize = cnt;
+            }
+
+            /**
              * Remove all elements from the list.
              */
             void clear() {

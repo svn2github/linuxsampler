@@ -27,20 +27,20 @@ EXTRA_DIST = $(yacc_sources)
 # automatically (re)generate lscpsymbols.h with bison / yacc if the
 # yacc source file(s) have been changed
 lscpsymbols.h: $(yacc_sources)
-	$(top_srcdir)/scripts/generate_parser.sh
+	$(top_srcdir)/scripts/generate_lscp_parser.sh
 
 # automatically (re)generate lscpparser.cpp with bison / yacc if the
 # yacc source file(s) have been changed
 lscpparser.cpp: $(yacc_sources)
-	$(top_srcdir)/scripts/generate_parser.sh
+	$(top_srcdir)/scripts/generate_lscp_parser.sh
 
 # automatically (re)generate lscp_shell_reference.cpp if the
 # yacc source file or lscp.xml source have been changed
 lscp_shell_reference.cpp: $(yacc_sources) ../../Documentation/lscp.xml
-	$(top_srcdir)/scripts/generate_parser.sh
+	$(top_srcdir)/scripts/generate_lscp_parser.sh
 
 .PHONY: parser
 
 # "make parser" was explicitly requested
 parser:
-	$(top_builddir)/scripts/generate_parser.sh
+	$(top_builddir)/scripts/generate_lscp_parser.sh

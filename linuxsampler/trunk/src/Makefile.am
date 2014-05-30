@@ -32,7 +32,8 @@ endif
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
-SUBDIRS = db network engines common testcases drivers plugins effects . hostplugins $(SHELL_SUBDIR)
+SUBDIRS = scriptvm db network engines common testcases drivers \
+          plugins effects . hostplugins $(SHELL_SUBDIR)
 
 liblinuxsamplerincludedir = $(includedir)/linuxsampler
 liblinuxsamplerinclude_HEADERS = Sampler.h EventListeners.h
@@ -41,6 +42,7 @@ pkglib_LTLIBRARIES = liblinuxsampler.la
 liblinuxsampler_la_SOURCES = Sampler.cpp
 liblinuxsampler_la_LIBADD = \
 	$(sqlite3_lib) \
+	$(top_builddir)/src/scriptvm/liblinuxsamplerscriptvm.la \
 	$(top_builddir)/src/network/liblinuxsamplernetwork.la \
 	$(top_builddir)/src/engines/gig/liblinuxsamplergigengine.la \
 	$(sf2_engine_lib) \
@@ -57,7 +59,11 @@ liblinuxsampler_la_LIBADD = \
 
 liblinuxsampler_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@ -no-undefined
 
-bin_PROGRAMS = linuxsampler
+bin_PROGRAMS = linuxsampler ls_instr_script
+
 linuxsampler_SOURCES = linuxsampler.cpp
 linuxsampler_LDADD = liblinuxsampler.la
 linuxsampler_LDFLAGS = $(coremidi_ldflags)
+
+ls_instr_script_SOURCES = ls_instr_script.cpp
+ls_instr_script_LDADD = liblinuxsampler.la

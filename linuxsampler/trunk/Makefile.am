@@ -37,6 +37,7 @@ endif
 # generate parser with yacc
 parser:
 	@cd $(srcdir)/src/network && make $@
+	@cd $(srcdir)/src/scriptvm && make $@
 
 # compile test cases for the LinuxSampler codebase
 testcases:

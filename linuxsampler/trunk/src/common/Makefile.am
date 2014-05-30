@@ -36,6 +36,7 @@ liblinuxsamplercommon_la_SOURCES = \
 	Path.cpp Path.h \
 	File.cpp File.h \
 	ladspa.h \
+	Ref.h Ref.cpp \
 	ChangeFlagRelaxed.h
 
 # create the plugins directory (i.e. /usr/lib/linuxsampler/plugins)
