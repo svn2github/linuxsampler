@@ -37,7 +37,7 @@
 %token <sValue> IDENTIFIER
 %token <sValue> VARIABLE
 %token ON END INIT NOTE DECLARE ASSIGNMENT WHILE IF OR RELEASE AND ELSE
-%token CONTROLLER SELECT CASE TO NOT CONST POLYPHONIC MOD
+%token CONTROLLER SELECT CASE TO NOT CONST_ POLYPHONIC MOD
 %token LE GE
 
 %type <nEventHandlers> script eventhandlers
@@ -244,7 +244,7 @@ statement:
             }
         }
     }
-    | DECLARE CONST VARIABLE ASSIGNMENT expr  {
+    | DECLARE CONST_ VARIABLE ASSIGNMENT expr  {
         const char* name = $3;
         if ($5->exprType() == STRING_EXPR) {
             if (name[0] == '$')

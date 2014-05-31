@@ -209,7 +209,7 @@ ID       [a-zA-Z0-9_]*
 "to" return TO;
 "<=" return LE;
 ">=" return GE;
-"const" return CONST;
+"const" return CONST_; // note: "CONST" is already defined for C/C++ compilers on Windows by default
 "polyphonic" return POLYPHONIC;
 "mod" return MOD;
 
