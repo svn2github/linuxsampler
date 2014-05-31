@@ -56,6 +56,7 @@ Version CVS HEAD (?)
     - Fixed crash caused by Region::GetDimensionRegionByValue() that happened
       with certain velocity split sounds under certain conditions (added bound
       constraints to prevent that)
+    - GIG FORMAT EXTENSION: added support for real-time instrument scripts.
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
@@ -78,6 +79,9 @@ Version CVS HEAD (?)
       than "real" RIFF files (used for KORG format support)
     - added new method Chunk::GetFile()
     - added new method Chunk::GetLayout()
+    - added 2nd, alternative method for List::MoveSubChunk(), the old 1st one
+      allows to move a subchunk within the current List, whereas the new 2nd
+      one allows to move the subchunk from the current list to another list
 
   * src/gigextract.cpp:
     - export sample loop, unity note and fine tune with libsndfile

@@ -295,7 +295,8 @@ namespace RIFF {
             Chunk*       AddSubChunk(uint32_t uiChunkID, uint uiBodySize);
             List*        AddSubList(uint32_t uiListType);
             void         DeleteSubChunk(Chunk* pSubChunk);
-            void         MoveSubChunk(Chunk* pSrc, Chunk* pDst);
+            void         MoveSubChunk(Chunk* pSrc, Chunk* pDst); // read API doc comments !!!
+            void         MoveSubChunk(Chunk* pSrc, List* pNewParent);
             virtual ~List();
         protected:
             typedef std::map<uint32_t, RIFF::Chunk*>  ChunkMap;

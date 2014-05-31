@@ -1191,9 +1191,9 @@ namespace RIFF {
         return pNewChunk;
     }
 
-    /** @brief Moves a sub chunk.
+    /** @brief Moves a sub chunk witin this list.
      *
-     * Moves a sub chunk from one position in a list to another
+     * Moves a sub chunk from one position in this list to another
      * position in the same list. The pSrc chunk is placed before the
      * pDst chunk.
      *
@@ -1207,6 +1207,38 @@ namespace RIFF {
         pSubChunks->remove(pSrc);
         ChunkList::iterator iter = find(pSubChunks->begin(), pSubChunks->end(), pDst);
         pSubChunks->insert(iter, pSrc);
+    }
+
+    /** @brief Moves a sub chunk from this list to another list.
+     *
+     * Moves a sub chunk from this list list to the end of another
+     * list.
+     *
+     * @param pSrc - sub chunk to be moved
+     * @param pDst - destination list where the chunk shall be moved to
+     */
+    void List::MoveSubChunk(Chunk* pSrc, List* pNewParent) {
+        if (pNewParent == this || !pNewParent) return;
+        if (!pSubChunks) LoadSubChunks();
+        if (!pNewParent->pSubChunks) pNewParent->LoadSubChunks();
+        pSubChunks->remove(pSrc);
+        pNewParent->pSubChunks->push_back(pSrc);
+        // update chunk id map of this List
+        if ((*pSubChunksMap)[pSrc->GetChunkID()] == pSrc) {
+            pSubChunksMap->erase(pSrc->GetChunkID());
+            // try to find another chunk of the same chunk ID
+            ChunkList::iterator iter = pSubChunks->begin();
+            ChunkList::iterator end  = pSubChunks->end();
+            for (; iter != end; ++iter) {
+                if ((*iter)->GetChunkID() == pSrc->GetChunkID()) {
+                    (*pSubChunksMap)[pSrc->GetChunkID()] = *iter;
+                    break; // we're done, stop search
+                }
+            }
+        }
+        // update chunk id map of other list
+        if (!(*pNewParent->pSubChunksMap)[pSrc->GetChunkID()])
+            (*pNewParent->pSubChunksMap)[pSrc->GetChunkID()] = pSrc;
     }
 
     /** @brief Creates a new list sub chunk.

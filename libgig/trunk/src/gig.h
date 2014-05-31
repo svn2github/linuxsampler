@@ -25,12 +25,15 @@
 #define __GIG_H__
 
 #include "DLS.h"
+#include <vector>
 
 #if WORDS_BIGENDIAN
 # define LIST_TYPE_3PRG	0x33707267
 # define LIST_TYPE_3EWL	0x3365776C
 # define LIST_TYPE_3GRI	0x33677269
 # define LIST_TYPE_3GNL	0x33676E6C
+# define LIST_TYPE_3LS  0x334c5320 // own gig format extension
+# define LIST_TYPE_RTIS 0x52544953 // own gig format extension
 # define CHUNK_ID_3GIX	0x33676978
 # define CHUNK_ID_3EWA	0x33657761
 # define CHUNK_ID_3LNK	0x336C6E6B
@@ -39,11 +42,16 @@
 # define CHUNK_ID_3GNM	0x33676E6D
 # define CHUNK_ID_EINF	0x65696E66
 # define CHUNK_ID_3CRC	0x33637263
+# define CHUNK_ID_SCRI  0x53637269 // own gig format extension
+# define CHUNK_ID_LSNM  0x4c534e4d // own gig format extension
+# define CHUNK_ID_SCSL  0x5343534c // own gig format extension
 #else  // little endian
 # define LIST_TYPE_3PRG	0x67727033
 # define LIST_TYPE_3EWL	0x6C776533
 # define LIST_TYPE_3GRI	0x69726733
 # define LIST_TYPE_3GNL	0x6C6E6733
+# define LIST_TYPE_3LS  0x20534c33 // own gig format extension
+# define LIST_TYPE_RTIS 0x53495452 // own gig format extension
 # define CHUNK_ID_3GIX	0x78696733
 # define CHUNK_ID_3EWA	0x61776533
 # define CHUNK_ID_3LNK	0x6B6E6C33
@@ -52,6 +60,9 @@
 # define CHUNK_ID_3GNM	0x6D6E6733
 # define CHUNK_ID_EINF	0x666E6965
 # define CHUNK_ID_3CRC	0x63726333
+# define CHUNK_ID_SCRI  0x69726353 // own gig format extension
+# define CHUNK_ID_LSNM  0x4d4e534c // own gig format extension
+# define CHUNK_ID_SCSL  0x4c534353 // own gig format extension
 #endif // WORDS_BIGENDIAN
 
 /** Gigasampler specific classes and definitions */
@@ -327,6 +338,8 @@ namespace gig {
     class Sample;
     class Region;
     class Group;
+    class Script;
+    class ScriptGroup;
 
     /** @brief Encapsulates articulation information of a dimension region.
      *
@@ -834,6 +847,83 @@ namespace gig {
             friend class Instrument;
     };
 
+    /** @brief Real-time instrument script (gig format extension).
+     *
+     * Real-time instrument scripts are user supplied small programs which can
+     * be used by instrument designers to create custom behaviors and features
+     * not available in the stock sampler engine. Features which might be very
+     * exotic or specific for the respective instrument.
+     *
+     * This is an extension of the GigaStudio format, thus a feature which was
+     * not available in the GigaStudio 4 software. It is currently only
+     * supported by LinuxSampler and gigedit.
+     */
+    class Script {
+        public:
+            enum Encoding_t {
+                ENCODING_ASCII = 0 ///< Standard 8 bit US ASCII character encoding (default).
+            };
+            enum Compression_t {
+                COMPRESSION_NONE = 0 ///< Is not compressed at all (default).
+            };
+            enum Language_t {
+                LANGUAGE_NKSP = 0 ///< NKSP stands for "Is Not KSP" (default).
+            };
+
+            String         Name;        ///< Arbitrary name of the script, which may be displayed i.e. in an instrument editor.
+            Compression_t  Compression; ///< Whether the script was/should be compressed, and if so, which compression algorithm shall be used.
+            Encoding_t     Encoding;    ///< Format the script's source code text is encoded with.
+            Language_t     Language;    ///< Programming language and dialect the script is written in.
+            bool           Bypass;      ///< Global bypass: if enabled, this script shall not be executed by the sampler for any instrument.
+
+            String GetScriptAsText();
+            void   SetScriptAsText(const String& text);
+            void   SetGroup(ScriptGroup* pGroup);
+        protected:
+            Script(ScriptGroup* group, RIFF::Chunk* ckScri);
+            virtual ~Script();
+            void UpdateChunks();
+            void RemoveAllScriptReferences();
+            friend class ScriptGroup;
+            friend class Instrument;
+        private:
+            ScriptGroup*          pGroup;
+            RIFF::Chunk*          pChunk; ///< 'Scri' chunk
+            std::vector<uint8_t>  data;
+            uint32_t              crc; ///< CRC-32 checksum of the raw script data
+    };
+
+    /** @brief Group of instrument scripts (gig format extension).
+     *
+     * This class is simply used to sort a bunch of real-time instrument scripts
+     * into individual groups. This allows instrument designers and script
+     * developers to keep scripts in a certain order while working with a larger
+     * amount of scripts in an instrument editor.
+     *
+     * This is an extension of the GigaStudio format, thus a feature which was
+     * not available in the GigaStudio 4 software. It is currently only
+     * supported by LinuxSampler and gigedit.
+     */
+    class ScriptGroup {
+        public:
+            String   Name; ///< Name of this script group. For example to be displayed in an instrument editor.
+
+            Script*  GetScript(uint index);
+            Script*  AddScript();
+            void     DeleteScript(Script* pScript);
+        protected:
+            ScriptGroup(File* file, RIFF::List* lstRTIS);
+            virtual ~ScriptGroup();
+            void LoadScripts();
+            void UpdateChunks();
+            friend class Script;
+            friend class File;
+        private:
+            File*                pFile;
+            RIFF::List*          pList; ///< 'RTIS' list chunk
+            std::list<Script*>*  pScripts;
+    };
+
     /** Provides all neccessary information for the synthesis of an <i>Instrument</i>. */
     class Instrument : protected DLS::Instrument {
         public:
@@ -872,6 +962,15 @@ namespace gig {
             MidiRuleLegato*      AddMidiRuleLegato();
             MidiRuleAlternator*  AddMidiRuleAlternator();
             void      DeleteMidiRule(int i);
+            // real-time instrument script methods
+            Script*   GetScriptOfSlot(uint index);
+            void      AddScriptSlot(Script* pScript, bool bypass = false);
+            void      SwapScriptSlots(uint index1, uint index2);
+            void      RemoveScriptSlot(uint index);
+            void      RemoveScript(Script* pScript);
+            uint      ScriptSlotCount() const;
+            bool      IsScriptSlotBypassed(uint index);
+            void      SetScriptSlotBypassed(uint index, bool bBypass);
         protected:
             Region*   RegionKeyTable[128]; ///< fast lookup for the corresponding Region of a MIDI key
 
@@ -879,10 +978,21 @@ namespace gig {
            ~Instrument();
             void CopyAssign(const Instrument* orig, const std::map<Sample*,Sample*>* mSamples);
             void UpdateRegionKeyTable();
+            void LoadScripts();
             friend class File;
             friend class Region; // so Region can call UpdateRegionKeyTable()
         private:
+            struct _ScriptPooolEntry {
+                uint32_t fileOffset;
+                bool     bypass;
+            };
+            struct _ScriptPooolRef {
+                Script*  script;
+                bool     bypass;
+            };
             MidiRule** pMidiRules;
+            std::vector<_ScriptPooolEntry> scriptPoolFileOffsets;
+            std::vector<_ScriptPooolRef>* pScriptRefs;
     };
 
     /** @brief Group of Gigasampler objects
@@ -961,6 +1071,10 @@ namespace gig {
             void        SetAutoLoad(bool b);
             bool        GetAutoLoad();
             void        AddContentOf(File* pFile);
+            ScriptGroup* GetScriptGroup(uint index);
+            ScriptGroup* GetScriptGroup(const String& name);
+            ScriptGroup* AddScriptGroup();
+            void        DeleteScriptGroup(ScriptGroup* pGroup);
             virtual    ~File();
             virtual void UpdateChunks();
         protected:
@@ -971,14 +1085,17 @@ namespace gig {
             // own protected methods
             virtual void LoadSamples(progress_t* pProgress);
             virtual void LoadInstruments(progress_t* pProgress);
+            virtual void LoadScriptGroups();
             void SetSampleChecksum(Sample* pSample, uint32_t crc);
             friend class Region;
             friend class Sample;
             friend class Group; // so Group can access protected member pRIFF
+            friend class ScriptGroup; // so ScriptGroup can access protected member pRIFF
         private:
             std::list<Group*>*          pGroups;
             std::list<Group*>::iterator GroupsIterator;
             bool                        bAutoLoad;
+            std::list<ScriptGroup*>*    pScriptGroups;
     };
 
     /**

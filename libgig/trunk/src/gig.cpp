@@ -3056,7 +3056,7 @@ namespace {
             memset(_3lnk->LoadChunkData(), 0, _3lnkChunkSize);
 
             // move 3prg to last position
-            pCkRegion->MoveSubChunk(pCkRegion->GetSubList(LIST_TYPE_3PRG), 0);
+            pCkRegion->MoveSubChunk(pCkRegion->GetSubList(LIST_TYPE_3PRG), (RIFF::Chunk*)NULL);
         }
 
         // update dimension definitions in '3lnk' chunk
@@ -4025,6 +4025,231 @@ namespace {
         }
     }
 
+// *************** Script ***************
+// *
+
+    Script::Script(ScriptGroup* group, RIFF::Chunk* ckScri) {
+        pGroup = group;
+        pChunk = ckScri;
+        if (ckScri) { // object is loaded from file ...
+            // read header
+            uint32_t headerSize = ckScri->ReadUint32();
+            Compression = (Compression_t) ckScri->ReadUint32();
+            Encoding    = (Encoding_t) ckScri->ReadUint32();
+            Language    = (Language_t) ckScri->ReadUint32();
+            Bypass      = (Language_t) ckScri->ReadUint32() & 1;
+            crc         = ckScri->ReadUint32();
+            uint32_t nameSize = ckScri->ReadUint32();
+            Name.resize(nameSize, ' ');
+            for (int i = 0; i < nameSize; ++i)
+                Name[i] = ckScri->ReadUint8();
+            // to handle potential future extensions of the header
+            ckScri->SetPos(headerSize - 6*sizeof(int32_t) + nameSize, RIFF::stream_curpos);
+            // read actual script data
+            uint32_t scriptSize = ckScri->GetSize() - ckScri->GetPos();
+            data.resize(scriptSize);
+            for (int i = 0; i < scriptSize; ++i)
+                data[i] = ckScri->ReadUint8();
+        } else { // this is a new script object, so just initialize it as such ...
+            Compression = COMPRESSION_NONE;
+            Encoding = ENCODING_ASCII;
+            Language = LANGUAGE_NKSP;
+            Bypass   = false;
+            crc      = 0;
+            Name     = "Unnamed Script";
+        }
+    }
+
+    Script::~Script() {
+    }
+
+    /**
+     * Returns the current script (i.e. as source code) in text format.
+     */
+    String Script::GetScriptAsText() {
+        String s;
+        s.resize(data.size(), ' ');
+        memcpy(&s[0], &data[0], data.size());
+        return s;
+    }
+
+    /**
+     * Replaces the current script with the new script source code text given
+     * by @a text.
+     *
+     * @param text - new script source code
+     */
+    void Script::SetScriptAsText(const String& text) {
+        data.resize(text.size());
+        memcpy(&data[0], &text[0], text.size());
+    }
+
+    void Script::UpdateChunks() {
+        // recalculate CRC32 check sum
+        __resetCRC(crc);
+        __calculateCRC(&data[0], data.size(), crc);
+        __encodeCRC(crc);
+        // make sure chunk exists and has the required size
+        const int chunkSize = 7*sizeof(int32_t) + Name.size() + data.size();
+        if (!pChunk) pChunk = pGroup->pList->AddSubChunk(CHUNK_ID_SCRI, chunkSize);
+        else pChunk->Resize(chunkSize);
+        // fill the chunk data to be written to disk
+        uint8_t* pData = (uint8_t*) pChunk->LoadChunkData();
+        int pos = 0;
+        store32(&pData[pos], 6*sizeof(int32_t) + Name.size()); // total header size
+        pos += sizeof(int32_t);
+        store32(&pData[pos], Compression);
+        pos += sizeof(int32_t);
+        store32(&pData[pos], Encoding);
+        pos += sizeof(int32_t);
+        store32(&pData[pos], Language);
+        pos += sizeof(int32_t);
+        store32(&pData[pos], Bypass ? 1 : 0);
+        pos += sizeof(int32_t);
+        store32(&pData[pos], crc);
+        pos += sizeof(int32_t);
+        store32(&pData[pos], Name.size());
+        pos += sizeof(int32_t);
+        for (int i = 0; i < Name.size(); ++i, ++pos)
+            pData[pos] = Name[i];
+        for (int i = 0; i < data.size(); ++i, ++pos)
+            pData[pos] = data[i];
+    }
+
+    /**
+     * Move this script from its current ScriptGroup to another ScriptGroup
+     * given by @a pGroup.
+     *
+     * @param pGroup - script's new group
+     */
+    void Script::SetGroup(ScriptGroup* pGroup) {
+        if (this->pGroup = pGroup) return;
+        if (pChunk)
+            pChunk->GetParent()->MoveSubChunk(pChunk, pGroup->pList);
+        this->pGroup = pGroup;
+    }
+
+    void Script::RemoveAllScriptReferences() {
+        File* pFile = pGroup->pFile;
+        for (int i = 0; pFile->GetInstrument(i); ++i) {
+            Instrument* instr = pFile->GetInstrument(i);
+            instr->RemoveScript(this);
+        }
+    }
+
+// *************** ScriptGroup ***************
+// *
+
+    ScriptGroup::ScriptGroup(File* file, RIFF::List* lstRTIS) {
+        pFile = file;
+        pList = lstRTIS;
+        pScripts = NULL;
+        if (lstRTIS) {
+            RIFF::Chunk* ckName = lstRTIS->GetSubChunk(CHUNK_ID_LSNM);
+            ::LoadString(ckName, Name);
+        } else {
+            Name = "Default Group";
+        }
+    }
+
+    ScriptGroup::~ScriptGroup() {
+        if (pScripts) {
+            std::list<Script*>::iterator iter = pScripts->begin();
+            std::list<Script*>::iterator end  = pScripts->end();
+            while (iter != end) {
+                delete *iter;
+                ++iter;
+            }
+            delete pScripts;
+        }
+    }
+
+    void ScriptGroup::UpdateChunks() {
+        if (pScripts) {
+            if (!pList)
+                pList = pFile->pRIFF->GetSubList(LIST_TYPE_3LS)->AddSubList(LIST_TYPE_RTIS);
+
+            // now store the name of this group as <LSNM> chunk as subchunk of the <RTIS> list chunk
+            ::SaveString(CHUNK_ID_LSNM, NULL, pList, Name, String("Unnamed Group"), true, 64);
+
+            for (std::list<Script*>::iterator it = pScripts->begin();
+                 it != pScripts->end(); ++it)
+            {
+                (*it)->UpdateChunks();
+            }
+        }
+    }
+
+    /** @brief Get instrument script.
+     *
+     * Returns the real-time instrument script with the given index.
+     *
+     * @param index - number of the sought script (0..n)
+     * @returns sought script or NULL if there's no such script
+     */
+    Script* ScriptGroup::GetScript(uint index) {
+        if (!pScripts) LoadScripts();
+        std::list<Script*>::iterator it = pScripts->begin();
+        for (uint i = 0; it != pScripts->end(); ++i, ++it)
+            if (i == index) return *it;
+        return NULL;
+    }
+
+    /** @brief Add new instrument script.
+     *
+     * Adds a new real-time instrument script to the file. The script is not
+     * actually used / executed unless it is referenced by an instrument to be
+     * used. This is similar to samples, which you can add to a file, without
+     * an instrument necessarily actually using it.
+     *
+     * You have to call Save() to make this persistent to the file.
+     *
+     * @return new empty script object
+     */
+    Script* ScriptGroup::AddScript() {
+        if (!pScripts) LoadScripts();
+        Script* pScript = new Script(this, NULL);
+        pScripts->push_back(pScript);
+        return pScript;
+    }
+
+    /** @brief Delete an instrument script.
+     *
+     * This will delete the given real-time instrument script. References of
+     * instruments that are using that script will be removed accordingly.
+     *
+     * You have to call Save() to make this persistent to the file.
+     *
+     * @param pScript - script to delete
+     * @throws gig::Exception if given script could not be found
+     */
+    void ScriptGroup::DeleteScript(Script* pScript) {
+        if (!pScripts) LoadScripts();
+        std::list<Script*>::iterator iter =
+            find(pScripts->begin(), pScripts->end(), pScript);
+        if (iter == pScripts->end())
+            throw gig::Exception("Could not delete script, could not find given script");
+        pScripts->erase(iter);
+        pScript->RemoveAllScriptReferences();
+        if (pScript->pChunk)
+            pScript->pChunk->GetParent()->DeleteSubChunk(pScript->pChunk);
+        delete pScript;
+    }
+
+    void ScriptGroup::LoadScripts() {
+        if (pScripts) return;
+        pScripts = new std::list<Script*>;
+        if (!pList) return;
+
+        for (RIFF::Chunk* ck = pList->GetFirstSubChunk(); ck;
+             ck = pList->GetNextSubChunk())
+        {
+            if (ck->GetChunkID() == CHUNK_ID_SCRI) {
+                pScripts->push_back(new Script(this, ck));
+            }
+        }
+    }
+
 // *************** Instrument ***************
 // *
 
@@ -4047,6 +4272,7 @@ namespace {
         DimensionKeyRange.high = 0;
         pMidiRules = new MidiRule*[3];
         pMidiRules[0] = NULL;
+        pScriptRefs = NULL;
 
         // Loading
         RIFF::List* lart = insList->GetSubList(LIST_TYPE_LART);
@@ -4107,6 +4333,24 @@ namespace {
             }
         }
 
+        // own gig format extensions
+        RIFF::List* lst3LS = insList->GetSubList(LIST_TYPE_3LS);
+        if (lst3LS) {
+            RIFF::Chunk* ckSCSL = lst3LS->GetSubChunk(CHUNK_ID_SCSL);
+            if (ckSCSL) {
+                int slotCount = ckSCSL->ReadUint32();
+                int slotSize  = ckSCSL->ReadUint32();
+                int unknownSpace = slotSize - 2*sizeof(uint32_t); // in case of future extensions
+                for (int i = 0; i < slotCount; ++i) {
+                    _ScriptPooolEntry e;
+                    e.fileOffset = ckSCSL->ReadUint32();
+                    e.bypass     = ckSCSL->ReadUint32() & 1;
+                    if (unknownSpace) ckSCSL->SetPos(unknownSpace, RIFF::stream_curpos); // in case of future extensions
+                    scriptPoolFileOffsets.push_back(e);
+                }
+            }
+        }
+
         __notify_progress(pProgress, 1.0f); // notify done
     }
 
@@ -4127,6 +4371,7 @@ namespace {
             delete pMidiRules[i];
         }
         delete[] pMidiRules;
+        if (pScriptRefs) delete pScriptRefs;
     }
 
     /**
@@ -4182,6 +4427,27 @@ namespace {
                 pMidiRules[i]->UpdateChunks(pData);
             }
         }
+
+        // own gig format extensions
+       if (pScriptRefs) {
+           RIFF::List* lst3LS = pCkInstrument->GetSubList(LIST_TYPE_3LS);
+           if (!lst3LS) lst3LS = pCkInstrument->AddSubList(LIST_TYPE_3LS);
+           const int totalSize = pScriptRefs->size() * 2*sizeof(uint32_t);
+           RIFF::Chunk* ckSCSL = lst3LS->GetSubChunk(CHUNK_ID_SCSL);
+           if (!ckSCSL) ckSCSL = lst3LS->AddSubChunk(CHUNK_ID_SCSL, totalSize);
+           else ckSCSL->Resize(totalSize);
+           uint8_t* pData = (uint8_t*) ckSCSL->LoadChunkData();
+           for (int i = 0, pos = 0; i < pScriptRefs->size(); ++i) {
+               int fileOffset =
+                    (*pScriptRefs)[i].script->pChunk->GetFilePos() -
+                    (*pScriptRefs)[i].script->pChunk->GetPos() -
+                    CHUNK_HEADER_SIZE;
+               store32(&pData[pos], fileOffset);
+               pos += sizeof(uint32_t);
+               store32(&pData[pos], (*pScriptRefs)[i].bypass ? 1 : 0);
+               pos += sizeof(uint32_t);
+           }
+       }
     }
 
     /**
@@ -4313,6 +4579,196 @@ namespace {
         pMidiRules[i] = 0;
     }
 
+    void Instrument::LoadScripts() {
+        if (pScriptRefs) return;
+        pScriptRefs = new std::vector<_ScriptPooolRef>;
+        if (scriptPoolFileOffsets.empty()) return;
+        File* pFile = (File*) GetParent();
+        for (uint k = 0; k < scriptPoolFileOffsets.size(); ++k) {
+            uint32_t offset = scriptPoolFileOffsets[k].fileOffset;
+            for (uint i = 0; pFile->GetScriptGroup(i); ++i) {
+                ScriptGroup* group = pFile->GetScriptGroup(i);
+                for (uint s = 0; group->GetScript(s); ++s) {
+                    Script* script = group->GetScript(s);
+                    if (script->pChunk) {
+                        script->pChunk->SetPos(0);
+                        if (script->pChunk->GetFilePos() -
+                            script->pChunk->GetPos() -
+                            CHUNK_HEADER_SIZE == offset)
+                        {
+                            _ScriptPooolRef ref;
+                            ref.script = script;
+                            ref.bypass = scriptPoolFileOffsets[k].bypass;
+                            pScriptRefs->push_back(ref);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        // we don't need that anymore
+        scriptPoolFileOffsets.clear();
+    }
+
+    /** @brief Add new instrument script slot (gig format extension)
+     *
+     * Add the given real-time instrument script reference to this instrument,
+     * which shall be executed by the sampler for for this instrument. The
+     * script will be added to the end of the script list of this instrument.
+     * The positions of the scripts in the Instrument's Script list are
+     * relevant, because they define in which order they shall be executed by
+     * the sampler. For this reason it is also legal to add the same script
+     * twice to an instrument, for example you might have a script called
+     * "MyFilter" which performs an event filter task, and you might have
+     * another script called "MyNoteTrigger" which triggers new notes, then you
+     * might for example have the following list of scripts on the instrument:
+     *
+     * 1. Script "MyFilter"
+     * 2. Script "MyNoteTrigger"
+     * 3. Script "MyFilter"
+     *
+     * Which would make sense, because the 2nd script launched new events, which
+     * you might need to filter as well.
+     *
+     * There are two ways to disable / "bypass" scripts. You can either disable
+     * a script locally for the respective script slot on an instrument (i.e. by
+     * passing @c false to the 2nd argument of this method, or by calling
+     * SetScriptBypassed()). Or you can disable a script globally for all slots
+     * and all instruments by setting Script::Bypass.
+     *
+     * @note This is an own format extension which did not exist i.e. in the
+     * GigaStudio 4 software. It will currently only work with LinuxSampler and
+     * gigedit.
+     *
+     * @param pScript - script that shall be executed for this instrument
+     * @param bypass  - if enabled, the sampler shall skip executing this
+     *                  script (in the respective list position)
+     * @see SetScriptBypassed()
+     */
+    void Instrument::AddScriptSlot(Script* pScript, bool bypass) {
+        LoadScripts();
+        _ScriptPooolRef ref = { pScript, bypass };
+        pScriptRefs->push_back(ref);
+    }
+
+    /** @brief Flip two script slots with each other (gig format extension).
+     *
+     * Swaps the position of the two given scripts in the Instrument's Script
+     * list. The positions of the scripts in the Instrument's Script list are
+     * relevant, because they define in which order they shall be executed by
+     * the sampler.
+     *
+     * @note This is an own format extension which did not exist i.e. in the
+     * GigaStudio 4 software. It will currently only work with LinuxSampler and
+     * gigedit.
+     *
+     * @param index1 - index of the first script slot to swap
+     * @param index2 - index of the second script slot to swap
+     */
+    void Instrument::SwapScriptSlots(uint index1, uint index2) {
+        LoadScripts();
+        if (index1 >= pScriptRefs->size() || index2 >= pScriptRefs->size())
+            return;
+        _ScriptPooolRef tmp = (*pScriptRefs)[index1];
+        (*pScriptRefs)[index1] = (*pScriptRefs)[index2];
+        (*pScriptRefs)[index2] = tmp;
+    }
+
+    /** @brief Remove script slot.
+     *
+     * Removes the script slot with the given slot index.
+     *
+     * @param index - index of script slot to remove
+     */
+    void Instrument::RemoveScriptSlot(uint index) {
+        LoadScripts();
+        if (index >= pScriptRefs->size()) return;
+        pScriptRefs->erase( pScriptRefs->begin() + index );
+    }
+
+    /** @brief Remove reference to given Script (gig format extension).
+     *
+     * This will remove all script slots on the instrument which are referencing
+     * the given script.
+     *
+     * @note This is an own format extension which did not exist i.e. in the
+     * GigaStudio 4 software. It will currently only work with LinuxSampler and
+     * gigedit.
+     *
+     * @param pScript - script reference to remove from this instrument
+     * @see RemoveScriptSlot()
+     */
+    void Instrument::RemoveScript(Script* pScript) {
+        LoadScripts();
+        for (int i = pScriptRefs->size() - 1; i >= 0; --i) {
+            if ((*pScriptRefs)[i].script == pScript) {
+                pScriptRefs->erase( pScriptRefs->begin() + i );
+            }
+        }
+    }
+
+    /** @brief Instrument's amount of script slots.
+     *
+     * This method returns the amount of script slots this instrument currently
+     * uses.
+     *
+     * A script slot is a reference of a real-time instrument script to be
+     * executed by the sampler. The scripts will be executed by the sampler in
+     * sequence of the slots. One (same) script may be referenced multiple
+     * times in different slots.
+     *
+     * @note This is an own format extension which did not exist i.e. in the
+     * GigaStudio 4 software. It will currently only work with LinuxSampler and
+     * gigedit.
+     */
+    uint Instrument::ScriptSlotCount() const {
+        return pScriptRefs ? pScriptRefs->size() : scriptPoolFileOffsets.size();
+    }
+
+    /** @brief Whether script execution shall be skipped.
+     *
+     * Defines locally for the Script reference slot in the Instrument's Script
+     * list, whether the script shall be skipped by the sampler regarding
+     * execution.
+     *
+     * It is also possible to ignore exeuction of the script globally, for all
+     * slots and for all instruments by setting Script::Bypass.
+     *
+     * @note This is an own format extension which did not exist i.e. in the
+     * GigaStudio 4 software. It will currently only work with LinuxSampler and
+     * gigedit.
+     *
+     * @param index - index of the script slot on this instrument
+     * @see Script::Bypass
+     */
+    bool Instrument::IsScriptSlotBypassed(uint index) {
+        if (index >= ScriptSlotCount()) return false;
+        return pScriptRefs ? pScriptRefs->at(index).bypass
+                           : scriptPoolFileOffsets.at(index).bypass;
+        
+    }
+
+    /** @brief Defines whether execution shall be skipped.
+     *
+     * You can call this method to define locally whether or whether not the
+     * given script slot shall be executed by the sampler.
+     *
+     * @note This is an own format extension which did not exist i.e. in the
+     * GigaStudio 4 software. It will currently only work with LinuxSampler and
+     * gigedit.
+     *
+     * @param index - script slot index on this instrument
+     * @param bBypass - if true, the script slot will be skipped by the sampler
+     * @see Script::Bypass
+     */
+    void Instrument::SetScriptSlotBypassed(uint index, bool bBypass) {
+        if (index >= ScriptSlotCount()) return;
+        if (pScriptRefs)
+            pScriptRefs->at(index).bypass = bBypass;
+        else
+            scriptPoolFileOffsets.at(index).bypass = bBypass;
+    }
+
     /**
      * Make a (semi) deep copy of the Instrument object given by @a orig
      * and assign it to this object.
@@ -4346,6 +4802,8 @@ namespace {
         PitchbendRange = orig->PitchbendRange;
         PianoReleaseMode = orig->PianoReleaseMode;
         DimensionKeyRange = orig->DimensionKeyRange;
+        scriptPoolFileOffsets = orig->scriptPoolFileOffsets;
+        pScriptRefs = orig->pScriptRefs;
         
         // free old midi rules
         for (int i = 0 ; pMidiRules[i] ; i++) {
@@ -4531,6 +4989,7 @@ namespace {
         bAutoLoad = true;
         *pVersion = VERSION_3;
         pGroups = NULL;
+        pScriptGroups = NULL;
         pInfo->SetFixedStringLengths(_FileFixedStringLengths);
         pInfo->ArchivalLocation = String(256, ' ');
 
@@ -4546,6 +5005,7 @@ namespace {
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
         bAutoLoad = true;
         pGroups = NULL;
+        pScriptGroups = NULL;
         pInfo->SetFixedStringLengths(_FileFixedStringLengths);
     }
 
@@ -4558,6 +5018,15 @@ namespace {
                 ++iter;
             }
             delete pGroups;
+        }
+        if (pScriptGroups) {
+            std::list<ScriptGroup*>::iterator iter = pScriptGroups->begin();
+            std::list<ScriptGroup*>::iterator end  = pScriptGroups->end();
+            while (iter != end) {
+                delete *iter;
+                ++iter;
+            }
+            delete pScriptGroups;
         }
     }
 
@@ -5071,6 +5540,93 @@ namespace {
         }
     }
 
+    /** @brief Get instrument script group (by index).
+     *
+     * Returns the real-time instrument script group with the given index.
+     *
+     * @param index - number of the sought group (0..n)
+     * @returns sought script group or NULL if there's no such group
+     */
+    ScriptGroup* File::GetScriptGroup(uint index) {
+        if (!pScriptGroups) LoadScriptGroups();
+        std::list<ScriptGroup*>::iterator it = pScriptGroups->begin();
+        for (uint i = 0; it != pScriptGroups->end(); ++i, ++it)
+            if (i == index) return *it;
+        return NULL;
+    }
+
+    /** @brief Get instrument script group (by name).
+     *
+     * Returns the first real-time instrument script group found with the given
+     * group name. Note that group names may not necessarily be unique.
+     *
+     * @param name - name of the sought script group
+     * @returns sought script group or NULL if there's no such group
+     */
+    ScriptGroup* File::GetScriptGroup(const String& name) {
+        if (!pScriptGroups) LoadScriptGroups();
+        std::list<ScriptGroup*>::iterator it = pScriptGroups->begin();
+        for (uint i = 0; it != pScriptGroups->end(); ++i, ++it)
+            if ((*it)->Name == name) return *it;
+        return NULL;
+    }
+
+    /** @brief Add new instrument script group.
+     *
+     * Adds a new, empty real-time instrument script group to the file.
+     *
+     * You have to call Save() to make this persistent to the file.
+     *
+     * @return new empty script group
+     */
+    ScriptGroup* File::AddScriptGroup() {
+        if (!pScriptGroups) LoadScriptGroups();
+        ScriptGroup* pScriptGroup = new ScriptGroup(this, NULL);
+        pScriptGroups->push_back(pScriptGroup);
+        return pScriptGroup;
+    }
+
+    /** @brief Delete an instrument script group.
+     *
+     * This will delete the given real-time instrument script group and all its
+     * instrument scripts it contains. References inside instruments that are
+     * using the deleted scripts will be removed from the respective instruments
+     * accordingly.
+     *
+     * You have to call Save() to make this persistent to the file.
+     *
+     * @param pScriptGroup - script group to delete
+     * @throws gig::Exception if given script group could not be found
+     */
+    void File::DeleteScriptGroup(ScriptGroup* pScriptGroup) {
+        if (!pScriptGroups) LoadScriptGroups();
+        std::list<ScriptGroup*>::iterator iter =
+            find(pScriptGroups->begin(), pScriptGroups->end(), pScriptGroup);
+        if (iter == pScriptGroups->end())
+            throw gig::Exception("Could not delete script group, could not find given script group");
+        pScriptGroups->erase(iter);
+        for (int i = 0; pScriptGroup->GetScript(i); ++i)
+            pScriptGroup->DeleteScript(pScriptGroup->GetScript(i));
+        if (pScriptGroup->pList)
+            pScriptGroup->pList->GetParent()->DeleteSubChunk(pScriptGroup->pList);
+        delete pScriptGroup;
+    }
+
+    void File::LoadScriptGroups() {
+        if (pScriptGroups) return;
+        pScriptGroups = new std::list<ScriptGroup*>;
+        RIFF::List* lstLS = pRIFF->GetSubList(LIST_TYPE_3LS);
+        if (lstLS) {
+            for (RIFF::List* lst = lstLS->GetFirstSubList(); lst;
+                 lst = lstLS->GetNextSubList())
+            {
+                if (lst->GetListType() == LIST_TYPE_RTIS) {
+                    pScriptGroups->push_back(new ScriptGroup(this, lst));
+                }
+            }
+        }
+    }
+
     /**
      * Apply all the gig file's current instruments, samples, groups and settings
      * to the respective RIFF chunks. You have to call Save() to make changes
@@ -5085,6 +5641,29 @@ namespace {
         bool newFile = pRIFF->GetSubList(LIST_TYPE_INFO) == NULL;
 
         b64BitWavePoolOffsets = pVersion && pVersion->major == 3;
+
+        // update own gig format extension chunks
+        // (not part of the GigaStudio 4 format)
+        //
+        // This must be performed before writing the chunks for instruments,
+        // because the instruments' script slots will write the file offsets
+        // of the respective instrument script chunk as reference.
+        if (pScriptGroups) {
+            RIFF::List* lst3LS = pRIFF->GetSubList(LIST_TYPE_3LS);
+            if (pScriptGroups->empty()) {
+                if (lst3LS) pRIFF->DeleteSubChunk(lst3LS);
+            } else {
+                if (!lst3LS) lst3LS = pRIFF->AddSubList(LIST_TYPE_3LS);
+
+                // Update instrument script (group) chunks.
+
+                for (std::list<ScriptGroup*>::iterator it = pScriptGroups->begin();
+                     it != pScriptGroups->end(); ++it)
+                {
+                    (*it)->UpdateChunks();
+                }
+            }
+        }
 
         // first update base class's chunks
         DLS::File::UpdateChunks();
