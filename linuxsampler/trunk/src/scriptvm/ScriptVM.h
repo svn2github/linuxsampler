@@ -20,25 +20,24 @@
 namespace LinuxSampler {
 
     class ParserContext;
+    class ExecContext;
 
     class ScriptVM : public VMFunctionProvider {
     public:
         ScriptVM();
         virtual ~ScriptVM();
-        void loadScript(const String& s);
-        void loadScript(std::istream* is);
-        std::vector<ParserIssue> issues() const;
-        std::vector<ParserIssue> errors() const;
-        std::vector<ParserIssue> warnings() const;
-        void dumpParsedScript();
-        VMExecContext* createExecContext();
-        VMEventHandler* eventHandler(uint index);
-        VMEventHandler* eventHandlerByName(const String& name);
-        VMExecStatus_t exec(VMEventHandler* handler, VMExecContext* execContex);
-        VMExecContext* currentVMExecContext();
+        VMParserContext* loadScript(const String& s);
+        VMParserContext* loadScript(std::istream* is);
+        void dumpParsedScript(VMParserContext* context);
+        VMExecContext* createExecContext(VMParserContext* parserContext);
+        VMExecStatus_t exec(VMParserContext* parserContext, VMExecContext* execContex, VMEventHandler* handler);
         VMFunction* functionByName(const String& name);
+
+        VMParserContext* currentVMParserContext(); //TODO: should be protected (only usable during exec() calls, intended only for VMFunctions)
+        VMExecContext* currentVMExecContext(); //TODO: should be protected (only usable during exec() calls, intended only for VMFunctions)
     protected:
-        ParserContext* m_context;
+
+        ParserContext* m_parserContext;
         CoreVMFunction_message fnMessage;
         CoreVMFunction_exit fnExit;
         CoreVMFunction_wait fnWait;

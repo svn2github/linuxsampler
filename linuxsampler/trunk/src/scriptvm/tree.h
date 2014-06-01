@@ -497,9 +497,9 @@ public:
 
     void* scanner;
     std::istream* is;
-    std::vector<ParserIssue> errors;
-    std::vector<ParserIssue> warnings;
-    std::vector<ParserIssue> issues;
+    std::vector<ParserIssue> vErrors;
+    std::vector<ParserIssue> vWarnings;
+    std::vector<ParserIssue> vIssues;
 
     std::set<String> builtinPreprocessorConditions;
     std::set<String> userPreprocessorConditions;
@@ -518,6 +518,7 @@ public:
 
     ArrayList<int>* globalIntMemory;
     ArrayList<String>* globalStrMemory;
+    int requiredMaxStackSize;
 
     VMFunctionProvider* functionProvider;
 
@@ -526,11 +527,11 @@ public:
     ParserContext(VMFunctionProvider* parent) :
         scanner(NULL), is(NULL),
         globalIntVarCount(0), globalStrVarCount(0), polyphonicIntVarCount(0),
-        globalIntMemory(NULL), globalStrMemory(NULL), functionProvider(parent),
-        execContext(NULL)
+        globalIntMemory(NULL), globalStrMemory(NULL), requiredMaxStackSize(-1),
+        functionProvider(parent), execContext(NULL)
     {
     }
-    virtual ~ParserContext() { destroyScanner(); }
+    virtual ~ParserContext();
     VariableRef globalVar(const String& name);
     IntVariableRef globalIntVar(const String& name);
     StringVariableRef globalStrVar(const String& name);
@@ -542,6 +543,11 @@ public:
     bool setPreprocessorCondition(const char* name);
     bool resetPreprocessorCondition(const char* name);
     bool isPreprocessorConditionSet(const char* name);
+    std::vector<ParserIssue> issues() const OVERRIDE;
+    std::vector<ParserIssue> errors() const OVERRIDE;
+    std::vector<ParserIssue> warnings() const OVERRIDE;
+    VMEventHandler* eventHandler(uint index) OVERRIDE;
+    VMEventHandler* eventHandlerByName(const String& name) OVERRIDE;
 };
 
 class ExecContext : public VMExecContext {
@@ -588,7 +594,7 @@ public:
         stackFrame = -1;
     }
 
-    int suspensionTimeMicroseconds() const {
+    int suspensionTimeMicroseconds() const OVERRIDE {
         return suspendMicroseconds;
     }
 };

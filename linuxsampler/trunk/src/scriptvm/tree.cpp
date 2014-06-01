@@ -11,6 +11,7 @@
 #include <string.h>
 #include "tree.h"
 #include "../common/global_private.h"
+#include <assert.h>
 
 namespace LinuxSampler {
     
@@ -274,12 +275,25 @@ String FunctionCall::evalCastToStr() {
 IntVariable::IntVariable(ParserContext* ctx)
     : Variable(ctx, ctx ? ctx->globalIntVarCount++ : 0, false), polyphonic(false)
 {
+    //printf("globalIntVar parserctx=0x%lx memPOS=%d\n", ctx, memPos);
+    assert(ctx);
+}
+
+inline static int postfixInc(int& object, int incBy) {
+    const int i = object;
+    object += incBy;
+    return i;
 }
 
 IntVariable::IntVariable(ParserContext* ctx, bool polyphonic, bool bConst, int size)
-    : Variable(ctx, !ctx ? 0 : polyphonic ? ctx->polyphonicIntVarCount += size : ctx->globalIntVarCount += size, bConst),
+    : Variable(ctx, !ctx ? 0 : polyphonic ? postfixInc(ctx->polyphonicIntVarCount, size) : postfixInc(ctx->globalIntVarCount, size), bConst),
       polyphonic(polyphonic)
 {
+    //printf("InvVar size=%d parserCtx=0x%lx\n", size, (uint64_t)ctx);
+    if (polyphonic) {
+        //printf("polyIntVar memPOS=%d\n", memPos);
+        assert(ctx);
+    }
 }
 
 void IntVariable::assign(Expression* expr) {
@@ -293,14 +307,16 @@ void IntVariable::assign(Expression* expr) {
 
 int IntVariable::evalInt() {
     //printf("IntVariable::eval pos=%d\n", memPos);
-    if (polyphonic)
+    if (polyphonic) {
+        //printf("evalInt() poly memPos=%d execCtx=0x%lx\n", memPos, (uint64_t)context->execContext);
         return context->execContext->polyphonicIntMemory[memPos];
+    }
     return (*context->globalIntMemory)[memPos];
 }
 
 void IntVariable::dump(int level) {
     printIndents(level);
-    printf("IntVariable memPos=%d\n", memPos);
+    //printf("IntVariable memPos=%d\n", memPos);
 }
 
 //ConstIntVariable::ConstIntVariable(ParserContext* ctx, int value)
@@ -718,13 +734,21 @@ StringVariableRef ParserContext::globalStrVar(const String& name) {
     return globalVar(name);
 }
 
+ParserContext::~ParserContext() {
+    destroyScanner();
+    if (globalIntMemory) {
+        delete globalIntMemory;
+        globalIntMemory = NULL;
+    }
+}
+
 void ParserContext::addErr(int line, const char* txt) {
     ParserIssue e;
     e.type = PARSER_ERROR;
     e.txt = txt;
     e.line = line;
-    errors.push_back(e);
-    issues.push_back(e);
+    vErrors.push_back(e);
+    vIssues.push_back(e);
 }
 
 void ParserContext::addWrn(int line, const char* txt) {
@@ -732,8 +756,8 @@ void ParserContext::addWrn(int line, const char* txt) {
     w.type = PARSER_WARNING;
     w.txt = txt;
     w.line = line;
-    warnings.push_back(w);
-    issues.push_back(w);
+    vWarnings.push_back(w);
+    vIssues.push_back(w);
 }
 
 bool ParserContext::setPreprocessorCondition(const char* name) {
@@ -753,6 +777,28 @@ bool ParserContext::resetPreprocessorCondition(const char* name) {
 bool ParserContext::isPreprocessorConditionSet(const char* name) {
     if (builtinPreprocessorConditions.count(name)) return true;
     return userPreprocessorConditions.count(name);
+}
+
+std::vector<ParserIssue> ParserContext::issues() const {
+    return vIssues;
+}
+
+std::vector<ParserIssue> ParserContext::errors() const {
+    return vErrors;
+}
+
+std::vector<ParserIssue> ParserContext::warnings() const {
+    return vWarnings;
+}
+
+VMEventHandler* ParserContext::eventHandler(uint index) {
+    if (!handlers) return NULL;
+    return handlers->eventHandler(index);
+}
+
+VMEventHandler* ParserContext::eventHandlerByName(const String& name) {
+    if (!handlers) return NULL;
+    return handlers->eventHandlerByName(name);
 }
 
 } // namespace LinuxSampler

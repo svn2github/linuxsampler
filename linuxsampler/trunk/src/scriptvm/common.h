@@ -15,6 +15,7 @@
 #define LS_INSTR_SCRIPT_PARSER_COMMON_H
 
 #include "../common/global.h"
+#include <vector>
 
 namespace LinuxSampler {
     
@@ -88,11 +89,6 @@ namespace LinuxSampler {
     public:
         virtual VMFunction* functionByName(const String& name) = 0;
     };
-    
-    class VMParserContext {
-    public:
-        virtual ~VMParserContext() {}
-    };
 
     class VMExecContext {
     public:
@@ -135,6 +131,16 @@ namespace LinuxSampler {
         }
         return "invalid";
     }
+
+    class VMParserContext {
+    public:
+        virtual ~VMParserContext() {}
+        virtual std::vector<ParserIssue> issues() const = 0;
+        virtual std::vector<ParserIssue> errors() const = 0;
+        virtual std::vector<ParserIssue> warnings() const = 0;
+        virtual VMEventHandler* eventHandler(uint index) = 0;
+        virtual VMEventHandler* eventHandlerByName(const String& name) = 0;
+    };
 
 } // namespace LinuxSampler
 

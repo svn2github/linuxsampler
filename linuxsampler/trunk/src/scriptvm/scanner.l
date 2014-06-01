@@ -101,11 +101,11 @@ ID       [a-zA-Z0-9_]*
  /* Preprocessor statement:  SET_CONDITION(name) */
 
 <*>"SET_CONDITION"[ \t]*"(" {
-    printf("SET_CONDITION\n");
+    //printf("SET_CONDITION\n");
     yy_push_state(PREPROC_SET_COND, yyscanner);
 }
 <PREPROC_SET_COND>{ID} {
-    printf("preproc set condition '%s'\n", yytext);
+    //printf("preproc set condition '%s'\n", yytext);
     bool success = yyextra->setPreprocessorCondition(yytext);
     if (!success) {
         SCANNER_WRN((String("Preprocessor: Condition '") +
@@ -113,7 +113,7 @@ ID       [a-zA-Z0-9_]*
     }
 }
 <PREPROC_SET_COND>[ \t]*")" {
-    printf("End of PREPROC_SET_COND\n");
+    //printf("End of PREPROC_SET_COND\n");
     yy_pop_state(yyscanner);
 }
 
@@ -121,11 +121,11 @@ ID       [a-zA-Z0-9_]*
  /* Preprocessor statement:  RESET_CONDITION(name) */
 
 <*>"RESET_CONDITION"[ \t]*"(" {
-    printf("RESET_CONDITION\n");
+    //printf("RESET_CONDITION\n");
     yy_push_state(PREPROC_RESET_COND, yyscanner);
 }
 <PREPROC_RESET_COND>{ID} {
-    printf("preproc reset condition '%s'\n", yytext);
+    //printf("preproc reset condition '%s'\n", yytext);
     bool success = yyextra->resetPreprocessorCondition(yytext);
     if (!success) {
         SCANNER_ERR((String("Preprocessor: could not reset condition '") +
@@ -133,7 +133,7 @@ ID       [a-zA-Z0-9_]*
     }
 }
 <PREPROC_RESET_COND>[ \t]*")" {
-    printf("End of RESET_CONDITION\n");
+    //printf("End of RESET_CONDITION\n");
     yy_pop_state(yyscanner);
 }
 
@@ -152,15 +152,15 @@ ID       [a-zA-Z0-9_]*
  */
 
 <*>"USE_CODE_IF"[ \t]*"(" {
-    printf("USE_CODE_IF\n");
+    //printf("USE_CODE_IF\n");
     yy_push_state(PREPROC_IF, yyscanner);
 }
 <*>"USE_CODE_IF_NOT"[ \t]*"(" {
-    printf("USE_CODE_IF_NOT\n");
+    //printf("USE_CODE_IF_NOT\n");
     yy_push_state(PREPROC_IF_NOT, yyscanner);
 }
 <PREPROC_IF>{ID} {
-    printf("preproc use code if '%s'\n", yytext);
+    //printf("preproc use code if '%s'\n", yytext);
     yy_pop_state(yyscanner);
     if (yyextra->isPreprocessorConditionSet(yytext))
         yy_push_state(PREPROC_PRE_BODY_USE, yyscanner);
@@ -168,7 +168,7 @@ ID       [a-zA-Z0-9_]*
         yy_push_state(PREPROC_PRE_BODY_EAT, yyscanner);
 }
 <PREPROC_IF_NOT>{ID} {
-    printf("preproc use code if not '%s'\n", yytext);
+    //printf("preproc use code if not '%s'\n", yytext);
     yy_pop_state(yyscanner);
     if (!yyextra->isPreprocessorConditionSet(yytext))
         yy_push_state(PREPROC_PRE_BODY_USE, yyscanner);
@@ -180,13 +180,16 @@ ID       [a-zA-Z0-9_]*
     yy_push_state(PREPROC_BODY_USE, yyscanner);
 }
 <PREPROC_PRE_BODY_EAT>[ \t]*")" {
+    //printf("PREPROCESSOR EAT : \n");
     yy_pop_state(yyscanner);
     yy_push_state(PREPROC_BODY_EAT, yyscanner);
 }
 <*>.*"END_USE_CODE" {
-    printf("END_USE_CODE\n");
+    //printf("-->END_USE_CODE\n");
     yy_pop_state(yyscanner);
 }
+<PREPROC_BODY_EAT>[ \t\r\n]* /* eat up code block filtered out by preprocessor */
+<PREPROC_BODY_EAT>.* /* eat up code block filtered out by preprocessor */
 
 
  /* Language keywords */

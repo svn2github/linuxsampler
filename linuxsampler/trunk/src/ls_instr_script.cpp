@@ -30,12 +30,12 @@
 using namespace LinuxSampler;
 
 int main() {
-    ScriptVM script;
-    script.loadScript(&std::cin);
+    ScriptVM vm;
+    VMParserContext* parserContext = vm.loadScript(&std::cin);
 
-    std::vector<ParserIssue> errors = script.errors();
-    std::vector<ParserIssue> warnings = script.warnings();
-    std::vector<ParserIssue> issues = script.issues();
+    std::vector<ParserIssue> errors = parserContext->errors();
+    std::vector<ParserIssue> warnings = parserContext->warnings();
+    std::vector<ParserIssue> issues = parserContext->issues();
     if (warnings.empty() && errors.empty()) {
         CFmt fmt; fmt.green();
         printf("EOF. Script parse completed successfully (no errors, no warnings).\n");
@@ -56,22 +56,26 @@ int main() {
     }
 
     printf("[Dumping parsed VM tree]\n");
-    script.dumpParsedScript();
+    vm.dumpParsedScript(parserContext);
     printf("[End of parsed VM tree]\n");
 
-    if (!errors.empty()) return -1;
+    if (!errors.empty()) {
+        if (parserContext) delete parserContext;
+        return -1;
+    }
 
-    if (!script.eventHandler(0)) {
+    if (!parserContext->eventHandler(0)) {
         printf("No event handler exists. So nothing to execute.\n");
+        if (parserContext) delete parserContext;
         return 0;
     }
 
     printf("Preparing execution of script.\n");
-    VMExecContext* ctx = script.createExecContext();
-    for (int i = 0; script.eventHandler(i); ++i) {
-        VMEventHandler* handler = script.eventHandler(i);
+    VMExecContext* execContext = vm.createExecContext(parserContext);
+    for (int i = 0; parserContext->eventHandler(i); ++i) {
+        VMEventHandler* handler = parserContext->eventHandler(i);
         printf("[Running event handler '%s']\n", handler->eventHandlerName().c_str());
-        VMExecStatus_t result = script.exec(handler, ctx);
+        VMExecStatus_t result = vm.exec(parserContext, execContext, handler);
         CFmt fmt;
         if (result & VM_EXEC_ERROR) {
             fmt.red();
@@ -79,7 +83,7 @@ int main() {
         } else if (result & VM_EXEC_SUSPENDED) {
             fmt.yellow();
             printf("[Event handler '%s' returned with SUSPENDED status: %d microseconds]\n",
-                   handler->eventHandlerName().c_str(), ctx->suspensionTimeMicroseconds());
+                   handler->eventHandlerName().c_str(), execContext->suspensionTimeMicroseconds());
         } else if (!(result & VM_EXEC_RUNNING)) {
             fmt.green();
             printf("[Event handler '%s' finished with SUCCESS status]\n", handler->eventHandlerName().c_str());
@@ -91,7 +95,8 @@ int main() {
             printf("[Event handler '%s' finished with UNKNOWN status]\n", handler->eventHandlerName().c_str());
         }
     }
-    if (ctx) delete ctx;
+    if (parserContext) delete parserContext;
+    if (execContext) delete execContext;
 
     return 0;
 }

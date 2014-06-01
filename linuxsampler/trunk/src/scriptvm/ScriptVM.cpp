@@ -9,6 +9,7 @@
 
 #include "ScriptVM.h"
 
+#include <string.h>
 #include "../common/global_private.h"
 #include "tree.h"
 
@@ -87,90 +88,77 @@ namespace LinuxSampler {
         return max;
     }
 
-    ScriptVM::ScriptVM() : fnWait(this) {
-        m_context = new ParserContext(this);
+    ScriptVM::ScriptVM() : m_parserContext(NULL), fnWait(this) {
     }
 
     ScriptVM::~ScriptVM() {
-        if (m_context) {
-            if (m_context->globalIntMemory) {
-                delete m_context->globalIntMemory;
-                m_context->globalIntMemory = NULL;
-            }
-            delete m_context;
-        }
     }
 
-    void ScriptVM::loadScript(const String& s) {
+    VMParserContext* ScriptVM::loadScript(const String& s) {
         std::istringstream iss(s);
-        loadScript(&iss);
+        return loadScript(&iss);
     }
     
-    void ScriptVM::loadScript(std::istream* is) {
-        m_context->createScanner(is);
-        InstrScript_parse(m_context);
-        std::cout << "Allocating " << m_context->globalIntVarCount * sizeof(int) << " bytes of global int VM memory.\n";
-        std::cout << "Allocating " << m_context->globalStrVarCount << " of global VM string variables.\n";
-        if (!m_context->globalIntMemory)
-            m_context->globalIntMemory = new ArrayList<int>();
-        if (!m_context->globalStrMemory)
-            m_context->globalStrMemory = new ArrayList<String>();
-        m_context->globalIntMemory->resize(m_context->globalIntVarCount);
-        m_context->globalStrMemory->resize(m_context->globalStrVarCount);
+    VMParserContext* ScriptVM::loadScript(std::istream* is) {
+        ParserContext* context = new ParserContext(this);
+        //printf("parserCtx=0x%lx\n", (uint64_t)context);
+        
+        context->createScanner(is);
+
+        InstrScript_parse(context);
+        std::cout << "Allocating " << context->globalIntVarCount * sizeof(int) << " bytes of global int VM memory.\n";
+        std::cout << "Allocating " << context->globalStrVarCount << " of global VM string variables.\n";
+        if (!context->globalIntMemory)
+            context->globalIntMemory = new ArrayList<int>();
+        if (!context->globalStrMemory)
+            context->globalStrMemory = new ArrayList<String>();
+        context->globalIntMemory->resize(context->globalIntVarCount);
+        memset(&((*context->globalIntMemory)[0]), 0, context->globalIntVarCount * sizeof(int));
+        
+        context->globalStrMemory->resize(context->globalStrVarCount);
+
+        context->destroyScanner();
+
+        return context;
     }
 
-    std::vector<ParserIssue> ScriptVM::issues() const {
-        return m_context->issues;
-    }
-
-    std::vector<ParserIssue> ScriptVM::errors() const {
-        return m_context->errors;
-    }
-
-    std::vector<ParserIssue> ScriptVM::warnings() const {
-        return m_context->warnings;
-    }
-
-    void ScriptVM::dumpParsedScript() {
-        if (!m_context) {
+    void ScriptVM::dumpParsedScript(VMParserContext* context) {
+        ParserContext* ctx = dynamic_cast<ParserContext*>(context);
+        if (!ctx) {
             std::cerr << "No VM context. So nothing to dump.\n";
             return;
         }
-        if (!m_context->handlers) {
+        if (!ctx->handlers) {
             std::cerr << "No event handlers defined in script. So nothing to dump.\n";
             return;
         }
-        if (!m_context->globalIntMemory) {
+        if (!ctx->globalIntMemory) {
             std::cerr << "Internal error: no global memory assigend to script VM.\n";
             return;
         }
-        m_context->handlers->dump();
+        ctx->handlers->dump();
     }
 
-    VMExecContext* ScriptVM::createExecContext() {
-        ExecContext* ctx = new ExecContext();
-        const int stackSize = _requiredMaxStackSizeFor(&*m_context->handlers);
-        ctx->stack.resize(stackSize);
+    VMExecContext* ScriptVM::createExecContext(VMParserContext* parserContext) {
+        ParserContext* parserCtx = dynamic_cast<ParserContext*>(parserContext);
+        ExecContext* execCtx = new ExecContext();
+        
+        if (parserCtx->requiredMaxStackSize < 0) {
+             parserCtx->requiredMaxStackSize =
+                _requiredMaxStackSizeFor(&*parserCtx->handlers);
+        }
+        execCtx->stack.resize(parserCtx->requiredMaxStackSize);
         std::cout << "Created VM exec context with "
-                  << stackSize * sizeof(ExecContext::StackFrame)
+                  << parserCtx->requiredMaxStackSize * sizeof(ExecContext::StackFrame)
                   << " bytes VM stack size.\n";
-        const int polySize = m_context->polyphonicIntVarCount;
-        ctx->polyphonicIntMemory.resize(polySize);
+        //printf("execCtx=0x%lx\n", (uint64_t)execCtx);
+        const int polySize = parserCtx->polyphonicIntVarCount;
+        execCtx->polyphonicIntMemory.resize(polySize);
+        memset(&execCtx->polyphonicIntMemory[0], 0, polySize * sizeof(int));
+
         std::cout << "Allocated " << polySize * sizeof(int)
                   << " bytes polyphonic memory.\n";
-        return ctx;
-    }
-
-    VMEventHandler* ScriptVM::eventHandler(uint index) {
-        if (!m_context) return NULL;
-        if (!m_context->handlers) return NULL;
-        return m_context->handlers->eventHandler(index);
-    }
-
-    VMEventHandler* ScriptVM::eventHandlerByName(const String& name) {
-        if (!m_context) return NULL;
-        if (!m_context->handlers) return NULL;
-        return m_context->handlers->eventHandlerByName(name);
+        return execCtx;
     }
 
     VMFunction* ScriptVM::functionByName(const String& name) {
@@ -179,15 +167,20 @@ namespace LinuxSampler {
         else if (name == "wait") return &fnWait;
         return NULL;
     }
-    
-    VMExecContext* ScriptVM::currentVMExecContext() {
-        if (!m_context) return NULL;
-        return m_context->execContext;
+
+    VMParserContext* ScriptVM::currentVMParserContext() {
+        return m_parserContext;
     }
 
-    VMExecStatus_t ScriptVM::exec(VMEventHandler* handler, VMExecContext* execContex) {
-        if (!m_context) {
-            std::cerr << "No VM parser context. Did you load a script?.\n";
+    VMExecContext* ScriptVM::currentVMExecContext() {
+        if (!m_parserContext) return NULL;
+        return m_parserContext->execContext;
+    }
+
+    VMExecStatus_t ScriptVM::exec(VMParserContext* parserContext, VMExecContext* execContex, VMEventHandler* handler) {
+        m_parserContext = dynamic_cast<ParserContext*>(parserContext);
+        if (!m_parserContext) {
+            std::cerr << "No VM parser context provided. Did you load a script?.\n";
             return VMExecStatus_t(VM_EXEC_NOT_RUNNING | VM_EXEC_ERROR);
         }
 
@@ -199,7 +192,7 @@ namespace LinuxSampler {
         EventHandler* h = dynamic_cast<EventHandler*>(handler);
         if (!h) return VM_EXEC_NOT_RUNNING;
 
-        m_context->execContext = ctx;
+        m_parserContext->execContext = ctx;
 
         ctx->status = VM_EXEC_RUNNING;
         StmtFlags_t flags = STMT_SUCCESS;
@@ -293,7 +286,8 @@ namespace LinuxSampler {
             ctx->reset();
         }
 
-        m_context->execContext = NULL;
+        m_parserContext->execContext = NULL;
+        m_parserContext = NULL;
         return ctx->status;
     }
 
