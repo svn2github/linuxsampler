@@ -1,3 +1,10 @@
+libgig (3.3.0-6) unstable; urgency=low
+
+  * Add postinst and postrm trigger scripts for adding and removing
+    libgig's new .so libdir (/usr/lib/libgig/) to /etc/ld.so.conf.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Sun, 01 Jun 2014 19:33:24 +0200
+
 libgig (3.3.0-5) unstable; urgency=low
 
   * libgig.so and libakai.so files are now under /usr/lib/libgig
