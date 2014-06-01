@@ -36,6 +36,8 @@ Version CVS HEAD (?)
     - Fixed Mac OSX support so that the Akai lib files and tools compile without
       any exotic third party libraries.
     - Fixed various compilation errors for Windows.
+    - POSIX fix: open() requires third (mode) argument if used with O_CREAT
+      (fixes #219).
 
   * src/gig.cpp:
     - bugfix: VCF velocity dynamic range and VCF velocity curve

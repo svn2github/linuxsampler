@@ -1877,7 +1877,8 @@ bool DiskImage::WriteImage(const char* path)
 {
 #if defined(_CARBON_) || defined(__APPLE__) || LINUX
   const uint bufferSize = 524288; // 512 kB
-  int fOut = open(path, O_WRONLY | O_NONBLOCK | O_CREAT | O_TRUNC);
+  int fOut = open(path, O_WRONLY | O_NONBLOCK | O_CREAT | O_TRUNC,
+                  S_IRUSR | S_IWUSR | S_IRGRP);
   if (mFile <= 0) {
     printf("Can't open output file %s\n", path);
     return false;
