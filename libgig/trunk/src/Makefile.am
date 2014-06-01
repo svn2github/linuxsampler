@@ -3,7 +3,7 @@ AM_CXXFLAGS = -pedantic -Wreturn-type
 
 pkglib_LTLIBRARIES = libgig.la libakai.la
 
-libgigincludedir = $(includedir)
+libgigincludedir = $(includedir)/libgig
 libgiginclude_HEADERS = RIFF.h DLS.h SF.h gig.h Korg.h
 libgig_la_SOURCES = RIFF.cpp DLS.cpp SF.cpp gig.cpp Korg.cpp
 libgig_la_LDFLAGS = -no-undefined -version-info @LIBGIG_SHARED_VERSION_INFO@ @LIBGIG_SHLIB_VERSION_ARG@
@@ -14,7 +14,7 @@ if MAC
 libgig_la_LDFLAGS += -framework CoreFoundation
 endif
 
-libakaiincludedir = $(includedir)
+libakaiincludedir = $(includedir)/libgig
 libakaiinclude_HEADERS = Akai.h
 libakai_la_SOURCES = Akai.cpp
 libakai_la_LDFLAGS = -no-undefined -version-info @LIBAKAI_SHARED_VERSION_INFO@ @LIBAKAI_SHLIB_VERSION_ARG@

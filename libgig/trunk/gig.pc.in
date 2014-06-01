@@ -1,7 +1,7 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-libdir=@libdir@
-includedir=@includedir@
+libdir=@libdir@/libgig
+includedir=@includedir@/libgig
 
 Name: gig
 Description: C++ library for accessing Gigasampler/GigaStudio, DLS, SoundFont and KORG sound files

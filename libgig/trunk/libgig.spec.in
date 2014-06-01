@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 12
+%define release 13
 %define prefix  @prefix@
 
 Summary:	C++ library for accessing Gigasampler, DLS, SF, KORG, AKAI files.
@@ -80,22 +80,27 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %defattr(-,root,root)
 %doc AUTHORS COPYING ChangeLog NEWS README TODO
 %{prefix}/bin/*
-%{prefix}/lib/libgig.so*
-%{prefix}/lib/libakai.so*
+%{prefix}/lib/libgig/libgig.so*
+%{prefix}/lib/libgig/libakai.so*
 %{prefix}/share/man/man1/*
 
 %files devel
 %defattr(-,root,root)
 %doc doc/html/*
-%{prefix}/lib/libgig.a
-%{prefix}/lib/libgig.la
+%{prefix}/lib/libgig/libgig.a
+%{prefix}/lib/libgig/libgig.la
 %{prefix}/lib/pkgconfig/gig.pc
-%{prefix}/lib/libakai.a
-%{prefix}/lib/libakai.la
+%{prefix}/lib/libgig/libakai.a
+%{prefix}/lib/libgig/libakai.la
 %{prefix}/lib/pkgconfig/akai.pc
-%{prefix}/include/*
+%{prefix}/include/libgig/*
 
 %changelog
+* Sun Jun 01 2014 Christian Schoenebeck <cuse@users.sourceforge.net>
+- Fixed installation directories of .so files and header files
+  (fixes #218).
+- libgig.so and libakai.so files are now under /usr/lib/libgig
+- Header files are now under /usr/include/libgig
 * Thu May 22 2014 Christian Schoenebeck <cuse@users.sourceforge.net>
 - Added libakai files. Note that libakai is released under LGPL terms while
   libgig is released under GPL terms. To handle this license difference

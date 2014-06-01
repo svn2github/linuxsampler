@@ -1,3 +1,11 @@
+libgig (3.3.0-5) unstable; urgency=low
+
+  * libgig.so and libakai.so files are now under /usr/lib/libgig
+  * Header files are now under /usr/include/libgig
+  * Fixed missing installation of akai.pc
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Sun, 01 Jun 2014 00:39:04 +0200
+
 libgig (3.3.0-4) unstable; urgency=low
 
   * Added Linux/POSIX ported version of libakai. Note that libakai is released

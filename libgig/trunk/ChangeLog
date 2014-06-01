@@ -12,6 +12,11 @@ Version CVS HEAD (?)
     - added new command line tool "korgdump" (and a man page for it)
     - added new command line tool "korg2gig" (and a man page for it)
     - moved source files of command line tools to new subdir src/tools
+    - libgig.so and libakai.so files are now installed under
+      $(prefix)/lib/libgig/ by default.
+    - Header files are now installed under $(prefix)/include/libgig/ by default.
+    - Fixed various packaging issues regarding installation directories
+      (fixes #218).
 
   * SoundFont file format:
     - initial implementation
