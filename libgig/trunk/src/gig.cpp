@@ -4610,7 +4610,25 @@ namespace {
         scriptPoolFileOffsets.clear();
     }
 
-    /** @brief Add new instrument script slot (gig format extension)
+    /** @brief Get instrument script (gig format extension).
+     *
+     * Returns the real-time instrument script of instrument script slot
+     * @a index.
+     *
+     * @note This is an own format extension which did not exist i.e. in the
+     * GigaStudio 4 software. It will currently only work with LinuxSampler and
+     * gigedit.
+     *
+     * @param index - instrument script slot index
+     * @returns script or NULL if index is out of bounds
+     */
+    Script* Instrument::GetScriptOfSlot(uint index) {
+        LoadScripts();
+        if (index >= pScriptRefs->size()) return NULL;
+        return pScriptRefs->at(index).script;
+    }
+
+    /** @brief Add new instrument script slot (gig format extension).
      *
      * Add the given real-time instrument script reference to this instrument,
      * which shall be executed by the sampler for for this instrument. The
