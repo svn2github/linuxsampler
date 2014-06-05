@@ -102,7 +102,11 @@ namespace LinuxSampler {
     VMParserContext* ScriptVM::loadScript(std::istream* is) {
         ParserContext* context = new ParserContext(this);
         //printf("parserCtx=0x%lx\n", (uint64_t)context);
-        
+
+        context->registerBuiltInConstIntVariables( builtInConstIntVariables() );
+        context->registerBuiltInIntVariables( builtInIntVariables() );
+        context->registerBuiltInIntArrayVariables( builtInIntArrayVariables() );
+
         context->createScanner(is);
 
         InstrScript_parse(context);
@@ -166,6 +170,18 @@ namespace LinuxSampler {
         else if (name == "exit") return &fnExit;
         else if (name == "wait") return &fnWait;
         return NULL;
+    }
+
+    std::map<String,VMIntRelPtr*> ScriptVM::builtInIntVariables() {
+        return std::map<String,VMIntRelPtr*>();
+    }
+
+    std::map<String,VMInt8Array*> ScriptVM::builtInIntArrayVariables() {
+        return std::map<String,VMInt8Array*>();
+    }
+
+    std::map<String,int> ScriptVM::builtInConstIntVariables() {
+        return std::map<String,int>();
     }
 
     VMParserContext* ScriptVM::currentVMParserContext() {

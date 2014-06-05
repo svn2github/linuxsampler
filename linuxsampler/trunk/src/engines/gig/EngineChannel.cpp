@@ -105,6 +105,12 @@ namespace LinuxSampler { namespace gig {
             if (!newInstrument) {
                 throw InstrumentManagerException("resource was not created");
             }
+
+            ::gig::Script* script = newInstrument->GetScriptOfSlot(0);
+            if (script) {
+                String sourceCode = script->GetScriptAsText();
+                loadInstrumentScript(sourceCode);
+            }
         }
         catch (RIFF::Exception e) {
             InstrumentStat = -2;

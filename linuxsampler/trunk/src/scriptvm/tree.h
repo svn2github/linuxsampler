@@ -139,6 +139,17 @@ public:
 };
 typedef Ref<ConstIntVariable,Node> ConstIntVariableRef;
 
+class BuiltInIntVariable : public IntVariable {
+    String name;
+    VMIntRelPtr* ptr;
+public:
+    BuiltInIntVariable(const String& name, VMIntRelPtr* ptr);
+    void assign(Expression* expr);
+    int evalInt();
+    void dump(int level = 0);
+};
+typedef Ref<BuiltInIntVariable,Node> BuiltInIntVariableRef;
+
 class PolyphonicIntVariable : public IntVariable {
 public:
     PolyphonicIntVariable(ParserContext* ctx);
@@ -152,14 +163,28 @@ public:
     IntArrayVariable(ParserContext* ctx, int size);
     IntArrayVariable(ParserContext* ctx, int size, ArgsRef values);
     void assign(Expression* expr) {} // ignore scalar assignment
-    String evalCastToStr() { return ""; } // ignore cast to string
+    String evalCastToStr() { return ""; } // ignore scalar cast to string
     ExprType_t exprType() const { return INT_ARR_EXPR; }
-    const int arraySize() const { return values.size(); }
+    virtual int arraySize() const { return values.size(); }
+    virtual int evalIntElement(uint i);
+    virtual void assignIntElement(uint i, int value);
+    void dump(int level = 0);
+protected:
+    IntArrayVariable(ParserContext* ctx, bool bConst);
+};
+typedef Ref<IntArrayVariable,Node> IntArrayVariableRef;
+
+class BuiltInIntArrayVariable : public IntArrayVariable {
+    String name;
+    VMInt8Array* array;
+public:
+    BuiltInIntArrayVariable(const String& name, VMInt8Array* array);
+    int arraySize() const { return array->size; }
     int evalIntElement(uint i);
     void assignIntElement(uint i, int value);
     void dump(int level = 0);
 };
-typedef Ref<IntArrayVariable,Node> IntArrayVariableRef;
+typedef Ref<BuiltInIntArrayVariable,Node> BuiltInIntArrayVariableRef;
 
 class IntArrayElement : public IntVariable {
     IntArrayVariableRef array;
@@ -548,6 +573,9 @@ public:
     std::vector<ParserIssue> warnings() const OVERRIDE;
     VMEventHandler* eventHandler(uint index) OVERRIDE;
     VMEventHandler* eventHandlerByName(const String& name) OVERRIDE;
+    void registerBuiltInConstIntVariables(const std::map<String,int>& vars);
+    void registerBuiltInIntVariables(const std::map<String,VMIntRelPtr*>& vars);
+    void registerBuiltInIntArrayVariables(const std::map<String,VMInt8Array*>& vars);
 };
 
 class ExecContext : public VMExecContext {

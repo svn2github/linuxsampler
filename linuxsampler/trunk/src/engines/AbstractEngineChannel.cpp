@@ -46,9 +46,12 @@ namespace LinuxSampler {
         ResetControllers();
         PortamentoMode = false;
         PortamentoTime = CONFIG_PORTAMENTO_TIME_DEFAULT;
+        pScriptEvents = NULL;
     }
 
     AbstractEngineChannel::~AbstractEngineChannel() {
+        unloadCurrentInstrumentScript();
+        if (pScriptEvents) delete pScriptEvents;
         delete pEventQueue;
         DeleteGroupEventLists();
         RemoveAllFxSends();
@@ -139,6 +142,95 @@ namespace LinuxSampler {
 
         // status of engine channel has changed, so set notify flag
         bStatusChanged = true;
+    }
+
+    /**
+     * Loads the real-time instrument script given by @a text on this engine
+     * channel. A resource manager is used to allocate and share equivalent
+     * scripts on multiple engine channels.
+     *
+     * @param text - source code of script
+     */
+    void AbstractEngineChannel::loadInstrumentScript(const String& text) {
+        dmsg(1,("Loading real-time instrument script ... "));
+
+        // hand back old script reference and VM execution contexts
+        // (if not done already)
+        unloadCurrentInstrumentScript();
+
+        // get new script reference
+        script.parserContext = pEngine->scripts.Borrow(text, this);
+        if (!script.parserContext->errors().empty()) {
+            std::vector<ParserIssue> errors = script.parserContext->errors();
+            std::cerr << "[ScriptVM] Could not load instrument script, there were "
+                      << errors.size() << " parser errors:\n";
+            for (int i = 0; i < errors.size(); ++i)
+                errors[i].dump();
+            return; // stop here if there were any parser errors
+        }
+
+        script.handlerInit = script.parserContext->eventHandlerByName("init");
+        script.handlerNote = script.parserContext->eventHandlerByName("note");
+        script.handlerController = script.parserContext->eventHandlerByName("controller");
+        script.bHasValidScript =
+            script.handlerInit || script.handlerNote || script.handlerController;
+
+        // amount of script handlers each script event has to execute
+        int handlerExecCount = 0;
+        if (script.handlerInit) handlerExecCount++;
+        if (script.handlerNote || script.handlerController) handlerExecCount++;
+
+        // create script event pool (if it doesn't exist already)
+        if (!pScriptEvents)
+            pScriptEvents = new Pool<ScriptEvent>(CONFIG_MAX_EVENTS_PER_FRAGMENT);
+
+        // create new VM execution contexts for new script
+        while (!pScriptEvents->poolIsEmpty()) {
+            RTList<ScriptEvent>::Iterator it = pScriptEvents->allocAppend();
+            it->execCtx = pEngine->pScriptVM->createExecContext(
+                script.parserContext
+            );
+            it->handlers = new VMEventHandler*[handlerExecCount+1];
+        }
+        pScriptEvents->clear();
+
+        dmsg(1,("Done\n"));
+    }
+
+    /**
+     * Unloads the currently used real-time instrument script on this sampler
+     * channel. A resource manager is used to share equivalent scripts among 
+     * multiple sampler channels, and to deallocate the parsed script once not
+     * used on any engine channel anymore.
+     */
+    void AbstractEngineChannel::unloadCurrentInstrumentScript() {
+        if (script.parserContext)
+            dmsg(1,("Unloading current instrument script."));
+
+        // free allocated VM execution contexts
+        if (pScriptEvents) {
+            pScriptEvents->clear();
+            while (!pScriptEvents->poolIsEmpty()) {
+                RTList<ScriptEvent>::Iterator it = pScriptEvents->allocAppend();
+                if (it->execCtx) {
+                    // free VM execution context object
+                    delete it->execCtx;
+                    it->execCtx = NULL;
+                    // free C array of handler pointers
+                    delete [] it->handlers;
+                }
+            }
+            pScriptEvents->clear();
+        }
+        // hand back VM representation of script
+        if (script.parserContext) {
+            pEngine->scripts.HandBack(script.parserContext, this);
+            script.parserContext = NULL;
+            script.handlerInit = NULL;
+            script.handlerNote = NULL;
+            script.handlerController = NULL;
+        }
+        script.bHasValidScript = false;
     }
 
     /**

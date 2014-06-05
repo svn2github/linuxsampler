@@ -32,9 +32,11 @@
 #include "../common/Pool.h"
 #include "../common/RingBuffer.h"
 #include "../common/ChangeFlagRelaxed.h"
+#include "../common/ResourceManager.h"
 #include "../drivers/audio/AudioOutputDevice.h"
 #include "common/Event.h"
 #include "common/SignalUnitRack.h"
+#include "common/InstrumentScriptVM.h"
 
 namespace LinuxSampler {
 
@@ -95,6 +97,21 @@ namespace LinuxSampler {
             AudioChannel* pDedicatedVoiceChannelLeft;  ///< encapsulates a special audio rendering buffer (left) for rendering and routing audio on a per voice basis (this is a very special case and only used for voices which lie on a note which was set with individual, dedicated FX send level)
             AudioChannel* pDedicatedVoiceChannelRight; ///< encapsulates a special audio rendering buffer (right) for rendering and routing audio on a per voice basis (this is a very special case and only used for voices which lie on a note which was set with individual, dedicated FX send level)
 
+            typedef ResourceConsumer<VMParserContext> ScriptConsumer;
+
+            class ScriptResourceManager : public ResourceManager<String, VMParserContext> {
+                protected:
+                    // implementation of derived abstract methods from 'ResourceManager'
+                    virtual VMParserContext* Create(String Key, ScriptConsumer* pConsumer, void*& pArg);
+                    virtual void         Destroy(VMParserContext* pResource, void* pArg);
+                    virtual void         OnBorrow(VMParserContext* pResource, ScriptConsumer* pConsumer, void*& pArg) {} // ignore
+                public:
+                    ScriptResourceManager(AbstractEngine* parent) : parent(parent) {}
+                    virtual ~ScriptResourceManager() {}
+                private:
+                    AbstractEngine* parent;
+            } scripts;
+
             friend class AbstractVoice;
             friend class AbstractEngineChannel;
             template<class V, class R, class I> friend class EngineChannelBase;
@@ -116,6 +133,7 @@ namespace LinuxSampler {
             int                        ActiveVoiceCountMax;   ///< the maximum voice usage since application start
             atomic_t                   ActiveVoiceCount;      ///< number of currently active voices
             int                        VoiceSpawnsLeft;       ///< We only allow CONFIG_MAX_VOICES voices to be spawned per audio fragment, we use this variable to ensure this limit.
+            InstrumentScriptVM*        pScriptVM; ///< Real-time instrument script virtual machine runner for this engine.
 
             void RouteAudio(EngineChannel* pEngineChannel, uint Samples);
             void RouteDedicatedVoiceChannels(EngineChannel* pEngineChannel, optional<float> FxSendLevels[2], uint Samples);

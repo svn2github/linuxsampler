@@ -64,7 +64,7 @@ namespace LinuxSampler {
      * controller like LFO or EG. An event should only be created by an
      * EventGenerator!
      *
-     * @see EventGenerator
+     * @see EventGenerator, ScriptEvent
      */
     class Event {
         public:
@@ -138,6 +138,23 @@ namespace LinuxSampler {
             EventGenerator* pEventGenerator; ///< Creator of the event.
             time_stamp_t    TimeStamp;       ///< Time stamp of the event's occurence.
             int32_t         iFragmentPos;    ///< Position in the current fragment this event refers to.
+    };
+
+    class VMEventHandler;
+    class VMExecContext;
+
+    /** @brief Real-time instrument script event.
+     *
+     * Encapsulates one execution instance of a real-time instrument script for
+     * exactly one script event handler (script event callback).
+     */
+    class ScriptEvent {
+    public:
+        Event cause; ///< Original external event that triggered this script event (i.e. MIDI note on event, MIDI CC event, etc.).
+        VMEventHandler** handlers; ///< The script's event handlers (callbacks) to be processed (NULL terminated list).
+        VMExecContext* execCtx; ///< Script's current execution state (polyphonic variables and execution stack).
+        int currentHandler; ///< Current index in 'handlers' list above.
+        int executionSlices; ///< Amount of times this script event has been executed by the ScriptVM runner class.
     };
 
 } // namespace LinuxSampler

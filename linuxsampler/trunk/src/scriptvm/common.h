@@ -16,6 +16,8 @@
 
 #include "../common/global.h"
 #include <vector>
+#include <map>
+#include <stddef.h> // offsetof()
 
 namespace LinuxSampler {
     
@@ -85,11 +87,142 @@ namespace LinuxSampler {
         virtual VMFnResult* exec(VMFnArgs* args) = 0;
     };
 
+    /**
+     * POD base of VMIntRelPtr and VMInt8RelPtr structures. Not intended to be
+     * used directly. Use VMIntRelPtr or VMInt8RelPtr instead.
+     */
+    struct VMRelPtr {
+        void** base; ///< Base pointer.
+        int offset;  ///< Offset (in bytes) to base pointer.
+    };
+
+    /** @brief Pointer to built-in VM integer variable (of C/C++ type int).
+     *
+     * Used for defining built-in integer script variables.
+     *
+     * @b CAUTION: You may only use this class for pointing to C/C++ variables
+     * of type "int" (which on most systems is 32 bit in size). If the C/C++ int
+     * variable you want to reference is only 8 bit in size, then you @b must
+     * use VMInt8RelPtr instead!
+     *
+     * For efficiency reasons the actual native C/C++ int variable is referenced
+     * by two components here. The actual native int C/C++ variable in memory
+     * is dereferenced at VM run-time by taking the @c base pointer dereference
+     * and adding @c offset bytes. This has the advantage that for a large
+     * number of built-in int variables, only one (or few) base pointer need
+     * to be re-assigned before running a script, instead of updating each
+     * built-in variable each time before a script is executed.
+     *
+     * Refer to DECLARE_VMINT() for example code.
+     *
+     * @see VMInt8RelPtr, DECLARE_VMINT()
+     */
+    struct VMIntRelPtr : VMRelPtr {
+        VMIntRelPtr() {
+            base   = NULL;
+            offset = 0;
+        }
+        VMIntRelPtr(const VMRelPtr& data) {
+            base   = data.base;
+            offset = data.offset;
+        }
+        virtual int evalInt() { return *(int*)&(*(uint8_t**)base)[offset]; }
+        virtual void assign(int i) { *(int*)&(*(uint8_t**)base)[offset] = i; }
+    };
+
+    /** @brief Pointer to built-in VM integer variable (of C/C++ type int8_t).
+     *
+     * Used for defining built-in integer script variables.
+     *
+     * @b CAUTION: You may only use this class for pointing to C/C++ variables
+     * of type "int8_t" (8 bit integer). If the C/C++ int variable you want to
+     * reference is an "int" type (which is 32 bit on most systems), then you
+     * @b must use VMIntRelPtr instead!
+     *
+     * For efficiency reasons the actual native C/C++ int variable is referenced
+     * by two components here. The actual native int C/C++ variable in memory
+     * is dereferenced at VM run-time by taking the @c base pointer dereference
+     * and adding @c offset bytes. This has the advantage that for a large
+     * number of built-in int variables, only one (or few) base pointer need
+     * to be re-assigned before running a script, instead of updating each
+     * built-in variable each time before a script is executed.
+     *
+     * Refer to DECLARE_VMINT() for example code.
+     *
+     * @see VMIntRelPtr, DECLARE_VMINT()
+     */
+    struct VMInt8RelPtr : VMIntRelPtr {
+        VMInt8RelPtr() : VMIntRelPtr() {}
+        VMInt8RelPtr(const VMRelPtr& data) : VMIntRelPtr(data) {}
+        virtual int evalInt() OVERRIDE {
+            return *(uint8_t*)&(*(uint8_t**)base)[offset];
+        }
+        virtual void assign(int i) OVERRIDE {
+            *(uint8_t*)&(*(uint8_t**)base)[offset] = i;
+        }
+    };
+
+    /**
+     * Convenience macro for initializing VMIntRelPtr and VMInt8RelPtr
+     * structures. Example:
+     * @code
+     * struct Foo {
+     *   uint8_t a;
+     *   int b;
+     * };
+     *
+     * Foo foo1 = (Foo) { 1, 3000 };
+     * Foo foo2 = (Foo) { 2, 4000 };
+     *
+     * Foo* pFoo;
+     *
+     * VMInt8RelPtr var1 = DECLARE_VMINT(pFoo, class Foo, a);
+     * VMIntRelPtr  var2 = DECLARE_VMINT(pFoo, class Foo, b);
+     *
+     * pFoo = &foo1;
+     * printf("%d\n", var1->evalInt()); // will print 1
+     * printf("%d\n", var2->evalInt()); // will print 3000
+     *
+     * pFoo = &foo2;
+     * printf("%d\n", var1->evalInt()); // will print 2
+     * printf("%d\n", var2->evalInt()); // will print 4000
+     * @endcode
+     */
+    #define DECLARE_VMINT(basePtr, T_struct, T_member) ( \
+        (VMRelPtr) {                                     \
+            (void**) &basePtr,                           \
+            offsetof(T_struct, T_member)                 \
+        }                                                \
+    )                                                    \
+
+    /** @brief Built-in VM 8 bit integer array variable.
+     *
+     * Used for defining built-in integer array script variables.
+     */
+    struct VMInt8Array {
+        int8_t* data;
+        int size;
+
+        VMInt8Array() : data(NULL), size(0) {}
+    };
+
     class VMFunctionProvider {
     public:
         virtual VMFunction* functionByName(const String& name) = 0;
+        virtual std::map<String,VMIntRelPtr*> builtInIntVariables() = 0;
+        virtual std::map<String,VMInt8Array*> builtInIntArrayVariables() = 0;
+        virtual std::map<String,int> builtInConstIntVariables() = 0;
     };
 
+    /** @brief Execution state of a virtual machine.
+     *
+     * An instance of this abstract base class represents exactly one execution
+     * state of a virtual machine. This encompasses most notably the VM
+     * execution stack, and VM polyphonic variables. You might see it as one
+     * virtual thread of the virtual machine.
+     *
+     * @see VMParserContext
+     */
     class VMExecContext {
     public:
         virtual ~VMExecContext() {}
@@ -132,6 +265,19 @@ namespace LinuxSampler {
         return "invalid";
     }
 
+    /** @brief Virtual machine representation of a script.
+     *
+     * An instance of this abstract base class represents a parsed script,
+     * translated into a virtual machine. You should first check if there were
+     * any parser errors. If there were any parser errors, you should refrain
+     * from executing the virtual machine. Otherwise if there were no parser
+     * errors (i.e. only warnings), then you might access one of the script's
+     * event handlers by i.e. calling eventHandlerByName() and pass the
+     * respective event handler to the ScriptVM class (or to one of its
+     * descendants) for execution.
+     *
+     * @see VMExecContext
+     */
     class VMParserContext {
     public:
         virtual ~VMParserContext() {}

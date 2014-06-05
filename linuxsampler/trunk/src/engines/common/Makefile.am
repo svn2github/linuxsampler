@@ -19,6 +19,7 @@ liblinuxsamplercommonengine_la_SOURCES = \
 	LFOTriangleIntMath.h \
 	SineLFO.h PulseLFO.h SawLFO.h \
 	Resampler.h \
+	InstrumentScriptVM.h InstrumentScriptVM.cpp \
 	EG.h EG.cpp
 liblinuxsamplercommonengine_la_LIBADD = $(SNDFILE_LIBS)
 liblinuxsamplercommonengine_la_LDFLAGS = $(SNDFILE_CFLAGS)

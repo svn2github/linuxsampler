@@ -103,6 +103,10 @@ Version CVS HEAD (?)
       polyphonic key pressure events (so far polyphonic pressure was not
       supported at all, and channel pressure was rerouted as CC128 but not
       used so far).
+    - Added initial support for real-time instrument scripts. The script VM
+      code is shared by all sampler engine implemementations, however only the
+      gig file format currently provides support for storing instrument scripts
+      (as LinuxSampler extension to the original GigaStudio 4 format).
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension
@@ -421,6 +425,16 @@ Version CVS HEAD (?)
       automatically show the relevant LSCP reference section on screen as soon
       as one specific LSCP command was detected while typing on the command
       line.
+
+  * Real-time instrument scripts:
+    - Implemented built-in script array variable %CC.
+    - Implemented built-in script int variable $CC_NUM.
+    - Implemented built-in script int variable $EVENT_NOTE.
+    - Implemented built-in script int variable $EVENT_VELOCITY.
+    - Implemented built-in script constant variable $VCC_MONO_AT.
+    - Implemented built-in script constant variable $VCC_PITCH_BEND.
+    - Implemented execution of script event handler "init".
+    - Implemented execution of script event handler "controller".
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

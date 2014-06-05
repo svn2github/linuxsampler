@@ -35,6 +35,14 @@ namespace LinuxSampler {
 
     std::map<AbstractEngine::Format, std::map<AudioOutputDevice*,AbstractEngine*> > AbstractEngine::engines;
 
+    VMParserContext* AbstractEngine::ScriptResourceManager::Create(String Key, ScriptConsumer* pConsumer, void*& pArg) {
+        return parent->pScriptVM->loadScript(Key);
+    }
+
+    void AbstractEngine::ScriptResourceManager::Destroy(VMParserContext* pResource, void* pArg) {
+        delete pResource;
+    }
+
     /**
      * Get an AbstractEngine object for the given AbstractEngineChannel and the
      * given AudioOutputDevice. All engine channels which are connected to
@@ -72,7 +80,7 @@ namespace LinuxSampler {
         return pEngine;
     }
 
-    AbstractEngine::AbstractEngine() {
+    AbstractEngine::AbstractEngine() : scripts(this) {
         pAudioOutputDevice = NULL;
         pEventGenerator    = NULL;
         pSysexBuffer       = new RingBuffer<uint8_t,false>(CONFIG_SYSEX_BUFFER_SIZE, 0);
@@ -82,6 +90,7 @@ namespace LinuxSampler {
         FrameTime          = 0;
         RandomSeed         = 0;
         pDedicatedVoiceChannelLeft = pDedicatedVoiceChannelRight = NULL;
+        pScriptVM          = new InstrumentScriptVM;
     }
 
     AbstractEngine::~AbstractEngine() {
@@ -92,6 +101,7 @@ namespace LinuxSampler {
         if (pSysexBuffer) delete pSysexBuffer;
         if (pDedicatedVoiceChannelLeft) delete pDedicatedVoiceChannelLeft;
         if (pDedicatedVoiceChannelRight) delete pDedicatedVoiceChannelRight;
+        if (pScriptVM) delete pScriptVM;
         Unregister();
     }
 

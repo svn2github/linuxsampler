@@ -32,9 +32,12 @@
 #include "../common/Pool.h"
 #include "../common/RingBuffer.h"
 
+#define CTRL_TABLE_IDX_AFTERTOUCH   128
+#define CTRL_TABLE_IDX_PITCHBEND    129
+
 namespace LinuxSampler {
 
-    class AbstractEngineChannel: public EngineChannel {
+    class AbstractEngineChannel: public EngineChannel, public AbstractEngine::ScriptConsumer {
         public:
             // implementation of abstract methods derived from interface class 'LinuxSampler::EngineChannel'
             virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument) OVERRIDE;
@@ -83,17 +86,23 @@ namespace LinuxSampler {
             virtual void    Connect(VirtualMidiDevice* pDevice) OVERRIDE;
             virtual void    Disconnect(VirtualMidiDevice* pDevice) OVERRIDE;
 
+            // implementation of abstract methods derived from AbstractEngine::ScriptConsumer
+            virtual void ResourceToBeUpdated(VMParserContext* pResource, void*& pUpdateArg) OVERRIDE {}
+            virtual void ResourceUpdated(VMParserContext* pOldResource, VMParserContext* pNewResource, void* pUpdateArg) OVERRIDE {}
+            virtual void OnResourceProgress(float fProgress) OVERRIDE {}
 
             virtual AbstractEngine::Format GetEngineFormat() = 0;
 
             AudioOutputDevice* GetAudioOutputDeviceSafe();
+            void loadInstrumentScript(const String& text);
+            void unloadCurrentInstrumentScript();
 
             friend class AbstractVoice;
             friend class AbstractEngine;
             template<class TV, class TRR, class TR, class TD, class TIM, class TI> friend class EngineBase;
             template<class EC, class R, class S, class D> friend class VoiceBase;
 
-        protected:
+        //protected:
             AbstractEngineChannel();
             virtual ~AbstractEngineChannel();
 
@@ -101,7 +110,7 @@ namespace LinuxSampler {
             Mutex                     EngineMutex; ///< protects the Engine from access by the instrument loader thread when lscp is disconnecting
             Mutex                     MidiInputMutex; ///< Introduced when support for multiple MIDI inputs per engine channel was added: protects the MIDI event input ringbuffer on this engine channel to be accessed concurrently by multiple midi input threads. As alternative one might also move the ringbuffer from this engine channel to the individual MIDI ports/devices and let the sampler engine read the events from there instead of receiving them here.
 
-        protected:
+        //protected:
             AudioChannel*             pChannelLeft;             ///< encapsulates the audio rendering buffer (left)
             AudioChannel*             pChannelRight;            ///< encapsulates the audio rendering buffer (right)
             int                       AudioDeviceChannelLeft;   ///< audio device channel number to which the left channel is connected to
@@ -110,7 +119,7 @@ namespace LinuxSampler {
             midi_chan_t               midiChannel;              ///< MIDI channel(s) on which this engine channel listens to (on all MIDI input ports).
             RingBuffer<Event,false>*  pEventQueue;              ///< Input event queue.
             RTList<Event>*            pEvents;                  ///< All engine channel specific events for the current audio fragment.
-            uint8_t                   ControllerTable[129];     ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel. Number 128 is for channel pressure (mono aftertouch).
+            uint8_t                   ControllerTable[130];     ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel. Number 128 is for channel pressure (mono aftertouch), 129 for pitch bend.
             String                    InstrumentFile;
             int                       InstrumentIdx;
             String                    InstrumentIdxName;
@@ -128,6 +137,19 @@ namespace LinuxSampler {
             int                       iEngineIndexSelf;         ///< Reflects the index of this EngineChannel in the Engine's ArrayList.
             bool                      bStatusChanged;           ///< true in case an engine parameter has changed (e.g. new instrument, another volumet)
             uint32_t                  RoundRobinIndex;          ///< counter for round robin sample selection, incremented for each note on
+            Pool<ScriptEvent>*        pScriptEvents;            ///< Pool of all available script execution instances. ScriptEvents available to be allocated from the Pool are currently unused / not executiong, whereas the ScriptEvents allocated on the list are currently suspended / have not finished execution yet.
+            struct _Script {
+                VMParserContext*      parserContext; ///< VM represenation of the currently loaded script or NULL if not script was loaded. Note that it is also not NULL if parser errors occurred!
+                bool                  bHasValidScript; ///< True in case there is a valid script currently loaded, false if script processing shall be skipped.
+                VMEventHandler*       handlerInit; ///< VM representation of script's initilization callback or NULL if current script did not define such an init handler.
+                VMEventHandler*       handlerNote; ///< VM representation of script's MIDI note callback or NULL if current script did not define such an event handler.
+                VMEventHandler*       handlerController; ///< VM representation of script's MIDI controller callback or NULL if current script did not define such an event handler.
+                _Script() {
+                    parserContext = NULL;
+                    bHasValidScript = false;
+                    handlerNote = handlerController = NULL;
+                }
+            } script;
 
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> > virtualMidiDevices;
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader_AudioThread;

@@ -631,7 +631,45 @@ namespace LinuxSampler {
                 AbstractEngineChannel* pChannel = static_cast<AbstractEngineChannel*>(pEngineChannel);
                 pChannel->ImportEvents(Samples);
 
-                // process events
+                // if a valid real-time instrument script is loaded, pre-process
+                // the event list by running the script now, since the script
+                // might filter events or add new ones for this cycle
+                if (pChannel->script.bHasValidScript) {
+                    // resume any suspended script executions still hanging
+                    // around of previous audio fragment cycles
+                    for (RTList<ScriptEvent>::Iterator itEvent = pChannel->pScriptEvents->first(),
+                        end = pChannel->pScriptEvents->end(); itEvent != end; ++itEvent)
+                    {
+                        ResumeScriptEvent(pChannel, itEvent);
+                    }
+
+                    // spawn new script executions for the new MIDI events of
+                    // this audio fragment cycle
+                    for (RTList<Event>::Iterator itEvent = pChannel->pEvents->first(),
+                        end = pChannel->pEvents->end(); itEvent != end; ++itEvent)
+                    {
+                        switch (itEvent->Type) {
+                            case Event::type_note_on:
+                                if (pChannel->script.handlerNote)
+                                    ProcessEventByScript(pChannel, itEvent, pChannel->script.handlerNote);
+                                break;
+                            case Event::type_note_off:
+                                //TODO: ...
+                                break;
+                            case Event::type_control_change:
+                            case Event::type_channel_pressure:
+                            case Event::type_pitchbend:
+                                if (pChannel->script.handlerController)
+                                    ProcessEventByScript(pChannel, itEvent, pChannel->script.handlerController);                            
+                                break;
+                            case Event::type_note_pressure:
+                                //TODO: ...
+                                break;
+                        }
+                    }
+                }
+
+                // now process all events regularly
                 {
                     RTList<Event>::Iterator itEvent = pChannel->pEvents->first();
                     RTList<Event>::Iterator end     = pChannel->pEvents->end();
@@ -671,6 +709,77 @@ namespace LinuxSampler {
                 iuiLastStolenKey          = RTList<uint>::Iterator();
                 iuiLastStolenKeyGlobally  = RTList<uint>::Iterator();
                 pLastStolenChannel        = NULL;
+            }
+
+            /** @brief Call instrument script's event handler for this event.
+             *
+             * Causes a new execution instance of the currently loaded real-time
+             * instrument script's event handler (callback) to be spawned for
+             * the given MIDI event.
+             *
+             * @param pChannel - engine channel on which the MIDI event occured
+             * @param itEvent - MIDI event that causes this new script execution
+             * @param pEventHandler - script's event handler to be executed
+             */
+            void ProcessEventByScript(AbstractEngineChannel* pChannel, RTList<Event>::Iterator& itEvent, VMEventHandler* pEventHandler) {
+                RTList<ScriptEvent>::Iterator itScriptEvent =
+                    pChannel->pScriptEvents->allocAppend();
+
+                if (!itScriptEvent) return; // no free script event left for execution
+
+                // fill the list of script handlers to be executed by this event
+                int i = 0;
+                if (pChannel->script.handlerInit)
+                    itScriptEvent->handlers[i++] = pChannel->script.handlerInit;
+                itScriptEvent->handlers[i++] = pEventHandler; // actual event handler (i.e. note, controller)
+                itScriptEvent->handlers[i] = NULL; // NULL termination of list
+
+                // initialize/reset other members
+                itScriptEvent->cause = *itEvent;
+                itScriptEvent->currentHandler = 0;
+                itScriptEvent->executionSlices = 0;
+
+                // run script handler(s)
+                VMExecStatus_t res = pScriptVM->exec(
+                    pChannel->script.parserContext, &*itScriptEvent
+                );
+
+                // in case the script was suspended, keep it on the allocated
+                // ScriptEvent list to be continued on the next audio cycle,
+                // otherwise if execution has been finished, free it for a new
+                // future script event to be triggered from start
+                if (!(res & VM_EXEC_SUSPENDED))
+                    pChannel->pScriptEvents->free(itScriptEvent);
+            }
+
+            /** @brief Resume execution of instrument script.
+             *
+             * Will be called to resume execution of a real-time instrument
+             * script event which has been suspended in a previous audio
+             * fragment cycle.
+             *
+             * Script execution might be suspended for various reasons. Usually
+             * a script will be suspended if the script called the built-in
+             * "wait()" function, but it might also be suspended automatically
+             * if the script took too much execution time in an audio fragment
+             * cycle. So in the latter case automatic suspension is performed in
+             * order to avoid harm for the sampler's overall real-time
+             * requirements.
+             *
+             * @param pChannel - engine channel this script is running for
+             * @param itScriptEvent - script execution that shall be resumed
+             */
+            void ResumeScriptEvent(AbstractEngineChannel* pChannel, RTList<ScriptEvent>::Iterator& itScriptEvent) {
+                // run script
+                VMExecStatus_t res = pScriptVM->exec(
+                    pChannel->script.parserContext, &*itScriptEvent
+                );
+                // in case the script was again suspended, keep it on the allocated
+                // ScriptEvent list to be continued on the next audio cycle,
+                // otherwise if execution has been finished, free it for a new
+                // future script event to be triggered from start
+                if (!(res & VM_EXEC_SUSPENDED))
+                    pChannel->pScriptEvents->free(itScriptEvent);
             }
 
             /**

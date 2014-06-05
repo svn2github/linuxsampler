@@ -345,6 +345,26 @@ void ConstIntVariable::dump(int level) {
     printf("ConstIntVariable val=%d\n", value);
 }
 
+BuiltInIntVariable::BuiltInIntVariable(const String& name, VMIntRelPtr* ptr)
+    : IntVariable(NULL,false,false), name(name), ptr(ptr)
+{
+}
+
+void BuiltInIntVariable::assign(Expression* expr) {
+    IntExpr* valueExpr = dynamic_cast<IntExpr*>(expr);
+    if (!valueExpr) return;
+    ptr->assign(valueExpr->evalInt());
+}
+
+int BuiltInIntVariable::evalInt() {
+    return ptr->evalInt();
+}
+
+void BuiltInIntVariable::dump(int level) {
+    printIndents(level);
+    printf("Built-in IntVar '%s'\n", name.c_str());
+}
+
 PolyphonicIntVariable::PolyphonicIntVariable(ParserContext* ctx)
     : IntVariable(ctx,true,false)
 {
@@ -372,6 +392,11 @@ IntArrayVariable::IntArrayVariable(ParserContext* ctx, int size, ArgsRef values)
     }
 }
 
+IntArrayVariable::IntArrayVariable(ParserContext* ctx, bool bConst)
+    : Variable(ctx, 0, bConst)
+{
+}
+
 int IntArrayVariable::evalIntElement(uint i) {
     if (i >= values.size()) return 0;
     return values[i];
@@ -394,6 +419,25 @@ void IntArrayVariable::dump(int level) {
     }
     printIndents(level);
     printf(")\n");
+}
+
+BuiltInIntArrayVariable::BuiltInIntArrayVariable(const String& name, VMInt8Array* array)
+    : IntArrayVariable(NULL, false), name(name), array(array)
+{
+}
+
+int BuiltInIntArrayVariable::evalIntElement(uint i) {
+    return i >= array->size ? 0 : array->data[i];
+}
+
+void BuiltInIntArrayVariable::assignIntElement(uint i, int value) {
+    if (i >= array->size) return;
+    array->data[i] = value;
+}
+
+void BuiltInIntArrayVariable::dump(int level) {
+    printIndents(level);
+    printf("Built-In Int Array Variable '%s'\n", name.c_str());
 }
 
 IntArrayElement::IntArrayElement(IntArrayVariableRef array, IntExprRef arrayIndex)
@@ -799,6 +843,33 @@ VMEventHandler* ParserContext::eventHandler(uint index) {
 VMEventHandler* ParserContext::eventHandlerByName(const String& name) {
     if (!handlers) return NULL;
     return handlers->eventHandlerByName(name);
+}
+
+void ParserContext::registerBuiltInConstIntVariables(const std::map<String,int>& vars) {
+    for (std::map<String,int>::const_iterator it = vars.begin();
+         it != vars.end(); ++it)
+    {
+        ConstIntVariableRef ref = new ConstIntVariable(it->second);
+        vartable[it->first] = ref;
+    }
+}
+
+void ParserContext::registerBuiltInIntVariables(const std::map<String,VMIntRelPtr*>& vars) {
+    for (std::map<String,VMIntRelPtr*>::const_iterator it = vars.begin();
+         it != vars.end(); ++it)
+    {
+        BuiltInIntVariableRef ref = new BuiltInIntVariable(it->first, it->second);
+        vartable[it->first] = ref;
+    }
+}
+
+void ParserContext::registerBuiltInIntArrayVariables(const std::map<String,VMInt8Array*>& vars) {
+    for (std::map<String,VMInt8Array*>::const_iterator it = vars.begin();
+         it != vars.end(); ++it)
+    {
+        BuiltInIntArrayVariableRef ref = new BuiltInIntArrayVariable(it->first, it->second);
+        vartable[it->first] = ref;
+    }
 }
 
 } // namespace LinuxSampler
