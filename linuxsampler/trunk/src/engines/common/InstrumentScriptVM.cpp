@@ -12,13 +12,15 @@
 
 namespace LinuxSampler {
 
-    // circumvents a bug in GCC 4.4 which prevents the sizeof() expr to be used
-    // directly within the scrope of a class (would throw a compiler error with:
+    // circumvents a bug in GCC 4.x which causes a sizeof() expression applied
+    // on a class member to throw a compiler error, i.e. with GCC 4.4:
     // "object missing in reference to 'LinuxSampler::AbstractEngineChannel::ControllerTable'")
-    static const int _AbstractEngineChannel_ControllerTable_size = sizeof(AbstractEngineChannel::ControllerTable);
+    // or with GCC 4.0:
+    // "invalid use of non-static data member 'LinuxSampler::AbstractEngineChannel::ControllerTable'"
+    #define _MEMBER_SIZEOF(T_Class, Member) sizeof(((T_Class*)NULL)->Member)
 
     InstrumentScriptVM::InstrumentScriptVM() : m_event(NULL) {
-        m_CC.size = _AbstractEngineChannel_ControllerTable_size;
+        m_CC.size = _MEMBER_SIZEOF(AbstractEngineChannel, ControllerTable);
         m_CC_NUM = DECLARE_VMINT(m_cause, class Event, Param.CC.Controller);
         m_EVENT_NOTE = DECLARE_VMINT(m_cause, class Event, Param.Note.Key);
         m_EVENT_VELOCITY = DECLARE_VMINT(m_cause, class Event, Param.Note.Velocity);
