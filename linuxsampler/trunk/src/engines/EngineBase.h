@@ -640,7 +640,7 @@ namespace LinuxSampler {
                     for (RTList<ScriptEvent>::Iterator itEvent = pChannel->pScriptEvents->first(),
                         end = pChannel->pScriptEvents->end(); itEvent != end; ++itEvent)
                     {
-                        ResumeScriptEvent(pChannel, itEvent);
+                        ResumeScriptEvent(pChannel, itEvent); //TODO: implement support for actual suspension time (i.e. passed to a script's wait() function call)
                     }
 
                     // spawn new script executions for the new MIDI events of
@@ -654,7 +654,8 @@ namespace LinuxSampler {
                                     ProcessEventByScript(pChannel, itEvent, pChannel->script.handlerNote);
                                 break;
                             case Event::type_note_off:
-                                //TODO: ...
+                                if (pChannel->script.handlerRelease)
+                                    ProcessEventByScript(pChannel, itEvent, pChannel->script.handlerRelease);
                                 break;
                             case Event::type_control_change:
                             case Event::type_channel_pressure:

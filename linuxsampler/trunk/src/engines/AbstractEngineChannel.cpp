@@ -171,14 +171,17 @@ namespace LinuxSampler {
 
         script.handlerInit = script.parserContext->eventHandlerByName("init");
         script.handlerNote = script.parserContext->eventHandlerByName("note");
+        script.handlerRelease = script.parserContext->eventHandlerByName("release");
         script.handlerController = script.parserContext->eventHandlerByName("controller");
         script.bHasValidScript =
-            script.handlerInit || script.handlerNote || script.handlerController;
+            script.handlerInit || script.handlerNote || script.handlerRelease ||
+            script.handlerController;
 
         // amount of script handlers each script event has to execute
         int handlerExecCount = 0;
-        if (script.handlerInit) handlerExecCount++;
-        if (script.handlerNote || script.handlerController) handlerExecCount++;
+        if (script.handlerInit) handlerExecCount++; // "init" handler is always executed before the actual event handler
+        if (script.handlerNote || script.handlerRelease || script.handlerController) // only one of these are executed after "init" handler
+            handlerExecCount++;
 
         // create script event pool (if it doesn't exist already)
         if (!pScriptEvents)
@@ -228,6 +231,7 @@ namespace LinuxSampler {
             script.parserContext = NULL;
             script.handlerInit = NULL;
             script.handlerNote = NULL;
+            script.handlerRelease = NULL;
             script.handlerController = NULL;
         }
         script.bHasValidScript = false;
@@ -882,6 +886,17 @@ namespace LinuxSampler {
             *pEvents->allocAppend() = *pEvent;
         }
         eventQueueReader.free(); // free all copied events from input queue
+    }
+    
+    /**
+     * Called by real-time instrument script functions to schedule a new event
+     * somewhere in future.
+     */
+    void AbstractEngineChannel::ScheduleEvent(const Event* pEvent, int delay) { //TODO: delay not implemented yet
+        // since delay is not implemented yet, we simply add the new event
+        // to the event list of the current audio fragmet cycle for now
+        RTList<Event>::Iterator itEvent = pEvents->allocAppend();
+        if (itEvent) *itEvent = *pEvent; // copy event
     }
 
     FxSend* AbstractEngineChannel::AddFxSend(uint8_t MidiCtrl, String Name) throw (Exception) {

@@ -20,6 +20,14 @@ VMFnResult* VMEmptyResultFunction::errorResult() {
     return &result;
 }
 
+void VMEmptyResultFunction::wrnMsg(const String& txt) {
+    std::cout << "[ScriptVM] " << txt << std::endl;
+}
+
+void VMEmptyResultFunction::errMsg(const String& txt) {
+    std::cerr << "[ScriptVM] " << txt << std::endl;
+}
+
 VMFnResult* VMEmptyResultFunction::successResult() {
     result.flags = STMT_SUCCESS;
     return &result;

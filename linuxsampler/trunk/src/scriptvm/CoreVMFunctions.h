@@ -43,6 +43,8 @@ protected:
     ExprType_t returnType() { return EMPTY_EXPR; }
     VMFnResult* errorResult();
     VMFnResult* successResult();
+    void wrnMsg(const String& txt);
+    void errMsg(const String& txt);
 protected:
     VMEmptyResult result;
 };

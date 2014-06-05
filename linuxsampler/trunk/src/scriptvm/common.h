@@ -48,9 +48,14 @@ namespace LinuxSampler {
         VM_EXEC_ERROR = (1<<2),
     };
 
+    class VMIntExpr;
+    class VMStringExpr;
+
     class VMExpr {
     public:
         virtual ExprType_t exprType() const = 0;
+        VMIntExpr* asInt() const;
+        VMStringExpr* asString() const;
     };
 
     class VMIntExpr : virtual public VMExpr {

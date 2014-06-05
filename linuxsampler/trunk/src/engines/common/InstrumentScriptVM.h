@@ -13,6 +13,7 @@
 #include "../../common/global.h"
 #include "../../scriptvm/ScriptVM.h"
 #include "Event.h"
+#include "InstrumentScriptVMFunctions.h"
 
 namespace LinuxSampler {
 
@@ -30,6 +31,7 @@ namespace LinuxSampler {
     public:
         InstrumentScriptVM();
         VMExecStatus_t exec(VMParserContext* parserCtx, ScriptEvent* event);
+        VMFunction* functionByName(const String& name) OVERRIDE;
         std::map<String,VMIntRelPtr*> builtInIntVariables() OVERRIDE;
         std::map<String,VMInt8Array*> builtInIntArrayVariables() OVERRIDE;
         std::map<String,int> builtInConstIntVariables() OVERRIDE;
@@ -46,6 +48,11 @@ namespace LinuxSampler {
         //VMIntArray m_KEY_DOWN; //TODO: ...
         //VMIntArray m_POLY_AT; //TODO: ...
         //int m_POLY_AT_NUM; //TODO: ...
+
+        // buil-in script functions
+        InstrumentScriptVMFunction_play_note m_fnPlayNote;
+
+        friend class InstrumentScriptVMFunction_play_note;
     };
 
 } // namespace LinuxSampler

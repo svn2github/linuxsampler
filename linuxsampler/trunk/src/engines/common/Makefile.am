@@ -20,6 +20,7 @@ liblinuxsamplercommonengine_la_SOURCES = \
 	SineLFO.h PulseLFO.h SawLFO.h \
 	Resampler.h \
 	InstrumentScriptVM.h InstrumentScriptVM.cpp \
+	InstrumentScriptVMFunctions.h InstrumentScriptVMFunctions.cpp \
 	EG.h EG.cpp
 liblinuxsamplercommonengine_la_LIBADD = $(SNDFILE_LIBS)
 liblinuxsamplercommonengine_la_LDFLAGS = $(SNDFILE_CFLAGS)

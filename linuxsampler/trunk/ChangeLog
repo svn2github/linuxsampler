@@ -435,6 +435,10 @@ Version CVS HEAD (?)
     - Implemented built-in script constant variable $VCC_PITCH_BEND.
     - Implemented execution of script event handler "init".
     - Implemented execution of script event handler "controller".
+    - Implemented execution of script event handler "note".
+    - Implemented execution of script event handler "release".
+    - Implemented built-in script function "play_note()" (only two of the
+      max. four function arguments are currently implemented yet though).
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

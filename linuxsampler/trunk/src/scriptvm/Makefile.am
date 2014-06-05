@@ -8,6 +8,7 @@ BUILT_SOURCES = parser.h
 
 noinst_LTLIBRARIES = liblinuxsamplerscriptvm.la
 liblinuxsamplerscriptvm_la_SOURCES = \
+	common.h common.cpp \
 	scanner.cpp \
 	parser.h parser.cpp \
 	tree.h tree.cpp \

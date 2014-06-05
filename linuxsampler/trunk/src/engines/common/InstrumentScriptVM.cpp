@@ -19,7 +19,9 @@ namespace LinuxSampler {
     // "invalid use of non-static data member 'LinuxSampler::AbstractEngineChannel::ControllerTable'"
     #define _MEMBER_SIZEOF(T_Class, Member) sizeof(((T_Class*)NULL)->Member)
 
-    InstrumentScriptVM::InstrumentScriptVM() : m_event(NULL) {
+    InstrumentScriptVM::InstrumentScriptVM() :
+        m_event(NULL), m_fnPlayNote(this)
+    {
         m_CC.size = _MEMBER_SIZEOF(AbstractEngineChannel, ControllerTable);
         m_CC_NUM = DECLARE_VMINT(m_cause, class Event, Param.CC.Controller);
         m_EVENT_NOTE = DECLARE_VMINT(m_cause, class Event, Param.Note.Key);
@@ -57,9 +59,9 @@ namespace LinuxSampler {
 
         // run the script handler(s)
         VMExecStatus_t res = VM_EXEC_NOT_RUNNING;
-        while (event->handlers[event->currentHandler]) {
+        for ( ; event->handlers[event->currentHandler]; event->currentHandler++) {
             res = ScriptVM::exec(
-                parserCtx, event->execCtx, event->handlers[event->currentHandler++]
+                parserCtx, event->execCtx, event->handlers[event->currentHandler]
             );
             event->executionSlices++;
             if (res & VM_EXEC_SUSPENDED || res & VM_EXEC_ERROR) return res;
@@ -101,6 +103,14 @@ namespace LinuxSampler {
         m["$VCC_PITCH_BEND"] = CTRL_TABLE_IDX_PITCHBEND;
 
         return m;
+    }
+
+    VMFunction* InstrumentScriptVM::functionByName(const String& name) {
+        // built-in script functions of this class
+        if (name == "play_note") return &m_fnPlayNote;
+
+        // built-in script functions of derived VM class
+        return ScriptVM::functionByName(name);
     }
 
 } // namespace LinuxSampler

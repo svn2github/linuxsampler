@@ -142,12 +142,16 @@ namespace LinuxSampler {
                 VMParserContext*      parserContext; ///< VM represenation of the currently loaded script or NULL if not script was loaded. Note that it is also not NULL if parser errors occurred!
                 bool                  bHasValidScript; ///< True in case there is a valid script currently loaded, false if script processing shall be skipped.
                 VMEventHandler*       handlerInit; ///< VM representation of script's initilization callback or NULL if current script did not define such an init handler.
-                VMEventHandler*       handlerNote; ///< VM representation of script's MIDI note callback or NULL if current script did not define such an event handler.
+                VMEventHandler*       handlerNote; ///< VM representation of script's MIDI note on callback or NULL if current script did not define such an event handler.
+                VMEventHandler*       handlerRelease; ///< VM representation of script's MIDI note off callback or NULL if current script did not define such an event handler.
                 VMEventHandler*       handlerController; ///< VM representation of script's MIDI controller callback or NULL if current script did not define such an event handler.
                 _Script() {
                     parserContext = NULL;
                     bHasValidScript = false;
-                    handlerNote = handlerController = NULL;
+                    handlerInit = NULL;
+                    handlerNote = NULL;
+                    handlerRelease = NULL;
+                    handlerController = NULL;
                 }
             } script;
 
@@ -178,6 +182,7 @@ namespace LinuxSampler {
             virtual void RemoveAllFxSends();
 
             void ImportEvents(uint Samples);
+            void ScheduleEvent(const Event* pEvent, int delay); //TODO: delay not implemented yet
 
             void AddGroup(uint group);
             void HandleKeyGroupConflicts(uint KeyGroup, Pool<Event>::Iterator& itNoteOnEvent);
