@@ -151,6 +151,7 @@ namespace LinuxSampler {
     class ScriptEvent {
     public:
         Event cause; ///< Original external event that triggered this script event (i.e. MIDI note on event, MIDI CC event, etc.).
+        int id; ///< Unique ID of the external event that triggered this cript event.
         VMEventHandler** handlers; ///< The script's event handlers (callbacks) to be processed (NULL terminated list).
         VMExecContext* execCtx; ///< Script's current execution state (polyphonic variables and execution stack).
         int currentHandler; ///< Current index in 'handlers' list above.

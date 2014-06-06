@@ -90,6 +90,8 @@ namespace LinuxSampler {
         virtual ExprType_t argType(int iArg) const = 0;
         virtual bool acceptsArgType(int iArg, ExprType_t type) const = 0;
         virtual VMFnResult* exec(VMFnArgs* args) = 0;
+        void wrnMsg(const String& txt);
+        void errMsg(const String& txt);
     };
 
     /**

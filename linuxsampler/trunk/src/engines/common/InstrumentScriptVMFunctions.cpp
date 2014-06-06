@@ -26,24 +26,24 @@ namespace LinuxSampler {
 
         if (note < 0 || note > 127) {
             errMsg("play_note(): argument 1 is an invalid note number");
-            return errorResult();
+            return errorResult(-1);
         }
 
         if (velocity < 0 || velocity > 127) {
             errMsg("play_note(): argument 2 is an invalid velocity value");
-            return errorResult();
+            return errorResult(-1);
         }
 
         if (sampleoffset < 0) {
             errMsg("play_note(): argument 3 may not be a negative sample offset");
-            return errorResult();
+            return errorResult(-1);
         } else if (sampleoffset != 0) {
             wrnMsg("play_note(): argument 3 does not support a sample offset other than 0 yet");
         }
 
         if (duration < -1) {
             errMsg("play_note(): argument 4 must be a duration value of at least -1 or higher");
-            return errorResult();
+            return errorResult(-1);
         } else if (duration == -1) {
             wrnMsg("play_note(): argument 4 does not support special value -1 as duration yet");
         } else if (duration != 0) {
@@ -58,7 +58,47 @@ namespace LinuxSampler {
         e.Param.Note.Key = note;
         e.Param.Note.Velocity = velocity;
 
-        pEngineChannel->ScheduleEvent(&e, duration);
+        int id = pEngineChannel->ScheduleEvent(&e, duration);
+
+        return successResult(id);
+    }
+
+    InstrumentScriptVMFunction_ignore_event::InstrumentScriptVMFunction_ignore_event(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_ignore_event::exec(VMFnArgs* args) {
+        int id = args->arg(0)->asInt()->evalInt();
+        if (id < 0) {
+            wrnMsg("ignore_event(): argument may not be a negative event ID");
+            return successResult();
+        }
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        pEngineChannel->IgnoreEvent(id);
+
+        return successResult();
+    }
+
+    InstrumentScriptVMFunction_ignore_controller::InstrumentScriptVMFunction_ignore_controller(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_ignore_controller::exec(VMFnArgs* args) {
+        int id = (args->argsCount() >= 1) ? args->arg(0)->asInt()->evalInt() : m_vm->m_event->id;
+        if (id < 0) {
+            wrnMsg("ignore_controller(): argument may not be a negative event ID");
+            return successResult();
+        }
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        pEngineChannel->IgnoreEvent(id);
 
         return successResult();
     }

@@ -38,11 +38,10 @@ namespace LinuxSampler {
     protected:
         ScriptEvent* m_event; ///< The event currently executed by exec().
 
-        Event* m_cause;
-
         // buil-in script variables
         VMInt8Array m_CC;
         VMInt8RelPtr m_CC_NUM;
+        VMIntRelPtr  m_EVENT_ID;
         VMInt8RelPtr m_EVENT_NOTE;
         VMInt8RelPtr m_EVENT_VELOCITY;
         //VMIntArray m_KEY_DOWN; //TODO: ...
@@ -51,8 +50,12 @@ namespace LinuxSampler {
 
         // buil-in script functions
         InstrumentScriptVMFunction_play_note m_fnPlayNote;
+        InstrumentScriptVMFunction_play_note m_fnIgnoreEvent;
+        InstrumentScriptVMFunction_play_note m_fnIgnoreController;
 
         friend class InstrumentScriptVMFunction_play_note;
+        friend class InstrumentScriptVMFunction_ignore_event;
+        friend class InstrumentScriptVMFunction_ignore_controller;
     };
 
 } // namespace LinuxSampler

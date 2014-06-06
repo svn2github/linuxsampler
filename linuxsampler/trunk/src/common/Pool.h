@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -61,6 +61,7 @@ class RTListBase {
             #if CONFIG_DEVMODE
             RTListBase<T1>* list; // list to which this node currently belongs to
             #endif // CONFIG_DEVMODE
+            int reincarnation; // just for Pool::fromID()
 
             _Node() {
                 next = NULL;
@@ -69,6 +70,7 @@ class RTListBase {
                 #if CONFIG_DEVMODE
                 list = NULL;
                 #endif // CONFIG_DEVMODE
+                reincarnation = 0;
             }
         };
         typedef _Node<T> Node;
@@ -145,7 +147,20 @@ class RTListBase {
                     }
                     #endif // CONFIG_DEVMODE
                     return *current->data;
+                }
 
+                inline const T1& operator*() const {
+                    #if CONFIG_DEVMODE
+                    if (!isValid()) { // if iterator became invalidated
+                        #if CONFIG_RT_EXCEPTIONS
+                        throw std::runtime_error(__err_msg_iterator_invalidated);
+                        #else
+                        std::cerr << __err_msg_iterator_invalidated << std::endl << std::flush;
+                        return *((const T1*)NULL); // force segfault if iterator became invalidated
+                        #endif // CONFIG_RT_EXCEPTIONS
+                    }
+                    #endif // CONFIG_DEVMODE
+                    return *current->data;
                 }
 
                 inline T1* operator->() {
@@ -162,11 +177,25 @@ class RTListBase {
                     return current->data;
                 }
 
-                inline bool operator==(const _Iterator<T1> other) {
+                inline const T1* operator->() const {
+                    #if CONFIG_DEVMODE
+                    if (!isValid()) { // if iterator became invalidated
+                        #if CONFIG_RT_EXCEPTIONS
+                        throw std::runtime_error(__err_msg_iterator_invalidated);
+                        #else
+                        std::cerr << __err_msg_iterator_invalidated << std::endl << std::flush;
+                        return (const T1*)NULL; // force segfault if iterator became invalidated
+                        #endif // CONFIG_RT_EXCEPTIONS
+                    }
+                    #endif // CONFIG_DEVMODE
+                    return current->data;
+                }
+
+                inline bool operator==(const _Iterator<T1> other) const {
                     return current == other.current;
                 }
 
-                inline bool operator!=(const _Iterator<T1> other) {
+                inline bool operator!=(const _Iterator<T1> other) const {
                     return current != other.current;
                 }
 
@@ -195,7 +224,7 @@ class RTListBase {
                 }
 
                 #if CONFIG_DEVMODE
-                inline bool isValid() {
+                inline bool isValid() const {
                     return current->list == list;
                 }
                 #endif // CONFIG_DEVMODE
@@ -232,6 +261,19 @@ class RTListBase {
                     #endif // CONFIG_DEVMODE
                 }
 
+                inline const Node* node() const {
+                    #if CONFIG_DEVMODE
+                    #if CONFIG_RT_EXCEPTIONS
+                    if (isValid()) return current;
+                    else throw std::runtime_error(__err_msg_iterator_invalidated);
+                    #else
+                    return (isValid()) ? current : (const Node*)NULL; // force segfault if iterator became invalidated
+                    #endif // CONFIG_RT_EXCEPTIONS
+                    #else
+                    return current;
+                    #endif // CONFIG_DEVMODE
+                }
+
                 inline void detach() {
                     RTListBase<T1>::detach(*this);
                 }
@@ -258,7 +300,7 @@ class RTListBase {
             return Iterator(&_end, Iterator::dir_backward);
         }
 
-        inline bool isEmpty() {
+        inline bool isEmpty() const {
             return _begin.next == &_end;
         }
 
@@ -399,7 +441,7 @@ class RTList : public RTListBase<T> {
             clear();
         }
 
-        inline bool poolIsEmpty() {
+        inline bool poolIsEmpty() const {
             return pPool->poolIsEmpty();
         }
 
@@ -438,6 +480,18 @@ class RTList : public RTListBase<T> {
             }
         }
 
+        inline int getID(const T* obj) const {
+            return pPool->getID(obj);
+        }
+
+        inline int getID(const Iterator& it) const {
+            return pPool->getID(&*it);
+        }
+
+        inline Iterator fromID(int id) const {
+            return pPool->fromID(id);
+        }
+
     protected:
         Pool<T>* pPool;
 };
@@ -462,7 +516,7 @@ class Pool : public RTList<T> {
             if (data)  delete[] data;
         }
 
-        inline bool poolIsEmpty() {
+        inline bool poolIsEmpty() const {
             return freelist.isEmpty();
         }
 
@@ -507,6 +561,74 @@ class Pool : public RTList<T> {
             _init(Elements);
         }
 
+        /**
+         * Returns an abstract, unique numeric ID for the given object of
+         * this pool, it returns -1 in case the passed object is not a member
+         * of this Pool, i.e. because it is simply an invalid pointer or member
+         * of another Pool. The returned ID is unique among all elements of this
+         * Pool and it differs with each reincarnation of an object. That means
+         * each time you free an element to and allocate the same element back
+         * from the Pool, it will have a different ID.
+         *
+         * Members are always translated both, from Iterators/pointers to IDs,
+         * and from IDs to Iterators/pointers in constant time.
+         *
+         * You might want to use this alternative approach of referencing Pool
+         * members under certain scenarios. For example if you need to expose
+         * an ID to the end user and/or if you want to represent an object of
+         * this pool by a smaller number instead of a native pointer (i.e. 16
+         * bits vs. 64 bits). You can also detect this way whether the object
+         * has already been freed / reallocated from the Pool in the meantime.
+         *
+         * @param obj - raw pointer to a data member of this Pool
+         * @returns unique numeric ID of @a obj or -1 if pointer was invalid
+         */
+        int getID(const T* obj) const {
+            if (!poolsize) return -1;
+            int index = obj - &data[0];
+            if (index < 0 || index >= poolsize) return -1;
+            return (nodes[index].reincarnation << bitsForSize(poolsize)) | index;
+        }
+
+        /**
+         * Overridden convenience method, behaves like the method above.
+         */
+        int getID(const Iterator& it) const {
+            return getID(&*it);
+        }
+
+        /**
+         * Returns an Iterator object of the Pool data member reflected by the
+         * given abstract, unique numeric ID, it returns an invalid Iterator in
+         * case the ID is invalid or if the Pool's data element reflected by
+         * given ID was at least once released/freed back to the Pool in the
+         * meantime.
+         *
+         * Members are always translated both, from Iterators/pointers to IDs,
+         * and from IDs to Iterators/pointers in constant time.
+         *
+         * You might want to use this alternative approach of referencing Pool
+         * members under certain scenarios. For example if you need to expose
+         * an ID to the end user and/or if you want to represent an object of
+         * this pool by a smaller number instead of a native pointer (i.e. 16
+         * bits vs. 64 bits). You can also detect this way whether the object
+         * has already been freed / reallocated from the Pool in the meantime.
+         *
+         * @param id - unique ID of a Pool's data member
+         * @returns Iterator object pointing to Pool's data element, invalid
+         *          Iterator in case ID was invalid or data element was freed
+         */
+        Iterator fromID(int id) const {
+            if (id < 0) return Iterator(); // invalid iterator
+            const uint bits = bitsForSize(poolsize);
+            uint index = id & ((1 << bits) - 1);
+            if (index >= poolsize) return Iterator(); // invalid iterator
+            Node* node = &nodes[index];
+            int reincarnation = uint(id) >> bits;
+            if (reincarnation != node->reincarnation) return Iterator(); // invalid iterator 
+            return Iterator(node);
+        }
+
     protected:
         // caution: assumes pool (that is freelist) is not empty!
         inline Iterator alloc() {
@@ -516,10 +638,15 @@ class Pool : public RTList<T> {
         }
 
         inline void freeToPool(Iterator itElement) {
+            itElement.node()->reincarnation++;
             freelist.append(itElement);
         }
 
         inline void freeToPool(Iterator itFirst, Iterator itLast) {
+            for (Node* n = itFirst.node(); true; n = n->next) {
+                n->reincarnation++;
+                if (n == itLast.node()) break;
+            }
             freelist.append(itFirst, itLast);
         }
 
@@ -534,6 +661,14 @@ class Pool : public RTList<T> {
                 freelist.append(&nodes[i]);
             }
             poolsize = Elements;
+        }
+
+        inline static int bitsForSize(int size) {
+            if (!size) return 0;
+            size--;
+            int bits = 0;
+            for (; size > 1; bits += 2, size >>= 2);
+            return bits + size;
         }
 };
 

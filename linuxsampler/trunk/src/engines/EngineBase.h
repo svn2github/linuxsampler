@@ -737,6 +737,7 @@ namespace LinuxSampler {
 
                 // initialize/reset other members
                 itScriptEvent->cause = *itEvent;
+                itScriptEvent->id = pEventPool->getID(itEvent);
                 itScriptEvent->currentHandler = 0;
                 itScriptEvent->executionSlices = 0;
 

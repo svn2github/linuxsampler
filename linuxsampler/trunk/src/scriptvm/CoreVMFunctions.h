@@ -27,6 +27,17 @@ public:
     StmtFlags_t resultFlags() { return flags; }
 };
 
+class VMIntResult : public VMFnResult, public VMIntExpr {
+public:
+    StmtFlags_t flags;
+    int value;
+
+    VMIntResult() : flags(STMT_SUCCESS) {}
+    int evalInt() { return value; }
+    VMExpr* resultValue() { return this; }
+    StmtFlags_t resultFlags() { return flags; }
+};
+
 class VMStringResult : public VMFnResult, public VMStringExpr {
 public:
     StmtFlags_t flags;
@@ -43,10 +54,17 @@ protected:
     ExprType_t returnType() { return EMPTY_EXPR; }
     VMFnResult* errorResult();
     VMFnResult* successResult();
-    void wrnMsg(const String& txt);
-    void errMsg(const String& txt);
 protected:
     VMEmptyResult result;
+};
+
+class VMIntResultFunction : public VMFunction {
+protected:
+    ExprType_t returnType() { return INT_EXPR; }
+    VMFnResult* errorResult(int i = 0);
+    VMFnResult* successResult(int i = 0);
+protected:
+    VMIntResult result;
 };
 
 class VMStringResultFunction : public VMFunction {

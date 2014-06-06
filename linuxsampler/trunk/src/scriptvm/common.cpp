@@ -8,6 +8,7 @@
  */
 
 #include "common.h"
+#include <iostream>
 
 namespace LinuxSampler {
 
@@ -17,6 +18,14 @@ namespace LinuxSampler {
 
     VMStringExpr* VMExpr::asString() const {
         return const_cast<VMStringExpr*>( dynamic_cast<const VMStringExpr*>(this) );
+    }
+
+    void VMFunction::wrnMsg(const String& txt) {
+        std::cout << "[ScriptVM] " << txt << std::endl;
+    }
+
+    void VMFunction::errMsg(const String& txt) {
+        std::cerr << "[ScriptVM] " << txt << std::endl;
     }
 
 } // namespace LinuxSampler

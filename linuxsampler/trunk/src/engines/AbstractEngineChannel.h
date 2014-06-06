@@ -182,7 +182,8 @@ namespace LinuxSampler {
             virtual void RemoveAllFxSends();
 
             void ImportEvents(uint Samples);
-            void ScheduleEvent(const Event* pEvent, int delay); //TODO: delay not implemented yet
+            int  ScheduleEvent(const Event* pEvent, int delay); //TODO: delay not implemented yet
+            void IgnoreEvent(int id);
 
             void AddGroup(uint group);
             void HandleKeyGroupConflicts(uint KeyGroup, Pool<Event>::Iterator& itNoteOnEvent);

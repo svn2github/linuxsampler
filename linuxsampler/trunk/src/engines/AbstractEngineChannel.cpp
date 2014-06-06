@@ -887,16 +887,30 @@ namespace LinuxSampler {
         }
         eventQueueReader.free(); // free all copied events from input queue
     }
-    
+
     /**
      * Called by real-time instrument script functions to schedule a new event
      * somewhere in future.
+     *
+     * @returns unique event ID of scheduled new event
      */
-    void AbstractEngineChannel::ScheduleEvent(const Event* pEvent, int delay) { //TODO: delay not implemented yet
+    int AbstractEngineChannel::ScheduleEvent(const Event* pEvent, int delay) { //TODO: delay not implemented yet
         // since delay is not implemented yet, we simply add the new event
         // to the event list of the current audio fragmet cycle for now
         RTList<Event>::Iterator itEvent = pEvents->allocAppend();
         if (itEvent) *itEvent = *pEvent; // copy event
+        return pEvents->getID(itEvent);
+    }
+
+    /**
+     * Called by real-time instrument script functions to ignore the event
+     * reflected by given event ID. The event will be freed immediately to its
+     * pool and cannot be dereferenced by its old ID anymore. Even if its
+     * allocated back from the Pool later on, it will have a different ID.
+     */
+    void AbstractEngineChannel::IgnoreEvent(int id) {
+        RTList<Event>::Iterator it = pEvents->fromID(id);
+        if (it) pEvents->free(it);
     }
 
     FxSend* AbstractEngineChannel::AddFxSend(uint8_t MidiCtrl, String Name) throw (Exception) {

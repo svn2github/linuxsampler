@@ -20,12 +20,14 @@ namespace LinuxSampler {
     #define _MEMBER_SIZEOF(T_Class, Member) sizeof(((T_Class*)NULL)->Member)
 
     InstrumentScriptVM::InstrumentScriptVM() :
-        m_event(NULL), m_fnPlayNote(this)
+        m_event(NULL), m_fnPlayNote(this), m_fnIgnoreEvent(this),
+        m_fnIgnoreController(this)
     {
         m_CC.size = _MEMBER_SIZEOF(AbstractEngineChannel, ControllerTable);
-        m_CC_NUM = DECLARE_VMINT(m_cause, class Event, Param.CC.Controller);
-        m_EVENT_NOTE = DECLARE_VMINT(m_cause, class Event, Param.Note.Key);
-        m_EVENT_VELOCITY = DECLARE_VMINT(m_cause, class Event, Param.Note.Velocity);
+        m_CC_NUM = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.CC.Controller);
+        m_EVENT_ID = DECLARE_VMINT(m_event, class ScriptEvent, id);
+        m_EVENT_NOTE = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.Note.Key);
+        m_EVENT_VELOCITY = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.Note.Velocity);
     }
 
     VMExecStatus_t InstrumentScriptVM::exec(VMParserContext* parserCtx, ScriptEvent* event) {
@@ -33,7 +35,7 @@ namespace LinuxSampler {
             static_cast<AbstractEngineChannel*>(event->cause.pEngineChannel);
 
         // prepare built-in script variables for script execution
-        m_cause = &event->cause;
+        m_event = event;
         m_CC.data = (int8_t*) &pEngineChannel->ControllerTable[0];
 
         // if script is in start condition, then do mandatory MIDI event
@@ -41,18 +43,18 @@ namespace LinuxSampler {
         // table with new CC value in case of a controller event, because the
         // script might access the new CC value
         if (!event->executionSlices) {
-            switch (m_cause->Type) {
+            switch (event->cause.Type) {
                 case Event::type_control_change:
-                    pEngineChannel->ControllerTable[m_cause->Param.CC.Controller] =
-                        m_cause->Param.CC.Value;
+                    pEngineChannel->ControllerTable[event->cause.Param.CC.Controller] =
+                        event->cause.Param.CC.Value;
                     break;
                 case Event::type_channel_pressure:
                     pEngineChannel->ControllerTable[CTRL_TABLE_IDX_AFTERTOUCH] =
-                        m_cause->Param.ChannelPressure.Value;
+                        event->cause.Param.ChannelPressure.Value;
                     break;
                 case Event::type_pitchbend:
                     pEngineChannel->ControllerTable[CTRL_TABLE_IDX_PITCHBEND] =
-                        m_cause->Param.Pitch.Pitch;
+                        event->cause.Param.Pitch.Pitch;
                     break;
             }
         }
@@ -76,6 +78,7 @@ namespace LinuxSampler {
 
         // now add own built-in variables
         m["$CC_NUM"] = &m_CC_NUM;
+        m["$EVENT_ID"] = &m_EVENT_ID;
         m["$EVENT_NOTE"] = &m_EVENT_NOTE;
         m["$EVENT_VELOCITY"] = &m_EVENT_VELOCITY;
 //         m["$POLY_AT_NUM"] = &m_POLY_AT_NUM;
@@ -107,7 +110,9 @@ namespace LinuxSampler {
 
     VMFunction* InstrumentScriptVM::functionByName(const String& name) {
         // built-in script functions of this class
-        if (name == "play_note") return &m_fnPlayNote;
+        if      (name == "play_note") return &m_fnPlayNote;
+        else if (name == "ignore_event") return &m_fnIgnoreEvent;
+        else if (name == "ignore_controller") return &m_fnIgnoreController;
 
         // built-in script functions of derived VM class
         return ScriptVM::functionByName(name);

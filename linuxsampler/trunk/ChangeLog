@@ -439,6 +439,10 @@ Version CVS HEAD (?)
     - Implemented execution of script event handler "release".
     - Implemented built-in script function "play_note()" (only two of the
       max. four function arguments are currently implemented yet though).
+    - Implemented built-in script int variable $EVENT_ID.
+    - Implemented built-in script function "ignore_event()"
+    - Implemented built-in script function "ignore_controller()" (may have one
+      or no argument).
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range
