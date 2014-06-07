@@ -48,6 +48,7 @@ template<class T> inline std::string ToString(T o) {
 
 /// Find the number of bits required to hold the specified amount of zones.
 inline int zoneCountToBits(int nZones) {
+    if (!nZones) return 0;
     int iFinalBits = 0;
     int zoneBits = nZones - 1;
     for (; zoneBits > 1; iFinalBits += 2, zoneBits >>= 2);

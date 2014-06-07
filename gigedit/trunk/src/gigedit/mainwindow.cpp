@@ -45,6 +45,7 @@
 #include "mainwindow.h"
 #include "Settings.h"
 #include "CombineInstrumentsDialog.h"
+#include "scripteditor.h"
 #include "../../gfx/status_attached.xpm"
 #include "../../gfx/status_detached.xpm"
 
@@ -78,6 +79,9 @@ MainWindow::MainWindow() :
     m_ScrolledWindowSamples.add(m_TreeViewSamples);
     m_ScrolledWindowSamples.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
+    m_ScrolledWindowScripts.add(m_TreeViewScripts);
+    m_ScrolledWindowScripts.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+
 
     m_TreeViewNotebook.set_size_request(300);
 
@@ -98,7 +102,7 @@ MainWindow::MainWindow() :
 
     m_TreeViewNotebook.append_page(m_ScrolledWindowSamples, _("Samples"));
     m_TreeViewNotebook.append_page(m_ScrolledWindow, _("Instruments"));
-
+    m_TreeViewNotebook.append_page(m_ScrolledWindowScripts, _("Scripts"));
 
     actionGroup = Gtk::ActionGroup::create();
 
@@ -231,6 +235,24 @@ MainWindow::MainWindow() :
                             _("Replace All Samples in All Groups...")),
         sigc::mem_fun(*this, &MainWindow::on_action_replace_all_samples_in_all_groups)
     );
+    
+    // script right-click popup actions
+    actionGroup->add(
+        Gtk::Action::create("AddScriptGroup", _("Add _Group")),
+        sigc::mem_fun(*this, &MainWindow::on_action_add_script_group)
+    );
+    actionGroup->add(
+        Gtk::Action::create("AddScript", _("Add _Script")),
+        sigc::mem_fun(*this, &MainWindow::on_action_add_script)
+    );
+    actionGroup->add(
+        Gtk::Action::create("EditScript", _("_Edit Script...")),
+        sigc::mem_fun(*this, &MainWindow::on_action_edit_script)
+    );
+    actionGroup->add(
+        Gtk::Action::create("RemoveScript", Gtk::Stock::REMOVE),
+        sigc::mem_fun(*this, &MainWindow::on_action_remove_script)
+    );
 
     uiManager = Gtk::UIManager::create();
     uiManager->insert_action_group(actionGroup);
@@ -286,6 +308,13 @@ MainWindow::MainWindow() :
         "    <menuitem action='ReplaceAllSamplesInAllGroups' />"
         "    <separator/>"
         "    <menuitem action='RemoveSample'/>"
+        "  </popup>"
+        "  <popup name='ScriptPopupMenu'>"
+        "    <menuitem action='AddScriptGroup'/>"
+        "    <menuitem action='AddScript'/>"
+        "    <menuitem action='EditScript'/>"
+        "    <separator/>"
+        "    <menuitem action='RemoveScript'/>"
         "  </popup>"
         "</ui>";
     uiManager->add_ui_from_string(ui_info);
@@ -376,6 +405,23 @@ MainWindow::MainWindow() :
     );
     m_refSamplesTreeModel->signal_row_changed().connect(
         sigc::mem_fun(*this, &MainWindow::sample_name_changed)
+    );
+
+    // create scripts treeview (including its data model)
+    m_refScriptsTreeModel = ScriptsTreeStore::create(m_ScriptsModel);
+    m_TreeViewScripts.set_model(m_refScriptsTreeModel);
+    m_TreeViewScripts.set_tooltip_text(_(
+        "Note: instrument scripts are a LinuxSampler extension of the gig "
+        "format. This feature will not work with the GigaStudio software!"
+    ));
+    // m_TreeViewScripts.set_reorderable();
+    m_TreeViewScripts.append_column_editable("Samples", m_ScriptsModel.m_col_name);
+    m_TreeViewScripts.set_headers_visible(false);
+    m_TreeViewScripts.signal_button_press_event().connect_notify(
+        sigc::mem_fun(*this, &MainWindow::on_script_treeview_button_release)
+    );
+    m_refScriptsTreeModel->signal_row_changed().connect(
+        sigc::mem_fun(*this, &MainWindow::script_name_changed)
     );
 
     // establish drag&drop between samples tree view and dimension region 'Sample' text entry
@@ -1342,6 +1388,28 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
             }
         }
     }
+    
+    for (int i = 0; gig->GetScriptGroup(i); ++i) {
+        gig::ScriptGroup* group = gig->GetScriptGroup(i);
+
+        Gtk::TreeModel::iterator iterGroup = m_refScriptsTreeModel->append();
+        Gtk::TreeModel::Row rowGroup = *iterGroup;
+        rowGroup[m_ScriptsModel.m_col_name]   = gig_to_utf8(group->Name);
+        rowGroup[m_ScriptsModel.m_col_group]  = group;
+        rowGroup[m_ScriptsModel.m_col_script] = NULL;
+        for (int s = 0; group->GetScript(s); ++s) {
+            gig::Script* script = group->GetScript(s);
+
+            Gtk::TreeModel::iterator iterScript =
+                m_refScriptsTreeModel->append(rowGroup.children());
+            Gtk::TreeModel::Row rowScript = *iterScript;
+            rowScript[m_ScriptsModel.m_col_name] = gig_to_utf8(script->Name);
+            rowScript[m_ScriptsModel.m_col_script] = script;
+            rowScript[m_ScriptsModel.m_col_group]  = NULL;
+        }
+    }
+    // unfold all script groups by default
+    m_TreeViewScripts.expand_all();
 
     file = gig;
 
@@ -1506,6 +1574,32 @@ void MainWindow::on_sample_treeview_button_release(GdkEventButton* button) {
     }
 }
 
+void MainWindow::on_script_treeview_button_release(GdkEventButton* button) {
+    if (button->type == GDK_BUTTON_PRESS && button->button == 3) {
+        Gtk::Menu* script_popup =
+            dynamic_cast<Gtk::Menu*>(uiManager->get_widget("/ScriptPopupMenu"));
+        // update enabled/disabled state of sample popup items
+        Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewScripts.get_selection();
+        Gtk::TreeModel::iterator it = sel->get_selected();
+        bool group_selected  = false;
+        bool script_selected = false;
+        if (it) {
+            Gtk::TreeModel::Row row = *it;
+            group_selected  = row[m_ScriptsModel.m_col_group];
+            script_selected = row[m_ScriptsModel.m_col_script];
+        }
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/ScriptPopupMenu/AddScript"))->
+            set_sensitive(group_selected || script_selected);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/ScriptPopupMenu/AddScriptGroup"))->
+            set_sensitive(file);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/ScriptPopupMenu/EditScript"))->
+            set_sensitive(script_selected);    
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/ScriptPopupMenu/RemoveScript"))->
+            set_sensitive(group_selected || script_selected);
+        // show sample popup
+        script_popup->popup(button->button, button->time);
+    }
+}
 
 Gtk::RadioMenuItem* MainWindow::add_instrument_to_menu(
     const Glib::ustring& name, int position) {
@@ -1651,6 +1745,118 @@ void MainWindow::on_action_sample_properties() {
         *this, _("Sorry, yet to be implemented!"), false, Gtk::MESSAGE_INFO
     );
     msg.run();
+}
+
+void MainWindow::on_action_add_script_group() {
+    static int __script_indexer = 0;
+    if (!file) return;
+    gig::ScriptGroup* group = file->AddScriptGroup();
+    group->Name = gig_from_utf8(_("Unnamed Group"));
+    if (__script_indexer) group->Name += " " + ToString(__script_indexer);
+    __script_indexer++;
+    // update sample tree view
+    Gtk::TreeModel::iterator iterGroup = m_refScriptsTreeModel->append();
+    Gtk::TreeModel::Row rowGroup = *iterGroup;
+    rowGroup[m_ScriptsModel.m_col_name] = gig_to_utf8(group->Name);
+    rowGroup[m_ScriptsModel.m_col_script] = NULL;
+    rowGroup[m_ScriptsModel.m_col_group] = group;
+    file_changed();
+}
+
+void MainWindow::on_action_add_script() {
+    if (!file) return;
+    // get selected group
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewScripts.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    if (!it) return;
+    Gtk::TreeModel::Row row = *it;
+    gig::ScriptGroup* group = row[m_ScriptsModel.m_col_group];
+    if (!group) { // not a group, but a script is selected (probably)
+        gig::Script* script = row[m_ScriptsModel.m_col_script];
+        if (!script) return;
+        it = row.parent(); // resolve parent (that is the script's group)
+        if (!it) return;
+        row = *it;
+        group = row[m_ScriptsModel.m_col_group];
+        if (!group) return;
+    }
+
+    // add a new script to the .gig file
+    gig::Script* script = group->AddScript();    
+    Glib::ustring name = _("Unnamed Script");
+    script->Name = gig_from_utf8(name);
+
+    // add script to the tree view
+    Gtk::TreeModel::iterator iterScript =
+        m_refScriptsTreeModel->append(row.children());
+    Gtk::TreeModel::Row rowScript = *iterScript;
+    rowScript[m_ScriptsModel.m_col_name] = name;
+    rowScript[m_ScriptsModel.m_col_script] = script;
+    rowScript[m_ScriptsModel.m_col_group]  = NULL;
+
+    // unfold group of new script item in treeview
+    Gtk::TreeModel::Path path(iterScript);
+    m_TreeViewScripts.expand_to_path(path);
+}
+
+void MainWindow::on_action_edit_script() {
+    if (!file) return;
+    // get selected script
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewScripts.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    if (!it) return;
+    Gtk::TreeModel::Row row = *it;
+    gig::Script* script = row[m_ScriptsModel.m_col_script];
+    if (!script) return;
+
+    ScriptEditor* editor = new ScriptEditor;
+    editor->setScript(script);
+    //editor->reparent(*this);
+    editor->show();
+}
+
+void MainWindow::on_action_remove_script() {
+    if (!file) return;
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewScripts.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    if (it) {
+        Gtk::TreeModel::Row row = *it;
+        gig::ScriptGroup* group = row[m_ScriptsModel.m_col_group];
+        gig::Script* script     = row[m_ScriptsModel.m_col_script];
+        Glib::ustring name      = row[m_ScriptsModel.m_col_name];
+        try {
+            // remove script group or script from the gig file
+            if (group) {
+                // notify everybody that we're going to remove these samples
+//TODO:         scripts_to_be_removed_signal.emit(members);
+                // delete the group in the .gig file including the
+                // samples that belong to the group
+                file->DeleteScriptGroup(group);
+                // notify that we're done with removal
+//TODO:         scripts_removed_signal.emit();
+                file_changed();
+            } else if (script) {
+                // notify everybody that we're going to remove this sample
+//TODO:         std::list<gig::Script*> lscripts;
+//TODO:         lscripts.push_back(script);
+//TODO:         scripts_to_be_removed_signal.emit(lscripts);
+                // remove sample from the .gig file
+                script->GetGroup()->DeleteScript(script);
+                // notify that we're done with removal
+//TODO:         scripts_removed_signal.emit();
+                dimreg_changed();
+                file_changed();
+            }
+            // remove respective row(s) from samples tree view
+            m_refScriptsTreeModel->erase(it);
+        } catch (RIFF::Exception e) {
+            // pretend we're done with removal (i.e. to avoid dead locks)
+//TODO:     scripts_removed_signal.emit();
+            // show error message
+            Gtk::MessageDialog msg(*this, e.Message.c_str(), false, Gtk::MESSAGE_ERROR);
+            msg.run();
+        }
+    }
 }
 
 void MainWindow::on_action_add_group() {
@@ -2145,6 +2351,29 @@ void MainWindow::sample_name_changed(const Gtk::TreeModel::Path& path,
         if (sample->pInfo->Name != gigname) {
             sample->pInfo->Name = gigname;
             printf("sample name changed\n");
+            file_changed();
+        }
+    }
+}
+
+void MainWindow::script_name_changed(const Gtk::TreeModel::Path& path,
+                                     const Gtk::TreeModel::iterator& iter) {
+    if (!iter) return;
+    Gtk::TreeModel::Row row = *iter;
+    Glib::ustring name      = row[m_ScriptsModel.m_col_name];
+    gig::ScriptGroup* group = row[m_ScriptsModel.m_col_group];
+    gig::Script* script     = row[m_ScriptsModel.m_col_script];
+    gig::String gigname(gig_from_utf8(name));
+    if (group) {
+        if (group->Name != gigname) {
+            group->Name = gigname;
+            printf("script group name changed\n");
+            file_changed();
+        }
+    } else if (script) {
+        if (script->Name != gigname) {
+            script->Name = gigname;
+            printf("script name changed\n");
             file_changed();
         }
     }

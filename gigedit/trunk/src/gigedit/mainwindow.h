@@ -257,6 +257,32 @@ protected:
     Gtk::TreeView m_TreeViewSamples;
     Glib::RefPtr<SamplesTreeStore> m_refSamplesTreeModel;
 
+    class ScriptsModel : public Gtk::TreeModel::ColumnRecord {
+    public:
+        ScriptsModel() {
+            add(m_col_name);
+            add(m_col_script);
+            add(m_col_group);
+        }
+
+        Gtk::TreeModelColumn<Glib::ustring> m_col_name;
+        Gtk::TreeModelColumn<gig::Script*> m_col_script;
+        Gtk::TreeModelColumn<gig::ScriptGroup*> m_col_group;
+    } m_ScriptsModel;
+
+    class ScriptsTreeStore : public Gtk::TreeStore {
+    public:
+        static Glib::RefPtr<ScriptsTreeStore> create(const ScriptsModel& columns) {
+            return Glib::RefPtr<ScriptsTreeStore>( new ScriptsTreeStore(columns) );
+        }
+    protected:
+        ScriptsTreeStore(const ScriptsModel& columns) : Gtk::TreeStore(columns) {}
+    };
+
+    Gtk::ScrolledWindow m_ScrolledWindowScripts;
+    Gtk::TreeView m_TreeViewScripts;
+    Glib::RefPtr<ScriptsTreeStore> m_refScriptsTreeModel;
+
     Gtk::VBox dimreg_vbox;
     Gtk::HBox dimreg_hbox;
     Gtk::Label dimreg_label;
@@ -297,6 +323,13 @@ protected:
     void on_action_add_sample();
     void on_action_replace_all_samples_in_all_groups();
     void on_action_remove_sample();
+    
+    // script right-click popup actions
+    void on_script_treeview_button_release(GdkEventButton* button);
+    void on_action_add_script_group();
+    void on_action_add_script();
+    void on_action_edit_script();
+    void on_action_remove_script();
 
     void on_action_add_instrument();
     void on_action_duplicate_instrument();
@@ -334,6 +367,8 @@ protected:
                                                  const Gtk::SelectionData& selection_data,
                                                  guint, guint time);
 
+    void script_name_changed(const Gtk::TreeModel::Path& path,
+                             const Gtk::TreeModel::iterator& iter);
     void sample_name_changed(const Gtk::TreeModel::Path& path,
                              const Gtk::TreeModel::iterator& iter);
     void instrument_name_changed(const Gtk::TreeModel::Path& path,

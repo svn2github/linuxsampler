@@ -66,6 +66,10 @@ Version CVS HEAD (?)
     version (by combo box).
   * 'Dimension Manager' dialog: added support for viewing and editing
     dimensions of all regions simultaniously.
+  * GIG SOUND FORMAT EXTENSION: Added support for managing and editing
+    real-time instrument scripts. Instrument scripts are a LinuxSampler
+    extension of the original Giga format and will not load with the
+    GigaStudio software.
 
 Version 0.2.0 (2009-07-31)
 
