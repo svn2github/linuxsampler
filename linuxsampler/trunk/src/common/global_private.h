@@ -57,6 +57,13 @@ typedef int16_t sample_t;
 typedef float v4sf __attribute__ ((vector_size(16)));
 #endif
 
+// circumvents a bug in GCC 4.x which causes a sizeof() expression applied
+// on a class member to throw a compiler error, i.e. with GCC 4.4:
+// "object missing in reference to 'LinuxSampler::AbstractEngineChannel::ControllerTable'")
+// or with GCC 4.0:
+// "invalid use of non-static data member 'LinuxSampler::AbstractEngineChannel::ControllerTable'"
+#define _MEMBER_SIZEOF(T_Class, Member) sizeof(((T_Class*)NULL)->Member)
+
 /**
  * Whether a function / method call was successful, or if warnings or even an
  * error occured.

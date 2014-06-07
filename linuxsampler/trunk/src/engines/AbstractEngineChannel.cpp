@@ -471,6 +471,7 @@ namespace LinuxSampler {
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
             event.Param.Note.Channel  = MidiChannel;
+            event.Format              = {}; // init format specific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -512,6 +513,7 @@ namespace LinuxSampler {
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
             event.Param.Note.Channel  = MidiChannel;
+            event.Format              = {}; // init format specific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -548,6 +550,7 @@ namespace LinuxSampler {
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
             event.Param.Note.Channel  = MidiChannel;
+            event.Format              = {}; // init format specific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -589,6 +592,7 @@ namespace LinuxSampler {
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
             event.Param.Note.Channel  = MidiChannel;
+            event.Format              = {}; // init format specific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -623,6 +627,7 @@ namespace LinuxSampler {
             event.Type              = Event::type_pitchbend;
             event.Param.Pitch.Pitch = Pitch;
             event.Param.Pitch.Channel = MidiChannel;
+            event.Format            = {}; // init format specific stuff with zeroes
             event.pEngineChannel    = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -652,6 +657,7 @@ namespace LinuxSampler {
             event.Type              = Event::type_pitchbend;
             event.Param.Pitch.Pitch = Pitch;
             event.Param.Pitch.Channel = MidiChannel;
+            event.Format            = {}; // init format specific stuff with zeroes
             event.pEngineChannel    = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -678,6 +684,7 @@ namespace LinuxSampler {
             event.Param.CC.Controller = Controller;
             event.Param.CC.Value      = Value;
             event.Param.CC.Channel    = MidiChannel;
+            event.Format              = {}; // init format specific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -709,6 +716,7 @@ namespace LinuxSampler {
             event.Param.CC.Controller = Controller;
             event.Param.CC.Value      = Value;
             event.Param.CC.Channel    = MidiChannel;
+            event.Format              = {}; // init format specific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -725,6 +733,7 @@ namespace LinuxSampler {
             event.Type                          = Event::type_channel_pressure;
             event.Param.ChannelPressure.Value   = Value;
             event.Param.ChannelPressure.Channel = MidiChannel;
+            event.Format                        = {}; // init format specific stuff with zeroes
             event.pEngineChannel                = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -741,6 +750,7 @@ namespace LinuxSampler {
             event.Type                          = Event::type_channel_pressure;
             event.Param.ChannelPressure.Value   = Value;
             event.Param.ChannelPressure.Channel = MidiChannel;
+            event.Format                        = {}; // init format specific stuff with zeroes
             event.pEngineChannel                = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -758,6 +768,7 @@ namespace LinuxSampler {
             event.Param.NotePressure.Key     = Key;
             event.Param.NotePressure.Value   = Value;
             event.Param.NotePressure.Channel = MidiChannel;
+            event.Format                     = {}; // init format specific stuff with zeroes
             event.pEngineChannel             = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -775,6 +786,7 @@ namespace LinuxSampler {
             event.Param.NotePressure.Key     = Key;
             event.Param.NotePressure.Value   = Value;
             event.Param.NotePressure.Channel = MidiChannel;
+            event.Format                     = {}; // init format specific stuff with zeroes
             event.pEngineChannel             = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));

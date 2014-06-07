@@ -11,6 +11,8 @@ liblinuxsamplergigengine_la_SOURCES = \
 	EGDecay.cpp EGDecay.h \
 	Engine.cpp Engine.h \
 	Filter.h Filter.cpp \
+	InstrumentScriptVM.h InstrumentScriptVM.cpp \
+	InstrumentScriptVMFunctions.h InstrumentScriptVMFunctions.cpp \
 	InstrumentResourceManager.cpp InstrumentResourceManager.h \
 	Stream.cpp Stream.h \
 	Voice.cpp Voice.h \

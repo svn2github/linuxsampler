@@ -71,6 +71,13 @@ namespace LinuxSampler {
 
             void SetVoiceCount(uint Count);
 
+            /**
+             * Returns event with the given event ID.
+             */
+            RTList<Event>::Iterator EventByID(int id) {
+                return pEventPool->fromID(id);
+            }
+
             float Random() {
                 RandomSeed = RandomSeed * 1103515245 + 12345; // classic pseudo random number generator
                 return RandomSeed / 4294967296.0f;
@@ -157,6 +164,7 @@ namespace LinuxSampler {
             virtual void ProcessChannelPressure(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itChannelPressureEvent) = 0;
             virtual void ProcessPolyphonicKeyPressure(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNotePressureEvent) = 0;
             virtual int  GetMinFadeOutSamples() = 0;
+            virtual InstrumentScriptVM* CreateInstrumentScriptVM();
 
         private:
             static std::map<Format, std::map<AudioOutputDevice*,AbstractEngine*> > engines;

@@ -50,10 +50,12 @@ namespace LinuxSampler {
 
         // buil-in script functions
         InstrumentScriptVMFunction_play_note m_fnPlayNote;
-        InstrumentScriptVMFunction_play_note m_fnIgnoreEvent;
-        InstrumentScriptVMFunction_play_note m_fnIgnoreController;
+        InstrumentScriptVMFunction_set_controller m_fnSetController;
+        InstrumentScriptVMFunction_ignore_event m_fnIgnoreEvent;
+        InstrumentScriptVMFunction_ignore_controller m_fnIgnoreController;
 
         friend class InstrumentScriptVMFunction_play_note;
+        friend class InstrumentScriptVMFunction_set_controller;
         friend class InstrumentScriptVMFunction_ignore_event;
         friend class InstrumentScriptVMFunction_ignore_controller;
     };

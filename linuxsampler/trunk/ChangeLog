@@ -443,6 +443,23 @@ Version CVS HEAD (?)
     - Implemented built-in script function "ignore_event()"
     - Implemented built-in script function "ignore_controller()" (may have one
       or no argument).
+    - Implemented built-in script function "set_controller()".
+    - Added extended script VM for the Gigasampler/GigaStudio format sampler
+      engine, which extends the general instrument script VM with Giga format
+      specific variables and functions.
+    - Giga format scripts: added built-in script int constant variables
+      $GIG_DIM_CHANNEL, $GIG_DIM_LAYER, $GIG_DIM_VELOCITY, $GIG_DIM_AFTERTOUCH,
+      $GIG_DIM_RELEASE, $GIG_DIM_KEYBOARD, $GIG_DIM_ROUNDROBIN, $GIG_DIM_RANDOM,
+      $GIG_DIM_SMARTMIDI, $GIG_DIM_ROUNDROBINKEY, $GIG_DIM_MODWHEEL,
+      $GIG_DIM_BREATH, $GIG_DIM_FOOT, $GIG_DIM_PORTAMENTOTIME, $GIG_DIM_EFFECT1,
+      $GIG_DIM_EFFECT2, $GIG_DIM_GENPURPOSE1, $GIG_DIM_GENPURPOSE2,
+      $GIG_DIM_GENPURPOSE3, $GIG_DIM_GENPURPOSE4, $GIG_DIM_SUSTAIN,
+      $GIG_DIM_PORTAMENTO, $GIG_DIM_SOSTENUTO, $GIG_DIM_SOFT,
+      $GIG_DIM_GENPURPOSE5, $GIG_DIM_GENPURPOSE6, $GIG_DIM_GENPURPOSE7,
+      $GIG_DIM_GENPURPOSE8, $GIG_DIM_EFFECT1DEPTH, $GIG_DIM_EFFECT2DEPTH,
+      $GIG_DIM_EFFECT3DEPTH, $GIG_DIM_EFFECT4DEPTH, $GIG_DIM_EFFECT5DEPTH.
+    - Giga format scripts: Implemented built-in script function
+      "gig_set_dim_zone(event_id, dimension, zone)".
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

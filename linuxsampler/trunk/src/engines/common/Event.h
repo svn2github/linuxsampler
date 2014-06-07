@@ -83,23 +83,23 @@ namespace LinuxSampler {
             union {
                 /// Note-on and note-off event specifics
                 struct _Note {
+                    uint8_t Channel;     ///< MIDI channel (0..15)
                     uint8_t Key;         ///< MIDI key number of note-on / note-off event.
                     uint8_t Velocity;    ///< Trigger or release velocity of note-on / note-off event.
-                    uint8_t Channel;     ///< MIDI channel (0..15)
                     int8_t  Layer;       ///< Layer index (usually only used if a note-on event has to be postponed, e.g. due to shortage of free voices).
                     int8_t  ReleaseTrigger; ///< If new voice should be a release triggered voice (actually boolean field and usually only used if a note-on event has to be postponed, e.g. due to shortage of free voices).
                     void*   pRegion;     ///< Engine specific pointer to instrument region
                 } Note;
                 /// Control change event specifics
                 struct _CC {
+                    uint8_t Channel;     ///< MIDI channel (0..15)
                     uint8_t Controller;  ///< MIDI controller number of control change event.
                     uint8_t Value;       ///< Controller Value of control change event.
-                    uint8_t Channel;     ///< MIDI channel (0..15)
                 } CC;
                 /// Pitchbend event specifics
                 struct _Pitch {
-                    int16_t Pitch;       ///< Pitch value of pitchbend event.
                     uint8_t Channel;     ///< MIDI channel (0..15)
+                    int16_t Pitch;       ///< Pitch value of pitchbend event.
                 } Pitch;
                 /// MIDI system exclusive event specifics
                 struct _Sysex {
@@ -107,16 +107,24 @@ namespace LinuxSampler {
                 } Sysex;
                 /// Channel Pressure (aftertouch) event specifics
                 struct _ChannelPressure {
-                    uint8_t Value;   ///< New aftertouch / pressure value for keys on that channel.
                     uint8_t Channel; ///< MIDI channel (0..15)
+                    uint8_t Value;   ///< New aftertouch / pressure value for keys on that channel.
                 } ChannelPressure;
                 /// Polyphonic Note Pressure (aftertouch) event specifics
                 struct _NotePressure {
+                    uint8_t Channel; ///< MIDI channel (0..15)
                     uint8_t Key;     ///< MIDI note number where key pressure (polyphonic aftertouch) changed.
                     uint8_t Value;   ///< New pressure value for note.
-                    uint8_t Channel; ///< MIDI channel (0..15)
                 } NotePressure;
             } Param;
+            /// Sampler format specific informations and variables.
+            union {
+                /// Gigasampler/GigaStudio format specifics.
+                struct _Gig {
+                    uint8_t DimMask; ///< May be used to override the Dimension zone to be selected for a new voice: each 1 bit means that respective bit shall be overridden by taking the respective bit from DimBits instead.
+                    uint8_t DimBits; ///< Used only in conjunction with DimMask: Dimension bits that shall be selected.
+                } Gig;
+            } Format;
             EngineChannel* pEngineChannel; ///< Pointer to the EngineChannel where this event occured on, NULL means Engine global event (e.g. SysEx message).
             MidiInputPort* pMidiInputPort; ///< Pointer to the MIDI input port on which this event occured (NOTE: currently only for global events, that is SysEx messages)
 

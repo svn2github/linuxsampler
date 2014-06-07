@@ -9,19 +9,13 @@
 
 #include "InstrumentScriptVM.h"
 #include "../AbstractEngineChannel.h"
+#include "../../common/global_private.h"
 
 namespace LinuxSampler {
 
-    // circumvents a bug in GCC 4.x which causes a sizeof() expression applied
-    // on a class member to throw a compiler error, i.e. with GCC 4.4:
-    // "object missing in reference to 'LinuxSampler::AbstractEngineChannel::ControllerTable'")
-    // or with GCC 4.0:
-    // "invalid use of non-static data member 'LinuxSampler::AbstractEngineChannel::ControllerTable'"
-    #define _MEMBER_SIZEOF(T_Class, Member) sizeof(((T_Class*)NULL)->Member)
-
     InstrumentScriptVM::InstrumentScriptVM() :
-        m_event(NULL), m_fnPlayNote(this), m_fnIgnoreEvent(this),
-        m_fnIgnoreController(this)
+        m_event(NULL), m_fnPlayNote(this), m_fnSetController(this),
+        m_fnIgnoreEvent(this), m_fnIgnoreController(this)
     {
         m_CC.size = _MEMBER_SIZEOF(AbstractEngineChannel, ControllerTable);
         m_CC_NUM = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.CC.Controller);
@@ -111,6 +105,7 @@ namespace LinuxSampler {
     VMFunction* InstrumentScriptVM::functionByName(const String& name) {
         // built-in script functions of this class
         if      (name == "play_note") return &m_fnPlayNote;
+        else if (name == "set_controller") return &m_fnSetController;
         else if (name == "ignore_event") return &m_fnIgnoreEvent;
         else if (name == "ignore_controller") return &m_fnIgnoreController;
 

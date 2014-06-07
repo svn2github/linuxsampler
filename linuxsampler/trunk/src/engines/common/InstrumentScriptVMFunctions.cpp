@@ -57,11 +57,46 @@ namespace LinuxSampler {
         e.Type = Event::type_note_on;
         e.Param.Note.Key = note;
         e.Param.Note.Velocity = velocity;
+        e.Format = {}; // init format speific stuff with zero
 
         int id = pEngineChannel->ScheduleEvent(&e, duration);
 
         return successResult(id);
     }
+
+    InstrumentScriptVMFunction_set_controller::InstrumentScriptVMFunction_set_controller(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_set_controller::exec(VMFnArgs* args) {
+        int controller = args->arg(0)->asInt()->evalInt();
+        int value      = args->arg(1)->asInt()->evalInt();
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        Event e = m_vm->m_event->cause;
+        e.Format = {}; // init format speific stuff with zero
+        if (controller == CTRL_TABLE_IDX_AFTERTOUCH) {
+            e.Type = Event::type_channel_pressure;
+            e.Param.ChannelPressure.Value = value & 127;
+        } else if (controller == CTRL_TABLE_IDX_PITCHBEND) {
+            e.Type = Event::type_pitchbend;
+            e.Param.Pitch.Pitch = value;
+        } else if (controller >= 0 && controller <= 127) {
+            e.Type = Event::type_control_change;
+            e.Param.CC.Controller = controller;
+            e.Param.CC.Value = value;
+        } else {
+            errMsg("set_controller(): argument 1 is an invalid controller");
+            return errorResult();
+        }
+
+        int id = pEngineChannel->ScheduleEvent(&e, 0);
+
+        return successResult(id);
+    }    
 
     InstrumentScriptVMFunction_ignore_event::InstrumentScriptVMFunction_ignore_event(InstrumentScriptVM* parent)
         : m_vm(parent)

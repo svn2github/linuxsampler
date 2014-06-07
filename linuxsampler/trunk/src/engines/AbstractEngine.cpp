@@ -90,7 +90,7 @@ namespace LinuxSampler {
         FrameTime          = 0;
         RandomSeed         = 0;
         pDedicatedVoiceChannelLeft = pDedicatedVoiceChannelRight = NULL;
-        pScriptVM          = new InstrumentScriptVM;
+        pScriptVM          = CreateInstrumentScriptVM();
     }
 
     AbstractEngine::~AbstractEngine() {
@@ -103,6 +103,16 @@ namespace LinuxSampler {
         if (pDedicatedVoiceChannelRight) delete pDedicatedVoiceChannelRight;
         if (pScriptVM) delete pScriptVM;
         Unregister();
+    }
+
+    /**
+     * Allocates a sampler format independent real-time instrument script
+     * runner. This method is overriden by sampler engines in case they have
+     * their own implementation of the script VM, with script feature extensions
+     * required for their sampler format.
+     */
+    InstrumentScriptVM* AbstractEngine::CreateInstrumentScriptVM() {
+        return new InstrumentScriptVM; // format independent script runner
     }
 
     /**
@@ -432,6 +442,7 @@ namespace LinuxSampler {
         Event event             = pEventGenerator->CreateEvent();
         event.Type              = Event::type_sysex;
         event.Param.Sysex.Size  = Size;
+        event.Format            = {}; // init format specific stuff with zeroes
         event.pEngineChannel    = NULL; // as Engine global event
         event.pMidiInputPort    = pSender;
         if (pEventQueue->write_space() > 0) {

@@ -29,6 +29,18 @@ namespace LinuxSampler {
         InstrumentScriptVM* m_vm;
     };
 
+    class InstrumentScriptVMFunction_set_controller : public VMIntResultFunction {
+    public:
+        InstrumentScriptVMFunction_set_controller(InstrumentScriptVM* parent);
+        int minRequiredArgs() const { return 2; }
+        int maxAllowedArgs() const { return 2; }
+        bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR;}
+        ExprType_t argType(int iArg) const { return INT_EXPR; }
+        VMFnResult* exec(VMFnArgs* args);
+    protected:
+        InstrumentScriptVM* m_vm;
+    };
+
     class InstrumentScriptVMFunction_ignore_event : public VMEmptyResultFunction {
     public:
         InstrumentScriptVMFunction_ignore_event(InstrumentScriptVM* parent);

@@ -24,9 +24,14 @@
 
 #include "Engine.h"
 #include "EngineChannel.h"
+#include "InstrumentScriptVM.h"
 
 namespace LinuxSampler { namespace gig {
     Engine::Format Engine::GetEngineFormat() { return GIG; }
+
+    LinuxSampler::InstrumentScriptVM* Engine::CreateInstrumentScriptVM() {
+        return new InstrumentScriptVM; // gig format specific extended script runner
+    }
 
     /**
      *  Reacts on supported control change commands (e.g. pitch bend wheel,
@@ -300,7 +305,16 @@ namespace LinuxSampler { namespace gig {
         // change has occured between note on and off)
         if (ReleaseTriggerVoice && !(VoiceType & Voice::type_release_trigger)) return Pool<Voice>::Iterator();
 
-        ::gig::DimensionRegion* pDimRgn = pRegion->GetDimensionRegionByValue(DimValues);
+        
+        ::gig::DimensionRegion* pDimRgn;
+        if (!itNoteOnEvent->Format.Gig.DimMask) { // normal case ...
+            pDimRgn = pRegion->GetDimensionRegionByValue(DimValues);
+        } else { // some dimension zones were overridden (i.e. by instrument script) ...
+            int index = pRegion->GetDimensionRegionIndexByValue(DimValues);
+            index &= ~itNoteOnEvent->Format.Gig.DimMask;
+            index |=  itNoteOnEvent->Format.Gig.DimBits & itNoteOnEvent->Format.Gig.DimMask;
+            pDimRgn = pRegion->pDimensionRegions[index & 255];
+        }
         if (!pDimRgn) return Pool<Voice>::Iterator(); // error (could not resolve dimension region)
 
         // no need to continue if sample is silent
