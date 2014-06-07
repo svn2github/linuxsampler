@@ -4094,7 +4094,7 @@ namespace {
             for (int i = 0; i < nameSize; ++i)
                 Name[i] = ckScri->ReadUint8();
             // to handle potential future extensions of the header
-            ckScri->SetPos(headerSize - 6*sizeof(int32_t) + nameSize, RIFF::stream_curpos);
+            ckScri->SetPos(sizeof(int32_t) + headerSize);
             // read actual script data
             uint32_t scriptSize = ckScri->GetSize() - ckScri->GetPos();
             data.resize(scriptSize);
