@@ -3759,6 +3759,56 @@ namespace {
         return dimreg;
     }
 
+    int Region::GetDimensionRegionIndexByValue(const uint DimValues[8]) {
+        uint8_t bits;
+        int veldim = -1;
+        int velbitpos;
+        int bitpos = 0;
+        int dimregidx = 0;
+        for (uint i = 0; i < Dimensions; i++) {
+            if (pDimensionDefinitions[i].dimension == dimension_velocity) {
+                // the velocity dimension must be handled after the other dimensions
+                veldim = i;
+                velbitpos = bitpos;
+            } else {
+                switch (pDimensionDefinitions[i].split_type) {
+                    case split_type_normal:
+                        if (pDimensionRegions[0]->DimensionUpperLimits[i]) {
+                            // gig3: all normal dimensions (not just the velocity dimension) have custom zone ranges
+                            for (bits = 0 ; bits < pDimensionDefinitions[i].zones ; bits++) {
+                                if (DimValues[i] <= pDimensionRegions[bits << bitpos]->DimensionUpperLimits[i]) break;
+                            }
+                        } else {
+                            // gig2: evenly sized zones
+                            bits = uint8_t(DimValues[i] / pDimensionDefinitions[i].zone_size);
+                        }
+                        break;
+                    case split_type_bit: // the value is already the sought dimension bit number
+                        const uint8_t limiter_mask = (0xff << pDimensionDefinitions[i].bits) ^ 0xff;
+                        bits = DimValues[i] & limiter_mask; // just make sure the value doesn't use more bits than allowed
+                        break;
+                }
+                dimregidx |= bits << bitpos;
+            }
+            bitpos += pDimensionDefinitions[i].bits;
+        }
+        dimregidx &= 255;
+        DimensionRegion* dimreg = pDimensionRegions[dimregidx];
+        if (!dimreg) return -1;
+        if (veldim != -1) {
+            // (dimreg is now the dimension region for the lowest velocity)
+            if (dimreg->VelocityTable) // custom defined zone ranges
+                bits = dimreg->VelocityTable[DimValues[veldim] & 127];
+            else // normal split type
+                bits = uint8_t((DimValues[veldim] & 127) / pDimensionDefinitions[veldim].zone_size);
+
+            const uint8_t limiter_mask = (1 << pDimensionDefinitions[veldim].bits) - 1;
+            dimregidx |= (bits & limiter_mask) << velbitpos;
+            dimregidx &= 255;
+        }
+        return dimregidx;
+    }
+
     /**
      * Returns the appropriate DimensionRegion for the given dimension bit
      * numbers (zone index). You usually use <i>GetDimensionRegionByValue</i>

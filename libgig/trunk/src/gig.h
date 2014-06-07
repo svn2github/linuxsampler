@@ -725,6 +725,7 @@ namespace gig {
             // own methods
             DimensionRegion* GetDimensionRegionByValue(const uint DimValues[8]);
             DimensionRegion* GetDimensionRegionByBit(const uint8_t DimBits[8]);
+            int              GetDimensionRegionIndexByValue(const uint DimValues[8]);
             Sample*          GetSample();
             void             AddDimension(dimension_def_t* pDimDef);
             void             DeleteDimension(dimension_def_t* pDimDef);
