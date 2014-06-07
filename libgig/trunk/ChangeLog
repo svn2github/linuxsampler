@@ -65,6 +65,7 @@ Version CVS HEAD (?)
       constraints to prevent that)
     - GIG FORMAT EXTENSION: added support for real-time instrument scripts.
     - added new method Region::GetDimensionRegionIndexByValue()
+    - added new method Script::GetGroup()
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()

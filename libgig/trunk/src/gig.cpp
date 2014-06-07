@@ -4179,6 +4179,16 @@ namespace {
         this->pGroup = pGroup;
     }
 
+    /**
+     * Returns the script group this script currently belongs to. Each script
+     * is a member of exactly one ScriptGroup.
+     *
+     * @returns current script group
+     */
+    ScriptGroup* Script::GetGroup() const {
+        return pGroup;
+    }
+
     void Script::RemoveAllScriptReferences() {
         File* pFile = pGroup->pFile;
         for (int i = 0; pFile->GetInstrument(i); ++i) {

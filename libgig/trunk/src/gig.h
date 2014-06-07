@@ -880,6 +880,7 @@ namespace gig {
             String GetScriptAsText();
             void   SetScriptAsText(const String& text);
             void   SetGroup(ScriptGroup* pGroup);
+            ScriptGroup* GetGroup() const;
         protected:
             Script(ScriptGroup* group, RIFF::Chunk* ckScri);
             virtual ~Script();
