@@ -93,7 +93,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "all-in-one installer"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "http://linuxsampler.org"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "The LinuxSampler Project"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" ""
-VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© 2003-2013 The LinuxSampler Project"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© 2003-2014 The LinuxSampler Project"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "LinuxSampler Installer (${RELEASE_DATE})"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "0.0.0"
 
@@ -503,6 +503,7 @@ Section "libgig 3.3.0" Seclibgig
   libgig64:
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\libgig-6.dll
+  File bin\64\libakai-0.dll
   File bin\64\rifftree.exe
   File bin\64\dlsdump.exe
   File bin\64\gigdump.exe
@@ -531,6 +532,7 @@ Section "libgig 3.3.0" Seclibgig
   libgig686sse:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686sse\libgig-6.dll
+  File bin\686sse\libakai-0.dll
   File bin\686sse\rifftree.exe
   File bin\686sse\dlsdump.exe
   File bin\686sse\gigdump.exe
@@ -547,6 +549,7 @@ Section "libgig 3.3.0" Seclibgig
   libgig686:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\libgig-6.dll
+  File bin\686\libakai-0.dll
   File bin\686\rifftree.exe
   File bin\686\dlsdump.exe
   File bin\686\gigdump.exe
