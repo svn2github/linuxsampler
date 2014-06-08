@@ -40,6 +40,7 @@ void PrintVersion();
 void PrintFileInformations(gig::File* gig);
 void PrintGroups(gig::File* gig);
 void PrintSamples(gig::File* gig);
+void PrintScripts(gig::File* gig);
 void PrintInstruments(gig::File* gig);
 void PrintRegions(gig::Instrument* instr);
 void PrintUsage();
@@ -72,6 +73,8 @@ int main(int argc, char *argv[])
         PrintGroups(gig);
         cout << endl;
         PrintSamples(gig);
+        cout << endl;
+        PrintScripts(gig);
         cout << endl;
         PrintInstruments(gig);
         delete gig;
@@ -181,6 +184,21 @@ void PrintSamples(gig::File* gig) {
     }
 }
 
+void PrintScripts(gig::File* gig) {
+    cout << "ALL Available Real-Time Instrument Scripts (as there might be more than referenced by Instruments):" << endl;
+    for (int g = 0; gig->GetScriptGroup(g); ++g) {
+        gig::ScriptGroup* pGroup = gig->GetScriptGroup(g);
+        cout << "    Group " << g+1 << ") '" << pGroup->Name << "'\n";
+        for (int s = 0; pGroup->GetScript(s); ++s) {
+            gig::Script* pScript = pGroup->GetScript(s);
+            cout << "        Script " << s+1 << ") '" << pScript->Name << "':\n";
+            cout << "[START OF SCRIPT]\n";
+            cout << pScript->GetScriptAsText();
+            cout << "[END OF SCRIPT]\n";
+        }
+    }
+}
+
 void PrintInstruments(gig::File* gig) {
     int instruments = 0;
     cout << "Available Instruments:" << endl;
@@ -193,6 +211,14 @@ void PrintInstruments(gig::File* gig) {
         cout << "    Instrument " << instruments << ") " << name << ", ";
 
         cout << " MIDIBank=" << pInstrument->MIDIBank << ", MIDIProgram=" << pInstrument->MIDIProgram << endl;
+
+        cout << "        ScriptSlots=" << pInstrument->ScriptSlotCount() << endl;
+        for (int s = 0; s < pInstrument->ScriptSlotCount(); ++s) {
+            gig::Script* pScript = pInstrument->GetScriptOfSlot(s);
+            string name = pScript->Name;
+            cout << "        ScriptSlot[" << s << "]='" << name << "'\n";
+        }
+
         PrintRegions(pInstrument);
 
         pInstrument = gig->GetNextInstrument();

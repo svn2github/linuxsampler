@@ -1743,7 +1743,7 @@ namespace DLS {
     void File::Save(const String& Path) {
         UpdateChunks();
         pRIFF->Save(Path);
-        __UpdateWavePoolTableChunk();
+        UpdateFileOffsets();
     }
 
     /** @brief Save changes to same file.
@@ -1758,6 +1758,20 @@ namespace DLS {
     void File::Save() {
         UpdateChunks();
         pRIFF->Save();
+        UpdateFileOffsets();
+    }
+
+    /** @brief Updates all file offsets stored all over the file.
+     *
+     * This virtual method is called whenever the overall file layout has been
+     * changed (i.e. file or individual RIFF chunks have been resized). It is
+     * then the responsibility of this method to update all file offsets stored
+     * in the file format. For example samples are referenced by instruments by
+     * file offsets. The gig format also stores references to instrument
+     * scripts as file offsets, and thus it overrides this method to update
+     * those file offsets as well.
+     */
+    void File::UpdateFileOffsets() {
         __UpdateWavePoolTableChunk();
     }
 

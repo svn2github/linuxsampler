@@ -4398,15 +4398,19 @@ namespace {
         if (lst3LS) {
             RIFF::Chunk* ckSCSL = lst3LS->GetSubChunk(CHUNK_ID_SCSL);
             if (ckSCSL) {
-                int slotCount = ckSCSL->ReadUint32();
-                int slotSize  = ckSCSL->ReadUint32();
-                int unknownSpace = slotSize - 2*sizeof(uint32_t); // in case of future extensions
-                for (int i = 0; i < slotCount; ++i) {
-                    _ScriptPooolEntry e;
-                    e.fileOffset = ckSCSL->ReadUint32();
-                    e.bypass     = ckSCSL->ReadUint32() & 1;
-                    if (unknownSpace) ckSCSL->SetPos(unknownSpace, RIFF::stream_curpos); // in case of future extensions
-                    scriptPoolFileOffsets.push_back(e);
+                int headerSize = ckSCSL->ReadUint32();
+                int slotCount  = ckSCSL->ReadUint32();
+                if (slotCount) {
+                    int slotSize  = ckSCSL->ReadUint32();
+                    ckSCSL->SetPos(headerSize); // in case of future header extensions
+                    int unknownSpace = slotSize - 2*sizeof(uint32_t); // in case of future slot extensions
+                    for (int i = 0; i < slotCount; ++i) {
+                        _ScriptPooolEntry e;
+                        e.fileOffset = ckSCSL->ReadUint32();
+                        e.bypass     = ckSCSL->ReadUint32() & 1;
+                        if (unknownSpace) ckSCSL->SetPos(unknownSpace, RIFF::stream_curpos); // in case of future extensions
+                        scriptPoolFileOffsets.push_back(e);
+                    }
                 }
             }
         }
@@ -4492,22 +4496,51 @@ namespace {
        if (pScriptRefs) {
            RIFF::List* lst3LS = pCkInstrument->GetSubList(LIST_TYPE_3LS);
            if (!lst3LS) lst3LS = pCkInstrument->AddSubList(LIST_TYPE_3LS);
-           const int totalSize = pScriptRefs->size() * 2*sizeof(uint32_t);
+           const int slotCount = pScriptRefs->size();
+           const int headerSize = 3 * sizeof(uint32_t);
+           const int slotSize  = 2 * sizeof(uint32_t);
+           const int totalChunkSize = headerSize + slotCount * slotSize;
            RIFF::Chunk* ckSCSL = lst3LS->GetSubChunk(CHUNK_ID_SCSL);
-           if (!ckSCSL) ckSCSL = lst3LS->AddSubChunk(CHUNK_ID_SCSL, totalSize);
-           else ckSCSL->Resize(totalSize);
+           if (!ckSCSL) ckSCSL = lst3LS->AddSubChunk(CHUNK_ID_SCSL, totalChunkSize);
+           else ckSCSL->Resize(totalChunkSize);
            uint8_t* pData = (uint8_t*) ckSCSL->LoadChunkData();
-           for (int i = 0, pos = 0; i < pScriptRefs->size(); ++i) {
-               int fileOffset =
-                    (*pScriptRefs)[i].script->pChunk->GetFilePos() -
-                    (*pScriptRefs)[i].script->pChunk->GetPos() -
-                    CHUNK_HEADER_SIZE;
-               store32(&pData[pos], fileOffset);
+           int pos = 0;
+           store32(&pData[pos], headerSize);
+           pos += sizeof(uint32_t);
+           store32(&pData[pos], slotCount);
+           pos += sizeof(uint32_t);
+           store32(&pData[pos], slotSize);
+           pos += sizeof(uint32_t);
+           for (int i = 0; i < slotCount; ++i) {
+               // arbitrary value, the actual file offset will be updated in
+               // UpdateScriptFileOffsets() after the file has been resized
+               int bogusFileOffset = 0;
+               store32(&pData[pos], bogusFileOffset);
                pos += sizeof(uint32_t);
                store32(&pData[pos], (*pScriptRefs)[i].bypass ? 1 : 0);
                pos += sizeof(uint32_t);
            }
        }
+    }
+
+    void Instrument::UpdateScriptFileOffsets() { 
+       // own gig format extensions
+       if (pScriptRefs) {
+           RIFF::List* lst3LS = pCkInstrument->GetSubList(LIST_TYPE_3LS);
+           RIFF::Chunk* ckSCSL = lst3LS->GetSubChunk(CHUNK_ID_SCSL);
+           const int slotCount = pScriptRefs->size();
+           const int headerSize = 3 * sizeof(uint32_t);
+           ckSCSL->SetPos(headerSize);
+           for (int i = 0; i < slotCount; ++i) {
+               uint32_t fileOffset =
+                    (*pScriptRefs)[i].script->pChunk->GetFilePos() -
+                    (*pScriptRefs)[i].script->pChunk->GetPos() -
+                    CHUNK_HEADER_SIZE;
+               ckSCSL->WriteUint32(&fileOffset);
+               // jump over flags entry (containing the bypass flag)
+               ckSCSL->SetPos(sizeof(uint32_t), RIFF::stream_curpos);
+           }
+       }        
     }
 
     /**
@@ -4645,16 +4678,16 @@ namespace {
         if (scriptPoolFileOffsets.empty()) return;
         File* pFile = (File*) GetParent();
         for (uint k = 0; k < scriptPoolFileOffsets.size(); ++k) {
-            uint32_t offset = scriptPoolFileOffsets[k].fileOffset;
+            uint32_t soughtOffset = scriptPoolFileOffsets[k].fileOffset;
             for (uint i = 0; pFile->GetScriptGroup(i); ++i) {
                 ScriptGroup* group = pFile->GetScriptGroup(i);
                 for (uint s = 0; group->GetScript(s); ++s) {
                     Script* script = group->GetScript(s);
                     if (script->pChunk) {
-                        script->pChunk->SetPos(0);
-                        if (script->pChunk->GetFilePos() -
-                            script->pChunk->GetPos() -
-                            CHUNK_HEADER_SIZE == offset)
+                        uint32_t offset = script->pChunk->GetFilePos() -
+                                          script->pChunk->GetPos() -
+                                          CHUNK_HEADER_SIZE;
+                        if (offset == soughtOffset)
                         {
                             _ScriptPooolRef ref;
                             ref.script = script;
@@ -5911,6 +5944,16 @@ namespace {
 
             // the order of einf and 3crc is not the same in v2 and v3
             if (einf && pVersion && pVersion->major == 3) pRIFF->MoveSubChunk(_3crc, einf);
+        }
+    }
+    
+    void File::UpdateFileOffsets() {
+        DLS::File::UpdateFileOffsets();
+
+        for (Instrument* instrument = GetFirstInstrument(); instrument;
+             instrument = GetNextInstrument())
+        {
+            instrument->UpdateScriptFileOffsets();
         }
     }
 

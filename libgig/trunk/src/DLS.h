@@ -532,6 +532,7 @@ namespace DLS {
 
             virtual void LoadSamples();
             virtual void LoadInstruments();
+            virtual void UpdateFileOffsets();
             void __ensureMandatoryChunksExist();
             friend class Region; // Region has to look in the wave pool table to get its sample
         private:

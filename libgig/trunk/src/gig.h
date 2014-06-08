@@ -981,6 +981,7 @@ namespace gig {
             void CopyAssign(const Instrument* orig, const std::map<Sample*,Sample*>* mSamples);
             void UpdateRegionKeyTable();
             void LoadScripts();
+            void UpdateScriptFileOffsets();
             friend class File;
             friend class Region; // so Region can call UpdateRegionKeyTable()
         private:
@@ -1084,6 +1085,7 @@ namespace gig {
             virtual void LoadSamples();
             virtual void LoadInstruments();
             virtual void LoadGroups();
+            virtual void UpdateFileOffsets();
             // own protected methods
             virtual void LoadSamples(progress_t* pProgress);
             virtual void LoadInstruments(progress_t* pProgress);
