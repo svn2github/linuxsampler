@@ -57,7 +57,7 @@ namespace LinuxSampler {
         e.Type = Event::type_note_on;
         e.Param.Note.Key = note;
         e.Param.Note.Velocity = velocity;
-        e.Format = {}; // init format speific stuff with zero
+        memset(&e.Format, 0, sizeof(e.Format)); // init format speific stuff with zero
 
         int id = pEngineChannel->ScheduleEvent(&e, duration);
 
@@ -77,7 +77,7 @@ namespace LinuxSampler {
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
 
         Event e = m_vm->m_event->cause;
-        e.Format = {}; // init format speific stuff with zero
+        memset(&e.Format, 0, sizeof(e.Format)); // init format speific stuff with zero
         if (controller == CTRL_TABLE_IDX_AFTERTOUCH) {
             e.Type = Event::type_channel_pressure;
             e.Param.ChannelPressure.Value = value & 127;

@@ -442,7 +442,7 @@ namespace LinuxSampler {
         Event event             = pEventGenerator->CreateEvent();
         event.Type              = Event::type_sysex;
         event.Param.Sysex.Size  = Size;
-        event.Format            = {}; // init format specific stuff with zeroes
+        memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
         event.pEngineChannel    = NULL; // as Engine global event
         event.pMidiInputPort    = pSender;
         if (pEventQueue->write_space() > 0) {
