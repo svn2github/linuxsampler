@@ -28,7 +28,7 @@ createuniv lib/libvorbisenc.2.dylib
 createuniv lib/libFLAC.8.2.0.dylib
 ln -s libFLAC.8.2.0.dylib "$D/lib/libFLAC.8.dylib"
 createuniv lib/libsndfile.1.dylib
-createuniv lib/libgig.6.dylib
+createuniv lib/libgig/libgig.6.dylib lib/libgig.6.dylib
 createuniv lib/linuxsampler/liblinuxsampler.3.dylib lib/liblinuxsampler.3.dylib
 createuniv bin/linuxsampler LinuxSampler/linuxsampler
 createuniv bin/lscp LinuxSampler/lscp
