@@ -312,6 +312,7 @@ protected:
     void show_instr_props();
     bool instr_props_set_instrument();
     void show_midi_rules();
+    void show_script_slots();
     void on_action_view_status_bar();
     void on_action_warn_user_on_extensions();
     void on_action_help_about();
@@ -359,6 +360,9 @@ protected:
     bool check_if_savable();
 
     void on_button_release(GdkEventButton* button);
+    void on_scripts_treeview_drag_begin(const Glib::RefPtr<Gdk::DragContext>& context);
+    void on_scripts_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&,
+                                           Gtk::SelectionData& selection_data, guint, guint);
     void on_sample_treeview_drag_begin(const Glib::RefPtr<Gdk::DragContext>& context);
     void on_sample_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&,
                                           Gtk::SelectionData& selection_data, guint, guint);

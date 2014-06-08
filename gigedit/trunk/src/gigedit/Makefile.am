@@ -30,6 +30,7 @@ libgigedit_la_SOURCES = \
 	midirules.cpp midirules.h \
 	Settings.cpp Settings.h \
 	scripteditor.cpp scripteditor.h \
+	scriptslots.cpp scriptslots.h \
 	$(wraplabel) $(mac_src)
 libgigedit_la_LIBADD = \
 	$(GTKMM_LIBS) $(GIG_LIBS) $(SNDFILE_LIBS)

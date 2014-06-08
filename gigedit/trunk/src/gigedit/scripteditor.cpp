@@ -44,6 +44,7 @@ ScriptEditor::ScriptEditor() :
     m_tagTable->add(m_keywordTag);
     m_eventTag = Gtk::TextBuffer::Tag::create();
     m_eventTag->property_foreground() = "blue";
+    m_eventTag->property_weight() = PANGO_WEIGHT_BOLD;
     m_tagTable->add(m_eventTag);
     m_textBuffer = Gtk::TextBuffer::create(m_tagTable);
     m_textView.set_buffer(m_textBuffer);
@@ -118,7 +119,7 @@ void ScriptEditor::setScript(gig::Script* script) {
 }
 
 void ScriptEditor::onTextInserted(const Gtk::TextBuffer::iterator& itEnd, const Glib::ustring& txt, int length) {
-    printf("inserted %d\n", length);
+    //printf("inserted %d\n", length);
     Gtk::TextBuffer::iterator itStart = itEnd;
     itStart.backward_chars(length);
 
@@ -134,7 +135,7 @@ void ScriptEditor::onTextInserted(const Gtk::TextBuffer::iterator& itEnd, const 
         }
 
         Glib::ustring s = m_textBuffer->get_text(itWordStart, it, false);
-        printf("{%s}\n", s.c_str());
+        //printf("{%s}\n", s.c_str());
         if (isKeyword(s))
             m_textBuffer->apply_tag(m_keywordTag, itWordStart, it);
         else if (isEvent(s)) {
@@ -161,7 +162,7 @@ void ScriptEditor::onTextInserted(const Gtk::TextBuffer::iterator& itEnd, const 
 }
 
 void ScriptEditor::onTextErased(const Gtk::TextBuffer::iterator& itStart, const Gtk::TextBuffer::iterator& itEnd) {
-    printf("erased\n");
+    //printf("erased\n");
     Gtk::TextBuffer::iterator itStart2 = itStart;
     if (itStart2.inside_word() || itStart2.ends_word())
         itStart2.backward_word_start();

@@ -46,6 +46,7 @@
 #include "Settings.h"
 #include "CombineInstrumentsDialog.h"
 #include "scripteditor.h"
+#include "scriptslots.h"
 #include "../../gfx/status_attached.xpm"
 #include "../../gfx/status_detached.xpm"
 
@@ -134,9 +135,13 @@ MainWindow::MainWindow() :
                      sigc::mem_fun(
                          *this, &MainWindow::show_instr_props));
     actionGroup->add(Gtk::Action::create("MidiRules",
-                                         _("_Midi Rules")),
+                                         _("_Midi Rules...")),
                      sigc::mem_fun(
                          *this, &MainWindow::show_midi_rules));
+    actionGroup->add(Gtk::Action::create("ScriptSlots",
+                                         _("_Script Slots...")),
+                     sigc::mem_fun(
+                         *this, &MainWindow::show_script_slots));
     actionGroup->add(Gtk::Action::create("Quit", Gtk::Stock::QUIT),
                      sigc::mem_fun(
                          *this, &MainWindow::on_action_quit));
@@ -296,6 +301,7 @@ MainWindow::MainWindow() :
         "  <popup name='PopupMenu'>"
         "    <menuitem action='InstrProperties'/>"
         "    <menuitem action='MidiRules'/>"
+        "    <menuitem action='ScriptSlots'/>"
         "    <menuitem action='AddInstrument'/>"
         "    <menuitem action='DupInstrument'/>"
         "    <separator/>"
@@ -422,6 +428,17 @@ MainWindow::MainWindow() :
     );
     m_refScriptsTreeModel->signal_row_changed().connect(
         sigc::mem_fun(*this, &MainWindow::script_name_changed)
+    );
+
+    // establish drag&drop between scripts tree view and ScriptSlots window
+    std::vector<Gtk::TargetEntry> drag_target_gig_script;
+    drag_target_gig_script.push_back(Gtk::TargetEntry("gig::Script"));
+    m_TreeViewScripts.drag_source_set(drag_target_gig_script);
+    m_TreeViewScripts.signal_drag_begin().connect(
+        sigc::mem_fun(*this, &MainWindow::on_scripts_treeview_drag_begin)
+    );
+    m_TreeViewScripts.signal_drag_data_get().connect(
+        sigc::mem_fun(*this, &MainWindow::on_scripts_treeview_drag_data_get)
     );
 
     // establish drag&drop between samples tree view and dimension region 'Sample' text entry
@@ -1478,6 +1495,22 @@ void MainWindow::show_midi_rules()
     }
 }
 
+void MainWindow::show_script_slots() {
+    if (!file) return;
+    // get selected instrument
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeView.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    if (!it) return;
+    Gtk::TreeModel::Row row = *it;
+    gig::Instrument* instrument = row[m_Columns.m_col_instr];
+    if (!instrument) return;
+
+    ScriptSlots* window = new ScriptSlots;
+    window->setInstrument(instrument);
+    //window->reparent(*this);
+    window->show();
+}
+
 void MainWindow::on_action_view_status_bar() {
     Gtk::CheckMenuItem* item =
         dynamic_cast<Gtk::CheckMenuItem*>(uiManager->get_widget("/MenuBar/MenuView/Statusbar"));
@@ -2226,6 +2259,32 @@ void MainWindow::on_action_remove_sample() {
             msg.run();
         }
     }
+}
+
+// see comment on on_sample_treeview_drag_begin()
+void MainWindow::on_scripts_treeview_drag_begin(const Glib::RefPtr<Gdk::DragContext>& context)
+{
+    first_call_to_drag_data_get = true;
+}
+
+void MainWindow::on_scripts_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&,
+                                                   Gtk::SelectionData& selection_data, guint, guint)
+{
+    if (!first_call_to_drag_data_get) return;
+    first_call_to_drag_data_get = false;
+
+    // get selected script
+    gig::Script* script = NULL;
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewScripts.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    if (it) {
+        Gtk::TreeModel::Row row = *it;
+        script = row[m_ScriptsModel.m_col_script];
+    }
+    // pass the gig::Script as pointer
+    selection_data.set(selection_data.get_target(), 0/*unused*/,
+                       (const guchar*)&script,
+                       sizeof(script)/*length of data in bytes*/);
 }
 
 // For some reason drag_data_get gets called two times for each
