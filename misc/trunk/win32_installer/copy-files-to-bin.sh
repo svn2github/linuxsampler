@@ -12,7 +12,7 @@ WIN=/home/persson/win32
 rm -rf $DIST
 mkdir -p $DIST
 cd $WIN/bin
-cp libgig-6.dll libsndfile-1.dll libsqlite3-0.dll \
+cp libsndfile-1.dll libsqlite3-0.dll \
     libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
     rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
     gig2mono.exe korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
@@ -35,7 +35,7 @@ cp libatk-1.0-0.dll libatkmm-1.6-1.dll libcairo-2.dll \
     libtiff3.dll zlib1.dll \
     $DIST
 cd $WIN/lib/bin
-cp libgigedit-2.dll liblinuxsampler-3.dll $DIST
+cp libgig-6.dll libakai-0.dll libgigedit-2.dll liblinuxsampler-3.dll $DIST
 cp $WIN/lib/vst/LinuxSampler.dll $DIST
 mkdir -p $DIST/plugins
 cp $WIN/lib/linuxsampler/plugins/libgigeditlinuxsamplerplugin.dll \
@@ -71,13 +71,12 @@ WIN=/home/persson/win32sse
 rm -rf $DIST
 mkdir -p $DIST
 cd $WIN/bin
-cp libgig-6.dll \
-    rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
+cp rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
     gig2mono.exe korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
     sf2dump.exe linuxsampler.exe \
     $DIST
 cd $WIN/lib/bin
-cp liblinuxsampler-3.dll $DIST
+cp libgig-6.dll libakai-0.dll liblinuxsampler-3.dll $DIST
 cp $WIN/lib/vst/LinuxSampler.dll $DIST
 
 
@@ -89,7 +88,7 @@ WIN=/home/persson/win64
 rm -rf $DIST
 mkdir -p $DIST
 cd $WIN/bin
-cp libgig-6.dll libsndfile-1.dll libsqlite3-0.dll \
+cp libsndfile-1.dll libsqlite3-0.dll \
     libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
     rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
     gig2mono.exe korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
@@ -116,7 +115,7 @@ echo "gtk-theme-name = \"MS-Windows\"" > $DIST/etc/gtk-2.0/gtkrc
 cd mingw64/x86_64-w64-mingw32/lib
 cp libgcc_s_sjlj-1.dll libstdc++-6.dll $DIST
 cd $WIN/lib/bin
-cp libgigedit-2.dll liblinuxsampler-3.dll $DIST
+cp libgig-6.dll libakai-0.dll libgigedit-2.dll liblinuxsampler-3.dll $DIST
 cp $WIN/lib/vst/LinuxSampler.dll $DIST
 mkdir -p $DIST/plugins
 cp $WIN/lib/linuxsampler/plugins/libgigeditlinuxsamplerplugin.dll \
