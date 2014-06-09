@@ -31,14 +31,23 @@ namespace LinuxSampler { namespace gig {
             wrnMsg("gig_set_dim_zone(): argument 1 may not be a negative event ID");
             return successResult();
         }
-
-        int note = m_vm->m_event->cause.Param.Note.Key;
-
+        
         EngineChannel* pEngineChannel =
             static_cast<EngineChannel*>(m_vm->m_event->cause.pEngineChannel);
 
+        RTList<Event>::Iterator itEvent = pEngineChannel->pEngine->EventByID(id);
+        if (!itEvent) {
+            dmsg(2,("gig_set_dim_zone(): no active event with ID %d\n", id));
+            return successResult();
+        }
+
+        int note = itEvent->Param.Note.Key;
+
         ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(note);
-        if (!pRegion) return successResult();
+        if (!pRegion) {
+            dmsg(2,("gig_set_dim_zone(): no region for key %d\n", note));
+            return successResult();
+        }
 
         int idx = -1, baseBits = 0;
         for (int i = 0; i < pRegion->Dimensions; ++i) {
@@ -48,10 +57,10 @@ namespace LinuxSampler { namespace gig {
             }
             baseBits += pRegion->pDimensionDefinitions[i].bits;
         }
-        if (idx < 0) return successResult(); // no such dimension found
-
-        RTList<Event>::Iterator itEvent = pEngineChannel->pEngine->EventByID(id);
-        if (!itEvent) return successResult();
+        if (idx < 0) {
+            dmsg(2,("gig_set_dim_zone(): no such gig dimension %d\n", dim));
+            return successResult(); // no such dimension found
+        }
 
         int bits = pRegion->pDimensionDefinitions[idx].bits;
         int mask = 0;
@@ -59,6 +68,8 @@ namespace LinuxSampler { namespace gig {
 
         itEvent->Format.Gig.DimMask |= mask;
         itEvent->Format.Gig.DimBits |= (zone << baseBits) & mask;
+
+        dmsg(3,("gig_set_dim_zone(): success, mask=%d bits=%d\n", itEvent->Format.Gig.DimMask, itEvent->Format.Gig.DimBits));
 
         return successResult();
     }

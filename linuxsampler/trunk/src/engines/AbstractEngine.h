@@ -104,27 +104,12 @@ namespace LinuxSampler {
             AudioChannel* pDedicatedVoiceChannelLeft;  ///< encapsulates a special audio rendering buffer (left) for rendering and routing audio on a per voice basis (this is a very special case and only used for voices which lie on a note which was set with individual, dedicated FX send level)
             AudioChannel* pDedicatedVoiceChannelRight; ///< encapsulates a special audio rendering buffer (right) for rendering and routing audio on a per voice basis (this is a very special case and only used for voices which lie on a note which was set with individual, dedicated FX send level)
 
-            typedef ResourceConsumer<VMParserContext> ScriptConsumer;
-
-            class ScriptResourceManager : public ResourceManager<String, VMParserContext> {
-                protected:
-                    // implementation of derived abstract methods from 'ResourceManager'
-                    virtual VMParserContext* Create(String Key, ScriptConsumer* pConsumer, void*& pArg);
-                    virtual void         Destroy(VMParserContext* pResource, void* pArg);
-                    virtual void         OnBorrow(VMParserContext* pResource, ScriptConsumer* pConsumer, void*& pArg) {} // ignore
-                public:
-                    ScriptResourceManager(AbstractEngine* parent) : parent(parent) {}
-                    virtual ~ScriptResourceManager() {}
-                private:
-                    AbstractEngine* parent;
-            } scripts;
-
             friend class AbstractVoice;
             friend class AbstractEngineChannel;
             template<class V, class R, class I> friend class EngineChannelBase;
             template<class EC, class R, class S, class D> friend class VoiceBase;
 
-        protected:
+        //protected:
             ArrayList<EngineChannel*>  engineChannels; ///< All engine channels of a Engine instance.
             ConditionServer            EngineDisabled;
             int8_t                     ScaleTuning[12];    ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
@@ -164,7 +149,7 @@ namespace LinuxSampler {
             virtual void ProcessChannelPressure(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itChannelPressureEvent) = 0;
             virtual void ProcessPolyphonicKeyPressure(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNotePressureEvent) = 0;
             virtual int  GetMinFadeOutSamples() = 0;
-            virtual InstrumentScriptVM* CreateInstrumentScriptVM();
+            virtual void CreateInstrumentScriptVM();
 
         private:
             static std::map<Format, std::map<AudioOutputDevice*,AbstractEngine*> > engines;

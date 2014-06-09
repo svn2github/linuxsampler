@@ -39,6 +39,7 @@ namespace LinuxSampler {
             bool bChangeInstrument;       ///< Set to true by the loader when the channel should change instrument.
             I* pInstrument;               ///< The new instrument. Also used by the loader to read the previously loaded instrument.
             RTList<R*>* pRegionsInUse; ///< List of dimension regions in use by the currently loaded instrument. Continuously updated by the audio thread.
+            InstrumentScript* pScript; ///< Instrument script to be executed for this instrument, or NULL if instrument does not have a script.
     };
 
     template<class R>
@@ -289,17 +290,28 @@ namespace LinuxSampler {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
                     cmd.pRegionsInUse = NULL;
                     cmd.pInstrument = NULL;
+                    cmd.pScript = new InstrumentScript(this);
                     cmd.bChangeInstrument = false;
                 }
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.SwitchConfig();
                     cmd.pRegionsInUse = NULL;
                     cmd.pInstrument = NULL;
+                    cmd.pScript = new InstrumentScript(this);
                     cmd.bChangeInstrument = false;
                 }
             }
 
-            virtual ~EngineChannelBase() { }
+            virtual ~EngineChannelBase() {
+                {
+                    InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
+                    if (cmd.pScript) delete cmd.pScript;
+                }
+                {
+                    InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.SwitchConfig();
+                    if (cmd.pScript) delete cmd.pScript;
+                }
+            }
 
             typedef typename RTList<V>::Iterator RTListVoiceIterator;
 
@@ -349,6 +361,20 @@ namespace LinuxSampler {
 
                 MidiKeyboardManager<V>::SustainPedal   = false;
                 MidiKeyboardManager<V>::SostenutoPedal = false;
+            }
+
+            /**
+             * Load real-time instrument script and all its resources required
+             * for the upcoming instrument change.
+             *
+             * @param text - source code of script
+             */
+            void LoadInstrumentScript(const String& text) {
+                InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
+                // unload *PRE*-previous script
+                cmd.pScript->reset(); //TODO: previous script should be freed as soon as the EngineBase switched the instrument, right now 2 scripts are kept in memory all the time, even though the old one is not used anymore
+                // load the new script
+                cmd.pScript->load(text);
             }
 
             /**

@@ -110,8 +110,8 @@ namespace LinuxSampler {
         context->createScanner(is);
 
         InstrScript_parse(context);
-        std::cout << "Allocating " << context->globalIntVarCount * sizeof(int) << " bytes of global int VM memory.\n";
-        std::cout << "Allocating " << context->globalStrVarCount << " of global VM string variables.\n";
+        dmsg(2,("Allocating %d bytes of global int VM memory.\n", context->globalIntVarCount * sizeof(int)));
+        dmsg(2,("Allocating %d of global VM string variables.\n", context->globalStrVarCount));
         if (!context->globalIntMemory)
             context->globalIntMemory = new ArrayList<int>();
         if (!context->globalStrMemory)
@@ -152,16 +152,14 @@ namespace LinuxSampler {
                 _requiredMaxStackSizeFor(&*parserCtx->handlers);
         }
         execCtx->stack.resize(parserCtx->requiredMaxStackSize);
-        std::cout << "Created VM exec context with "
-                  << parserCtx->requiredMaxStackSize * sizeof(ExecContext::StackFrame)
-                  << " bytes VM stack size.\n";
+        dmsg(2,("Created VM exec context with %d bytes VM stack size.\n",
+                parserCtx->requiredMaxStackSize * sizeof(ExecContext::StackFrame)));
         //printf("execCtx=0x%lx\n", (uint64_t)execCtx);
         const int polySize = parserCtx->polyphonicIntVarCount;
         execCtx->polyphonicIntMemory.resize(polySize);
         memset(&execCtx->polyphonicIntMemory[0], 0, polySize * sizeof(int));
 
-        std::cout << "Allocated " << polySize * sizeof(int)
-                  << " bytes polyphonic memory.\n";
+        dmsg(2,("Allocated %d bytes polyphonic memory.\n", polySize * sizeof(int)));
         return execCtx;
     }
 
@@ -199,6 +197,9 @@ namespace LinuxSampler {
             std::cerr << "No VM parser context provided. Did you load a script?.\n";
             return VMExecStatus_t(VM_EXEC_NOT_RUNNING | VM_EXEC_ERROR);
         }
+
+        // a ParserContext object is always tied to exactly one ScriptVM object
+        assert(m_parserContext->functionProvider == this);
 
         ExecContext* ctx = dynamic_cast<ExecContext*>(execContex);
         if (!ctx) {

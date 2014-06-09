@@ -108,6 +108,7 @@ namespace LinuxSampler {
                 /// Channel Pressure (aftertouch) event specifics
                 struct _ChannelPressure {
                     uint8_t Channel; ///< MIDI channel (0..15)
+                    uint8_t Controller; ///< Should always be assigned to CTRL_TABLE_IDX_AFTERTOUCH.
                     uint8_t Value;   ///< New aftertouch / pressure value for keys on that channel.
                 } ChannelPressure;
                 /// Polyphonic Note Pressure (aftertouch) event specifics

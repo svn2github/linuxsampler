@@ -106,10 +106,13 @@ namespace LinuxSampler { namespace gig {
                 throw InstrumentManagerException("resource was not created");
             }
 
+            if (newInstrument->ScriptSlotCount() > 1) {
+                std::cerr << "WARNING: Executing more than one real-time instrument script slot is not implemented yet!\n";
+            }
             ::gig::Script* script = newInstrument->GetScriptOfSlot(0);
             if (script) {
                 String sourceCode = script->GetScriptAsText();
-                loadInstrumentScript(sourceCode);
+                LoadInstrumentScript(sourceCode);
             }
         }
         catch (RIFF::Exception e) {

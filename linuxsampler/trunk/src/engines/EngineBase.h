@@ -634,11 +634,11 @@ namespace LinuxSampler {
                 // if a valid real-time instrument script is loaded, pre-process
                 // the event list by running the script now, since the script
                 // might filter events or add new ones for this cycle
-                if (pChannel->script.bHasValidScript) {
+                if (pChannel->pScript && pChannel->pScript->bHasValidScript) {
                     // resume any suspended script executions still hanging
                     // around of previous audio fragment cycles
-                    for (RTList<ScriptEvent>::Iterator itEvent = pChannel->pScriptEvents->first(),
-                        end = pChannel->pScriptEvents->end(); itEvent != end; ++itEvent)
+                    for (RTList<ScriptEvent>::Iterator itEvent = pChannel->pScript->pEvents->first(),
+                        end = pChannel->pScript->pEvents->end(); itEvent != end; ++itEvent)
                     {
                         ResumeScriptEvent(pChannel, itEvent); //TODO: implement support for actual suspension time (i.e. passed to a script's wait() function call)
                     }
@@ -650,18 +650,18 @@ namespace LinuxSampler {
                     {
                         switch (itEvent->Type) {
                             case Event::type_note_on:
-                                if (pChannel->script.handlerNote)
-                                    ProcessEventByScript(pChannel, itEvent, pChannel->script.handlerNote);
+                                if (pChannel->pScript->handlerNote)
+                                    ProcessEventByScript(pChannel, itEvent, pChannel->pScript->handlerNote);
                                 break;
                             case Event::type_note_off:
-                                if (pChannel->script.handlerRelease)
-                                    ProcessEventByScript(pChannel, itEvent, pChannel->script.handlerRelease);
+                                if (pChannel->pScript->handlerRelease)
+                                    ProcessEventByScript(pChannel, itEvent, pChannel->pScript->handlerRelease);
                                 break;
                             case Event::type_control_change:
                             case Event::type_channel_pressure:
                             case Event::type_pitchbend:
-                                if (pChannel->script.handlerController)
-                                    ProcessEventByScript(pChannel, itEvent, pChannel->script.handlerController);                            
+                                if (pChannel->pScript->handlerController)
+                                    ProcessEventByScript(pChannel, itEvent, pChannel->pScript->handlerController);                            
                                 break;
                             case Event::type_note_pressure:
                                 //TODO: ...
@@ -724,14 +724,12 @@ namespace LinuxSampler {
              */
             void ProcessEventByScript(AbstractEngineChannel* pChannel, RTList<Event>::Iterator& itEvent, VMEventHandler* pEventHandler) {
                 RTList<ScriptEvent>::Iterator itScriptEvent =
-                    pChannel->pScriptEvents->allocAppend();
+                    pChannel->pScript->pEvents->allocAppend();
 
                 if (!itScriptEvent) return; // no free script event left for execution
 
                 // fill the list of script handlers to be executed by this event
                 int i = 0;
-                if (pChannel->script.handlerInit)
-                    itScriptEvent->handlers[i++] = pChannel->script.handlerInit;
                 itScriptEvent->handlers[i++] = pEventHandler; // actual event handler (i.e. note, controller)
                 itScriptEvent->handlers[i] = NULL; // NULL termination of list
 
@@ -743,7 +741,7 @@ namespace LinuxSampler {
 
                 // run script handler(s)
                 VMExecStatus_t res = pScriptVM->exec(
-                    pChannel->script.parserContext, &*itScriptEvent
+                    pChannel->pScript->parserContext, &*itScriptEvent
                 );
 
                 // in case the script was suspended, keep it on the allocated
@@ -751,7 +749,7 @@ namespace LinuxSampler {
                 // otherwise if execution has been finished, free it for a new
                 // future script event to be triggered from start
                 if (!(res & VM_EXEC_SUSPENDED))
-                    pChannel->pScriptEvents->free(itScriptEvent);
+                    pChannel->pScript->pEvents->free(itScriptEvent);
             }
 
             /** @brief Resume execution of instrument script.
@@ -774,14 +772,14 @@ namespace LinuxSampler {
             void ResumeScriptEvent(AbstractEngineChannel* pChannel, RTList<ScriptEvent>::Iterator& itScriptEvent) {
                 // run script
                 VMExecStatus_t res = pScriptVM->exec(
-                    pChannel->script.parserContext, &*itScriptEvent
+                    pChannel->pScript->parserContext, &*itScriptEvent
                 );
                 // in case the script was again suspended, keep it on the allocated
                 // ScriptEvent list to be continued on the next audio cycle,
                 // otherwise if execution has been finished, free it for a new
                 // future script event to be triggered from start
                 if (!(res & VM_EXEC_SUSPENDED))
-                    pChannel->pScriptEvents->free(itScriptEvent);
+                    pChannel->pScript->pEvents->free(itScriptEvent);
             }
 
             /**
@@ -916,9 +914,23 @@ namespace LinuxSampler {
                         dmsg(5,("Engine: instrument change command received\n"));
                         cmd.bChangeInstrument = false;
                         pEngineChannel->pInstrument = cmd.pInstrument;
+                        pEngineChannel->pScript = cmd.pScript; //TODO: previous script should be freed as soon as EngineBase switched the instrument, right now 2 scripts are kept in memory all the time, even though the old one is not used anymore
                         instrumentChanged = true;
 
                         pEngineChannel->MarkAllActiveVoicesAsOrphans();
+
+                        // the script's "init" event handler is only executed
+                        // once (when the script is loaded or reloaded)
+                        if (pEngineChannel->pScript && pEngineChannel->pScript->handlerInit) {
+                            RTList<ScriptEvent>::Iterator itScriptEvent =
+                                pEngineChannel->pScript->pEvents->allocAppend();
+
+                            VMExecStatus_t res = pScriptVM->exec(
+                                pEngineChannel->pScript->parserContext, &*itScriptEvent
+                            );
+
+                            pEngineChannel->pScript->pEvents->free(itScriptEvent);
+                        }
                     }
                 }
 

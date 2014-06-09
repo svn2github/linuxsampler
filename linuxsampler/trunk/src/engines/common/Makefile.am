@@ -19,6 +19,7 @@ liblinuxsamplercommonengine_la_SOURCES = \
 	LFOTriangleIntMath.h \
 	SineLFO.h PulseLFO.h SawLFO.h \
 	Resampler.h \
+	AbstractInstrumentManager.h AbstractInstrumentManager.cpp \
 	InstrumentScriptVM.h InstrumentScriptVM.cpp \
 	InstrumentScriptVMFunctions.h InstrumentScriptVMFunctions.cpp \
 	EG.h EG.cpp

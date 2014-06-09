@@ -13,9 +13,46 @@
 #include "../../common/global.h"
 #include "../../scriptvm/ScriptVM.h"
 #include "Event.h"
+#include "../../common/Pool.h"
 #include "InstrumentScriptVMFunctions.h"
 
 namespace LinuxSampler {
+
+    class AbstractEngineChannel;
+
+    /** @brief Real-time instrument script VM representation.
+     *
+     * Holds the VM representation of all event handlers of the currently loaded
+     * script, ready to be executed by the sampler engine.
+     */
+    struct InstrumentScript {
+        VMParserContext*      parserContext; ///< VM represenation of the currently loaded script or NULL if not script was loaded. Note that it is also not NULL if parser errors occurred!
+        bool                  bHasValidScript; ///< True in case there is a valid script currently loaded, false if script processing shall be skipped.
+        VMEventHandler*       handlerInit; ///< VM representation of script's initilization callback or NULL if current script did not define such an init handler.
+        VMEventHandler*       handlerNote; ///< VM representation of script's MIDI note on callback or NULL if current script did not define such an event handler.
+        VMEventHandler*       handlerRelease; ///< VM representation of script's MIDI note off callback or NULL if current script did not define such an event handler.
+        VMEventHandler*       handlerController; ///< VM representation of script's MIDI controller callback or NULL if current script did not define such an event handler.
+        Pool<ScriptEvent>*    pEvents; ///< Pool of all available script execution instances. ScriptEvents available to be allocated from the Pool are currently unused / not executiong, whereas the ScriptEvents allocated on the list are currently suspended / have not finished execution yet.
+        AbstractEngineChannel* pEngineChannel;
+
+        InstrumentScript(AbstractEngineChannel* pEngineChannel) {
+            parserContext = NULL;
+            bHasValidScript = false;
+            handlerInit = NULL;
+            handlerNote = NULL;
+            handlerRelease = NULL;
+            handlerController = NULL;
+            pEvents = NULL;
+            this->pEngineChannel = pEngineChannel;
+        }
+
+        ~InstrumentScript() {
+            reset();
+        }
+
+        void load(const String& text);
+        void reset();
+    };
 
     /** @brief Real-time instrument script virtual machine.
      *

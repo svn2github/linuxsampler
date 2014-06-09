@@ -29,8 +29,10 @@
 namespace LinuxSampler { namespace gig {
     Engine::Format Engine::GetEngineFormat() { return GIG; }
 
-    LinuxSampler::InstrumentScriptVM* Engine::CreateInstrumentScriptVM() {
-        return new InstrumentScriptVM; // gig format specific extended script runner
+    void Engine::CreateInstrumentScriptVM() {
+        dmsg(2,("gig::Engine created Giga format scriptvm\n"));
+        if (pScriptVM) return;
+        pScriptVM = new InstrumentScriptVM; // gig format specific extended script runner
     }
 
     /**
@@ -223,6 +225,9 @@ namespace LinuxSampler { namespace gig {
                 case ::gig::dimension_random:
                     DimValues[i] = uint(Random() * pRegion->pDimensionDefinitions[i].zones);
                     break;
+                case ::gig::dimension_smartmidi:
+                    DimValues[i] = 0;
+                    break;
                 case ::gig::dimension_modwheel:
                     DimValues[i] = pChannel->ControllerTable[1];
                     break;
@@ -310,6 +315,7 @@ namespace LinuxSampler { namespace gig {
         if (!itNoteOnEvent->Format.Gig.DimMask) { // normal case ...
             pDimRgn = pRegion->GetDimensionRegionByValue(DimValues);
         } else { // some dimension zones were overridden (i.e. by instrument script) ...
+            dmsg(3,("trigger with dim mask=%d val=%d\n", itNoteOnEvent->Format.Gig.DimMask, itNoteOnEvent->Format.Gig.DimBits));
             int index = pRegion->GetDimensionRegionIndexByValue(DimValues);
             index &= ~itNoteOnEvent->Format.Gig.DimMask;
             index |=  itNoteOnEvent->Format.Gig.DimBits & itNoteOnEvent->Format.Gig.DimMask;

@@ -35,14 +35,6 @@ namespace LinuxSampler {
 
     std::map<AbstractEngine::Format, std::map<AudioOutputDevice*,AbstractEngine*> > AbstractEngine::engines;
 
-    VMParserContext* AbstractEngine::ScriptResourceManager::Create(String Key, ScriptConsumer* pConsumer, void*& pArg) {
-        return parent->pScriptVM->loadScript(Key);
-    }
-
-    void AbstractEngine::ScriptResourceManager::Destroy(VMParserContext* pResource, void* pArg) {
-        delete pResource;
-    }
-
     /**
      * Get an AbstractEngine object for the given AbstractEngineChannel and the
      * given AudioOutputDevice. All engine channels which are connected to
@@ -69,6 +61,7 @@ namespace LinuxSampler {
         } else { // create a new engine (and disk thread) instance for the given audio output device
             dmsg(4,("Creating new Engine.\n"));
             pEngine = (AbstractEngine*) EngineFactory::Create(pChannel->EngineName());
+            pEngine->CreateInstrumentScriptVM();
             pEngine->Connect(pDevice);
             engines[pChannel->GetEngineFormat()][pDevice] = pEngine;
         }
@@ -80,7 +73,7 @@ namespace LinuxSampler {
         return pEngine;
     }
 
-    AbstractEngine::AbstractEngine() : scripts(this) {
+    AbstractEngine::AbstractEngine() {
         pAudioOutputDevice = NULL;
         pEventGenerator    = NULL;
         pSysexBuffer       = new RingBuffer<uint8_t,false>(CONFIG_SYSEX_BUFFER_SIZE, 0);
@@ -90,7 +83,7 @@ namespace LinuxSampler {
         FrameTime          = 0;
         RandomSeed         = 0;
         pDedicatedVoiceChannelLeft = pDedicatedVoiceChannelRight = NULL;
-        pScriptVM          = CreateInstrumentScriptVM();
+        pScriptVM          = NULL;
     }
 
     AbstractEngine::~AbstractEngine() {
@@ -105,14 +98,10 @@ namespace LinuxSampler {
         Unregister();
     }
 
-    /**
-     * Allocates a sampler format independent real-time instrument script
-     * runner. This method is overriden by sampler engines in case they have
-     * their own implementation of the script VM, with script feature extensions
-     * required for their sampler format.
-     */
-    InstrumentScriptVM* AbstractEngine::CreateInstrumentScriptVM() {
-        return new InstrumentScriptVM; // format independent script runner
+    void AbstractEngine::CreateInstrumentScriptVM() {
+        dmsg(2,("Created sampler format independent instrument script VM.\n"));
+        if (pScriptVM) return;
+        pScriptVM = new InstrumentScriptVM; // format independent script runner
     }
 
     /**

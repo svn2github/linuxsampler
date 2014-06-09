@@ -31,13 +31,16 @@
 
 #include "../common/Pool.h"
 #include "../common/RingBuffer.h"
+#include "../common/ResourceManager.h"
+#include "common/AbstractInstrumentManager.h"
+#include "common/InstrumentScriptVM.h"
 
 #define CTRL_TABLE_IDX_AFTERTOUCH   128
 #define CTRL_TABLE_IDX_PITCHBEND    129
 
 namespace LinuxSampler {
 
-    class AbstractEngineChannel: public EngineChannel, public AbstractEngine::ScriptConsumer {
+    class AbstractEngineChannel: public EngineChannel, public InstrumentScriptConsumer {
         public:
             // implementation of abstract methods derived from interface class 'LinuxSampler::EngineChannel'
             virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument) OVERRIDE;
@@ -94,8 +97,6 @@ namespace LinuxSampler {
             virtual AbstractEngine::Format GetEngineFormat() = 0;
 
             AudioOutputDevice* GetAudioOutputDeviceSafe();
-            void loadInstrumentScript(const String& text);
-            void unloadCurrentInstrumentScript();
 
             friend class AbstractVoice;
             friend class AbstractEngine;
@@ -137,23 +138,7 @@ namespace LinuxSampler {
             int                       iEngineIndexSelf;         ///< Reflects the index of this EngineChannel in the Engine's ArrayList.
             bool                      bStatusChanged;           ///< true in case an engine parameter has changed (e.g. new instrument, another volumet)
             uint32_t                  RoundRobinIndex;          ///< counter for round robin sample selection, incremented for each note on
-            Pool<ScriptEvent>*        pScriptEvents;            ///< Pool of all available script execution instances. ScriptEvents available to be allocated from the Pool are currently unused / not executiong, whereas the ScriptEvents allocated on the list are currently suspended / have not finished execution yet.
-            struct _Script {
-                VMParserContext*      parserContext; ///< VM represenation of the currently loaded script or NULL if not script was loaded. Note that it is also not NULL if parser errors occurred!
-                bool                  bHasValidScript; ///< True in case there is a valid script currently loaded, false if script processing shall be skipped.
-                VMEventHandler*       handlerInit; ///< VM representation of script's initilization callback or NULL if current script did not define such an init handler.
-                VMEventHandler*       handlerNote; ///< VM representation of script's MIDI note on callback or NULL if current script did not define such an event handler.
-                VMEventHandler*       handlerRelease; ///< VM representation of script's MIDI note off callback or NULL if current script did not define such an event handler.
-                VMEventHandler*       handlerController; ///< VM representation of script's MIDI controller callback or NULL if current script did not define such an event handler.
-                _Script() {
-                    parserContext = NULL;
-                    bHasValidScript = false;
-                    handlerInit = NULL;
-                    handlerNote = NULL;
-                    handlerRelease = NULL;
-                    handlerController = NULL;
-                }
-            } script;
+            InstrumentScript*         pScript;                  ///< Points to the real-time instrument script(s) to be executed, NULL if current instrument does not have an instrument script.
 
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> > virtualMidiDevices;
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader_AudioThread;

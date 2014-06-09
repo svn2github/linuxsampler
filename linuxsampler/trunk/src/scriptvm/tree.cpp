@@ -713,8 +713,9 @@ bool Relation::isConstExpr() const {
 
 int Or::evalInt() {
     IntExpr* pLHS = dynamic_cast<IntExpr*>(&*lhs);
+    if (pLHS->evalInt()) return 1;
     IntExpr* pRHS = dynamic_cast<IntExpr*>(&*rhs);;
-    return pLHS->evalInt() || pRHS->evalInt();
+    return (pRHS->evalInt()) ? 1 : 0;
 }
 
 void Or::dump(int level) {
@@ -730,8 +731,9 @@ void Or::dump(int level) {
 
 int And::evalInt() {
     IntExpr* pLHS = dynamic_cast<IntExpr*>(&*lhs);
-    IntExpr* pRHS = dynamic_cast<IntExpr*>(&*rhs);;
-    return pLHS->evalInt() && pRHS->evalInt();
+    if (!pLHS->evalInt()) return 0;
+    IntExpr* pRHS = dynamic_cast<IntExpr*>(&*rhs);
+    return (pRHS->evalInt()) ? 1 : 0;
 }
 
 void And::dump(int level) {

@@ -10,13 +10,16 @@
 #include "common/global.h"
 #include "scriptvm/ScriptVM.h"
 #include "shell/CFmt.h"
+#include "engines/common/InstrumentScriptVM.h"
+#include "engines/gig/InstrumentScriptVM.h"
+#include <iostream>
 
 /*
   This command line tool is currently merely for development and testing
   purposes, regarding the real-time instrument script feature of the sampler.
   You can use this command line application like this:
 
-  ls_instr_script < src/scriptvm/examples/helloworld.txt
+  ls_instr_script core < src/scriptvm/examples/helloworld.txt
 
   Which will peform 3 things:
 
@@ -28,10 +31,49 @@
  */
 
 using namespace LinuxSampler;
+using namespace std;
 
-int main() {
-    ScriptVM vm;
-    VMParserContext* parserContext = vm.loadScript(&std::cin);
+static void printUsage() {
+    cout << "ls_instr_script - Parse real-time instrument script from stdin." << endl;
+    cout << endl;
+    cout << "Usage: ls_instr_script ENGINE" << endl;
+    cout << endl;
+    cout << "    ENGINE\n";
+    cout << "        Either \"core\", \"gig\", \"sf2\" or \"sfz\"." << endl;
+    cout << endl;
+    cout << "If you pass \"core\" as argument, only the core language built-in" << endl;
+    cout << "variables and functions are available. However in this particular" << endl;
+    cout << "mode the program will not just parse the given script, but also" << endl;
+    cout << "execute the event handlers. All other arguments for ENGINE provide" << endl;
+    cout << "the sampler engine / sampler format specific additional built-in" << endl;
+    cout << "variables and functions, however they wil not be executed by this" << endl;
+    cout << "program." << endl;
+    cout << endl;
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printUsage();
+        return -1;
+    }
+    String engine = argv[1];
+    bool runScript = false;
+
+    ScriptVM* vm;
+    if (engine == "core") {
+        vm = new ScriptVM;
+        runScript = true;
+    } else if (engine == "sf2" || engine == "sfz") {
+        vm = new InstrumentScriptVM;
+    } else if (engine == "gig") {
+        vm = new gig::InstrumentScriptVM;
+    } else {
+        std::cerr << "Unknown ENGINE '" << engine << "'\n\n";
+        printUsage();
+        return -1;
+    }
+
+    VMParserContext* parserContext = vm->loadScript(&std::cin);
 
     std::vector<ParserIssue> errors = parserContext->errors();
     std::vector<ParserIssue> warnings = parserContext->warnings();
@@ -56,12 +98,16 @@ int main() {
     }
 
     printf("[Dumping parsed VM tree]\n");
-    vm.dumpParsedScript(parserContext);
+    vm->dumpParsedScript(parserContext);
     printf("[End of parsed VM tree]\n");
 
     if (!errors.empty()) {
         if (parserContext) delete parserContext;
         return -1;
+    }
+
+    if (!runScript) {
+        return 0;
     }
 
     if (!parserContext->eventHandler(0)) {
@@ -71,11 +117,11 @@ int main() {
     }
 
     printf("Preparing execution of script.\n");
-    VMExecContext* execContext = vm.createExecContext(parserContext);
+    VMExecContext* execContext = vm->createExecContext(parserContext);
     for (int i = 0; parserContext->eventHandler(i); ++i) {
         VMEventHandler* handler = parserContext->eventHandler(i);
         printf("[Running event handler '%s']\n", handler->eventHandlerName().c_str());
-        VMExecStatus_t result = vm.exec(parserContext, execContext, handler);
+        VMExecStatus_t result = vm->exec(parserContext, execContext, handler);
         CFmt fmt;
         if (result & VM_EXEC_ERROR) {
             fmt.red();
@@ -95,8 +141,10 @@ int main() {
             printf("[Event handler '%s' finished with UNKNOWN status]\n", handler->eventHandlerName().c_str());
         }
     }
+
     if (parserContext) delete parserContext;
     if (execContext) delete execContext;
+    if (vm) delete vm;
 
     return 0;
 }

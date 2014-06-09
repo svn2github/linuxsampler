@@ -10,8 +10,117 @@
 #include "InstrumentScriptVM.h"
 #include "../AbstractEngineChannel.h"
 #include "../../common/global_private.h"
+#include "AbstractInstrumentManager.h"
 
 namespace LinuxSampler {
+
+    ///////////////////////////////////////////////////////////////////////
+    // class 'InstrumentScript'
+
+    /** @brief Load real-time instrument script.
+     *
+     * Loads the real-time instrument script given by @a text on the engine
+     * channel this InstrumentScript object belongs to (defined by
+     * pEngineChannel member variable). The sampler engine's resource manager is
+     * used to allocate and share equivalent scripts on multiple engine
+     * channels.
+     *
+     * @param text - source code of script
+     */
+    void InstrumentScript::load(const String& text) {
+        dmsg(1,("Loading real-time instrument script ... "));
+
+        // hand back old script reference and VM execution contexts
+        // (if not done already)
+        reset();
+
+        AbstractInstrumentManager* pManager =
+            dynamic_cast<AbstractInstrumentManager*>(pEngineChannel->pEngine->GetInstrumentManager());
+
+        // get new script reference
+        parserContext = pManager->scripts.Borrow(text, pEngineChannel);
+        if (!parserContext->errors().empty()) {
+            std::vector<ParserIssue> errors = parserContext->errors();
+            std::cerr << "[ScriptVM] Could not load instrument script, there were "
+                    << errors.size() << " parser errors:\n";
+            for (int i = 0; i < errors.size(); ++i)
+                errors[i].dump();
+            return; // stop here if there were any parser errors
+        }
+
+        handlerInit = parserContext->eventHandlerByName("init");
+        handlerNote = parserContext->eventHandlerByName("note");
+        handlerRelease = parserContext->eventHandlerByName("release");
+        handlerController = parserContext->eventHandlerByName("controller");
+        bHasValidScript =
+            handlerInit || handlerNote || handlerRelease || handlerController;
+
+        // amount of script handlers each script event has to execute
+        int handlerExecCount = 0;
+        if (handlerNote || handlerRelease || handlerController) // only one of these are executed after "init" handler
+            handlerExecCount++;
+
+        // create script event pool (if it doesn't exist already)
+        if (!pEvents)
+            pEvents = new Pool<ScriptEvent>(CONFIG_MAX_EVENTS_PER_FRAGMENT);
+
+        // create new VM execution contexts for new script
+        while (!pEvents->poolIsEmpty()) {
+            RTList<ScriptEvent>::Iterator it = pEvents->allocAppend();
+            it->execCtx = pEngineChannel->pEngine->pScriptVM->createExecContext(
+                parserContext
+            );
+            it->handlers = new VMEventHandler*[handlerExecCount+1];
+        }
+        pEvents->clear();
+
+        dmsg(1,("Done\n"));
+    }
+
+    /** @brief Unload real-time instrument script.
+     *
+     * Unloads the currently used real-time instrument script and frees all
+     * resources allocated for that script. The sampler engine's resource manager
+     * is used to share equivalent scripts among multiple sampler channels, and
+     * to deallocate the parsed script once not used on any engine channel
+     * anymore.
+     */
+    void InstrumentScript::reset() {
+        if (parserContext)
+            dmsg(1,("Unloading current instrument script."));
+
+        // free allocated VM execution contexts
+        if (pEvents) {
+            pEvents->clear();
+            while (!pEvents->poolIsEmpty()) {
+                RTList<ScriptEvent>::Iterator it = pEvents->allocAppend();
+                if (it->execCtx) {
+                    // free VM execution context object
+                    delete it->execCtx;
+                    it->execCtx = NULL;
+                    // free C array of handler pointers
+                    delete [] it->handlers;
+                }
+            }
+            pEvents->clear();
+        }
+        // hand back VM representation of script
+        if (parserContext) {
+            AbstractInstrumentManager* pManager =
+                dynamic_cast<AbstractInstrumentManager*>(pEngineChannel->pEngine->GetInstrumentManager());
+
+            pManager->scripts.HandBack(parserContext, pEngineChannel);
+            parserContext = NULL;
+            handlerInit = NULL;
+            handlerNote = NULL;
+            handlerRelease = NULL;
+            handlerController = NULL;
+        }
+        bHasValidScript = false;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    // class 'InstrumentScriptVM'
 
     InstrumentScriptVM::InstrumentScriptVM() :
         m_event(NULL), m_fnPlayNote(this), m_fnSetController(this),

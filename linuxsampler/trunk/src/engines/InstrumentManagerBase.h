@@ -25,12 +25,10 @@
 #ifndef __LS_INSTRUMENTMANAGERBASE_H__
 #define __LS_INSTRUMENTMANAGERBASE_H__
 
-#include "InstrumentManager.h"
+#include "common/AbstractInstrumentManager.h"
+#include "../drivers/audio/AudioOutputDeviceFactory.h"
 #include "AbstractEngine.h"
 #include "AbstractEngineChannel.h"
-#include "../common/ResourceManager.h"
-#include "../common/global_private.h"
-#include "../drivers/audio/AudioOutputDeviceFactory.h"
 
 // We need to know the maximum number of sample points which are going to
 // be processed for each render cycle of the audio output driver, to know
@@ -42,7 +40,7 @@
 namespace LinuxSampler {
 
     template <class F /* Instrument File */, class I /* Instrument */, class R /* Regions */, class S /*Sample */>
-    class InstrumentManagerBase : public InstrumentManager, public ResourceManager<InstrumentManager::instrument_id_t, I> {
+    class InstrumentManagerBase : public AbstractInstrumentManager, public ResourceManager<InstrumentManager::instrument_id_t, I> {
         public:
             struct region_info_t {
                 int    refCount;
@@ -56,7 +54,7 @@ namespace LinuxSampler {
 
             typedef ResourceConsumer<I> InstrumentConsumer;
 
-            InstrumentManagerBase() { }
+            InstrumentManagerBase() : AbstractInstrumentManager() { }
             virtual ~InstrumentManagerBase() { }
 
             virtual InstrumentEditor* LaunchInstrumentEditor(instrument_id_t ID, void* pUserData = NULL) throw (InstrumentManagerException) OVERRIDE {
