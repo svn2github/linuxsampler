@@ -85,9 +85,11 @@ namespace LinuxSampler {
             }
 
             virtual void DeleteRegionsInUse() {
+                RTList<R*>* previous = NULL; // prevent double free
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
                     if (cmd.pRegionsInUse) {
+                        previous = cmd.pRegionsInUse;
                         delete cmd.pRegionsInUse;
                         cmd.pRegionsInUse = NULL;
                     }
@@ -96,7 +98,8 @@ namespace LinuxSampler {
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.SwitchConfig();
                     if (cmd.pRegionsInUse) {
-                        delete cmd.pRegionsInUse;
+                        if (cmd.pRegionsInUse != previous)
+                            delete cmd.pRegionsInUse;
                         cmd.pRegionsInUse = NULL;
                     }
                     cmd.bChangeInstrument = false;
@@ -180,6 +183,7 @@ namespace LinuxSampler {
                     ResetInternal();
 
                     DeleteRegionsInUse();
+                    UnloadScriptInUse();
 
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
                     if (cmd.pInstrument) {
@@ -303,13 +307,22 @@ namespace LinuxSampler {
             }
 
             virtual ~EngineChannelBase() {
+                InstrumentScript* previous = NULL; // prevent double free
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
-                    if (cmd.pScript) delete cmd.pScript;
+                    if (cmd.pScript) {
+                        previous = cmd.pScript;
+                        delete cmd.pScript;
+                        cmd.pScript = NULL;
+                    }
                 }
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.SwitchConfig();
-                    if (cmd.pScript) delete cmd.pScript;
+                    if (cmd.pScript) {
+                        if (previous != cmd.pScript)
+                            delete cmd.pScript;
+                        cmd.pScript = NULL;
+                    }
                 }
             }
 
@@ -364,6 +377,22 @@ namespace LinuxSampler {
             }
 
             /**
+             * Unload the currently used and loaded real-time instrument script.
+             * The source code of the script is retained, so that it can still
+             * be reloaded.
+             */
+            void UnloadScriptInUse() {
+                {
+                    InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
+                    if (cmd.pScript) pScript->unload();
+                }
+                {
+                    InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.SwitchConfig();
+                    if (cmd.pScript) pScript->unload();
+                }
+            }
+
+            /**
              * Load real-time instrument script and all its resources required
              * for the upcoming instrument change.
              *
@@ -371,8 +400,6 @@ namespace LinuxSampler {
              */
             void LoadInstrumentScript(const String& text) {
                 InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
-                // unload *PRE*-previous script
-                cmd.pScript->reset(); //TODO: previous script should be freed as soon as the EngineBase switched the instrument, right now 2 scripts are kept in memory all the time, even though the old one is not used anymore
                 // load the new script
                 cmd.pScript->load(text);
             }

@@ -34,6 +34,7 @@ namespace LinuxSampler {
         VMEventHandler*       handlerController; ///< VM representation of script's MIDI controller callback or NULL if current script did not define such an event handler.
         Pool<ScriptEvent>*    pEvents; ///< Pool of all available script execution instances. ScriptEvents available to be allocated from the Pool are currently unused / not executiong, whereas the ScriptEvents allocated on the list are currently suspended / have not finished execution yet.
         AbstractEngineChannel* pEngineChannel;
+        String                code; ///< Source code of the instrument script. Used in case the sampler engine is changed, in that case a new ScriptVM object is created for the engine and VMParserContext object for this script needs to be recreated as well. Thus the script is then parsed again by passing the source code to recreate the parser context.
 
         InstrumentScript(AbstractEngineChannel* pEngineChannel) {
             parserContext = NULL;
@@ -47,11 +48,12 @@ namespace LinuxSampler {
         }
 
         ~InstrumentScript() {
-            reset();
+            resetAll();
         }
 
         void load(const String& text);
-        void reset();
+        void unload();
+        void resetAll();
     };
 
     /** @brief Real-time instrument script virtual machine.

@@ -914,7 +914,7 @@ namespace LinuxSampler {
                         dmsg(5,("Engine: instrument change command received\n"));
                         cmd.bChangeInstrument = false;
                         pEngineChannel->pInstrument = cmd.pInstrument;
-                        pEngineChannel->pScript = cmd.pScript; //TODO: previous script should be freed as soon as EngineBase switched the instrument, right now 2 scripts are kept in memory all the time, even though the old one is not used anymore
+                        pEngineChannel->pScript = cmd.pScript;
                         instrumentChanged = true;
 
                         pEngineChannel->MarkAllActiveVoicesAsOrphans();

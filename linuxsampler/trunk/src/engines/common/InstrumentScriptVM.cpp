@@ -32,7 +32,9 @@ namespace LinuxSampler {
 
         // hand back old script reference and VM execution contexts
         // (if not done already)
-        reset();
+        unload();
+
+        code = text;
 
         AbstractInstrumentManager* pManager =
             dynamic_cast<AbstractInstrumentManager*>(pEngineChannel->pEngine->GetInstrumentManager());
@@ -84,10 +86,13 @@ namespace LinuxSampler {
      * is used to share equivalent scripts among multiple sampler channels, and
      * to deallocate the parsed script once not used on any engine channel
      * anymore.
+     *
+     * Calling thid method will however not clear the @c code member variable.
+     * Thus, the script can be parsed again afterwards.
      */
-    void InstrumentScript::reset() {
+    void InstrumentScript::unload() {
         if (parserContext)
-            dmsg(1,("Unloading current instrument script."));
+            dmsg(1,("Unloading current instrument script.\n"));
 
         // free allocated VM execution contexts
         if (pEvents) {
@@ -117,6 +122,15 @@ namespace LinuxSampler {
             handlerController = NULL;
         }
         bHasValidScript = false;
+    }
+
+    /**
+     * Same as unload(), but this one also empties the @c code member variable
+     * to an empty string.
+     */
+    void InstrumentScript::resetAll() {
+        unload();
+        code.clear();
     }
 
     ///////////////////////////////////////////////////////////////////////

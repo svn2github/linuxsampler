@@ -50,7 +50,7 @@ namespace LinuxSampler {
     }
 
     AbstractEngineChannel::~AbstractEngineChannel() {
-        if (pScript) pScript->reset(); // unloads script (in case one is loaded)
+        if (pScript) pScript->resetAll(); // unloads script (in case one is loaded)
         delete pEventQueue;
         DeleteGroupEventLists();
         RemoveAllFxSends();

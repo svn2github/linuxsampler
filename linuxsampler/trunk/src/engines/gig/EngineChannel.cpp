@@ -89,6 +89,10 @@ namespace LinuxSampler { namespace gig {
             // keep the dimension regions and samples that are in use
             pInstrumentManager->HandBackInstrument(cmd.pInstrument, this, cmd.pRegionsInUse);
         }
+        if (cmd.pScript) {
+            // give old instrument script back to instrument resource manager
+            cmd.pScript->resetAll();
+        }
         cmd.pRegionsInUse->clear();
 
         // delete all key groups
@@ -153,7 +157,11 @@ namespace LinuxSampler { namespace gig {
         InstrumentIdxName = newInstrument->pInfo->Name;
         InstrumentStat = 100;
 
-        ChangeInstrument(newInstrument);
+        cmd = ChangeInstrument(newInstrument);
+        if (cmd.pScript) {
+            // give old instrument script back to instrument resource manager
+            cmd.pScript->resetAll();
+        }
 
         StatusChanged(true);
     }

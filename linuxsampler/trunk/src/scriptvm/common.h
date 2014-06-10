@@ -82,15 +82,82 @@ namespace LinuxSampler {
         virtual StmtFlags_t resultFlags() { return STMT_SUCCESS; }
     };
 
+    /** @brief VM built-in function.
+     *
+     * Abstract base class for built-in script functions, defining the interface
+     * for all built-in script function implementations.
+     */
     class VMFunction {
     public:
+        /**
+         * Script data type of the function's return value. If the function does
+         * not return any value, then it returns EMPTY_EXPR here.
+         */
         virtual ExprType_t returnType() = 0;
+
+        /**
+         * Minimum amount of function arguments this function accepts. If a
+         * script is calling this function with less arguments, the script
+         * parser will throw a parser error.
+         */
         virtual int minRequiredArgs() const = 0;
+
+        /**
+         * Maximum amount of function arguments this functions accepts. If a
+         * script is calling this function with more arguments, the script
+         * parser will throw a parser error.
+         */
         virtual int maxAllowedArgs() const = 0;
+
+        /**
+         * Script data type of the function's @c iArg 'th function argument.
+         * The information provided here is less strong than acceptsArgType().
+         * The parser will compare argument data types provided in scripts by
+         * calling cceptsArgType(). The return value of argType() is used by the
+         * parser instead to show an appropriate parser error which data type
+         * this function usually expects as "default" data type. Reason: a
+         * function may accept multiple data types for a certain function
+         * argument and would automatically cast the passed argument value in
+         * that case to the type it actually needs.
+         *
+         * @param iArg - index of the function argument in question
+         */
         virtual ExprType_t argType(int iArg) const = 0;
+
+        /**
+         * This function is called by the parser to check whether arguments
+         * passed in scripts to this function are accepted by this function. If
+         * a script calls this function with an argument's data type not
+         * accepted by this function, the parser will throw a parser error.
+         *
+         * @param iArg - index of the function argument in question
+         * @param type - script data type used for this function argument by
+         *               currently parsed script
+         */
         virtual bool acceptsArgType(int iArg, ExprType_t type) const = 0;
+
+        /**
+         * Implements the actual function execution. This function is called by
+         * the VM when this function shall be executed at script runtime.
+         *
+         * @param args - function arguments for executing this built-in function
+         */
         virtual VMFnResult* exec(VMFnArgs* args) = 0;
+
+        /**
+         * Concenience method for function implementations to show warning
+         * messages.
+         *
+         * @param txt - warning text
+         */
         void wrnMsg(const String& txt);
+
+        /**
+         * Concenience method for function implementations to show error
+         * messages.
+         *
+         * @param txt - error text
+         */
         void errMsg(const String& txt);
     };
 
@@ -213,11 +280,37 @@ namespace LinuxSampler {
         VMInt8Array() : data(NULL), size(0) {}
     };
 
+    /** @brief Provider for built-in script functions and variables.
+     *
+     * Abstract base class defining the interface for all classes which add and
+     * implement built-in script functions and built-in script variables.
+     */
     class VMFunctionProvider {
     public:
+        /**
+         * Returns pointer to the built-in function with the given function
+         * name, or NULL if there is no built-in function with that name.
+         *
+         * @param name - function name
+         */
         virtual VMFunction* functionByName(const String& name) = 0;
+
+        /**
+         * Returns a variable name indexed map of all built-in script variables
+         * which point to native "int" (usually 32 bit) variables.
+         */
         virtual std::map<String,VMIntRelPtr*> builtInIntVariables() = 0;
+
+        /**
+         * Returns a variable name indexed map of all built-in script variables
+         * which point to native "int8_t" (8 bit) variables.
+         */
         virtual std::map<String,VMInt8Array*> builtInIntArrayVariables() = 0;
+
+        /**
+         * Returns a variable name indexed map of all built-in constant script
+         * variables, which never change their value at runtime.
+         */
         virtual std::map<String,int> builtInConstIntVariables() = 0;
     };
 
@@ -225,8 +318,14 @@ namespace LinuxSampler {
      *
      * An instance of this abstract base class represents exactly one execution
      * state of a virtual machine. This encompasses most notably the VM
-     * execution stack, and VM polyphonic variables. You might see it as one
-     * virtual thread of the virtual machine.
+     * execution stack, and VM polyphonic variables. It does not contain global
+     * variable. Global variables are contained in the VMParserContext object.
+     * You might see a VMExecContext object as one virtual thread of the virtual
+     * machine.
+     *
+     * In contrast to a VMParserContext, a VMExecContext is not tied to a
+     * ScriptVM instance. Thus you can use a VMExecContext with different
+     * ScriptVM instances, however not concurrently at the same time.
      *
      * @see VMParserContext
      */
