@@ -394,6 +394,7 @@ namespace LinuxSampler {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.SwitchConfig();
                     if (cmd.pScript) pScript->unload();
                 }
+                InstrumentChangeCommand.SwitchConfig(); // switch back to original one
             }
 
             /**

@@ -157,10 +157,13 @@ namespace LinuxSampler { namespace gig {
         InstrumentIdxName = newInstrument->pInfo->Name;
         InstrumentStat = 100;
 
-        cmd = ChangeInstrument(newInstrument);
-        if (cmd.pScript) {
-            // give old instrument script back to instrument resource manager
-            cmd.pScript->resetAll();
+        {
+            InstrumentChangeCmd< ::gig::DimensionRegion, ::gig::Instrument>& cmd =
+                ChangeInstrument(newInstrument);
+            if (cmd.pScript) {
+                // give old instrument script back to instrument resource manager
+                cmd.pScript->resetAll();
+            }
         }
 
         StatusChanged(true);

@@ -88,7 +88,7 @@ namespace LinuxSampler {
      * to deallocate the parsed script once not used on any engine channel
      * anymore.
      *
-     * Calling thid method will however not clear the @c code member variable.
+     * Calling this method will however not clear the @c code member variable.
      * Thus, the script can be parsed again afterwards.
      */
     void InstrumentScript::unload() {

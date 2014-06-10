@@ -925,6 +925,8 @@ namespace LinuxSampler {
                             RTList<ScriptEvent>::Iterator itScriptEvent =
                                 pEngineChannel->pScript->pEvents->allocAppend();
 
+                            itScriptEvent->cause.pEngineChannel = pEngineChannel;
+
                             VMExecStatus_t res = pScriptVM->exec(
                                 pEngineChannel->pScript->parserContext, &*itScriptEvent
                             );
