@@ -7,3 +7,5 @@ src/gigedit/dimregionchooser.cpp
 src/gigedit/gigedit.cpp
 src/gigedit/paramedit.cpp
 src/gigedit/midirules.cpp
+src/gigedit/scripteditor.cpp
+src/gigedit/scriptslots.cpp

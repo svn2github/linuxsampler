@@ -697,6 +697,7 @@ void MainWindow::__clear() {
     // clear the samples and instruments tree views
     m_refTreeModel->clear();
     m_refSamplesTreeModel->clear();
+    m_refScriptsTreeModel->clear();
     // remove all entries from "Instrument" menu
     while (!instrument_menu->get_children().empty()) {
         remove_instrument_from_menu(0);
@@ -711,6 +712,7 @@ void MainWindow::__refreshEntireGUI() {
     // clear the samples and instruments tree views
     m_refTreeModel->clear();
     m_refSamplesTreeModel->clear();
+    m_refScriptsTreeModel->clear();
     // remove all entries from "Instrument" menu
     while (!instrument_menu->get_children().empty()) {
         remove_instrument_from_menu(0);
