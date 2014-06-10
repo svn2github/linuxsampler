@@ -121,8 +121,21 @@ namespace LinuxSampler {
             optional<float> ChorusSend;     ///< Optional individual chorus send level for this MIDI key (usually not set, unless Roland GS NRPN 0x1Enn was received, nn reflecting the note number, see EngineBase::ProcessHardcodedControllers())
     };
 
+    class MidiKeyboardManagerBase {
+    public:
+        Pool<uint>*           pActiveKeys;  ///< Holds all keys in it's allocation list with active voices.
+        bool                  SoloMode;                 ///< in Solo Mode we only play one voice (group) at a time
+        int                   SoloKey;                  ///< Currently 'active' solo key, that is the key to which the currently sounding voice belongs to (only if SoloMode is enabled)
+        bool                  SustainPedal;             ///< true if sustain pedal is down
+        bool                  SostenutoPedal;           ///< true if sostenuto pedal is down
+        int                   SostenutoKeys[128];
+        int                   SostenutoKeyCount;
+        uint32_t              RoundRobinIndexes[128];
+        int8_t                KeyDown[128]; ///< True if the respective key is currently pressed down. Currently only used as built-in instrument script array variable %KEY_DOWN. It is currently not used by the sampler for any other purpose.
+    };
+
     template <class V>
-    class MidiKeyboardManager {
+    class MidiKeyboardManager : public MidiKeyboardManagerBase {
         public:
             /** @brief Voice Stealing Algorithms
              *
@@ -204,14 +217,6 @@ namespace LinuxSampler {
             };
 
             MidiKey*              pMIDIKeyInfo; ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
-            Pool<uint>*           pActiveKeys;  ///< Holds all keys in it's allocation list with active voices.
-            bool                  SoloMode;                 ///< in Solo Mode we only play one voice (group) at a time
-            int                   SoloKey;                  ///< Currently 'active' solo key, that is the key to which the currently sounding voice belongs to (only if SoloMode is enabled)
-            bool                  SustainPedal;             ///< true if sustain pedal is down
-            bool                  SostenutoPedal;           ///< true if sostenuto pedal is down
-            int                   SostenutoKeys[128];
-            int                   SostenutoKeyCount;
-            uint32_t              RoundRobinIndexes[128];
 
             MidiKeyboardManager() {
                 pMIDIKeyInfo = new MidiKey[128];
@@ -221,6 +226,7 @@ namespace LinuxSampler {
                 SostenutoPedal = false;
                 for (int i = 0 ; i < 128 ; i++) {
                     RoundRobinIndexes[i] = 0;
+                    KeyDown[i] = false;
 
                     // by default use one counter for each key (the
                     // gig engine will change this to one counter per
@@ -239,7 +245,10 @@ namespace LinuxSampler {
                 SoloKey = -1;    // no solo key active yet
 
                 // reset key info
-                for (uint i = 0; i < 128; i++) pMIDIKeyInfo[i].Reset();
+                for (uint i = 0; i < 128; i++) {
+                    pMIDIKeyInfo[i].Reset();
+                    KeyDown[i] = false;
+                }
 
                 // free all active keys
                 pActiveKeys->clear();

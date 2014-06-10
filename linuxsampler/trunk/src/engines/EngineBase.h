@@ -1308,6 +1308,7 @@ namespace LinuxSampler {
                 pChannel->ProcessKeySwitchChange(key);
 
                 pKey->KeyPressed = true; // the MIDI key was now pressed down
+                pChannel->KeyDown[key] = true; // just used as built-in %KEY_DOWN script variable
                 pKey->Velocity   = itNoteOnEventOnKeyList->Param.Note.Velocity;
                 pKey->NoteOnTime = FrameTime + itNoteOnEventOnKeyList->FragmentPos(); // will be used to calculate note length
 
@@ -1384,6 +1385,7 @@ namespace LinuxSampler {
                 #endif
 
                 pKey->KeyPressed = false; // the MIDI key was now released
+                pChannel->KeyDown[iKey] = false; // just used as built-in %KEY_DOWN script variable
 
                 // move event to the key's own event list
                 RTList<Event>::Iterator itNoteOffEventOnKeyList = itNoteOffEvent.moveToEndOf(pKey->pEvents);

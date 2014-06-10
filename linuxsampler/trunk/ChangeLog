@@ -460,6 +460,7 @@ Version CVS HEAD (?)
       $GIG_DIM_EFFECT3DEPTH, $GIG_DIM_EFFECT4DEPTH, $GIG_DIM_EFFECT5DEPTH.
     - Giga format scripts: Implemented built-in script function
       "gig_set_dim_zone(event_id, dimension, zone)".
+    - Implemented built-in script int array variable $KEY_DOWN.
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

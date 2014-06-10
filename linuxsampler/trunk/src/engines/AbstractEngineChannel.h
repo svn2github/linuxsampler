@@ -40,6 +40,8 @@
 
 namespace LinuxSampler {
 
+    class MidiKeyboardManagerBase;
+
     class AbstractEngineChannel: public EngineChannel, public InstrumentScriptConsumer {
         public:
             // implementation of abstract methods derived from interface class 'LinuxSampler::EngineChannel'
@@ -95,6 +97,7 @@ namespace LinuxSampler {
             virtual void OnResourceProgress(float fProgress) OVERRIDE {}
 
             virtual AbstractEngine::Format GetEngineFormat() = 0;
+            virtual MidiKeyboardManagerBase* GetMidiKeyboardManager() = 0;
 
             AudioOutputDevice* GetAudioOutputDeviceSafe();
 

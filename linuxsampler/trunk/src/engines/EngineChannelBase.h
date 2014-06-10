@@ -60,6 +60,10 @@ namespace LinuxSampler {
             typedef typename RTList<R*>::Iterator RTListRegionIterator;
             typedef typename MidiKeyboardManager<V>::MidiKey MidiKey;
 
+            virtual MidiKeyboardManagerBase* GetMidiKeyboardManager() OVERRIDE {
+                return this;
+            }
+
             virtual void HandBack(I* Instrument) {
                 ResourceManager<InstrumentManager::instrument_id_t, I>* mgr =
                     dynamic_cast<ResourceManager<InstrumentManager::instrument_id_t, I>*>(pEngine->GetInstrumentManager());

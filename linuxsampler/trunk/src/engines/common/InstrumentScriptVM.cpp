@@ -11,6 +11,7 @@
 #include "../AbstractEngineChannel.h"
 #include "../../common/global_private.h"
 #include "AbstractInstrumentManager.h"
+#include "MidiKeyboardManager.h"
 
 namespace LinuxSampler {
 
@@ -145,6 +146,7 @@ namespace LinuxSampler {
         m_EVENT_ID = DECLARE_VMINT(m_event, class ScriptEvent, id);
         m_EVENT_NOTE = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.Note.Key);
         m_EVENT_VELOCITY = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.Note.Velocity);
+        m_KEY_DOWN.size = 128;
     }
 
     VMExecStatus_t InstrumentScriptVM::exec(VMParserContext* parserCtx, ScriptEvent* event) {
@@ -154,6 +156,7 @@ namespace LinuxSampler {
         // prepare built-in script variables for script execution
         m_event = event;
         m_CC.data = (int8_t*) &pEngineChannel->ControllerTable[0];
+        m_KEY_DOWN.data = &pEngineChannel->GetMidiKeyboardManager()->KeyDown[0];
 
         // if script is in start condition, then do mandatory MIDI event
         // preprocessing tasks, which essentially means updating i.e. controller
@@ -209,7 +212,7 @@ namespace LinuxSampler {
 
         // now add own built-in variables
         m["%CC"] = &m_CC;
-        //m["%KEY_DOWN"] = &m_KEY_DOWN;
+        m["%KEY_DOWN"] = &m_KEY_DOWN;
         //m["%POLY_AT"] = &m_POLY_AT;
 
         return m;
