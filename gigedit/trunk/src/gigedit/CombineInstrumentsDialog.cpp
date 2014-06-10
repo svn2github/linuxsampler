@@ -449,10 +449,8 @@ static void scheduleCopyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn
         uint dstDimValues[8] = {};
         DimensionCase srcDimCase = dimCase;
         DimensionCase dstDimCase = dimCase;
-        if (dims.count(mainDim)) {
-            srcDimCase[mainDim] = iSrcMainBit;
-            dstDimCase[mainDim] = iDstMainBit;
-        }
+        srcDimCase[mainDim] = iSrcMainBit;
+        dstDimCase[mainDim] = iDstMainBit;
 
         #if DEBUG_COMBINE_INSTRUMENTS
         printf("-------------------------------\n");
@@ -471,7 +469,7 @@ static void scheduleCopyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn
         #if DEBUG_COMBINE_INSTRUMENTS
         printf("dst "); fflush(stdout);
         #endif
-        fillDimValues(dstDimValues, dstDimCase, outRgn, true);
+        fillDimValues(dstDimValues, dstDimCase, outRgn, false);
         gig::DimensionRegion* srcDimRgn = inRgn->GetDimensionRegionByValue(srcDimValues);
         gig::DimensionRegion* dstDimRgn = outRgn->GetDimensionRegionByValue(dstDimValues);
         #if DEBUG_COMBINE_INSTRUMENTS
@@ -507,7 +505,7 @@ static void scheduleCopyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn
             printf("dst velocity value = %d\n", dstDimCase[gig::dimension_velocity]);
             printf("dst refilled "); fflush(stdout);
             #endif
-            fillDimValues(dstDimValues, dstDimCase, outRgn, true);
+            fillDimValues(dstDimValues, dstDimCase, outRgn, false);
             dstDimRgn = outRgn->GetDimensionRegionByValue(dstDimValues);
             #if DEBUG_COMBINE_INSTRUMENTS
             printf("reselected dstDimRgn=%lx\n", (uint64_t)dstDimRgn);
