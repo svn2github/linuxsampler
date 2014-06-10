@@ -449,8 +449,10 @@ static void scheduleCopyDimensionRegions(gig::Region* outRgn, gig::Region* inRgn
         uint dstDimValues[8] = {};
         DimensionCase srcDimCase = dimCase;
         DimensionCase dstDimCase = dimCase;
-        srcDimCase[mainDim] = iSrcMainBit;
-        dstDimCase[mainDim] = iDstMainBit;
+        if (dims.count(mainDim)) {
+            srcDimCase[mainDim] = iSrcMainBit;
+            dstDimCase[mainDim] = iDstMainBit;
+        }
 
         #if DEBUG_COMBINE_INSTRUMENTS
         printf("-------------------------------\n");
@@ -660,7 +662,7 @@ static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::
             iTotalZones += (def) ? def->zones : 1;
         }
         #if DEBUG_COMBINE_INSTRUMENTS
-        printf("Required total zones: %d\n", iTotalZones);
+        printf("Required total zones: %d, vertical regions: %d\n", iTotalZones, itGroup->second.size());
         #endif
 
         // create all required dimensions for this output region
@@ -722,6 +724,8 @@ static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::
             #if DEBUG_COMBINE_INSTRUMENTS
             std::cout << "OK" << std::endl << std::flush;
             #endif
+        } else {
+            dims.erase(mainDimension);
         }
 
         // for the next task we need to have the current RegionGroup to be
@@ -809,9 +813,12 @@ CombineInstrumentsDialog::CombineInstrumentsDialog(Gtk::Window& parent, gig::Fil
       m_descriptionLabel(), m_tableDimCombo(2, 2), m_comboDimType(),
       m_labelDimType(Glib::ustring(_("Combine by Dimension:")) + "  ", Gtk::ALIGN_END)
 {
+    m_scrolledWindow.add(m_treeView);
+    m_scrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+
     get_vbox()->pack_start(m_descriptionLabel, Gtk::PACK_SHRINK);
     get_vbox()->pack_start(m_tableDimCombo, Gtk::PACK_SHRINK);
-    get_vbox()->pack_start(m_treeView);
+    get_vbox()->pack_start(m_scrolledWindow);
     get_vbox()->pack_start(m_buttonBox, Gtk::PACK_SHRINK);
 
 #if GTKMM_MAJOR_VERSION >= 3

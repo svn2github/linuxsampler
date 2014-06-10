@@ -17,6 +17,7 @@
 #include <gtkmm/liststore.h>
 #include <gtkmm/table.h>
 #include <gtkmm/comboboxtext.h>
+#include <gtkmm/scrolledwindow.h>
 
 #include "wrapLabel.hh"
 
@@ -41,6 +42,7 @@ protected:
     gig::Instrument* m_newCombinedInstrument;
 
     Gtk::HButtonBox m_buttonBox;
+    Gtk::ScrolledWindow m_scrolledWindow;
     Gtk::TreeView   m_treeView;
     Gtk::Button     m_cancelButton;
     Gtk::Button     m_OKButton;
