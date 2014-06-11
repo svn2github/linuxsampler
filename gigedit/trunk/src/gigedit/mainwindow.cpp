@@ -404,8 +404,25 @@ MainWindow::MainWindow() :
     m_TreeViewSamples.set_model(m_refSamplesTreeModel);
     m_TreeViewSamples.set_tooltip_text(_("To actually use a sample, drag it from this list view to \"Sample\" -> \"Sample:\" on the region's settings pane on the right.\n\nRight click here for more actions on samples."));
     // m_TreeViewSamples.set_reorderable();
-    m_TreeViewSamples.append_column_editable("Samples", m_SamplesModel.m_col_name);
-    m_TreeViewSamples.set_headers_visible(false);
+    m_TreeViewSamples.append_column_editable(_("Name"), m_SamplesModel.m_col_name);
+    m_TreeViewSamples.append_column(_("Referenced"), m_SamplesModel.m_col_refcount);
+    {
+        Gtk::TreeViewColumn* column = m_TreeViewSamples.get_column(0);
+        Gtk::CellRendererText* cellrenderer =
+            dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
+        column->add_attribute(
+            cellrenderer->property_foreground(), m_SamplesModel.m_color
+        );
+    }
+    {
+        Gtk::TreeViewColumn* column = m_TreeViewSamples.get_column(1);
+        Gtk::CellRendererText* cellrenderer =
+            dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
+        column->add_attribute(
+            cellrenderer->property_foreground(), m_SamplesModel.m_color
+        );
+    }
+    m_TreeViewSamples.set_headers_visible(true);
     m_TreeViewSamples.signal_button_press_event().connect_notify(
         sigc::mem_fun(*this, &MainWindow::on_sample_treeview_button_release)
     );
@@ -474,6 +491,12 @@ MainWindow::MainWindow() :
         dimreg_changed_signal.make_slot());
     dimreg_edit.signal_sample_ref_changed().connect(
         sample_ref_changed_signal.make_slot());
+    sample_ref_changed_signal.connect(
+        sigc::mem_fun(*this, &MainWindow::on_sample_ref_changed)
+    );
+    samples_to_be_removed_signal.connect(
+        sigc::mem_fun(*this, &MainWindow::on_samples_to_be_removed)
+    );
 
     m_RegionChooser.signal_instrument_struct_to_be_changed().connect(
         sigc::hide(
@@ -1360,6 +1383,27 @@ void MainWindow::file_changed()
     }
 }
 
+void MainWindow::updateSampleRefCountMap(gig::File* gig) {
+    sample_ref_count.clear();
+    
+    if (!gig) return;
+
+    for (gig::Instrument* instrument = gig->GetFirstInstrument(); instrument;
+         instrument = gig->GetNextInstrument())
+    {
+        for (gig::Region* rgn = instrument->GetFirstRegion(); rgn;
+             rgn = instrument->GetNextRegion())
+        {
+            for (int i = 0; i < 256; ++i) {
+                if (!rgn->pDimensionRegions[i]) continue;
+                if (rgn->pDimensionRegions[i]->pSample) {
+                    sample_ref_count[rgn->pDimensionRegions[i]->pSample]++;
+                }
+            }
+        }
+    }
+}
+
 void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedInstrument)
 {
     file = 0;
@@ -1388,6 +1432,8 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
     instrument_name_connection.unblock();
     uiManager->get_widget("/MenuBar/MenuInstrument")->show();
 
+    updateSampleRefCountMap(gig);
+
     for (gig::Group* group = gig->GetFirstGroup(); group; group = gig->GetNextGroup()) {
         if (group->Name != "") {
             Gtk::TreeModel::iterator iterGroup = m_refSamplesTreeModel->append();
@@ -1404,6 +1450,9 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
                     gig_to_utf8(sample->pInfo->Name);
                 rowSample[m_SamplesModel.m_col_sample] = sample;
                 rowSample[m_SamplesModel.m_col_group]  = NULL;
+                int refcount = sample_ref_count.count(sample) ? sample_ref_count[sample] : 0;
+                rowSample[m_SamplesModel.m_col_refcount] = ToString(refcount) + " " + _("Refs.");
+                rowSample[m_SamplesModel.m_color] = refcount ? "black" : "gray";
             }
         }
     }
@@ -2643,6 +2692,38 @@ void MainWindow::set_file_is_shared(bool b) {
         m_AttachedStateImage.set(
             Gdk::Pixbuf::create_from_xpm_data(status_detached_xpm)
         );
+    }
+}
+
+void MainWindow::on_sample_ref_count_incremented(gig::Sample* sample, int offset) {
+    if (!sample) return;
+    sample_ref_count[sample] += offset;
+    const int refcount = sample_ref_count[sample];
+
+    Glib::RefPtr<Gtk::TreeModel> model = m_TreeViewSamples.get_model();
+    for (int g = 0; g < model->children().size(); ++g) {
+        Gtk::TreeModel::Row rowGroup = model->children()[g];
+        for (int s = 0; s < rowGroup.children().size(); ++s) {
+            Gtk::TreeModel::Row rowSample = rowGroup.children()[s];
+            if (rowSample[m_SamplesModel.m_col_sample] != sample) continue;
+            rowSample[m_SamplesModel.m_col_refcount] = ToString(refcount) + " " + _("Refs.");
+            rowSample[m_SamplesModel.m_color] = refcount ? "black" : "gray";
+        }
+    }
+}
+
+void MainWindow::on_sample_ref_changed(gig::Sample* oldSample, gig::Sample* newSample) {
+    on_sample_ref_count_incremented(oldSample, -1);
+    on_sample_ref_count_incremented(newSample, +1);
+}
+
+void MainWindow::on_samples_to_be_removed(std::list<gig::Sample*> samples) {
+    // just in case a new sample is added later with exactly the same memory
+    // address, which would lead to incorrect refcount if not deleted here
+    for (std::list<gig::Sample*>::const_iterator it = samples.begin();
+         it != samples.end(); it != samples.end())
+    {
+        sample_ref_count.erase(*it);
     }
 }
 

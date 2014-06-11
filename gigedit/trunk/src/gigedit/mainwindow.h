@@ -231,17 +231,23 @@ protected:
 
     Gtk::Menu* instrument_menu;
 
+    std::map<gig::Sample*,int> sample_ref_count;
+
     class SamplesModel : public Gtk::TreeModel::ColumnRecord {
     public:
         SamplesModel() {
             add(m_col_name);
             add(m_col_sample);
             add(m_col_group);
+            add(m_col_refcount);
+            add(m_color);
         }
 
         Gtk::TreeModelColumn<Glib::ustring> m_col_name;
         Gtk::TreeModelColumn<gig::Sample*> m_col_sample;
         Gtk::TreeModelColumn<gig::Group*> m_col_group;
+        Gtk::TreeModelColumn<Glib::ustring> m_col_refcount;
+        Gtk::TreeModelColumn<Glib::ustring> m_color;
     } m_SamplesModel;
 
     class SamplesTreeStore : public Gtk::TreeStore {
@@ -344,6 +350,7 @@ protected:
     LoadDialog* load_dialog;
     Loader* loader;
     void load_gig(gig::File* gig, const char* filename, bool isSharedInstrument = false);
+    void updateSampleRefCountMap(gig::File* gig);
 
     gig::File* file;
     bool file_is_shared;
@@ -383,6 +390,10 @@ protected:
     void on_action_combine_instruments();
     void on_action_merge_files();
     void mergeFiles(const std::vector<std::string>& filenames);
+
+    void on_sample_ref_changed(gig::Sample* oldSample, gig::Sample* newSample);
+    void on_sample_ref_count_incremented(gig::Sample* sample, int offset);
+    void on_samples_to_be_removed(std::list<gig::Sample*> samples);
 
     void __import_queued_samples();
     void __clear();
