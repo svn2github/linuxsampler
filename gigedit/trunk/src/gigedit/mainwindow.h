@@ -388,6 +388,7 @@ protected:
     sigc::connection instrument_name_connection;
 
     void on_action_combine_instruments();
+    void on_action_view_references();
     void on_action_merge_files();
     void mergeFiles(const std::vector<std::string>& filenames);
 

@@ -9,3 +9,4 @@ src/gigedit/paramedit.cpp
 src/gigedit/midirules.cpp
 src/gigedit/scripteditor.cpp
 src/gigedit/scriptslots.cpp
+src/gigedit/ReferencesView.cpp

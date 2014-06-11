@@ -31,6 +31,7 @@ libgigedit_la_SOURCES = \
 	Settings.cpp Settings.h \
 	scripteditor.cpp scripteditor.h \
 	scriptslots.cpp scriptslots.h \
+	ReferencesView.cpp ReferencesView.h \
 	$(wraplabel) $(mac_src)
 libgigedit_la_LIBADD = \
 	$(GTKMM_LIBS) $(GIG_LIBS) $(SNDFILE_LIBS)

@@ -47,6 +47,7 @@
 #include "CombineInstrumentsDialog.h"
 #include "scripteditor.h"
 #include "scriptslots.h"
+#include "ReferencesView.h"
 #include "../../gfx/status_attached.xpm"
 #include "../../gfx/status_detached.xpm"
 
@@ -236,6 +237,10 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_action_remove_sample)
     );
     actionGroup->add(
+        Gtk::Action::create("ShowSampleRefs", _("Show References...")),
+        sigc::mem_fun(*this, &MainWindow::on_action_view_references)
+    );
+    actionGroup->add(
         Gtk::Action::create("ReplaceAllSamplesInAllGroups",
                             _("Replace All Samples in All Groups...")),
         sigc::mem_fun(*this, &MainWindow::on_action_replace_all_samples_in_all_groups)
@@ -311,6 +316,7 @@ MainWindow::MainWindow() :
         "    <menuitem action='SampleProperties'/>"
         "    <menuitem action='AddGroup'/>"
         "    <menuitem action='AddSample'/>"
+        "    <menuitem action='ShowSampleRefs'/>"
         "    <menuitem action='ReplaceAllSamplesInAllGroups' />"
         "    <separator/>"
         "    <menuitem action='RemoveSample'/>"
@@ -1476,7 +1482,8 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
             rowScript[m_ScriptsModel.m_col_group]  = NULL;
         }
     }
-    // unfold all script groups by default
+    // unfold all sample groups & script groups by default
+    m_TreeViewSamples.expand_all();
     m_TreeViewScripts.expand_all();
 
     file = gig;
@@ -1651,6 +1658,8 @@ void MainWindow::on_sample_treeview_button_release(GdkEventButton* button) {
             set_sensitive(group_selected || sample_selected);
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/AddGroup"))->
             set_sensitive(file);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/ShowSampleRefs"))->
+            set_sensitive(sample_selected);
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/RemoveSample"))->
             set_sensitive(group_selected || sample_selected);
         // show sample popup
@@ -2532,6 +2541,22 @@ void MainWindow::on_action_combine_instruments() {
         // update GUI with new instrument just created
         add_instrument(d->newCombinedInstrument());
     }
+    delete d;
+}
+
+void MainWindow::on_action_view_references() {
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    if (!it) return;
+    Gtk::TreeModel::Row row = *it;
+    gig::Sample* sample = row[m_SamplesModel.m_col_sample];
+    if (!sample) return;
+
+    ReferencesView* d = new ReferencesView(*this);
+    d->setSample(sample);
+    d->show_all();
+    d->resize(500, 400);
+    d->run();
     delete d;
 }
 
