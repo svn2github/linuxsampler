@@ -101,7 +101,7 @@ bool CoreVMFunction_random::acceptsArgType(int iArg, ExprType_t type) const {
 VMFnResult* CoreVMFunction_random::exec(VMFnArgs* args) {
     int iMin = args->arg(0)->asInt()->evalInt();
     int iMax = args->arg(1)->asInt()->evalInt();
-    float f = float(::random()) / float(RAND_MAX);
+    float f = float(::rand()) / float(RAND_MAX);
     return successResult(
         iMin + roundf( f * float(iMax - iMin) )
     );
