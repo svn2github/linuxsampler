@@ -461,6 +461,9 @@ Version CVS HEAD (?)
     - Giga format scripts: Implemented built-in script function
       "gig_set_dim_zone(event_id, dimension, zone)".
     - Implemented built-in script int array variable $KEY_DOWN.
+    - Implemented built-in script function "abs()".
+    - Implemented built-in script function "random()".
+    - Implemented built-in script function "num_elements()".
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

@@ -10,6 +10,7 @@
 #include "ScriptVM.h"
 
 #include <string.h>
+#include <assert.h>
 #include "../common/global_private.h"
 #include "tree.h"
 
@@ -167,6 +168,9 @@ namespace LinuxSampler {
         if (name == "message") return &fnMessage;
         else if (name == "exit") return &fnExit;
         else if (name == "wait") return &fnWait;
+        else if (name == "abs") return &fnAbs;
+        else if (name == "random") return &fnRandom;
+        else if (name == "num_elements") return &fnNumElements;
         return NULL;
     }
 

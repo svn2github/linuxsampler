@@ -18,7 +18,7 @@
 // Enabling the following macro will add a bunch of sanity checks for easing
 // debugging of such issues, however it comes with the cost that everything will
 // be much slower.
-#define LS_REF_ASSERT_MODE 1
+#define LS_REF_ASSERT_MODE 0
 
 #if LS_REF_ASSERT_MODE
 # warning LS_REF_ASSERT_MODE is enabled which will decrease runtime efficiency!

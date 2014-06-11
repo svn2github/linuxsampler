@@ -65,6 +65,9 @@ namespace LinuxSampler {
         CoreVMFunction_message fnMessage;
         CoreVMFunction_exit fnExit;
         CoreVMFunction_wait fnWait;
+        CoreVMFunction_abs fnAbs;
+        CoreVMFunction_random fnRandom;
+        CoreVMFunction_num_elements fnNumElements;
     };
 
 } // namespace LinuxSampler

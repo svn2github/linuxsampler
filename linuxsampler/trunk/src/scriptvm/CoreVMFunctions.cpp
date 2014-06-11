@@ -10,6 +10,8 @@
 #include "CoreVMFunctions.h"
 
 #include <iostream>
+#include <math.h>
+#include <stdlib.h>
 #include "tree.h"
 #include "ScriptVM.h"
 
@@ -82,6 +84,35 @@ VMFnResult* CoreVMFunction_wait::exec(VMFnArgs* args) {
     ctx->suspendMicroseconds = expr->evalInt();
     this->result.flags = STMT_SUSPEND_SIGNALLED;
     return &result;
+}
+
+bool CoreVMFunction_abs::acceptsArgType(int iArg, ExprType_t type) const {
+    return type == INT_EXPR;
+}
+
+VMFnResult* CoreVMFunction_abs::exec(VMFnArgs* args) {
+    return successResult( ::abs(args->arg(0)->asInt()->evalInt()) );
+}
+
+bool CoreVMFunction_random::acceptsArgType(int iArg, ExprType_t type) const {
+    return type == INT_EXPR;
+}
+
+VMFnResult* CoreVMFunction_random::exec(VMFnArgs* args) {
+    int iMin = args->arg(0)->asInt()->evalInt();
+    int iMax = args->arg(1)->asInt()->evalInt();
+    float f = float(::random()) / float(RAND_MAX);
+    return successResult(
+        iMin + roundf( f * float(iMax - iMin) )
+    );
+}
+
+bool CoreVMFunction_num_elements::acceptsArgType(int iArg, ExprType_t type) const {
+    return type == INT_ARR_EXPR;
+}
+
+VMFnResult* CoreVMFunction_num_elements::exec(VMFnArgs* args) {
+    return successResult( args->arg(0)->asIntArray()->arraySize() );
 }
 
 } // namespace LinuxSampler

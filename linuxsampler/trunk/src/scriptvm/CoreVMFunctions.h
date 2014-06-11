@@ -106,6 +106,33 @@ protected:
     ScriptVM* vm;
 };
 
+class CoreVMFunction_abs : public VMIntResultFunction {
+public:
+    int minRequiredArgs() const { return 1; }
+    int maxAllowedArgs() const { return 1; }
+    bool acceptsArgType(int iArg, ExprType_t type) const;
+    ExprType_t argType(int iArg) const { return INT_EXPR; }
+    VMFnResult* exec(VMFnArgs* args);
+};
+
+class CoreVMFunction_random : public VMIntResultFunction {
+public:
+    int minRequiredArgs() const { return 2; }
+    int maxAllowedArgs() const { return 2; }
+    bool acceptsArgType(int iArg, ExprType_t type) const;
+    ExprType_t argType(int iArg) const { return INT_EXPR; }
+    VMFnResult* exec(VMFnArgs* args);
+};
+
+class CoreVMFunction_num_elements : public VMIntResultFunction {
+public:
+    int minRequiredArgs() const { return 1; }
+    int maxAllowedArgs() const { return 1; }
+    bool acceptsArgType(int iArg, ExprType_t type) const;
+    ExprType_t argType(int iArg) const { return INT_ARR_EXPR; }
+    VMFnResult* exec(VMFnArgs* args);
+};
+
 } // namespace LinuxSampler
 
 #endif // LS_COREVMFUNCTIONS_H

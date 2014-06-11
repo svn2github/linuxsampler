@@ -7,6 +7,8 @@ on init
   declare %a[$SIZE] := ( 0,1,2,3,4 )
   declare $i
 
+  message("num_elements(%a) = " & num_elements(%a))
+
   message("Initial values of array:")
 
   $i := 0

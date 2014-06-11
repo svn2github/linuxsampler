@@ -20,6 +20,10 @@ namespace LinuxSampler {
         return const_cast<VMStringExpr*>( dynamic_cast<const VMStringExpr*>(this) );
     }
 
+    VMIntArrayExpr* VMExpr::asIntArray() const {
+        return const_cast<VMIntArrayExpr*>( dynamic_cast<const VMIntArrayExpr*>(this) );
+    }
+
     void VMFunction::wrnMsg(const String& txt) {
         std::cout << "[ScriptVM] " << txt << std::endl;
     }

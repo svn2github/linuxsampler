@@ -157,7 +157,7 @@ public:
 };
 typedef Ref<PolyphonicIntVariable,Node> PolyphonicIntVariableRef;
 
-class IntArrayVariable : public Variable {
+class IntArrayVariable : public Variable, virtual public VMIntArrayExpr {
     ArrayList<int> values;
 public:
     IntArrayVariable(ParserContext* ctx, int size);

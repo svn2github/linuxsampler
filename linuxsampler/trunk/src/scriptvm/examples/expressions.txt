@@ -23,4 +23,11 @@ on init
   message("Bit operation not 1 = " & not 1)
   message("Bit operation not 2 = " & not 2)
   message("Bit operation not 0 = " & not 0)
+
+  message("abs(-3) = " & abs(-3))
+
+  message("random(-5,5) = " & random(-5,5))
+  message("random(-5,5) = " & random(-5,5))
+  message("random(-5,5) = " & random(-5,5))
+
 end on 

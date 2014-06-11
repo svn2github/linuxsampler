@@ -50,12 +50,15 @@ namespace LinuxSampler {
 
     class VMIntExpr;
     class VMStringExpr;
+    class VMIntArrayExpr;
+    class VMStringArrayExpr;
 
     class VMExpr {
     public:
         virtual ExprType_t exprType() const = 0;
         VMIntExpr* asInt() const;
         VMStringExpr* asString() const;
+        VMIntArrayExpr* asIntArray() const;
     };
 
     class VMIntExpr : virtual public VMExpr {
@@ -68,6 +71,17 @@ namespace LinuxSampler {
     public:
         virtual String evalStr() = 0;
         ExprType_t exprType() const { return STRING_EXPR; }
+    };
+
+    class VMArrayExpr : virtual public VMExpr {
+    public:
+        virtual int arraySize() const = 0;
+    };
+
+    class VMIntArrayExpr : virtual public VMArrayExpr {
+    public:
+        virtual int evalIntElement(uint i) = 0;
+        virtual void assignIntElement(uint i, int value) = 0;
     };
 
     class VMFnArgs {
