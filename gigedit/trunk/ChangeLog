@@ -73,6 +73,9 @@ Version CVS HEAD (?)
   * GIG SOUND FORMAT EXTENSION: Added support for managing script slots for
     instruments. Script slots define which scripts shall be executed for an
     instrument by the sampler and in which order.
+  * Samples tree view on main window: display the amount of references for
+    each sample and show the respective sample in gray color in case it is not
+    referenced at all. 
 
 Version 0.2.0 (2009-07-31)
 
