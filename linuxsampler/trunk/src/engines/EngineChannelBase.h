@@ -388,11 +388,11 @@ namespace LinuxSampler {
             void UnloadScriptInUse() {
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
-                    if (cmd.pScript) pScript->unload();
+                    if (cmd.pScript) cmd.pScript->unload();
                 }
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.SwitchConfig();
-                    if (cmd.pScript) pScript->unload();
+                    if (cmd.pScript) cmd.pScript->unload();
                 }
                 InstrumentChangeCommand.SwitchConfig(); // switch back to original one
             }

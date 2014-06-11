@@ -92,6 +92,8 @@ namespace LinuxSampler {
      * Thus, the script can be parsed again afterwards.
      */
     void InstrumentScript::unload() {
+        //dmsg(1,("InstrumentScript::unload(this=0x%llx)\n", this));
+
         if (parserContext)
             dmsg(1,("Unloading current instrument script.\n"));
 

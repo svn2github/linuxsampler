@@ -926,6 +926,8 @@ namespace LinuxSampler {
                                 pEngineChannel->pScript->pEvents->allocAppend();
 
                             itScriptEvent->cause.pEngineChannel = pEngineChannel;
+                            itScriptEvent->handlers[0] = pEngineChannel->pScript->handlerInit;
+                            itScriptEvent->handlers[1] = NULL;
 
                             VMExecStatus_t res = pScriptVM->exec(
                                 pEngineChannel->pScript->parserContext, &*itScriptEvent
