@@ -79,6 +79,9 @@ Version CVS HEAD (?)
   * Samples tree view: implemented sample reference browser, which shows a
     tree with all instruments and their respective regions which reference the
     selected sample once ore more.
+  * Restructured main menu: duplicated all popup menus to the main menu,
+    automatically switch to the right tree view tab when either selecting the
+    "Sample", "Instrument" or "Script" main menu entry.
 
 Version 0.2.0 (2009-07-31)
 

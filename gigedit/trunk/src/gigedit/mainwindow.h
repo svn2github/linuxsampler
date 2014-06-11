@@ -342,6 +342,10 @@ protected:
     void on_action_duplicate_instrument();
     void on_action_remove_instrument();
 
+    void show_samples_tab();
+    void show_intruments_tab();
+    void show_scripts_tab();
+
     void add_instrument(gig::Instrument* instrument);
     Gtk::RadioMenuItem* add_instrument_to_menu(const Glib::ustring& name,
                                                int position = -1);

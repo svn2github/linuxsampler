@@ -146,8 +146,19 @@ MainWindow::MainWindow() :
     actionGroup->add(Gtk::Action::create("Quit", Gtk::Stock::QUIT),
                      sigc::mem_fun(
                          *this, &MainWindow::on_action_quit));
-    actionGroup->add(Gtk::Action::create("MenuInstrument", _("_Instrument")));
-
+    actionGroup->add(
+        Gtk::Action::create("MenuSample", _("_Sample")),
+        sigc::mem_fun(*this, &MainWindow::show_samples_tab)
+    );
+    actionGroup->add(
+        Gtk::Action::create("MenuInstrument", _("_Instrument")),
+        sigc::mem_fun(*this, &MainWindow::show_intruments_tab)
+    );
+    actionGroup->add(
+        Gtk::Action::create("MenuScript", _("S_cript")),
+        sigc::mem_fun(*this, &MainWindow::show_scripts_tab)
+    );
+    actionGroup->add(Gtk::Action::create("AllInstruments", _("_Select")));
 
     actionGroup->add(Gtk::Action::create("MenuEdit", _("_Edit")));
 
@@ -287,7 +298,33 @@ MainWindow::MainWindow() :
         "      <menuitem action='CopySampleTune'/>"
         "      <menuitem action='CopySampleLoop'/>"
         "    </menu>"
+        "    <menu action='MenuSample'>"
+        "      <menuitem action='SampleProperties'/>"
+        "      <menuitem action='AddGroup'/>"
+        "      <menuitem action='AddSample'/>"
+        "      <menuitem action='ShowSampleRefs'/>"
+        "      <menuitem action='ReplaceAllSamplesInAllGroups' />"
+        "      <separator/>"
+        "      <menuitem action='RemoveSample'/>"
+        "    </menu>"
         "    <menu action='MenuInstrument'>"
+        "      <menu action='AllInstruments'>"
+        "      </menu>"
+        "      <separator/>"
+        "      <menuitem action='InstrProperties'/>"
+        "      <menuitem action='MidiRules'/>"
+        "      <menuitem action='ScriptSlots'/>"
+        "      <menuitem action='AddInstrument'/>"
+        "      <menuitem action='DupInstrument'/>"
+        "      <separator/>"
+        "      <menuitem action='RemoveInstrument'/>"
+        "    </menu>"
+        "    <menu action='MenuScript'>"
+        "      <menuitem action='AddScriptGroup'/>"
+        "      <menuitem action='AddScript'/>"
+        "      <menuitem action='EditScript'/>"
+        "      <separator/>"
+        "      <menuitem action='RemoveScript'/>"
         "    </menu>"
         "    <menu action='MenuView'>"
         "      <menuitem action='Statusbar'/>"
@@ -370,7 +407,7 @@ MainWindow::MainWindow() :
 
 
     instrument_menu = static_cast<Gtk::MenuItem*>(
-        uiManager->get_widget("/MenuBar/MenuInstrument"))->get_submenu();
+        uiManager->get_widget("/MenuBar/MenuInstrument/AllInstruments"))->get_submenu();
 
     Gtk::Widget* menuBar = uiManager->get_widget("/MenuBar");
     m_VBox.pack_start(*menuBar, Gtk::PACK_SHRINK);
@@ -1436,7 +1473,7 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
         add_instrument_to_menu(name);
     }
     instrument_name_connection.unblock();
-    uiManager->get_widget("/MenuBar/MenuInstrument")->show();
+    uiManager->get_widget("/MenuBar/MenuInstrument/AllInstruments")->show();
 
     updateSampleRefCountMap(gig);
 
@@ -1458,7 +1495,7 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
                 rowSample[m_SamplesModel.m_col_group]  = NULL;
                 int refcount = sample_ref_count.count(sample) ? sample_ref_count[sample] : 0;
                 rowSample[m_SamplesModel.m_col_refcount] = ToString(refcount) + " " + _("Refs.");
-                rowSample[m_SamplesModel.m_color] = refcount ? "black" : "gray";
+                rowSample[m_SamplesModel.m_color] = refcount ? "black" : "red";
             }
         }
     }
@@ -1616,9 +1653,15 @@ void MainWindow::on_button_release(GdkEventButton* button)
         show_instr_props();
     } else if (button->type == GDK_BUTTON_PRESS && button->button == 3) {
         // gig v2 files have no midi rules
+        const bool bEnabled = !(file->pVersion && file->pVersion->major == 2);
+        static_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuInstrument/MidiRules"))->set_sensitive(
+                bEnabled
+            );
         static_cast<Gtk::MenuItem*>(
             uiManager->get_widget("/PopupMenu/MidiRules"))->set_sensitive(
-                !(file->pVersion && file->pVersion->major == 2));
+                bEnabled
+            );
         popup_menu->popup(button->button, button->time);
     }
 }
@@ -1652,6 +1695,8 @@ void MainWindow::on_sample_treeview_button_release(GdkEventButton* button) {
             group_selected  = row[m_SamplesModel.m_col_group];
             sample_selected = row[m_SamplesModel.m_col_sample];
         }
+        
+            
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/SampleProperties"))->
             set_sensitive(group_selected || sample_selected);
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/AddSample"))->
@@ -1664,6 +1709,17 @@ void MainWindow::on_sample_treeview_button_release(GdkEventButton* button) {
             set_sensitive(group_selected || sample_selected);
         // show sample popup
         sample_popup->popup(button->button, button->time);
+
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuSample/SampleProperties"))->
+            set_sensitive(group_selected || sample_selected);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuSample/AddSample"))->
+            set_sensitive(group_selected || sample_selected);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuSample/AddGroup"))->
+            set_sensitive(file);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuSample/ShowSampleRefs"))->
+            set_sensitive(sample_selected);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuSample/RemoveSample"))->
+            set_sensitive(group_selected || sample_selected);
     }
 }
 
@@ -1691,6 +1747,15 @@ void MainWindow::on_script_treeview_button_release(GdkEventButton* button) {
             set_sensitive(group_selected || script_selected);
         // show sample popup
         script_popup->popup(button->button, button->time);
+
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuScript/AddScript"))->
+            set_sensitive(group_selected || script_selected);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuScript/AddScriptGroup"))->
+            set_sensitive(file);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuScript/EditScript"))->
+            set_sensitive(script_selected);    
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuScript/RemoveScript"))->
+            set_sensitive(group_selected || script_selected);
     }
 }
 
@@ -2732,7 +2797,7 @@ void MainWindow::on_sample_ref_count_incremented(gig::Sample* sample, int offset
             Gtk::TreeModel::Row rowSample = rowGroup.children()[s];
             if (rowSample[m_SamplesModel.m_col_sample] != sample) continue;
             rowSample[m_SamplesModel.m_col_refcount] = ToString(refcount) + " " + _("Refs.");
-            rowSample[m_SamplesModel.m_color] = refcount ? "black" : "gray";
+            rowSample[m_SamplesModel.m_color] = refcount ? "black" : "red";
         }
     }
 }
@@ -2750,6 +2815,18 @@ void MainWindow::on_samples_to_be_removed(std::list<gig::Sample*> samples) {
     {
         sample_ref_count.erase(*it);
     }
+}
+
+void MainWindow::show_samples_tab() {
+    m_TreeViewNotebook.set_current_page(0);
+}
+
+void MainWindow::show_intruments_tab() {
+    m_TreeViewNotebook.set_current_page(1);
+}
+
+void MainWindow::show_scripts_tab() {
+    m_TreeViewNotebook.set_current_page(2);
 }
 
 sigc::signal<void, gig::File*>& MainWindow::signal_file_structure_to_be_changed() {
