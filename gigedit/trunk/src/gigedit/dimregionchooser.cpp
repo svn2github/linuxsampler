@@ -28,18 +28,66 @@
 
 #include "global.h"
 
-DimRegionChooser::DimRegionChooser() :
+// taken from gdk/gdkkeysyms.h
+// (define on demand, to avoid unnecessary dev lib package build dependency)
+#ifndef GDK_KEY_Control_L
+# define GDK_KEY_Control_L 0xffe3
+#endif
+#ifndef GDK_KEY_Control_R
+# define GDK_KEY_Control_R 0xffe4
+#endif
+
+static std::map<gig::dimension_t,int> caseOfDimRegion(gig::DimensionRegion* dr, bool* isValidZone) {
+    std::map<gig::dimension_t,int> dimCase;
+    if (!dr) {
+        *isValidZone = false;
+        return dimCase;
+    }
+
+    gig::Region* rgn = (gig::Region*) dr->GetParent();
+
+    // find the dimension region index of the passed dimension region
+    int drIndex;
+    for (drIndex = 0; drIndex < 256; ++drIndex)
+        if (rgn->pDimensionRegions[drIndex] == dr)
+            break;
+
+    // not found in region, something's horribly wrong
+    if (drIndex == 256) {
+        fprintf(stderr, "DimRegionChooser: ERROR: index of dim region not found!\n");
+        *isValidZone = false;
+        return std::map<gig::dimension_t,int>();
+    }
+
+    for (int d = 0, baseBits = 0; d < rgn->Dimensions; ++d) {
+        const int bits = rgn->pDimensionDefinitions[d].bits;
+        dimCase[rgn->pDimensionDefinitions[d].dimension] =
+            (drIndex >> baseBits) & ((1 << bits) - 1);
+        baseBits += bits;
+        // there are also DimensionRegion objects of unused zones, skip them
+        if (dimCase[rgn->pDimensionDefinitions[d].dimension] >= rgn->pDimensionDefinitions[d].zones) {
+            *isValidZone = false;
+            return std::map<gig::dimension_t,int>();
+        }
+    }
+
+    *isValidZone = true;
+    return dimCase;
+}
+
+DimRegionChooser::DimRegionChooser(Gtk::Window& window) :
     red("#8070ff"),
     black("black"),
     white("white")
 {
     instrument = 0;
     region = 0;
-    dimregno = -1;
+    maindimregno = -1;
     focus_line = 0;
     resize.active = false;
     cursor_is_resize = false;
     h = 20;
+    multiSelectKeyDown = false;
     set_can_focus();
 
     actionGroup = Gtk::ActionGroup::create();
@@ -74,10 +122,19 @@ DimRegionChooser::DimRegionChooser() :
     add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
                Gdk::POINTER_MOTION_HINT_MASK);
 
-    for (int i = 0 ; i < 256 ; i++) dimvalue[i] = 0;
     labels_changed = true;
 
-    set_tooltip_text(_("Right click here for options on altering dimension zones."));
+    set_tooltip_text(_(
+        "Right click here for options on altering dimension zones. Press and "
+        "hold CTRL key for selecting multiple dimension zones simultaniously."
+    ));
+    
+    window.signal_key_press_event().connect(
+        sigc::mem_fun(*this, &DimRegionChooser::onKeyPressed)
+    );
+    window.signal_key_release_event().connect(
+        sigc::mem_fun(*this, &DimRegionChooser::onKeyReleased)
+    );
 }
 
 DimRegionChooser::~DimRegionChooser()
@@ -94,9 +151,6 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* e)
 
     const Cairo::RefPtr<Cairo::Context>& cr =
         get_window()->create_cairo_context();
-#if 0
-}
-#endif
 #else
 bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
@@ -212,6 +266,8 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     for (int i = 0 ; i < region->Dimensions ; i++) {
         int nbZones = region->pDimensionDefinitions[i].zones;
         if (nbZones) {
+            const gig::dimension_t dimension = region->pDimensionDefinitions[i].dimension;
+
             if (y >= clipy2) break;
             if (y + h > clipy1) {
                 // draw focus rectangle around dimension's label and zones
@@ -242,11 +298,11 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                 cr->fill();
 
                 int c = 0;
-                if (dimregno >= 0) {
+                if (maindimregno >= 0) {
                     int mask =
                         ~(((1 << region->pDimensionDefinitions[i].bits) - 1) <<
                           bitpos);
-                    c = dimregno & mask; // mask away this dimension
+                    c = maindimregno & mask; // mask away this dimension
                 }
                 bool customsplits =
                     ((region->pDimensionDefinitions[i].split_type ==
@@ -256,13 +312,16 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                       gig::dimension_velocity &&
                       region->pDimensionRegions[c]->VelocityUpperLimit));
 
-                // draw dimension's zone borders
+                // draw dimension zones
                 Gdk::Cairo::set_source_rgba(cr, black);
                 if (customsplits) {
                     cr->move_to(label_width + 0.5, y + 1);
                     cr->line_to(label_width + 0.5, y + h - 1);
+                    int prevX = label_width;
+                    int prevUpperLimit = 0;
 
                     for (int j = 0 ; j < nbZones ; j++) {
+                        // draw dimension zone's borders for custom splits
                         gig::DimensionRegion* d =
                             region->pDimensionRegions[c + (j << bitpos)];
                         int upperLimit = d->DimensionUpperLimits[i];
@@ -272,104 +331,118 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                             label_width;
                         if (x >= clipx2) break;
                         if (x < clipx1) continue;
+                        Gdk::Cairo::set_source_rgba(cr, black);
                         cr->move_to(x + 0.5, y + 1);
                         cr->line_to(x + 0.5, y + h - 1);
+                        cr->stroke();
+
+                        // draw fill for zone
+                        bool isSelectedZone = this->dimzones[dimension].count(j);
+                        Gdk::Cairo::set_source_rgba(cr, isSelectedZone ? red : white);
+                        cr->rectangle(prevX + 1, y + 1, x - prevX - 1, h - 1);
+                        cr->fill();
+
+                        // draw text showing the beginning of the dimension zone
+                        // as numeric value to the user
+                        {
+                            Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
+                            layout->set_text(Glib::Ascii::dtostr(prevUpperLimit));
+                            Gdk::Cairo::set_source_rgba(cr, black);
+                            Pango::Rectangle rect = layout->get_logical_extents();
+                            // get the text dimensions
+                            int text_width, text_height;
+                            layout->get_pixel_size(text_width, text_height);
+                            // move text to the left end of the dimension zone
+                            cr->move_to(prevX + 3, y + 1);
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
+                            pango_cairo_show_layout(cr->cobj(), layout->gobj());
+#else
+                            layout->show_in_cairo_context(cr);
+#endif
+                        }
+                        // draw text showing the end of the dimension zone
+                        // as numeric value to the user
+                        {
+                            Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
+                            layout->set_text(Glib::Ascii::dtostr(upperLimit));
+                            Gdk::Cairo::set_source_rgba(cr, black);
+                            Pango::Rectangle rect = layout->get_logical_extents();
+                            // get the text dimensions
+                            int text_width, text_height;
+                            layout->get_pixel_size(text_width, text_height);
+                            // move text to the left end of the dimension zone
+                            cr->move_to(x - 3 - text_width, y + 1);
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
+                            pango_cairo_show_layout(cr->cobj(), layout->gobj());
+#else
+                            layout->show_in_cairo_context(cr);
+#endif
+                        }
+
+                        prevX = x;
+                        prevUpperLimit = upperLimit;
                     }
                 } else {
+                    int prevX = 0;
                     for (int j = 0 ; j <= nbZones ; j++) {
+                        // draw dimension zone's borders for normal splits
                         int x = int((w - label_width - 1) * j /
                                     double(nbZones) + 0.5) + label_width;
                         if (x >= clipx2) break;
                         if (x < clipx1) continue;
+                        Gdk::Cairo::set_source_rgba(cr, black);
                         cr->move_to(x + 0.5, y + 1);
                         cr->line_to(x + 0.5, y + h - 1);
-                    }
-                }
-                cr->stroke();
+                        cr->stroke();
 
-                // draw fill for currently selected zone
-                if (dimregno >= 0) {
-                    Gdk::Cairo::set_source_rgba(cr, red);
-                    int dr = (dimregno >> bitpos) &
-                        ((1 << region->pDimensionDefinitions[i].bits) - 1);
-                    
-                    int x1 = -1, x2 = -1;
-                    if (customsplits) {
-                        x1 = label_width;
-                        for (int j = 0 ; j < nbZones && x1 + 1 < clipx2 ; j++) {
-                            gig::DimensionRegion* d =
-                                region->pDimensionRegions[c + (j << bitpos)];
-                            int upperLimit = d->DimensionUpperLimits[i];
-                            if (!upperLimit) {
-                                upperLimit = d->VelocityUpperLimit;
-                            }
-                            int v = upperLimit + 1;
-                            x2 = int((w - label_width - 1) * v / 128.0 +
-                                     0.5) + label_width;
-                            if (j == dr && x1 < x2) {
-                                cr->rectangle(x1 + 1, y + 1,
-                                              (x2 - x1) - 1, h - 2);
-                                cr->fill();
-                                break;
-                            }
-                            x1 = x2;
-                        }
-                    } else {
-                        if (dr < nbZones) {
-                            x1 = int((w - label_width - 1) * dr /
-                                     double(nbZones) + 0.5);
-                            x2 = int((w - label_width - 1) * (dr + 1) /
-                                     double(nbZones) + 0.5);
-                            cr->rectangle(label_width + x1 + 1, y + 1,
-                                          (x2 - x1) - 1, h - 2);
+                        if (j != 0) {
+                            // draw fill for zone
+                            bool isSelectedZone = this->dimzones[dimension].count(j-1);
+                            Gdk::Cairo::set_source_rgba(cr, isSelectedZone ? red : white);
+                            cr->rectangle(prevX + 1, y + 1, x - prevX - 1, h - 1);
                             cr->fill();
-                        }
-                    }
 
-                    // draw text showing the beginning of the dimension zone
-                    // as numeric value to the user
-                    if (x1 >= 0) {
-                        Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
-                        int v = roundf(float(x1 - label_width) / float(w - label_width) * 127.f);
-                        if (dr > 0) v++;
-                        layout->set_text(Glib::Ascii::dtostr(v));
-                        Gdk::Cairo::set_source_rgba(cr, black);
-                        Pango::Rectangle rect = layout->get_logical_extents();
-                        
-                        int text_width, text_height;
-                        // get the text dimensions
-                        layout->get_pixel_size(text_width, text_height);
-                        // move text to the right end of the dimension zone
-                        cr->move_to(x1 + 1, y + 1);
+                            // draw text showing the beginning of the dimension zone
+                            // as numeric value to the user
+                            {
+                                Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
+                                layout->set_text(Glib::Ascii::dtostr((j-1) * 128/nbZones));
+                                Gdk::Cairo::set_source_rgba(cr, black);
+                                Pango::Rectangle rect = layout->get_logical_extents();
+                                // get the text dimensions
+                                int text_width, text_height;
+                                layout->get_pixel_size(text_width, text_height);
+                                // move text to the left end of the dimension zone
+                                cr->move_to(prevX + 3, y + 1);
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
-                        pango_cairo_show_layout(cr->cobj(), layout->gobj());
+                                pango_cairo_show_layout(cr->cobj(), layout->gobj());
 #else
-                        layout->show_in_cairo_context(cr);
+                                layout->show_in_cairo_context(cr);
 #endif
-                    }
-                    // draw text showing the end of the dimension zone
-                    // as numeric value to the user
-                    if (x2 >= 0) {
-                        Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
-                        const int v = roundf(float(x2 - label_width) / float(w - label_width) * 127.f);
-                        layout->set_text(Glib::Ascii::dtostr(v));
-                        Gdk::Cairo::set_source_rgba(cr, black);
-                        Pango::Rectangle rect = layout->get_logical_extents();
-                        
-                        int text_width, text_height;
-                        // get the text dimensions
-                        layout->get_pixel_size(text_width, text_height);
-                        // move text to the right end of the dimension zone
-                        cr->move_to(x2 - text_width - 1, y + 1);
+                            }
+                            // draw text showing the end of the dimension zone
+                            // as numeric value to the user
+                            {
+                                Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
+                                layout->set_text(Glib::Ascii::dtostr(j * 128/nbZones - 1));
+                                Gdk::Cairo::set_source_rgba(cr, black);
+                                Pango::Rectangle rect = layout->get_logical_extents();
+                                // get the text dimensions
+                                int text_width, text_height;
+                                layout->get_pixel_size(text_width, text_height);
+                                // move text to the left end of the dimension zone
+                                cr->move_to(x - 3 - text_width, y + 1);
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
-                        pango_cairo_show_layout(cr->cobj(), layout->gobj());
+                                pango_cairo_show_layout(cr->cobj(), layout->gobj());
 #else
-                        layout->show_in_cairo_context(cr);
+                                layout->show_in_cairo_context(cr);
 #endif
-                    }
+                            }
+                        }
+                        prevX = x;
+                    }       
                 }
             }
-
             y += h;
         }
         bitpos += region->pDimensionDefinitions[i].bits;
@@ -381,7 +454,7 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 void DimRegionChooser::set_region(gig::Region* region)
 {
     this->region = region;
-    dimregno = 0;
+    maindimregno = 0;
     nbDimensions = 0;
     if (region) {
         int bitcount = 0;
@@ -389,20 +462,18 @@ void DimRegionChooser::set_region(gig::Region* region)
             if (region->pDimensionDefinitions[dim].bits == 0) continue;
             nbDimensions++;
 
-            int z = std::min(dimvalue[region->pDimensionDefinitions[dim].dimension],
+            int z = std::min(maindimcase[region->pDimensionDefinitions[dim].dimension],
                              region->pDimensionDefinitions[dim].zones - 1);
-            dimregno |= (z << bitcount);
+            maindimregno |= (z << bitcount);
             bitcount += region->pDimensionDefinitions[dim].bits;
         }
-        dimreg = region->pDimensionRegions[dimregno];
-    } else {
-        dimreg = 0;
     }
     dimregion_selected();
     set_size_request(800, region ? nbDimensions * 20 : 0);
 
     labels_changed = true;
     queue_resize();
+    queue_draw();
 }
 
 void DimRegionChooser::refresh_all() {
@@ -412,23 +483,30 @@ void DimRegionChooser::refresh_all() {
 void DimRegionChooser::get_dimregions(const gig::Region* region, bool stereo,
                                       std::set<gig::DimensionRegion*>& dimregs) const
 {
-    int dimregno = 0;
-    int bitcount = 0;
-    int stereo_bit = 0;
-    for (int dim = 0 ; dim < region->Dimensions ; dim++) {
-        if (region->pDimensionDefinitions[dim].bits == 0) continue;
-        if (stereo &&
-            region->pDimensionDefinitions[dim].dimension == gig::dimension_samplechannel) {
-            stereo_bit = (1 << bitcount);
-        } else {
-            int z = std::min(dimvalue[region->pDimensionDefinitions[dim].dimension],
-                             region->pDimensionDefinitions[dim].zones - 1);
-            dimregno |= (z << bitcount);
+    for (int iDimRgn = 0; iDimRgn < 256; ++iDimRgn) {
+        gig::DimensionRegion* dimRgn = region->pDimensionRegions[iDimRgn];
+        if (!dimRgn) continue;
+        bool isValidZone;
+        std::map<gig::dimension_t,int> dimCase = caseOfDimRegion(dimRgn, &isValidZone);
+        if (!isValidZone) continue;
+        for (std::map<gig::dimension_t,int>::const_iterator it = dimCase.begin();
+             it != dimCase.end(); ++it)
+        {
+            if (stereo && it->first == gig::dimension_samplechannel) continue; // is selected
+
+            std::map<gig::dimension_t, std::set<int> >::const_iterator itSelectedDimension =
+                this->dimzones.find(it->first);
+            if (itSelectedDimension != this->dimzones.end() &&
+                itSelectedDimension->second.count(it->second)) continue; // is selected
+
+            goto notSelected;
         }
-        bitcount += region->pDimensionDefinitions[dim].bits;
+
+        dimregs.insert(dimRgn);
+
+        notSelected:
+        ;
     }
-    dimregs.insert(region->pDimensionRegions[dimregno]);
-    if (stereo_bit) dimregs.insert(region->pDimensionRegions[dimregno | stereo_bit]);
 }
 
 void DimRegionChooser::update_after_resize()
@@ -441,7 +519,7 @@ void DimRegionChooser::update_after_resize()
         }
         int mask =
             ~(((1 << region->pDimensionDefinitions[resize.dimension].bits) - 1) << bitpos);
-        int c = dimregno & mask; // mask away this dimension
+        int c = maindimregno & mask; // mask away this dimension
 
         if (region->pDimensionRegions[c]->DimensionUpperLimits[resize.dimension] == 0) {
             // the velocity dimension didn't previously have
@@ -568,9 +646,9 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
             }
 
             int i = dim;
-            if (dimregno < 0) dimregno = 0;
+            if (maindimregno < 0) maindimregno = 0;
             int mask = ~(((1 << region->pDimensionDefinitions[i].bits) - 1) << bitpos);
-            int c = dimregno & mask; // mask away this dimension
+            int c = this->maindimregno & mask; // mask away this dimension
 
             bool customsplits =
                 ((region->pDimensionDefinitions[i].split_type == gig::split_type_normal &&
@@ -600,23 +678,38 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
                    region->pDimensionDefinitions[dim].split_type,
                    region->pDimensionDefinitions[dim].zones,
                    region->pDimensionDefinitions[dim].zone_size);
-            dimvalue[region->pDimensionDefinitions[dim].dimension] = z;
+            this->maindimcase[region->pDimensionDefinitions[dim].dimension] = z;
+            this->maindimregno = c | (z << bitpos);
+            this->maindimtype = region->pDimensionDefinitions[dim].dimension;
 
-            dimregno = c | (z << bitpos);
-
-            this->dimtype = dim;
-            this->dimzone = z;
+            if (multiSelectKeyDown) {
+                if (dimzones[this->maindimtype].count(z)) {
+                    if (dimzones[this->maindimtype].size() > 1) {
+                        dimzones[this->maindimtype].erase(z);
+                    }
+                } else {
+                    dimzones[this->maindimtype].insert(z);
+                }
+            } else {
+                this->dimzones.clear();
+                for (std::map<gig::dimension_t,int>::const_iterator it = this->maindimcase.begin();
+                     it != this->maindimcase.end(); ++it)
+                {
+                    this->dimzones[it->first].insert(it->second);
+                }
+            }
 
             focus_line = dim;
             if (has_focus()) queue_draw();
             else grab_focus();
-            dimreg = region->pDimensionRegions[dimregno];
             dimregion_selected();
 
             if (event->button == 3) {
                 printf("dimregion right click\n");
                 popup_menu_inside_dimregion->popup(event->button, event->time);
             }
+
+            queue_draw();
         }
     }
     return true;
@@ -654,7 +747,8 @@ bool DimRegionChooser::on_motion_notify_event(GdkEventMotion* event)
 
             resize.pos = k;
             update_after_resize();
-            get_window()->invalidate_rect(rect, false);
+            get_window()->invalidate_rect(rect, false); // not sufficient ...
+            queue_draw(); // ... so do a complete redraw instead.
         }
     } else {
         if (is_in_resize_zone(x, y)) {
@@ -690,9 +784,9 @@ bool DimRegionChooser::is_in_resize_zone(double x, double y)
         int nbZones = region->pDimensionDefinitions[dim].zones;
 
         int c = 0;
-        if (dimregno >= 0) {
+        if (maindimregno >= 0) {
             int mask = ~(((1 << region->pDimensionDefinitions[dim].bits) - 1) << bitpos);
-            c = dimregno & mask; // mask away this dimension
+            c = maindimregno & mask; // mask away this dimension
         }
         const bool customsplits =
             ((region->pDimensionDefinitions[dim].split_type == gig::split_type_normal &&
@@ -719,7 +813,7 @@ bool DimRegionChooser::is_in_resize_zone(double x, double y)
                     resize.pos = limit;
                     resize.min = prev_limit;
 
-                    int dr = (dimregno >> bitpos) &
+                    int dr = (maindimregno >> bitpos) &
                         ((1 << region->pDimensionDefinitions[dim].bits) - 1);
                     resize.selected = dr == iZone ? resize.left :
                         dr == iZone + 1 ? resize.right : resize.none;
@@ -797,13 +891,10 @@ bool DimRegionChooser::on_focus(Gtk::DirectionType direction)
     }
 }
 
-void DimRegionChooser::split_dimension_zone() {
-    printf("split_dimension_zone() type=%d, zone=%d\n", dimtype, dimzone);
+void DimRegionChooser::split_dimension_zone() {    
+    printf("split_dimension_zone() type=%d, zone=%d\n", maindimtype, maindimcase[maindimtype]);
     try {
-        region->SplitDimensionZone(
-            region->pDimensionDefinitions[dimtype].dimension,
-            dimzone
-        );
+        region->SplitDimensionZone(maindimtype, maindimcase[maindimtype]);
     } catch (RIFF::Exception e) {
         Gtk::MessageDialog msg(e.Message, false, Gtk::MESSAGE_ERROR);
         msg.run();
@@ -816,12 +907,9 @@ void DimRegionChooser::split_dimension_zone() {
 }
 
 void DimRegionChooser::delete_dimension_zone() {
-    printf("delete_dimension_zone() type=%d, zone=%d\n", dimtype, dimzone);
+    printf("delete_dimension_zone() type=%d, zone=%d\n", maindimtype, maindimcase[maindimtype]);
     try {
-        region->DeleteDimensionZone(
-            region->pDimensionDefinitions[dimtype].dimension,
-            dimzone
-        );
+        region->DeleteDimensionZone(maindimtype, maindimcase[maindimtype]);
     } catch (RIFF::Exception e) {
         Gtk::MessageDialog msg(e.Message, false, Gtk::MESSAGE_ERROR);
         msg.run();
@@ -831,4 +919,21 @@ void DimRegionChooser::delete_dimension_zone() {
         msg.run();
     }
     refresh_all();
+}
+
+bool DimRegionChooser::onKeyPressed(GdkEventKey* key) {
+    //printf("key down\n");
+    if (key->keyval == GDK_KEY_Control_L || key->keyval == GDK_KEY_Control_R)
+        multiSelectKeyDown = true;
+}
+
+bool DimRegionChooser::onKeyReleased(GdkEventKey* key) {
+    //printf("key up\n");
+    if (key->keyval == GDK_KEY_Control_L || key->keyval == GDK_KEY_Control_R)
+        multiSelectKeyDown = false;
+}
+
+gig::DimensionRegion* DimRegionChooser::get_main_dimregion() const {
+    if (!region) return NULL;
+    return region->pDimensionRegions[maindimregno];
 }

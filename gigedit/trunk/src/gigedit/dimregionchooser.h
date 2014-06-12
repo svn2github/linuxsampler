@@ -30,11 +30,12 @@
 #include <gig.h>
 
 #include <set>
+#include <map>
 
 class DimRegionChooser : public Gtk::DrawingArea
 {
 public:
-    DimRegionChooser();
+    DimRegionChooser(Gtk::Window& window);
     virtual ~DimRegionChooser();
 
     void set_region(gig::Region* region);
@@ -42,7 +43,7 @@ public:
     sigc::signal<void>& signal_dimregion_selected();
     sigc::signal<void>& signal_region_changed();
 
-    gig::DimensionRegion* get_dimregion() const { return dimreg; }
+    gig::DimensionRegion* get_main_dimregion() const;
     void get_dimregions(const gig::Region* region, bool stereo,
                         std::set<gig::DimensionRegion*>& dimregs) const;
 
@@ -56,6 +57,8 @@ protected:
     virtual bool on_button_release_event(GdkEventButton* event);
     virtual bool on_motion_notify_event(GdkEventMotion* event);
     virtual bool on_focus(Gtk::DirectionType direction);
+    bool onKeyPressed(GdkEventKey* key);
+    bool onKeyReleased(GdkEventKey* key);
     void refresh_all();
     void split_dimension_zone();
     void delete_dimension_zone();
@@ -64,20 +67,24 @@ protected:
 
     gig::Instrument* instrument;
     gig::Region* region;
-    int dimregno;
 
     sigc::signal<void> dimregion_selected;
     sigc::signal<void> region_changed;
 
-    gig::DimensionRegion* dimreg;
+    //std::set<gig::DimensionRegion*> dimregs; ///< Reflects which dimension regions are currently selected.
     int focus_line;
-    int dimvalue[256];
+    std::map<gig::dimension_t, std::set<int> > dimzones; ///< Reflects which zone(s) of the individual dimension are currently selected.
     int label_width;
     bool labels_changed;
     int nbDimensions;
 
-    int dimtype;
-    int dimzone;
+    // the "main" dimension region is the one that is used to i.e. evaluate the
+    // precise custom velocity splits (could also be interpreted for focus stuff,
+    // i.e. keyboard arrow key navigation)
+    // NOTE: these may *not* necessarily currently be selected !
+    gig::dimension_t maindimtype;
+    std::map<gig::dimension_t,int> maindimcase;
+    int maindimregno;
 
     // information needed during a resize
     struct {
@@ -93,6 +100,8 @@ protected:
         int dimension;
         int offset;
     } resize;
+
+    bool multiSelectKeyDown;
 
     bool cursor_is_resize;
     bool is_in_resize_zone(double x, double y);

@@ -53,6 +53,7 @@
 
 
 MainWindow::MainWindow() :
+    m_DimRegionChooser(*this),
     dimreg_label(_("Changes apply to:")),
     dimreg_all_regions(_("all regions")),
     dimreg_all_dimregs(_("all dimension splits")),
@@ -665,7 +666,7 @@ void MainWindow::dimreg_all_dimregs_toggled()
 void MainWindow::dimreg_changed()
 {
     update_dimregs();
-    dimreg_edit.set_dim_region(m_DimRegionChooser.get_dimregion());
+    dimreg_edit.set_dim_region(m_DimRegionChooser.get_main_dimregion());
 }
 
 void MainWindow::on_sel_change()

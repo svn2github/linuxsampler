@@ -82,6 +82,12 @@ Version CVS HEAD (?)
   * Restructured main menu: duplicated all popup menus to the main menu,
     automatically switch to the right tree view tab when either selecting the
     "Sample", "Instrument" or "Script" main menu entry.
+  * Dimension Region Selector: implemented multi zone selection by press and
+    hold CTRL key.
+  * Dimension Region Selector: show bottom and upper limit values for all
+    dimension zones, not just the currently selected ones.
+  * Dimension Region Selector: Fixed drawing issues when zone sizes were
+    altered by mouse drag and labels being displayed at wrong positions.
 
 Version 0.2.0 (2009-07-31)
 
