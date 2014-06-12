@@ -92,11 +92,13 @@ namespace LinuxSampler {
         InstrumentScriptVMFunction_set_controller m_fnSetController;
         InstrumentScriptVMFunction_ignore_event m_fnIgnoreEvent;
         InstrumentScriptVMFunction_ignore_controller m_fnIgnoreController;
+        InstrumentScriptVMFunction_note_off m_fnNoteOff;
 
         friend class InstrumentScriptVMFunction_play_note;
         friend class InstrumentScriptVMFunction_set_controller;
         friend class InstrumentScriptVMFunction_ignore_event;
         friend class InstrumentScriptVMFunction_ignore_controller;
+        friend class InstrumentScriptVMFunction_note_off;
     };
 
 } // namespace LinuxSampler

@@ -141,7 +141,7 @@ namespace LinuxSampler {
 
     InstrumentScriptVM::InstrumentScriptVM() :
         m_event(NULL), m_fnPlayNote(this), m_fnSetController(this),
-        m_fnIgnoreEvent(this), m_fnIgnoreController(this)
+        m_fnIgnoreEvent(this), m_fnIgnoreController(this), m_fnNoteOff(this)
     {
         m_CC.size = _MEMBER_SIZEOF(AbstractEngineChannel, ControllerTable);
         m_CC_NUM = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.CC.Controller);
@@ -236,6 +236,7 @@ namespace LinuxSampler {
         else if (name == "set_controller") return &m_fnSetController;
         else if (name == "ignore_event") return &m_fnIgnoreEvent;
         else if (name == "ignore_controller") return &m_fnIgnoreController;
+        else if (name == "note_off") return &m_fnNoteOff;
 
         // built-in script functions of derived VM class
         return ScriptVM::functionByName(name);

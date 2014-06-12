@@ -138,4 +138,39 @@ namespace LinuxSampler {
         return successResult();
     }
 
+    InstrumentScriptVMFunction_note_off::InstrumentScriptVMFunction_note_off(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_note_off::exec(VMFnArgs* args) {
+        int id = args->arg(0)->asInt()->evalInt();
+        int velocity = (args->argsCount() >= 2) ? args->arg(1)->asInt()->evalInt() : 127;
+
+        if (id < 0) {
+            wrnMsg("note_off(): argument 1 may not be a negative event ID");
+            return successResult();
+        }
+
+        if (velocity < 0 || velocity > 127) {
+            errMsg("note_off(): argument 2 is an invalid velocity value");
+            return errorResult();
+        }
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        RTList<Event>::Iterator itEvent = pEngineChannel->pEngine->EventByID(id);
+        if (!itEvent) return successResult();
+
+        Event e = *itEvent;
+        e.Type = Event::type_note_off;
+        e.Param.Note.Velocity = velocity;
+        memset(&e.Format, 0, sizeof(e.Format)); // init format speific stuff with zero
+
+        int releaseEventID = pEngineChannel->ScheduleEvent(&e, 0);
+
+        return successResult();
+    }
+
 } // namespace LinuxSampler

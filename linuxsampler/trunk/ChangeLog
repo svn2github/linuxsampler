@@ -464,6 +464,7 @@ Version CVS HEAD (?)
     - Implemented built-in script function "abs()".
     - Implemented built-in script function "random()".
     - Implemented built-in script function "num_elements()".
+    - Implemented built-in script function "note_off()".
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range
