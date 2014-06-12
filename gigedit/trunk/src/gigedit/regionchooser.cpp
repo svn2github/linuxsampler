@@ -30,7 +30,7 @@
 
 #include "global.h"
 
-#define REGION_BLOCK_HEIGHT             20
+#define REGION_BLOCK_HEIGHT             30
 #define KEYBOARD_HEIGHT                 40
 
 void SortedRegions::update(gig::Instrument* instrument) {
@@ -339,7 +339,14 @@ void RegionChooser::draw_regions(const Cairo::RefPtr<Cairo::Context>& cr,
         layout->set_alignment(Pango::ALIGN_CENTER);
         layout->set_text(Glib::ustring("*** ") + _("Right click here to create a region.") + " ***");
         layout->set_width(get_width() * Pango::SCALE);
-        Gdk::Cairo::set_source_rgba(cr, red);
+        //layout->set_height(get_height() * Pango::SCALE);
+        layout->set_spacing(10);
+        Gdk::Cairo::set_source_rgba(cr, red);        
+        // get the text dimensions
+        Pango::Rectangle rect = layout->get_logical_extents();
+        int text_width, text_height;
+        layout->get_pixel_size(text_width, text_height);
+        cr->move_to(0, (REGION_BLOCK_HEIGHT - text_height) / 2);
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
         pango_cairo_show_layout(cr->cobj(), layout->gobj());
 #else

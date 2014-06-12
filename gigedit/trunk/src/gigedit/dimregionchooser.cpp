@@ -86,7 +86,7 @@ DimRegionChooser::DimRegionChooser(Gtk::Window& window) :
     focus_line = 0;
     resize.active = false;
     cursor_is_resize = false;
-    h = 20;
+    h = 24;
     multiSelectKeyDown = false;
     set_can_focus();
 
@@ -273,13 +273,13 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                 // draw focus rectangle around dimension's label and zones
                 if (has_focus() && focus_line == i) {
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
-                    Gdk::Rectangle farea(0, y, 150, 20);
+                    Gdk::Rectangle farea(0, y, 150, h);
                     get_style()->paint_focus(get_window(), get_state(), farea,
                                              *this, "",
-                                             0, y, label_width, 20);
+                                             0, y, label_width, h);
 #else
                     get_style_context()->render_focus(cr,
-                                                      0, y, label_width, 20);
+                                                      0, y, label_width, h);
 #endif
                 }
 
@@ -318,7 +318,7 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                     cr->move_to(label_width + 0.5, y + 1);
                     cr->line_to(label_width + 0.5, y + h - 1);
                     int prevX = label_width;
-                    int prevUpperLimit = 0;
+                    int prevUpperLimit = -1;
 
                     for (int j = 0 ; j < nbZones ; j++) {
                         // draw dimension zone's borders for custom splits
@@ -346,14 +346,14 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                         // as numeric value to the user
                         {
                             Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
-                            layout->set_text(Glib::Ascii::dtostr(prevUpperLimit));
+                            layout->set_text(Glib::Ascii::dtostr(prevUpperLimit+1));
                             Gdk::Cairo::set_source_rgba(cr, black);
                             Pango::Rectangle rect = layout->get_logical_extents();
                             // get the text dimensions
                             int text_width, text_height;
                             layout->get_pixel_size(text_width, text_height);
                             // move text to the left end of the dimension zone
-                            cr->move_to(prevX + 3, y + 1);
+                            cr->move_to(prevX + 3, y + (h - text_height) / 2);
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
                             pango_cairo_show_layout(cr->cobj(), layout->gobj());
 #else
@@ -371,7 +371,7 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                             int text_width, text_height;
                             layout->get_pixel_size(text_width, text_height);
                             // move text to the left end of the dimension zone
-                            cr->move_to(x - 3 - text_width, y + 1);
+                            cr->move_to(x - 3 - text_width, y + (h - text_height) / 2);
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
                             pango_cairo_show_layout(cr->cobj(), layout->gobj());
 #else
@@ -413,7 +413,7 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                                 int text_width, text_height;
                                 layout->get_pixel_size(text_width, text_height);
                                 // move text to the left end of the dimension zone
-                                cr->move_to(prevX + 3, y + 1);
+                                cr->move_to(prevX + 3, y + (h - text_height) / 2);
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
                                 pango_cairo_show_layout(cr->cobj(), layout->gobj());
 #else
@@ -431,7 +431,7 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                                 int text_width, text_height;
                                 layout->get_pixel_size(text_width, text_height);
                                 // move text to the left end of the dimension zone
-                                cr->move_to(x - 3 - text_width, y + 1);
+                                cr->move_to(x - 3 - text_width, y + (h - text_height) / 2);
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
                                 pango_cairo_show_layout(cr->cobj(), layout->gobj());
 #else
@@ -469,7 +469,7 @@ void DimRegionChooser::set_region(gig::Region* region)
         }
     }
     dimregion_selected();
-    set_size_request(800, region ? nbDimensions * 20 : 0);
+    set_size_request(800, region ? nbDimensions * h : 0);
 
     labels_changed = true;
     queue_resize();

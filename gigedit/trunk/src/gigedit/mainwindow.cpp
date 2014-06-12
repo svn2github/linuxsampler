@@ -1177,8 +1177,8 @@ void MainWindow::on_action_help_about()
         _(
             "Gigedit is released under the GNU General Public License.\n"
             "\n"
-            "Please notice that this is still a very young instrument editor. "
-            "So better backup your Gigasampler files before editing them with "
+            "This program is distributed WITHOUT ANY WARRANTY; So better "
+            "backup your Gigasampler/GigaStudio files before editing them with "
             "this application.\n"
             "\n"
             "Please report bugs to: http://bugs.linuxsampler.org"

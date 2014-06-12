@@ -95,7 +95,7 @@ AC_SUBST(SNDFILE_CFLAGS)
 AC_SUBST(SNDFILE_LIBS)
 
 # check for (optional) presence of liblinuxsampler
-liblinuxsampler_version="0.5.0"
+liblinuxsampler_version="1.0.0"
 PKG_CHECK_MODULES(
     LINUXSAMPLER, linuxsampler >= $liblinuxsampler_version,
     have_linuxsampler=1, have_linuxsampler=0
