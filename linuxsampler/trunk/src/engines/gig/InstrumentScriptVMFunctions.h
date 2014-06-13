@@ -26,7 +26,7 @@ namespace LinuxSampler { namespace gig {
         InstrumentScriptVMFunction_gig_set_dim_zone(InstrumentScriptVM* parent);
         int minRequiredArgs() const { return 3; }
         int maxAllowedArgs() const { return 3; }
-        bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR;}
+        bool acceptsArgType(int iArg, ExprType_t type) const;
         ExprType_t argType(int iArg) const { return INT_EXPR; }
         VMFnResult* exec(VMFnArgs* args);
     protected:

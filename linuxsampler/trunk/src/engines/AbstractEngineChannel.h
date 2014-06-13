@@ -141,7 +141,7 @@ namespace LinuxSampler {
             int                       iEngineIndexSelf;         ///< Reflects the index of this EngineChannel in the Engine's ArrayList.
             bool                      bStatusChanged;           ///< true in case an engine parameter has changed (e.g. new instrument, another volumet)
             uint32_t                  RoundRobinIndex;          ///< counter for round robin sample selection, incremented for each note on
-            InstrumentScript*         pScript;                  ///< Points to the real-time instrument script(s) to be executed, NULL if current instrument does not have an instrument script.
+            InstrumentScript*         pScript;                  ///< Points to the real-time instrument script(s) to be executed, NULL if current instrument does not have an instrument script. Even though the underlying VM representation of the script is shared among multiple sampler channels, the InstrumentScript object here is not shared though, it exists for each sampler channel separately.
 
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> > virtualMidiDevices;
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader_AudioThread;

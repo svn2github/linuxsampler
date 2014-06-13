@@ -12,6 +12,7 @@ liblinuxsamplercommoninclude_HEADERS = \
 	Mutex.h \
 	SynchronizedConfig.h \
 	Condition.h \
+	ConstCapacityArray.h \
 	lsatomic.h
 
 noinst_LTLIBRARIES = liblinuxsamplercommon.la

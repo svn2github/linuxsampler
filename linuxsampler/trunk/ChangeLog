@@ -465,6 +465,13 @@ Version CVS HEAD (?)
     - Implemented built-in script function "random()".
     - Implemented built-in script function "num_elements()".
     - Implemented built-in script function "note_off()".
+    - Implemented built-in script function "set_event_mark()".
+    - Implemented built-in script function "delete_event_mark()".
+    - Implemented built-in script function "by_marks()".
+    - Added built-in script int const variables $MARK_1 to $MARK_28.
+    - Built-in script functions "ignore_event()", "note_off()" and
+      "gig_set_dim_zone()" now also accept an array of event IDs as argument
+      (i.e. return value of new script function "by_marks()").
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

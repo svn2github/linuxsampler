@@ -16,7 +16,54 @@
 namespace LinuxSampler {
 
     ///////////////////////////////////////////////////////////////////////
+    // class 'EventGroup'
+
+    void EventGroup::insert(int eventID) {
+        if (contains(eventID)) return;
+
+        AbstractEngine* pEngine = m_script->pEngineChannel->pEngine;
+
+        // before adding the new event ID, check if there are any dead events
+        // and remove them in that case, before otherwise we might run in danger
+        // to run out of free space on this group for event IDs if a lot of
+        // events die before being removed explicitly from the group by script
+        //
+        // NOTE: or should we do this "dead ones" check only once in a while?
+        int firstDead = -1;
+        for (int i = 0; i < size(); ++i) {
+            if (firstDead >= 0) {
+                if (pEngine->EventByID(eventID)) {
+                    remove(firstDead, i - firstDead);
+                    firstDead = -1;
+                }
+            } else {
+                if (!pEngine->EventByID(eventID)) firstDead = i;
+            }
+        }
+
+        append(eventID);
+    }
+
+    void EventGroup::erase(int eventID) {
+        int index = find(eventID);
+        remove(index);
+    }
+
+    ///////////////////////////////////////////////////////////////////////
     // class 'InstrumentScript'
+
+    InstrumentScript::InstrumentScript(AbstractEngineChannel* pEngineChannel) {
+        parserContext = NULL;
+        bHasValidScript = false;
+        handlerInit = NULL;
+        handlerNote = NULL;
+        handlerRelease = NULL;
+        handlerController = NULL;
+        pEvents = NULL;
+        this->pEngineChannel = pEngineChannel;
+        for (int i = 0; i < INSTR_SCRIPT_EVENT_GROUPS; ++i)
+            eventGroups[i].setScript(this);
+    }
 
     /** @brief Load real-time instrument script.
      *
@@ -141,7 +188,8 @@ namespace LinuxSampler {
 
     InstrumentScriptVM::InstrumentScriptVM() :
         m_event(NULL), m_fnPlayNote(this), m_fnSetController(this),
-        m_fnIgnoreEvent(this), m_fnIgnoreController(this), m_fnNoteOff(this)
+        m_fnIgnoreEvent(this), m_fnIgnoreController(this), m_fnNoteOff(this),
+        m_fnSetEventMark(this), m_fnDeleteEventMark(this), m_fnByMarks(this)
     {
         m_CC.size = _MEMBER_SIZEOF(AbstractEngineChannel, ControllerTable);
         m_CC_NUM = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.CC.Controller);
@@ -226,6 +274,9 @@ namespace LinuxSampler {
 
         m["$VCC_MONO_AT"] = CTRL_TABLE_IDX_AFTERTOUCH;
         m["$VCC_PITCH_BEND"] = CTRL_TABLE_IDX_PITCHBEND;
+        for (int i = 0; i < INSTR_SCRIPT_EVENT_GROUPS; ++i) {
+            m["$MARK_" + ToString(i+1)] = i;
+        }
 
         return m;
     }
@@ -237,6 +288,9 @@ namespace LinuxSampler {
         else if (name == "ignore_event") return &m_fnIgnoreEvent;
         else if (name == "ignore_controller") return &m_fnIgnoreController;
         else if (name == "note_off") return &m_fnNoteOff;
+        else if (name == "set_event_mark") return &m_fnSetEventMark;
+        else if (name == "delete_event_mark") return &m_fnDeleteEventMark;
+        else if (name == "by_marks") return &m_fnByMarks;
 
         // built-in script functions of derived VM class
         return ScriptVM::functionByName(name);

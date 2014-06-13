@@ -11,14 +11,37 @@
 #define LS_INSTRUMENT_SCRIPT_VM_H
 
 #include "../../common/global.h"
+#include "../../common/ConstCapacityArray.h"
 #include "../../scriptvm/ScriptVM.h"
 #include "Event.h"
 #include "../../common/Pool.h"
 #include "InstrumentScriptVMFunctions.h"
 
+#define INSTR_SCRIPT_EVENT_GROUPS 28
+
 namespace LinuxSampler {
 
     class AbstractEngineChannel;
+    class InstrumentScript;
+
+    /** @brief List of Event IDs.
+     *
+     * Used for built-in script functions:
+     *     by_marks(), set_event_mark(), delete_event_mark()
+     */
+    class EventGroup : protected ConstCapacityArray<int> {
+    public:
+        EventGroup() : ConstCapacityArray<int>(CONFIG_MAX_EVENTS_PER_FRAGMENT), m_script(NULL) {}
+        void insert(int eventID);
+        void erase(int eventID);
+        void setScript(InstrumentScript* pScript) { m_script = pScript; }
+        inline int size() const { return ConstCapacityArray<int>::size(); }
+        inline int& operator[](uint index) { return ConstCapacityArray<int>::operator[](index); }
+        inline const int& operator[](uint index) const { return ConstCapacityArray<int>::operator[](index); }
+    protected:
+        InstrumentScript* m_script;
+        StmtFlags_t flags;
+    };
 
     /** @brief Real-time instrument script VM representation.
      *
@@ -35,17 +58,9 @@ namespace LinuxSampler {
         Pool<ScriptEvent>*    pEvents; ///< Pool of all available script execution instances. ScriptEvents available to be allocated from the Pool are currently unused / not executiong, whereas the ScriptEvents allocated on the list are currently suspended / have not finished execution yet.
         AbstractEngineChannel* pEngineChannel;
         String                code; ///< Source code of the instrument script. Used in case the sampler engine is changed, in that case a new ScriptVM object is created for the engine and VMParserContext object for this script needs to be recreated as well. Thus the script is then parsed again by passing the source code to recreate the parser context.
+        EventGroup            eventGroups[INSTR_SCRIPT_EVENT_GROUPS]; ///< Used for built-in script functions: by_event_marks(), set_event_mark(), delete_event_mark().
 
-        InstrumentScript(AbstractEngineChannel* pEngineChannel) {
-            parserContext = NULL;
-            bHasValidScript = false;
-            handlerInit = NULL;
-            handlerNote = NULL;
-            handlerRelease = NULL;
-            handlerController = NULL;
-            pEvents = NULL;
-            this->pEngineChannel = pEngineChannel;
-        }
+        InstrumentScript(AbstractEngineChannel* pEngineChannel);
 
         ~InstrumentScript() {
             resetAll();
@@ -93,12 +108,18 @@ namespace LinuxSampler {
         InstrumentScriptVMFunction_ignore_event m_fnIgnoreEvent;
         InstrumentScriptVMFunction_ignore_controller m_fnIgnoreController;
         InstrumentScriptVMFunction_note_off m_fnNoteOff;
+        InstrumentScriptVMFunction_set_event_mark m_fnSetEventMark;
+        InstrumentScriptVMFunction_delete_event_mark m_fnDeleteEventMark;
+        InstrumentScriptVMFunction_by_marks m_fnByMarks;
 
         friend class InstrumentScriptVMFunction_play_note;
         friend class InstrumentScriptVMFunction_set_controller;
         friend class InstrumentScriptVMFunction_ignore_event;
         friend class InstrumentScriptVMFunction_ignore_controller;
         friend class InstrumentScriptVMFunction_note_off;
+        friend class InstrumentScriptVMFunction_set_event_mark;
+        friend class InstrumentScriptVMFunction_delete_event_mark;
+        friend class InstrumentScriptVMFunction_by_marks;
     };
 
 } // namespace LinuxSampler

@@ -82,6 +82,7 @@ namespace LinuxSampler {
     public:
         virtual int evalIntElement(uint i) = 0;
         virtual void assignIntElement(uint i, int value) = 0;
+        ExprType_t exprType() const { return INT_ARR_EXPR; }
     };
 
     class VMFnArgs {
