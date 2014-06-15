@@ -183,18 +183,21 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 
 			<ol class="default">
 				<li class="ok">Abstraction of common code from existing Gigasampler engine to base classes for further sampler engines.</li>
-				<li class="partly">
+				<li class="ok">
 					Implementation of
-					<a href="https://docs.google.com/Doc?docid=0AVrDa5LNWylnZGZ6ejk4eHRfNDVjbmsyd3Zmag">SFZ(2) format</a> sampler engine.
+					<a href="http://linuxsampler.org/sfz/">SFZ(2) format</a> sampler engine.
 				</li>
 				<li class="partly">
 					Implementation of
-					<a href="http://en.wikipedia.org/wiki/SoundFont">SF2 format</a> sampler engine.
+					<a href="http://en.wikipedia.org/wiki/SoundFont">SF2 format</a> sampler engine<br>(might not be finished for next release, due to low demand &amp; priority).
 				</li>
 				<li class="false">
 					Implementation of
-					<a href="http://www.linuxsampler.org/libakai/">Akai format</a> sampler engine.
+					<a href="http://www.linuxsampler.org/libakai/">Akai format</a> sampler engine<br>(will probably not make into next release, due to low demand &amp; priority).
 				</li>
+                <li class="partly">
+                    Real-time instrument script support<br>(allows to override / customize sampler's behavior by textual, easy to write scripts included with instruments, which act like small programs, plugged into the sampler).
+                </li>
 			</ol>
 
 			<table class="default">
@@ -230,22 +233,22 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 			</p>
 
 				<ol class="default">
-					<li class="partly"> Operating Systems
+					<li class="ok"> Operating Systems
 						<ol>
 							<li class="ok">Linux</li>
 							<li class="ok">Windows</a> (we provide a convenient Windows installer for all components of the project, including native 64 bit and native 32 bit binaries, standalone and VSTi plugin versions)</li>
-							<li class="partly">Mac <a href="http://www.apple.com/macosx/">OS X</a> (gigedit is not yet available for OS X and thus not included with the installer yet)</li>
+							<li class="ok">Mac <a href="http://www.apple.com/macosx/">OS X</a> (package provides universal binary for 64 bit Intel, 32 bit Intel and PPC, all software components are included, stand-alone sampler, VST plugin, AU plugin, QSampler &amp; Fantasia frontends, gigedit instrument editor)</li>
 						</ol>
 					</li>
 					<li class="ok">Host plugin versions of the sampler
 						<ol>
-							<li class="ok"><a href="http://en.wikipedia.org/wiki/Virtual_Studio_Technology">VSTi</a> (Windows)</li>
+							<li class="ok"><a href="http://en.wikipedia.org/wiki/Virtual_Studio_Technology">VSTi</a> (Windows, Mac, Linux)</li>
 							<li class="ok"><a href="http://en.wikipedia.org/wiki/Audio_Units">Audio Units</a> (Mac)</li>
 							<li class="ok"><a href="http://dssi.sourceforge.net/">DSSI</a> (Linux)</li>
 							<li class="ok"><a href="http://lv2plug.in/">LV2</a> (Linux)</li>
 						</ol>
 					</li>
-					<li class="partly">MIDI input drivers
+					<li class="ok">MIDI input drivers
 						<ol>
 							<li class="ok"><a href="http://www.alsa-project.org/">ALSA</a> (Linux)</li>
 							<li class="ok"><a href="http://jackit.sourceforge.net/">JACK</a> (Linux, OSX, Windows, ...)</li>
@@ -255,7 +258,7 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 							<li class="false">MIDI over ethernet (<a href="http://standards.ieee.org/announcements/p1639app.html">Distributed MIDI</a>)</li>
 						</ol>
 					</li>
-					<li class="partly">Audio output drivers
+					<li class="ok">Audio output drivers
 						<ol>
 							<li class="ok"><a href="http://www.alsa-project.org/">ALSA</a> (Linux)</li>
 							<li class="ok"><a href="http://jackit.sourceforge.net/">JACK</a> (Linux, OSX, Windows, ...)</li>
@@ -265,14 +268,14 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 							<li class="false">Audio over ethernet</li>
 						</ol>
 					</li>
-					<li class="partly"> Sampler Engines
+					<li class="ok"> Sampler Engines
 						<ol>
-							<li class="partly"> Gigasampler Engine
+							<li class="ok"> Gigasampler / GigaStudio format Engine
 								<ol>
 									<li class="ok">Gig file loader
 										<ol>
 											<li class="ok">Gig v2 format</li>
-											<li class="partly">Gig v3 format
+											<li class="partly">Gig v3 &amp; v4 format
 												<ol>
 													<li class="partly">large file support (64 bit file offsets are currently truncated to 32 bit)</li>
 													<li class="ok">24 bit samples (uncompressed as well as compressed)</li>
@@ -280,7 +283,13 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 													<li class="partly">support for articulation (.art) files</li>
 													<li class="ok">support for Dimension Splits not equal to two</li>
 													<li class="ok">up to 8 Dimensions or 256 Dimension Regions</li>
-													<li class="partly">MIDI rules</li>
+													<li class="partly">iMIDI rules (smart midi); <b>Note:</b> due its strong limitations usage of iMIDI rules is discouraged. We recommend you to consider using real-time instrument scripts instead.
+                                                        <ol>
+                                                            <li class="ok">Controller trigger rule</li>
+                                                            <li class="partly">Legato rule</li>
+                                                            <li class="partly">Alternator rule</li>
+                                                        </ol>
+                                                    </li>
 													<li class="false">convolution</li>
 												</ol>
 											</li>
@@ -296,6 +305,8 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 											<li class="ok">Release Trigger</li>
 											<li class="ok">Keyboard Position</li>
 											<li class="ok">Round Robin</li>
+                                            <li class="ok">Round Robin Keyboard</li>
+                                            <li class="ok">Smart MIDI</li>
 											<li class="ok">Random</li>
 											<li class="ok">Modulation Wheel</li>
 											<li class="ok">Breath Ctrl.</li>
@@ -362,21 +373,40 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 									<li class="ok">Scale Tuning (via standard MIDI GS SysEx message)</li>
 								</ol>
 							</li>
-							<li style="partly"><a href="http://www.midi.org/about-midi/dls/abtdls.shtml">DLS</a> Engine
+							<li class="partly"><a href="http://www.midi.org/about-midi/dls/abtdls.shtml">DLS</a> Engine
 								<ol>
 									<li class="ok">DLS file loader (DLS version <a href="http://www.midi.org/about-midi/dls/dls1v11b.pdf">1</a> &#038; <a href="http://www.midi.org/about-midi/dls/dls2spec.shtml">2</a>)</li>
 									<li class="false">Generic playback</li>
 								</ol>
 							</li>
-							<li class="partly">Akai Engine</li>
+							<li class="partly">Akai Engine
 								<ol>
 									<li class="ok"><a href="libakai/">Akai file loader</a> (<a href="http://www.vintagesynth.com/akai/s1000.shtml">S1000</a>, <a href="http://www.vintagesynth.com/akai/s3000.shtml">S3000</a> series)</li>
 									<li class="false">Generic playback</li>
 								</ol>
-							<li class="false">Custom, modular Engine</li>
-						</ol>
+                            </li>
+                            <li class="partly">SoundFont v2 (SF2) format engine
+                                <ol>
+                                    <li class="ok">SF2 file loader</li>
+                                    <li class="ok">Generic playback</li>
+                                    <li class="partly">Articulations</li>
+                                <ol>
+                            </li>
+							<li class="ok">SFZ v2 format engine (<b>Note:</b> <u>not</u> to be interchanged with "SoundFont" format !!)
+                                <ol>
+                                    <li class="ok">SFZ file loader</li>
+                                    <li class="ok">Generic playback</li>
+                                    <li>Articulations: Major part of opcodes have been implemented. Have a look at the <a href="/sfz/">SFZ status page</a> for details.</li>
+                                </ol>
+                            </li>
+                            <li class="partly">KORG format Engine
+                                <ol>
+                                    <li class="ok"><a href="/libgig/">KORG format file loader</a> (currently supports Kronos, Triton, M3 and Trinity sample based sounds).</li>
+                                    <li class="false">Generic playback</li>
+                                </ol>
+                            </li>
 					</li>
-					<li class="partly">Control interfaces
+					<li class="ok">Control interfaces
 						<ol>
 							<li class="ok">Native C++ <a href="http://en.wikipedia.org/wiki/Application_programming_interface">API</a></li>
 							<li class="ok">Custom network interface for frontends (<a name="LSCP" href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html">LSCP</a>)
@@ -387,15 +417,18 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 					</li>
 					<li class="ok">Time stamp event system &#038; jitter correction</li>
 					<li class="ok">Multi channel &#038;  multi engine support</li>
-					<li class="partly">Pitch shifter / Interpolation
+					<li class="ok">Pitch shifter / Interpolation
 						<ol>
 							<li class="ok">Linear interpolation</li>
 							<li class="ok">Cubic interpolation</li>
 							<li class="false">Formant frequency correction / formant manipulation</li>
 						</ol>
 					</li>
-					<li class="false">Dynamic engine recompilation</li>
-					<li class="false">Extensive SMP (multi processor) support</li>
+					<li class="partly">Extensive SMP (multi processor) support</li>
+                        <ol>
+                            <li class="ok">User can explicitly run individual sampler parts on different CPUs/cores.</li>
+                            <li class="false">Automatic SMP voice pooling.</li>
+                        </ol>
 					<li class="false">Network cluster support</li>
 					<li class="ok">MIDI instrument mapper, allows to create very flexible MIDI progam change setups in a very easy way.
 						<ol>
@@ -457,16 +490,18 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 						<ol>
 							<li class="ok"><a href="http://download.linuxsampler.org/doc/gigedit/quickstart/gigedit_quickstart.html">gigedit</a> (C++ based using gtkmm/Gtk+)
 								<ol>
-									<li class="ok">allows to modify all aspects of Gigsampler v2 and v3 format files</li>
+									<li class="ok">allows to modify all aspects of Gigsampler/GigaStudio v2, v3 and v4 format files</li>
 									<li class="ok">allows to modify existing as well as creating completely new .gig files from scratch</li>
 									<li class="ok">stand-alone mode (independent of LinuxSampler)</li>
 									<li class="ok">live-mode (attached with LinuxSampler), which makes all modifications audible in the sampler in realtime without having to reload</li>
-									<li class="ok">created / modified files are accepted by LinuxSampler as well as by Gigastudio 3</li>
-									<li class="ok">virtual MIDI keyboard (for triggering notes by mouse click and highlighting the virtual keys on external note events)</li>
+									<li class="ok">created / modified files are accepted by LinuxSampler as well as by Gigastudio 3 &amp; 4</li>
+									<li class="ok">virtual MIDI keyboard (for triggering notes by mouse click and highlighting the virtual keys on external note events)
+                                    <li class="ok">Support for managing and editing real-time instrument scripts (LinuxSampler extension of the original GigaStudio format).</li>
 								</ol>
 							</li>
 						</ol>
 					</li>
+                    <li class="partly">Real-time instrument script support<br>(allows to override / customize sampler's behavior by textual, easy to write scripts included with instruments, which act like small programs, plugged into the sampler).</li>
 				</ol>
 
 				<hr>
