@@ -3673,6 +3673,9 @@ namespace {
             throw gig::Exception("No dimension with provided old dimension type exists on this region");
         if (newType == dimension_samplechannel && def->zones != 2)
             throw gig::Exception("Cannot change to dimension type 'sample channel', because existing dimension does not have 2 zones");
+        if (GetDimensionDefinition(newType))
+            throw gig::Exception("There is already a dimension with requested new dimension type on this region");
+        def->dimension  = newType;
         def->split_type = __resolveSplitType(newType);
     }
 
