@@ -732,6 +732,7 @@ namespace gig {
             dimension_def_t* GetDimensionDefinition(dimension_t type);
             void             DeleteDimensionZone(dimension_t type, int zone);
             void             SplitDimensionZone(dimension_t type, int zone);
+            void             SetDimensionType(dimension_t oldType, dimension_t newType);
             // overridden methods
             virtual void     SetKeyRange(uint16_t Low, uint16_t High);
             virtual void     UpdateChunks();
