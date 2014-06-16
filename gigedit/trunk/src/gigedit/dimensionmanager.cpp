@@ -239,6 +239,8 @@ DimensionManager::DimensionManager() :
 addButton(Gtk::Stock::ADD), removeButton(Gtk::Stock::REMOVE),
 allRegionsCheckBox(_("All Regions"))
 {
+    ignoreColumnClicked = true;
+
     set_title(_("Dimensions of selected Region"));
     add(vbox);
     scrolledWindow.add(treeView);
@@ -270,6 +272,10 @@ allRegionsCheckBox(_("All Regions"))
     treeView.get_column(1)->add_attribute(m_cellRendererIntSet.propertyValue(), tableModel.m_bits);
     treeView.get_column(2)->add_attribute(m_cellRendererIntSet.propertyValue(), tableModel.m_zones);
     treeView.show();
+
+    treeView.signal_cursor_changed().connect(
+        sigc::mem_fun(*this, &DimensionManager::onColumnClicked)
+    );
 
     addButton.signal_clicked().connect(
         sigc::mem_fun(*this, &DimensionManager::addDimension)
@@ -362,15 +368,136 @@ void DimensionManager::refreshManager() {
 }
 
 void DimensionManager::show(gig::Region* region) {
+    ignoreColumnClicked = true;
     this->region = region;
     refreshManager();
     Gtk::Window::show();
     deiconify();
+    ignoreColumnClicked = false;
 }
 
 void DimensionManager::set_region(gig::Region* region) {
+    ignoreColumnClicked = true;
     this->region = region;
     refreshManager();
+    ignoreColumnClicked = false;
+}
+
+void DimensionManager::onColumnClicked() {
+    //HACK: Prevents that onColumnClicked() gets called multiple times or at times where it is not desired
+    if (ignoreColumnClicked) {
+        ignoreColumnClicked = false;
+        return;
+    }
+
+    Gtk::TreeModel::Path path;
+    Gtk::TreeViewColumn* focus_column;
+    treeView.get_cursor(path, focus_column);
+    //const int row = path[0];
+    if (focus_column == treeView.get_column(0)) {
+        Gtk::TreeModel::iterator it = treeView.get_model()->get_iter(path);
+        Gtk::TreeModel::Row row = *it;
+        gig::dimension_t oldType = row[tableModel.m_type];
+
+        Gtk::Dialog dialog(_("Change Dimension"), true /*modal*/);
+        int oldTypeIndex = -1;
+        Glib::RefPtr<Gtk::ListStore> refComboModel = Gtk::ListStore::create(comboModel);
+        for (int i = 0x01, count = 0; i < 0xff; i++) {
+            Glib::ustring sType =
+                dimTypeAsString(static_cast<gig::dimension_t>(i));
+            if (i == oldType) oldTypeIndex = count;
+            if (sType.find("Unknown") != 0) {
+                Gtk::TreeModel::Row row = *(refComboModel->append());
+                row[comboModel.m_type_id]   = i;
+                row[comboModel.m_type_name] = sType;
+                count++;
+            }
+        }
+        Gtk::Table table(1, 2);
+        Gtk::Label labelDimType(_("Dimension:"), Gtk::ALIGN_START);
+        Gtk::ComboBox comboDimType;
+        comboDimType.set_model(refComboModel);
+        comboDimType.pack_start(comboModel.m_type_id);
+        comboDimType.pack_start(comboModel.m_type_name);
+        table.attach(labelDimType, 0, 1, 0, 1);
+        table.attach(comboDimType, 1, 2, 0, 1);
+        dialog.get_vbox()->pack_start(table);
+
+        dialog.add_button(Gtk::Stock::OK, 0);
+        dialog.add_button(Gtk::Stock::CANCEL, 1);
+        dialog.show_all_children();
+        
+        comboDimType.set_active(oldTypeIndex);
+
+        if (!dialog.run()) { // OK selected ...
+            Gtk::TreeModel::iterator iterType = comboDimType.get_active();
+            if (!iterType) return;
+            Gtk::TreeModel::Row rowType = *iterType;
+            if (!rowType) return;
+            int iTypeID = rowType[comboModel.m_type_id];
+            gig::dimension_t newType = static_cast<gig::dimension_t>(iTypeID);
+            if (newType == oldType) return;
+            //printf("change 0x%x -> 0x%x\n", oldType, newType);
+            ignoreColumnClicked = true;
+
+            // assemble the list of regions where the selected dimension type
+            // shall be changed
+            std::vector<gig::Region*> vRegions;
+            if (allRegions()) {
+                gig::Instrument* instr = (gig::Instrument*)region->GetParent();
+                for (gig::Region* rgn = instr->GetFirstRegion(); rgn; rgn = instr->GetNextRegion()) {
+                    if (rgn->GetDimensionDefinition(oldType)) vRegions.push_back(rgn);
+                }
+            } else vRegions.push_back(region);
+
+            std::set<Glib::ustring> errors;
+
+            for (uint iRgn = 0; iRgn < vRegions.size(); ++iRgn) {
+                gig::Region* region = vRegions[iRgn];
+                try {
+                    // notify everybody that we're going to update the region
+                    region_to_be_changed_signal.emit(region);
+                    // change the dimension type on that region
+                    region->SetDimensionType(oldType, newType);
+                    // let everybody know there was a change
+                    region_changed_signal.emit(region);
+                } catch (RIFF::Exception e) {
+                    // notify that the changes are over (i.e. to avoid dead locks)
+                    region_changed_signal.emit(region);
+                    Glib::ustring txt = _("Could not alter dimension: ") + e.Message;
+                    if (vRegions.size() == 1) {
+                        // show error message directly
+                        Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+                        msg.run();
+                    } else {
+                        // remember error, they are shown after all regions have been processed
+                        errors.insert(txt);
+                    }
+                }
+            }
+            // update all GUI elements
+            refreshManager();
+
+            if (!errors.empty()) {
+                Glib::ustring txt = _(
+                    "The following errors occurred while trying to change the dimension type on all regions:"
+                );
+                txt += "\n\n";
+                for (std::set<Glib::ustring>::const_iterator it = errors.begin();
+                    it != errors.end(); ++it)
+                {
+                    txt += "-> " + *it + "\n";
+                }
+                txt += "\n";
+                txt += _(
+                    "You might also want to check the console for further warnings and "
+                    "error messages."
+                );
+                Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+                msg.run();
+            }
+        }
+    }
 }
 
 void DimensionManager::addDimension() {

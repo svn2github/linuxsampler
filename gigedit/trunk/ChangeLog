@@ -88,6 +88,9 @@ Version CVS HEAD (?)
     dimension zones, not just the currently selected ones.
   * Dimension Region Selector: Fixed drawing issues when zone sizes were
     altered by mouse drag and labels being displayed at wrong positions.
+  * Region Chooser: Double click opens dimension manager dialog.
+  * Dimension Manager: Clicking on dimension type cell of an existing dimension
+    opens a popup to alter the dimension type.
 
 Version 0.2.0 (2009-07-31)
 
