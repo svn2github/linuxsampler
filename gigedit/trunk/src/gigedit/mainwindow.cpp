@@ -478,6 +478,8 @@ MainWindow::MainWindow() :
     m_refScriptsTreeModel = ScriptsTreeStore::create(m_ScriptsModel);
     m_TreeViewScripts.set_model(m_refScriptsTreeModel);
     m_TreeViewScripts.set_tooltip_text(_(
+        "Use CTRL + double click for editing a script."
+        "\n\n"
         "Note: instrument scripts are a LinuxSampler extension of the gig "
         "format. This feature will not work with the GigaStudio software!"
     ));
@@ -486,6 +488,10 @@ MainWindow::MainWindow() :
     m_TreeViewScripts.set_headers_visible(false);
     m_TreeViewScripts.signal_button_press_event().connect_notify(
         sigc::mem_fun(*this, &MainWindow::on_script_treeview_button_release)
+    );
+    //FIXME: why the heck does this double click signal_row_activated() only fired while CTRL key is pressed ?
+    m_TreeViewScripts.signal_row_activated().connect(
+        sigc::mem_fun(*this, &MainWindow::script_double_clicked)
     );
     m_refScriptsTreeModel->signal_row_changed().connect(
         sigc::mem_fun(*this, &MainWindow::script_name_changed)
@@ -2562,6 +2568,21 @@ void MainWindow::script_name_changed(const Gtk::TreeModel::Path& path,
             file_changed();
         }
     }
+}
+
+void MainWindow::script_double_clicked(const Gtk::TreeModel::Path& path,
+                                       Gtk::TreeViewColumn* column)
+{
+    Gtk::TreeModel::iterator iter = m_refScriptsTreeModel->get_iter(path);
+    if (!iter) return;
+    Gtk::TreeModel::Row row = *iter;
+    gig::Script* script = row[m_ScriptsModel.m_col_script];
+    if (!script) return;
+
+    ScriptEditor* editor = new ScriptEditor;
+    editor->setScript(script);
+    //editor->reparent(*this);
+    editor->show();
 }
 
 void MainWindow::instrument_name_changed(const Gtk::TreeModel::Path& path,

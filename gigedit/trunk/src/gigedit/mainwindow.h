@@ -384,6 +384,7 @@ protected:
 
     void script_name_changed(const Gtk::TreeModel::Path& path,
                              const Gtk::TreeModel::iterator& iter);
+    void script_double_clicked(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
     void sample_name_changed(const Gtk::TreeModel::Path& path,
                              const Gtk::TreeModel::iterator& iter);
     void instrument_name_changed(const Gtk::TreeModel::Path& path,
