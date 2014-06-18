@@ -4520,7 +4520,11 @@ namespace {
         }
 
         // own gig format extensions
-       if (pScriptRefs) {
+       if (ScriptSlotCount()) {
+           // make sure we have converted the original loaded script file
+           // offsets into valid Script object pointers
+           LoadScripts();
+
            RIFF::List* lst3LS = pCkInstrument->GetSubList(LIST_TYPE_3LS);
            if (!lst3LS) lst3LS = pCkInstrument->AddSubList(LIST_TYPE_3LS);
            const int slotCount = pScriptRefs->size();
@@ -4547,6 +4551,10 @@ namespace {
                store32(&pData[pos], (*pScriptRefs)[i].bypass ? 1 : 0);
                pos += sizeof(uint32_t);
            }
+       } else {
+           // no script slots, so get rid of any LS custom RIFF chunks (if any)
+           RIFF::List* lst3LS = pCkInstrument->GetSubList(LIST_TYPE_3LS);
+           if (lst3LS) pCkInstrument->DeleteSubChunk(lst3LS);
        }
     }
 
