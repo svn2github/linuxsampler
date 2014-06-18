@@ -289,7 +289,10 @@ namespace LinuxSampler {
             template<class TV, class TRR, class TR, class TD, class TIM, class TI> friend class EngineBase;
 
         protected:
-            EngineChannelBase() : InstrumentChangeCommandReader(InstrumentChangeCommand) {
+            EngineChannelBase() :
+                MidiKeyboardManager<V>(this),
+                InstrumentChangeCommandReader(InstrumentChangeCommand)
+            {
                 pInstrument = NULL;
 
                 // reset the instrument change command struct (need to be done

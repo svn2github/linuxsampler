@@ -723,10 +723,39 @@ namespace LinuxSampler {
              * @param pEventHandler - script's event handler to be executed
              */
             void ProcessEventByScript(AbstractEngineChannel* pChannel, RTList<Event>::Iterator& itEvent, VMEventHandler* pEventHandler) {
-                RTList<ScriptEvent>::Iterator itScriptEvent =
-                    pChannel->pScript->pEvents->allocAppend();
+                const int key = itEvent->Param.Note.Key; // even if this is not a note on/off event, accessing it does not mean any harm
+                // check if polyphonic data is passed from "note" to "release"
+                // script event handlers
+                if (pEventHandler == pChannel->pScript->handlerRelease &&
+                    pChannel->pScript->handlerNote &&
+                    pChannel->pScript->handlerNote->isPolyphonic() &&
+                    pChannel->pScript->handlerRelease->isPolyphonic() &&
+                    !pChannel->pScript->pKeyEvents[key]->isEmpty())
+                {
+                    // polyphonic variable data is used/passed from "note" to
+                    // "release" script callback, so we have to recycle the
+                    // original "note on" script event(s)
+                    RTList<ScriptEvent>::Iterator it  = pChannel->pScript->pKeyEvents[key]->first();
+                    RTList<ScriptEvent>::Iterator end = pChannel->pScript->pKeyEvents[key]->end();
+                    for (; it != end; ++it) {
+                        ProcessScriptEvent(
+                            pChannel, itEvent, pEventHandler, it
+                        );
+                    }
+                } else {
+                    // no polyphonic data is used/passed from "note" to
+                    // "release" script callback, so just use a new fresh
+                    // script event object
+                    RTList<ScriptEvent>::Iterator itScriptEvent =
+                        pChannel->pScript->pEvents->allocAppend();
+                    ProcessScriptEvent(
+                        pChannel, itEvent, pEventHandler, itScriptEvent
+                    );
+                }
+            }
 
-                if (!itScriptEvent) return; // no free script event left for execution
+            void ProcessScriptEvent(AbstractEngineChannel* pChannel, RTList<Event>::Iterator& itEvent, VMEventHandler* pEventHandler, RTList<ScriptEvent>::Iterator& itScriptEvent) {
+                if (!itScriptEvent) return; // not a valid script event (i.e. because no free script event was left in the script event pool)
 
                 // fill the list of script handlers to be executed by this event
                 int i = 0;
@@ -745,11 +774,27 @@ namespace LinuxSampler {
                 );
 
                 // in case the script was suspended, keep it on the allocated
-                // ScriptEvent list to be continued on the next audio cycle,
-                // otherwise if execution has been finished, free it for a new
-                // future script event to be triggered from start
-                if (!(res & VM_EXEC_SUSPENDED))
-                    pChannel->pScript->pEvents->free(itScriptEvent);
+                // ScriptEvent list to be continued on the next audio cycle
+                if (!(res & VM_EXEC_SUSPENDED)) { // script execution has finished without 'suspended' status ...
+                    // if "polyphonic" variable data is passed from script's
+                    // "note" event handler to its "release" event handler, then
+                    // the script event must be kept and recycled for the later
+                    // occuring "release" script event ...
+                    if (pEventHandler == pChannel->pScript->handlerNote &&
+                        pChannel->pScript->handlerRelease &&
+                        pChannel->pScript->handlerNote->isPolyphonic() &&
+                        pChannel->pScript->handlerRelease->isPolyphonic())
+                    {
+                        const int key = itEvent->Param.Note.Key;
+                        itScriptEvent.moveToEndOf(pChannel->pScript->pKeyEvents[key & 127]);
+                    } else {
+                        // ... otherwise if no polyphonic data is passed and
+                        // script's execution has finished without suspension
+                        // status, then free the script event for a new future
+                        // script event to be triggered from start
+                        pChannel->pScript->pEvents->free(itScriptEvent);
+                    }
+                }
             }
 
             /** @brief Resume execution of instrument script.
@@ -770,16 +815,35 @@ namespace LinuxSampler {
              * @param itScriptEvent - script execution that shall be resumed
              */
             void ResumeScriptEvent(AbstractEngineChannel* pChannel, RTList<ScriptEvent>::Iterator& itScriptEvent) {
+                VMEventHandler* handler = itScriptEvent->handlers[itScriptEvent->currentHandler];
+
                 // run script
                 VMExecStatus_t res = pScriptVM->exec(
                     pChannel->pScript->parserContext, &*itScriptEvent
                 );
-                // in case the script was again suspended, keep it on the allocated
-                // ScriptEvent list to be continued on the next audio cycle,
-                // otherwise if execution has been finished, free it for a new
-                // future script event to be triggered from start
-                if (!(res & VM_EXEC_SUSPENDED))
-                    pChannel->pScript->pEvents->free(itScriptEvent);
+
+                // in case the script was suspended, keep it on the allocated
+                // ScriptEvent list to be continued on the next audio cycle
+                if (!(res & VM_EXEC_SUSPENDED)) { // script execution has finished without 'suspended' status ...
+                    // if "polyphonic" variable data is passed from script's
+                    // "note" event handler to its "release" event handler, then
+                    // the script event must be kept and recycled for the later
+                    // occuring "release" script event ...
+                    if (handler && handler == pChannel->pScript->handlerNote &&
+                        pChannel->pScript->handlerRelease &&
+                        pChannel->pScript->handlerNote->isPolyphonic() &&
+                        pChannel->pScript->handlerRelease->isPolyphonic())
+                    {
+                        const int key = itScriptEvent->cause.Param.Note.Key;
+                        itScriptEvent.moveToEndOf(pChannel->pScript->pKeyEvents[key & 127]);
+                    } else {
+                        // ... otherwise if no polyphonic data is passed and
+                        // script's execution has finished without suspension
+                        // status, then free the script event for a new future
+                        // script event to be triggered from start
+                        pChannel->pScript->pEvents->free(itScriptEvent);
+                    }
+                }
             }
 
             /**

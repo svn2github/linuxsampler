@@ -60,9 +60,19 @@ namespace LinuxSampler {
         handlerRelease = NULL;
         handlerController = NULL;
         pEvents = NULL;
+        for (int i = 0; i < 128; ++i)
+            pKeyEvents[i] = NULL;
         this->pEngineChannel = pEngineChannel;
         for (int i = 0; i < INSTR_SCRIPT_EVENT_GROUPS; ++i)
             eventGroups[i].setScript(this);
+    }
+
+    InstrumentScript::~InstrumentScript() {
+        resetAll();
+        if (pEvents) {
+            for (int i = 0; i < 128; ++i) delete pKeyEvents[i];
+            delete pEvents;
+        }
     }
 
     /** @brief Load real-time instrument script.
@@ -111,8 +121,11 @@ namespace LinuxSampler {
             handlerExecCount++;
 
         // create script event pool (if it doesn't exist already)
-        if (!pEvents)
+        if (!pEvents) {
             pEvents = new Pool<ScriptEvent>(CONFIG_MAX_EVENTS_PER_FRAGMENT);
+            for (int i = 0; i < 128; ++i)
+                pKeyEvents[i] = new RTList<ScriptEvent>(pEvents);
+        }
 
         // create new VM execution contexts for new script
         while (!pEvents->poolIsEmpty()) {

@@ -42,6 +42,7 @@ public:
     Node();
     virtual ~Node();
     virtual void dump(int level = 0) = 0;
+    virtual bool isPolyphonic() const = 0;
     void printIndents(int n);
 };
 typedef Ref<Node> NodeRef;
@@ -77,6 +78,7 @@ public:
     int evalInt();
     void dump(int level = 0);
     bool isConstExpr() const { return true; }
+    bool isPolyphonic() const { return false; }
 };
 typedef Ref<IntLiteral,Node> IntLiteralRef;
 
@@ -87,6 +89,7 @@ public:
     bool isConstExpr() const { return true; }
     void dump(int level = 0);
     String evalStr() { return value; }
+    bool isPolyphonic() const { return false; }
 };
 typedef Ref<StringLiteral,Node> StringLiteralRef;
 
@@ -97,6 +100,7 @@ public:
     void dump(int level = 0);
     int argsCount() const { return args.size(); }
     VMExpr* arg(int i) { return (i >= 0 && i < argsCount()) ? &*args.at(i) : NULL; }
+    bool isPolyphonic() const;
 };
 typedef Ref<Args,Node> ArgsRef;
 
@@ -169,6 +173,7 @@ public:
     virtual int evalIntElement(uint i);
     virtual void assignIntElement(uint i, int value);
     void dump(int level = 0);
+    bool isPolyphonic() const { return false; }
 protected:
     IntArrayVariable(ParserContext* ctx, bool bConst);
 };
@@ -203,6 +208,7 @@ public:
     void assign(Expression* expr);
     String evalStr();
     void dump(int level = 0);
+    bool isPolyphonic() const { return false; }
 protected:
     StringVariable(ParserContext* ctx, bool bConst);
 };
@@ -226,6 +232,7 @@ protected:
 public:
     BinaryOp(ExpressionRef lhs, ExpressionRef rhs) : lhs(lhs), rhs(rhs) { }
     bool isConstExpr() const { return lhs->isConstExpr() && rhs->isConstExpr(); }
+    bool isPolyphonic() const { return lhs->isPolyphonic() || rhs->isPolyphonic(); }
 };
 typedef Ref<BinaryOp,Node> BinaryOpRef;
 
@@ -282,6 +289,7 @@ public:
     NoOperation() : Statement() {}
     StmtType_t statementType() const { return STMT_LEAF; }
     void dump(int level = 0) {}
+    bool isPolyphonic() const { return false; }
 };
 typedef Ref<NoOperation,Node> NoOperationRef;
 
@@ -301,6 +309,7 @@ public:
     void dump(int level = 0);
     StmtType_t statementType() const { return STMT_LIST; }
     virtual Statement* statement(uint i);
+    bool isPolyphonic() const;
 };
 typedef Ref<Statements,Node> StatementsRef;
 
@@ -325,6 +334,7 @@ public:
     bool isConstExpr() const { return false; }
     ExprType_t exprType() const;
     String evalCastToStr();
+    bool isPolyphonic() const { return args->isPolyphonic(); }
 protected:
     VMFnResult* execVMFn();
 };
@@ -332,11 +342,13 @@ typedef Ref<FunctionCall,Node> FunctionCallRef;
 
 class EventHandler : virtual public Statements, virtual public VMEventHandler {
     StatementsRef statements;
+    bool usingPolyphonics;
 public:
     void dump(int level = 0);
     StmtFlags_t exec();
-    EventHandler(StatementsRef statements) { this->statements = statements; }
+    EventHandler(StatementsRef statements);
     Statement* statement(uint i) { return statements->statement(i); }
+    bool isPolyphonic() const { return usingPolyphonics; }
 };
 typedef Ref<EventHandler,Node> EventHandlerRef;
 
@@ -379,6 +391,7 @@ public:
     EventHandler* eventHandlerByName(const String& name) const;
     EventHandler* eventHandler(uint index) const;
     inline uint size() const { return args.size(); }
+    bool isPolyphonic() const;
 };
 typedef Ref<EventHandlers,Node> EventHandlersRef;
 
@@ -390,6 +403,7 @@ public:
     Assignment(VariableRef variable, ExpressionRef value);
     void dump(int level = 0);
     StmtFlags_t exec();
+    bool isPolyphonic() const { return variable->isPolyphonic() || value->isPolyphonic(); }
 };
 typedef Ref<Assignment,Node> AssignmentRef;
 
@@ -405,6 +419,7 @@ public:
     void dump(int level = 0);
     int evalBranch();
     Statements* branch(uint i) const;
+    bool isPolyphonic() const;
 };
 typedef Ref<If,Node> IfRef;
 
@@ -428,6 +443,7 @@ public:
     //void addBranch(IntExprRef from, IntExprRef to, StatementsRef statements);
     //void addBranch(CaseBranchRef branch);
     //void addBranches(CaseBranchesRef branches);
+    bool isPolyphonic() const;
 };
 typedef Ref<SelectCase,Node> SelectCaseRef;
 
@@ -441,6 +457,7 @@ public:
     void dump(int level = 0);
     bool evalLoopStartCondition();
     Statements* statements() const;
+    bool isPolyphonic() const { return m_condition->isPolyphonic() || m_statements->isPolyphonic(); }
 };
 
 class Neg : public IntExpr {
@@ -450,6 +467,7 @@ public:
     int evalInt() { return (expr) ? -expr->evalInt() : 0; }
     void dump(int level = 0);
     bool isConstExpr() const { return expr->isConstExpr(); }
+    bool isPolyphonic() const { return expr->isPolyphonic(); }
 };
 typedef Ref<Neg,Node> NegRef;
 
@@ -461,6 +479,7 @@ public:
     String evalStr();
     void dump(int level = 0);
     bool isConstExpr() const;
+    bool isPolyphonic() const { return lhs->isPolyphonic() || rhs->isPolyphonic(); }
 };
 typedef Ref<ConcatString,Node> ConcatStringRef;
 
@@ -479,6 +498,7 @@ public:
     int evalInt();
     void dump(int level = 0);
     bool isConstExpr() const;
+    bool isPolyphonic() const { return lhs->isPolyphonic() || rhs->isPolyphonic(); }
 private:
     IntExprRef lhs;
     IntExprRef rhs;
@@ -509,6 +529,7 @@ public:
     int evalInt() { return !expr->evalInt(); }
     void dump(int level = 0);
     bool isConstExpr() const { return expr->isConstExpr(); }
+    bool isPolyphonic() const { return expr->isPolyphonic(); }
 };
 typedef Ref<Not,Node> NotRef;
 

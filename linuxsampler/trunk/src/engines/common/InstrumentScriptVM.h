@@ -40,13 +40,19 @@ namespace LinuxSampler {
         inline const int& operator[](uint index) const { return ConstCapacityArray<int>::operator[](index); }
     protected:
         InstrumentScript* m_script;
-        StmtFlags_t flags;
     };
 
     /** @brief Real-time instrument script VM representation.
      *
      * Holds the VM representation of all event handlers of the currently loaded
      * script, ready to be executed by the sampler engine.
+     *
+     * Even thought scripts (or to be more specific their event handler objects)
+     * are shared between sampler engine channels, the InstrumentScript struct
+     * instances though are not shared. Each sampler engine channel has its own
+     * instance of a InstrumentScript struct. That's important, because this
+     * struct also holds engine channel local informations, for example the
+     * events that occured on the respective engine channel.
      */
     struct InstrumentScript {
         VMParserContext*      parserContext; ///< VM represenation of the currently loaded script or NULL if not script was loaded. Note that it is also not NULL if parser errors occurred!
@@ -55,16 +61,14 @@ namespace LinuxSampler {
         VMEventHandler*       handlerNote; ///< VM representation of script's MIDI note on callback or NULL if current script did not define such an event handler.
         VMEventHandler*       handlerRelease; ///< VM representation of script's MIDI note off callback or NULL if current script did not define such an event handler.
         VMEventHandler*       handlerController; ///< VM representation of script's MIDI controller callback or NULL if current script did not define such an event handler.
-        Pool<ScriptEvent>*    pEvents; ///< Pool of all available script execution instances. ScriptEvents available to be allocated from the Pool are currently unused / not executiong, whereas the ScriptEvents allocated on the list are currently suspended / have not finished execution yet.
+        Pool<ScriptEvent>*    pEvents; ///< Pool of all available script execution instances. ScriptEvents available to be allocated from the Pool are currently unused / not executiong, whereas the ScriptEvents allocated on the list are currently suspended / have not finished execution yet (@see pKeyEvents).
+        RTList<ScriptEvent>*  pKeyEvents[128]; ///< Stores previously finished executed "note on" script events for the respective active note/key as long as the key/note is active. This is however only done if there is a "note" script event handler and a "release" script event handler defined in the script and both handlers use (reference) polyphonic variables. If that is not the case, then this list is not used at all. So the purpose of pKeyEvents is only to implement preserving/passing polyphonic variable data from "on note .. end on" script block to the respective "on release .. end on" script block.
         AbstractEngineChannel* pEngineChannel;
         String                code; ///< Source code of the instrument script. Used in case the sampler engine is changed, in that case a new ScriptVM object is created for the engine and VMParserContext object for this script needs to be recreated as well. Thus the script is then parsed again by passing the source code to recreate the parser context.
         EventGroup            eventGroups[INSTR_SCRIPT_EVENT_GROUPS]; ///< Used for built-in script functions: by_event_marks(), set_event_mark(), delete_event_mark().
 
         InstrumentScript(AbstractEngineChannel* pEngineChannel);
-
-        ~InstrumentScript() {
-            resetAll();
-        }
+        ~InstrumentScript();
 
         void load(const String& text);
         void unload();

@@ -144,6 +144,13 @@ void Args::dump(int level) {
     printf(")\n");
 }
 
+bool Args::isPolyphonic() const {
+    for (int i = 0; i < args.size(); ++i)
+        if (args[i]->isPolyphonic())
+            return true;
+    return false;
+}
+
 EventHandlers::EventHandlers() {
     //printf("EventHandlers::Constructor 0x%lx\n", (long long)this);
 }
@@ -177,6 +184,13 @@ EventHandler* EventHandlers::eventHandler(uint index) const {
     return const_cast<EventHandler*>(&*args.at(index));
 }
 
+bool EventHandlers::isPolyphonic() const {
+    for (int i = 0; i < args.size(); ++i)
+        if (args[i]->isPolyphonic())
+            return true;
+    return false;
+}
+
 Assignment::Assignment(VariableRef variable, ExpressionRef value)
    : variable(variable), value(value)
 {
@@ -192,6 +206,11 @@ StmtFlags_t Assignment::exec() {
         return StmtFlags_t(STMT_ABORT_SIGNALLED | STMT_ERROR_OCCURRED);
     variable->assign(&*value);
     return STMT_SUCCESS;
+}
+
+EventHandler::EventHandler(StatementsRef statements) {
+    this->statements = statements;
+    usingPolyphonics = statements->isPolyphonic();
 }
 
 void EventHandler::dump(int level) {
@@ -215,6 +234,13 @@ void Statements::dump(int level) {
 Statement* Statements::statement(uint i) {
     if (i >= args.size()) return NULL;
     return &*args.at(i);
+}
+
+bool Statements::isPolyphonic() const {
+    for (int i = 0; i < args.size(); ++i)
+        if (args[i]->isPolyphonic())
+            return true;
+    return false;
 }
 
 void FunctionCall::dump(int level) {
@@ -537,6 +563,12 @@ Statements* If::branch(uint i) const {
     return NULL;
 }
 
+bool If::isPolyphonic() const {
+    if (condition->isPolyphonic() || ifStatements->isPolyphonic())
+        return true;
+    return elseStatements ? elseStatements->isPolyphonic() : false;
+}
+
 void SelectCase::dump(int level) {
     printIndents(level);
     if (select)
@@ -585,6 +617,14 @@ Statements* SelectCase::branch(uint i) const {
     if (i < branches.size())
         return const_cast<Statements*>( &*branches[i].statements );
     return NULL;
+}
+
+bool SelectCase::isPolyphonic() const {
+    if (select->isPolyphonic()) return true;
+    for (int i = 0; i < branches.size(); ++i)
+        if (branches[i].statements->isPolyphonic())
+            return true;
+    return false;
 }
 
 // void Case::addBranch(IntExprRef condition, StatementsRef statements) {

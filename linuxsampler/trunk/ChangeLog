@@ -472,6 +472,8 @@ Version CVS HEAD (?)
     - Built-in script functions "ignore_event()", "note_off()" and
       "gig_set_dim_zone()" now also accept an array of event IDs as argument
       (i.e. return value of new script function "by_marks()").
+    - Pass/preserve polyphonic variable data from respective "note" event
+      handler to "release" event handler.
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

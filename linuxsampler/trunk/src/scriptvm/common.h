@@ -350,9 +350,25 @@ namespace LinuxSampler {
         virtual int suspensionTimeMicroseconds() const = 0;
     };
 
+    /** @brief Script callback for a certain event.
+     *
+     * Represents a script callback for a certain event, i.e.
+     * "on note ... end on".
+     */
     class VMEventHandler {
     public:
+        /**
+         * Name of the event handler which identifies its purpose. For example
+         * for a "on note ... end on" script callback block, the name "note"
+         * would be returned here.
+         */
         virtual String eventHandlerName() const = 0;
+
+        /**
+         * Whether or not the event handler makes any use of so called
+         * "polyphonic" variables.
+         */
+        virtual bool isPolyphonic() const = 0;
     };
 
     struct ParserIssue {

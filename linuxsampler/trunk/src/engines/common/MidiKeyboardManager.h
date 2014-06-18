@@ -96,12 +96,21 @@ namespace LinuxSampler {
             virtual void PreProcessSostenutoPedalDown() { }
             virtual void PostProcessSostenutoPedalDown() { }
     };
-    
+
     /**
      * This is the base class for class MidiKeyboardManager::MidiKey. It is
      * not intended to be instantiated directly. Instead it just defines
      * the part of class MidiKey which is not dependant on a C++ template
      * parameter.
+     *
+     * There are also ScriptEvent lists maintained for each key, which are not
+     * stored here though, but on the InstrumentScript structure. Simply because
+     * RTLists are tied to one Pool instance, and it would be error prone to
+     * maintain @c Pool<ScriptEvent> and @c RTList<ScriptEvent> separately,
+     * since one would need to be very careful to reallocate the lists when the
+     * script was changed or when the Engine instance changed, etc.
+     *
+     * @see InstrumentScript::pKeyEvents
      */
     class MidiKeyBase {
         public:
@@ -218,7 +227,7 @@ namespace LinuxSampler {
 
             MidiKey*              pMIDIKeyInfo; ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
 
-            MidiKeyboardManager() {
+            MidiKeyboardManager(AbstractEngineChannel* pEngineChannel) {
                 pMIDIKeyInfo = new MidiKey[128];
                 pActiveKeys  = new Pool<uint>(128);
                 SoloMode     = false;
@@ -233,6 +242,7 @@ namespace LinuxSampler {
                     // region)
                     pMIDIKeyInfo[i].pRoundRobinIndex = &RoundRobinIndexes[i];
                 }
+                m_engineChannel = pEngineChannel;
             }
 
             virtual ~MidiKeyboardManager() {
@@ -248,6 +258,8 @@ namespace LinuxSampler {
                 for (uint i = 0; i < 128; i++) {
                     pMIDIKeyInfo[i].Reset();
                     KeyDown[i] = false;
+                    if (m_engineChannel->pScript)
+                        m_engineChannel->pScript->pKeyEvents[i]->clear();
                 }
 
                 // free all active keys
@@ -288,13 +300,13 @@ namespace LinuxSampler {
                 }
             }
 
-            void ClearAllActiveKeyEvents() {
+            /*void ClearAllActiveKeyEvents() {
                 RTList<uint>::Iterator iuiKey = pActiveKeys->first();
                 RTList<uint>::Iterator end    = pActiveKeys->end();
                 for(; iuiKey != end; ++iuiKey) {
                     pMIDIKeyInfo[*iuiKey].pEvents->clear(); // free all events on the key
                 }
-            }
+            }*/
 
             /**
              *  Removes the given voice from the MIDI key's list of active voices.
@@ -332,6 +344,8 @@ namespace LinuxSampler {
              */
             void FreeKey(MidiKey* pKey) {
                 if (pKey->pActiveVoices->isEmpty()) {
+                    if (m_engineChannel->pScript)
+                        m_engineChannel->pScript->pKeyEvents[pKey->itSelf]->clear();
                     pKey->Active = false;
                     pActiveKeys->free(pKey->itSelf); // remove key from list of active keys
                     pKey->itSelf = RTList<uint>::Iterator();
@@ -349,7 +363,7 @@ namespace LinuxSampler {
                 RTList<uint>::Iterator iuiKey = pActiveKeys->first();
                 RTList<uint>::Iterator end    = pActiveKeys->end();
                 while (iuiKey != end) { // iterate through all active keys
-                   MidiKey* pKey = &pMIDIKeyInfo[*iuiKey];
+                    MidiKey* pKey = &pMIDIKeyInfo[*iuiKey];
                     ++iuiKey;
                     if (pKey->pActiveVoices->isEmpty()) FreeKey(pKey);
                     #if CONFIG_DEVMODE
@@ -647,6 +661,8 @@ namespace LinuxSampler {
             void RemoveMidiKeyboardListener(MidiKeyboardListener* l) { listeners.RemoveListener(l); }
 
         protected:
+            AbstractEngineChannel* m_engineChannel;
+
             class Listeners : public MidiKeyboardListener, public ListenerList<MidiKeyboardListener*> {
             public:
                 REGISTER_FIRE_EVENT_METHOD_ARG2(PreProcessNoteOn, uint8_t, uint8_t)
