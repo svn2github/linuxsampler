@@ -14,13 +14,13 @@ following major parts:
   - @b 1. @ref gig classes: These provide convenient access to
     @b Gigasampler / @b GigaStudio files (for all known format version, that is
     from Gigasampler v1 to GigaStudio v4), allowing to load, modify and save
-    existing .gig files, as well as creating new .gig files from scratch.
-
+    existing .gig files, as well as creating new .gig files from scratch.<br>
+    <br>
     Since the gig file format was originally designed based on the DLS Level 2
     format, the gig classes in this library are derived from the DLS classes of
     this library, where the gig classes provide the necessary extensions for the
-    Gigasampler file format.
-
+    Gigasampler file format.<br>
+    <br>
     Besides the fact that libgig supports all aspects of the original
     Gigasampler / GigaStudio format, it now also provides some own extensions of
     that original format. Most notably libgig provides an extension to save
@@ -36,16 +36,16 @@ following major parts:
 
   - @b 3. @b AKAI classes: These provide support for loading sample based disks
     (CDROMs, hard disks, ZIP disks) and disk image files of AKAI's hardware
-    sampler series <i>S1000</i>, <i>S01</i>, <i>S2000</i> and <i>S3000</i>.
-
+    sampler series <i>S1000</i>, <i>S01</i>, <i>S2000</i> and <i>S3000</i>.<br>
+    <br>
     The AKAI classes are a branch of <i>libakai</i>. In the AKAI classes of
     libgig, libakai's original dependency to the so called <i>Carbon</i> C++
     library has been removed and has been replaced by using ordinay
     <a href="http://en.wikipedia.org/wiki/Standard_Template_Library">C++ STL</a>
     classes instead. Further, this branch of libakai also provides support for
     Linux and other POSIX based OSes (the original libakai was limited to Mac
-    and Windows).
-
+    and Windows).<br>
+    <br>
     Currently the AKAI classes don't have their own dedicated C++ namespace.
     Refer to class @ref AkaiDisk as toplevel entry class for accessing AKAI
     sounds.
@@ -68,8 +68,8 @@ other components:
     arbitrary RIFF files. The <i>Resource Interchange File Format</i>
     provides universal data containers ordered in a tree-like structure
     and can be compared to XML, but with the difference that RIFF is
-    binary encoded.
-
+    binary encoded.<br>
+    <br>
     The DLS file format, the gig file format and KORG's file format are all
     based on RIFF on lowest level of their file format. And consequently all
     those classes mentioned above are using the RIFF classes for that purpose.
