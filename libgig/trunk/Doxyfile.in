@@ -70,6 +70,10 @@ INPUT                  = @top_srcdir@/src/RIFF.h \
                          @top_srcdir@/src/gig.cpp \
                          @top_srcdir@/src/SF.h \
                          @top_srcdir@/src/SF.cpp \
+                         @top_srcdir@/src/Korg.h \
+                         @top_srcdir@/src/Korg.cpp \
+                         @top_srcdir@/src/Akai.h \
+                         @top_srcdir@/src/Akai.cpp \
                          @top_srcdir@/doc/mainpage.dox
 FILE_PATTERNS          = *.c \
                          *.cpp \
