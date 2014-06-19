@@ -6,10 +6,11 @@
 @section Intro
 
 libgig is a C++ library for accessing audio-sample based instrument files,
-as they are shipped for various software samplers and hardware sampler devices.
+as they are shipped for various software samplers, hardware sampler devices
+and synthesizer keyboards.
 This C++ library was originally created to access Gigasampler files, but in the
 meantime grew to much more than that. At the moment libgig consists of the
-following major parts:
+following four major parts:
 
   - @b 1. @ref gig classes: These provide convenient access to
     @b Gigasampler / @b GigaStudio files (for all known format version, that is
@@ -24,17 +25,23 @@ following major parts:
     Besides the fact that libgig supports all aspects of the original
     Gigasampler / GigaStudio format, it now also provides some own extensions of
     that original format. Most notably libgig provides an extension to save
-    real-time instrument scripts with .gig files. Those custom extensions are
+    @ref gig::Script "real-time instrument scripts" with .gig files.
+    Those custom extensions are
     however currently only supported by the graphical instrument editor
-    application @b gigedit and by @b LinuxSampler, they will obviously not work
-    with the original GigaStudio software.
+    application @b gigedit and by @b LinuxSampler, those extensions will
+    obviously not work with the original GigaStudio software.
 
-  - @b 2. @ref Korg classes: These provide support for loading sample based
-    instrument files for KORG's synthesizer keyboard models <i>Kronos</i>,
+  - @b 2. @ref sf2 classes: These provide support for loading and modifying
+    @b SoundFont version 2 files. Even though being an older format, the
+    SoundFont format is still one of the most popular sample based instrument
+    file formats and is widely supported by a variety of hardware and software.
+
+  - @b 3. @ref Korg classes: These provide support for loading sample based
+    instrument files of KORG's synthesizer keyboard models <i>Kronos</i>,
     <i>M3</i>, <i>Oasys</i>, <i>Triton</i> and <i>Trinity</i>. There is
     currently no support for modifying KORG files yet.
 
-  - @b 3. @b AKAI classes: These provide support for loading sample based disks
+  - @b 4. @b AKAI classes: These provide support for loading sample based disks
     (CDROMs, hard disks, ZIP disks) and disk image files of AKAI's hardware
     sampler series <i>S1000</i>, <i>S01</i>, <i>S2000</i> and <i>S3000</i>.<br>
     <br>
@@ -51,9 +58,9 @@ following major parts:
     sounds.
 
 Besides the mentioned major parts above, libgig also provides the following
-other components:
+two other components:
 
-  - @b 4. @ref DLS classes: Provide convenient methods to access
+  - @b 5. @ref DLS classes: Provide convenient methods to access
     @b DLS (<i>Downloadable Sounds</i>) Level 1 and 2 files. The DLS file format
     has been designed as open file format to be adopted by various keyboard
     manufacturers for their sounds. However it never really made it to a broad
@@ -64,28 +71,29 @@ other components:
     Gigasampler / GigaStudio file format was designed as extension on top of the
     DLS file format (with quite some radical modifications though).
 
-  - @b 5. @ref RIFF classes: Provide convenient methods to parse and access
-    arbitrary RIFF files. The <i>Resource Interchange File Format</i>
+  - @b 6. @ref RIFF classes: Provide convenient methods to parse and access
+    arbitrary RIFF files. The <i>"Resource Interchange File Format"</i>
     provides universal data containers ordered in a tree-like structure
     and can be compared to XML, but with the difference that RIFF is
     binary encoded.<br>
     <br>
-    The DLS file format, the gig file format and KORG's file format are all
-    based on RIFF on lowest level of their file format. And consequently all
-    those classes mentioned above are using the RIFF classes for that purpose.
+    The DLS file format, the gig file format, the sf2 file format and KORG's
+    file format are all based on RIFF on lowest level of their file format. And
+    consequently all those classes mentioned above are using the RIFF classes
+    for that purpose.
 
 
 @section License
 
 Most parts of libgig and its tools are released under the terms of the
 <a href="http://www.gnu.org/licenses/gpl-2.0.html">GNU General Public License (GPL)</a>.
-This applies to the @ref gig classes, @ref Korg classes, @ref DLS classes,
-@ref RIFF classes and all their tools and example programs. We may offer you a
+This applies to the @ref gig classes, @ref sf2 classes, @ref Korg classes, @ref DLS classes,
+@ref RIFF classes and all of their tools and example programs. We may offer you a
 commercial license for using libgig in commercial products. If you are
 interested in a commercial license,
 <a href="http://www.linuxsampler.org/developers.html">contact us!</a>
 
-The @b AKAI classes and its tools / demo programs are released under the terms
+The @b AKAI classes and their tools / example programs are released under the terms
 of the <a href="https://www.gnu.org/licenses/lgpl.html">GNU Lesser General Public License (LGPL)</a>.
 
 If you have any questions regarding license aspects,
