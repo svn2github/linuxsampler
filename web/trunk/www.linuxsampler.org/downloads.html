@@ -238,7 +238,7 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
         </tr>
         <tr>
           <td class="bordered">
-            <a class="info" href=#libgig>libgig<span class='info'>Gigasampler file access library (C++), for loading, modifying and creating gig files.</span></a>
+            <a class="info" href=#libgig>libgig<span class='info'>File access library (C++), for loading and modifying GigaStudio, SoundFont, KORG, AKAI and DLS files.</span></a>
           </td>
           <td> -> (pure) <a href="http://www.gnu.org/licenses/old-licenses/gpl-2.0.html" title="GNU General Public License">GPL</a></td>
         </tr>
@@ -321,7 +321,7 @@ libgig before being able to compile and use gigedit.</p>
                 <img src="gfx/logos/debian.png">Debian "Lenny"
               </a>
             </td>
-            <td class="decorated"> <!--<div style="font-weight: bold; color: #ff0000;">New versions!</div>--> Individual Debian (.deb) binary package for each software component, compiled for i486 (Debian <i>stable</i>, a.k.a "Lenny"). </td>
+            <td class="decorated"> <!--<div style="font-weight: bold; color: #ff0000;">New versions!</div>--> Individual Debian (.deb) binary package for each software component, compiled for i486 (Debian <i>old stable</i>, a.k.a "Lenny"). </td>
           </tr>
           <tr>
             <td class="decorated">
@@ -337,7 +337,7 @@ libgig before being able to compile and use gigedit.</p>
                 <img src="gfx/logos/gentoo.png">Gentoo
               </a>
             </td>
-            <td class="decorated"> Bleeding edge Gentoo ebuild for each software component, which can be used to conveniently emerge the latest versions directly from CVS. </td>
+            <td class="decorated"> Bleeding edge Gentoo ebuild for each software component, which can be used to conveniently emerge the latest versions directly from CVS (<b>Note:</b> Out-dated, we moved from CVS to SVN a while ago. Ebuild files need to be updated.).</td>
           </tr>
           <tr>
             <td class="decorated">
@@ -345,7 +345,7 @@ libgig before being able to compile and use gigedit.</p>
                 <img src="gfx/logos/suse.png" title=".rpm packages">Suse
               </a>
             </td>
-            <td class="decorated"> <!--<div style="font-weight: bold; color: #ff0000;">New versions!</div>--> Individual RPM package for each software component for openSUSE 11.1, compiled for i586 and x86_64. </td>
+            <td class="decorated"> <!--<div style="font-weight: bold; color: #ff0000;">New versions!</div>--> Individual RPM package for each software component for openSUSE 11.1, compiled for i586 and x86_64 (<b>Note:</b> Out-dated. You should better compile rpm packages by yourself by using latest SVN version for now). </td>
           </tr>
           <tr>
             <td class="decorated">
@@ -353,7 +353,7 @@ libgig before being able to compile and use gigedit.</p>
                 <img src="gfx/logos/windows.png">Windows
               </a>
             </td>
-            <td class="decorated"> <!--<div style="font-weight: bold; color: #ff0000;">New version!</div>--> Self-extracting all-in-one installer of all software components for Windows. It includes native 64 bit and native 32 bit binaries, standalone and VST plugin versions. The windows binaries are snapshots which are automatically built on our server from the latest Subversion (development) version of the sampler. We recommend you to always download the latest snapshot.</td>
+            <td class="decorated"> <!--<div style="font-weight: bold; color: #ff0000;">New version!</div>--> Self-extracting all-in-one installer of all software components for Windows. It includes native 64 bit and native 32 bit binaries, standalone and VST plugin versions of the sampler. The windows binaries are snapshots which are automatically built on our server from the latest Subversion (development) version of the sampler. We recommend you to always download the latest snapshot.</td>
           </tr>
           <tr>
             <td class="decorated">
@@ -361,7 +361,7 @@ libgig before being able to compile and use gigedit.</p>
                 <img src="gfx/logos/apple.png">Mac
               </a>
             </td>
-            <td class="decorated"> <!--<div style="font-weight: bold; color: #ff0000;">New version!</div>--> All-in-one installer (Diskimage) of the current official releases of the software components for Mac OS X. This is a universal binary, natively supporting PPC, i386 and x64. It includes standalone and Audio Unit plugin versions of the sampler (<b>Note:</b> the Mac installer does <b>not</b> include gigedit yet!). The OS X binaries are snapshots which are automatically built on our server from the latest Subversion (development) version of the sampler. We recommend you to always download the latest snapshot.</td>
+            <td class="decorated"> <!--<div style="font-weight: bold; color: #ff0000;">New version!</div>--> All-in-one Diskimage of the current official releases of the software components for Mac OS X. This is a universal binary, natively supporting Intel 64 bit, Intel 32 bit and PPC. It includes standalone and Audio Unit (AU) plugin versions of the sampler. It also includes the instrument editor "gigedit" and the graphical sampler frontends "QSampler" and "Fantasia". The OS X binaries are snapshots which are automatically built on our server from the latest Subversion (development) version of the sampler. We recommend you to always download the latest snapshot.</td>
           </tr>
         </tbody>
       </table>
@@ -407,6 +407,9 @@ libgig before being able to compile and use gigedit.</p>
       <h2>Source Packages</h2>
       <p class="default">
         Source code packages of the latest official releases:
+      </p>
+      <p class="caution">
+        Note: The tarball release files here are completely out-dated! Use Subversion instead!
       </p>
       <table class="decorated">
         <thead>
