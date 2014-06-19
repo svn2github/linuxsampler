@@ -1,5 +1,18 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2014-06-19">
+    <link ref="http://download.linuxsampler.org/packages/osx/snapshots/" img="gfx/logos/apple.png"></link>
+    <link ref="http://download.linuxsampler.org/packages/osx/snapshots/">gigedit finally included with OS X snapshots!</link>
+    Due to the variety of third party library dependencies it took a while, but
+    finally "gigedit", our graphical instrument editor for Gigasampler /
+    GigaStudio files, is now included with the automatic binary snapshots builds
+    for Mac OS X. The automatic snapshot installers are automatically compiled
+    by one of our servers each time a developer commits something new to our
+    Subversion (development) server. You can use gigedit on Mac OS X as
+    stand-alone instrument editor as well as in live-mode while running
+    LinuxSampler. In the latter case your changes with gigedit get immediately
+    audible while playing the instrument on the keyboard at the same time.
+  </entry>
   <entry date="2011-08-25">
     <link ref="sfz/" img="gfx/logos/sfz.png"></link>
     <link ref="sfz/">Added SFZ implementation status page.</link>

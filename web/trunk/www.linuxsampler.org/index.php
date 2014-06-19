@@ -178,7 +178,7 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
 			<div id="contents">
 
 			<h2>News</h2>
-            <?php $_GET['max_items'] = "7";
+            <?php $_GET['max_items'] = "3";
 		  include("news_internal.php"); ?>
             <span class="news_footer">
               <a href="news_history.php">More ...</a>
