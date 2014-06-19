@@ -128,3 +128,15 @@
 		border-bottom: none;
 		text-align: center;
 	}
+
+.caution  {
+    border: solid 1px;
+    background: rgb(255, 180, 180);
+    font-size: 13.33px;
+    font-family: arial, verdana, sans-serif;
+    text-align: justify;
+    font-style: normal;
+    font-weight: normal;
+    margin: 1em 1em 1em 1em;
+    padding: 0.6em 0.6em 0.6em 0.6em;
+}
