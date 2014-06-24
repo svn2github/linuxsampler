@@ -453,7 +453,7 @@ MainWindow::MainWindow() :
     {
         Gtk::TreeViewColumn* column = m_TreeViewSamples.get_column(0);
         Gtk::CellRendererText* cellrenderer =
-            dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
+            dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell());
         column->add_attribute(
             cellrenderer->property_foreground(), m_SamplesModel.m_color
         );
@@ -461,7 +461,7 @@ MainWindow::MainWindow() :
     {
         Gtk::TreeViewColumn* column = m_TreeViewSamples.get_column(1);
         Gtk::CellRendererText* cellrenderer =
-            dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell_renderer());
+            dynamic_cast<Gtk::CellRendererText*>(column->get_first_cell());
         column->add_attribute(
             cellrenderer->property_foreground(), m_SamplesModel.m_color
         );
