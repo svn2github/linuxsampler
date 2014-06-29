@@ -634,7 +634,7 @@ namespace LinuxSampler {
                 // if a valid real-time instrument script is loaded, pre-process
                 // the event list by running the script now, since the script
                 // might filter events or add new ones for this cycle
-                if (pChannel->pScript && pChannel->pScript->bHasValidScript) {
+                if (pChannel->pScript) {
                     // resume any suspended script executions still hanging
                     // around of previous audio fragment cycles
                     for (RTList<ScriptEvent>::Iterator itEvent = pChannel->pScript->pEvents->first(),
@@ -978,7 +978,8 @@ namespace LinuxSampler {
                         dmsg(5,("Engine: instrument change command received\n"));
                         cmd.bChangeInstrument = false;
                         pEngineChannel->pInstrument = cmd.pInstrument;
-                        pEngineChannel->pScript = cmd.pScript;
+                        pEngineChannel->pScript =
+                            cmd.pScript->bHasValidScript ? cmd.pScript : NULL;
                         instrumentChanged = true;
 
                         pEngineChannel->MarkAllActiveVoicesAsOrphans();

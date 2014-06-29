@@ -39,7 +39,7 @@ namespace LinuxSampler {
             bool bChangeInstrument;       ///< Set to true by the loader when the channel should change instrument.
             I* pInstrument;               ///< The new instrument. Also used by the loader to read the previously loaded instrument.
             RTList<R*>* pRegionsInUse; ///< List of dimension regions in use by the currently loaded instrument. Continuously updated by the audio thread.
-            InstrumentScript* pScript; ///< Instrument script to be executed for this instrument, or NULL if instrument does not have a script.
+            InstrumentScript* pScript; ///< Instrument script to be executed for this instrument. This is never NULL, it is always a valid InstrumentScript pointer. Use InstrumentScript::bHasValidScript whether it reflects a valid instrument script to be executed.
     };
 
     template<class R>
