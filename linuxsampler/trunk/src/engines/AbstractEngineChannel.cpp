@@ -778,6 +778,7 @@ namespace LinuxSampler {
                         goto exitVirtualDevicesLoop;
                     }
                     *pEvents->allocAppend() = event;
+                    memset(&event.Format, 0, sizeof(event.Format)); // init format specific stuff with zeroes
                 }
             }
         }
