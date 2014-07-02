@@ -540,8 +540,10 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
 
     // left mouse button double click
     if (event->type == GDK_2BUTTON_PRESS && event->button == 1) {
-        // show dimension manager dialog for this region
-        manage_dimensions();
+        if (event->y < REGION_BLOCK_HEIGHT) {
+            // show dimension manager dialog for this region
+            manage_dimensions();
+        }
     }
 
     if (event->y >= REGION_BLOCK_HEIGHT) return true;
