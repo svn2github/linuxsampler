@@ -51,7 +51,11 @@ ScriptEditor::ScriptEditor() :
     {
         Pango::FontDescription fdesc;
         fdesc.set_family("monospace");
+#if defined(__APPLE__)
+        fdesc.set_size(12 * PANGO_SCALE);
+#else
         fdesc.set_size(10 * PANGO_SCALE);
+#endif
 #if GTKMM_MAJOR_VERSION < 3
         m_textView.modify_font(fdesc);
 #else

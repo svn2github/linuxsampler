@@ -58,7 +58,7 @@ namespace {
 //
 class GigEditState : public sigc::trackable {
 public:
-    GigEditState(GigEdit* parent) : parent(parent) { }
+    GigEditState(GigEdit* parent) : parent(parent), instrument(NULL) { }
     void run(gig::Instrument* pInstrument);
 
     MainWindow* window;
@@ -401,6 +401,7 @@ void GigEditState::run(gig::Instrument* pInstrument) {
     mutex.lock(); // lock access to static variables
 
     static bool main_loop_started = false;
+    instrument = pInstrument;
     if (!main_loop_started) {
 #if defined(__APPLE__)
         // spawn GUI on main thread :
@@ -466,7 +467,6 @@ void GigEditState::run(gig::Instrument* pInstrument) {
         printf("GUI is now initialized. Everything done.\n"); fflush(stdout);
         main_loop_started = true;
     }
-    instrument = pInstrument;
     current = this;
     dispatcher->emit();
     open.wait(); // wait until the GUI thread has read current

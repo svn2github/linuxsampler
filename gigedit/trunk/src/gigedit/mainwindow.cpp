@@ -902,7 +902,28 @@ void MainWindow::load_instrument(gig::Instrument* instr) {
     // load the instrument
     gig::File* pFile = (gig::File*) instr->GetParent();
     load_gig(pFile, 0 /*file name*/, true /*shared instrument*/);
-    //TODO: automatically select the given instrument
+    // automatically select the given instrument
+    int i = 0;
+    for (gig::Instrument* instrument = pFile->GetFirstInstrument(); instrument;
+         instrument = pFile->GetNextInstrument(), ++i)
+    {
+        if (instrument == instr) {
+            // select item in "instruments" tree view
+            m_TreeView.get_selection()->select(Gtk::TreePath(ToString(i)));
+            // make sure the selected item in the "instruments" tree view is
+            // visible (scroll to it)
+            m_TreeView.scroll_to_row(Gtk::TreePath(ToString(i)));
+            // select item in instrument menu
+            {
+                const std::vector<Gtk::Widget*> children =
+                    instrument_menu->get_children();
+                static_cast<Gtk::RadioMenuItem*>(children[i])->set_active();
+            }
+            // update region chooser and dimension region chooser
+            m_RegionChooser.set_instrument(instr);
+            break;
+        }
+    }
 }
 
 void MainWindow::on_loader_progress()
