@@ -771,6 +771,7 @@ namespace LinuxSampler {
                                       << devEvent.Type << "). This is a bug!";
                             continue;
                     }
+                    memset(&event.Format, 0, sizeof(event.Format)); // init format specific stuff with zeroes
                     event.pEngineChannel = this;
                     // copy event to internal event list
                     if (pEvents->poolIsEmpty()) {
@@ -778,7 +779,6 @@ namespace LinuxSampler {
                         goto exitVirtualDevicesLoop;
                     }
                     *pEvents->allocAppend() = event;
-                    memset(&event.Format, 0, sizeof(event.Format)); // init format specific stuff with zeroes
                 }
             }
         }
