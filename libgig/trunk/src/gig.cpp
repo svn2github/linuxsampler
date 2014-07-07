@@ -4560,7 +4560,7 @@ namespace {
 
     void Instrument::UpdateScriptFileOffsets() { 
        // own gig format extensions
-       if (pScriptRefs) {
+       if (pScriptRefs && pScriptRefs->size() > 0) {
            RIFF::List* lst3LS = pCkInstrument->GetSubList(LIST_TYPE_3LS);
            RIFF::Chunk* ckSCSL = lst3LS->GetSubChunk(CHUNK_ID_SCSL);
            const int slotCount = pScriptRefs->size();
