@@ -2854,7 +2854,7 @@ void MainWindow::on_samples_to_be_removed(std::list<gig::Sample*> samples) {
     // just in case a new sample is added later with exactly the same memory
     // address, which would lead to incorrect refcount if not deleted here
     for (std::list<gig::Sample*>::const_iterator it = samples.begin();
-         it != samples.end(); it != samples.end())
+         it != samples.end(); ++it)
     {
         sample_ref_count.erase(*it);
     }
