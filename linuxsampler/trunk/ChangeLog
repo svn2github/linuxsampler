@@ -126,6 +126,7 @@ Version CVS HEAD (?)
     - Fixed support for 'aftertouch' attenuation controller.
     - Fixed crash that happened with velocity split sounds under certain
       conditions (see also previous commit on libgig).
+    - fixed behaviour of filter LFO
 
   * SFZ format engine:
     - Initial implementation (not usable yet)

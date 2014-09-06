@@ -488,7 +488,7 @@ namespace LinuxSampler {
 
                 // process low frequency oscillators
                 if (bLFO1Enabled) fFinalVolume *= (1.0f - pLFO1->render());
-                if (bLFO2Enabled) fFinalCutoff *= pLFO2->render();
+                if (bLFO2Enabled) fFinalCutoff *= (1.0f - pLFO2->render());
                 if (bLFO3Enabled) finalSynthesisParameters.fFinalPitch *= RTMath::CentsToFreqRatio(pLFO3->render());
             } else {
                 // if the voice was killed in this subfragment, enter fade out stage
