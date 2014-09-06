@@ -26,6 +26,8 @@
 #ifndef __LS_DISKTHREADBASE_H__
 #define __LS_DISKTHREADBASE_H__
 
+#include <map>
+
 #include "StreamBase.h"
 #include "../EngineChannel.h"
 #include "../InstrumentManagerBase.h"
@@ -506,11 +508,20 @@ namespace LinuxSampler {
                     // perform MIDI program change commands
                     if (ProgramChangeQueue.read_space() > 0) {
                         program_change_command_t cmd;
-                        // skip all old ones, only process the latest one
+                        std::map<EngineChannel*,uint32_t> cmds;
+                        // skip all old ones, only process the latest program
+                        // change command on each engine channel
                         do {
                             ProgramChangeQueue.pop(&cmd);
+                            cmds[cmd.pEngineChannel] = cmd.Program;
                         } while (ProgramChangeQueue.read_space() > 0);
-                        cmd.pEngineChannel->ExecuteProgramChange(cmd.Program);
+                        // now execute those latest program change commands on
+                        // their respective engine channel
+                        for (std::map<EngineChannel*,uint32_t>::const_iterator it = cmds.begin();
+                             it != cmds.end(); ++it)
+                        {
+                            it->first->ExecuteProgramChange(it->second);
+                        }
                     }
 
                     RefillStreams(); // refill the most empty streams

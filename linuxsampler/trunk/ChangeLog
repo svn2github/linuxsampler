@@ -525,6 +525,8 @@ Version CVS HEAD (?)
       "GET SERVER INFOasdf\n" to be accepted as valid statement (was so far
       practically irrelevant, however it caused problems with the new LSCP
       shell's auto completion feature).
+    - Fixed MIDI program change messages being ignored if quickly executed
+      after each other (fixes #231).
 
 Version 1.0.0 (31 July 2009)
 
