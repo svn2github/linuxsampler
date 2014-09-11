@@ -291,6 +291,7 @@ Version CVS HEAD (?)
     - bugfix: generation of velocity curves etc should not be done
       after each "#include", only after the main file is parsed
     - bugfix: line numbers in error messages were wrong after "#include"
+    - added support for float and 32 bit sample files
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

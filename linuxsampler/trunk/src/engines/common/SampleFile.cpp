@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2013 Grigor Iliev                                *
+ *   Copyright (C) 2009 - 2014 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -62,6 +62,8 @@ namespace LinuxSampler {
                 break;
             case SF_FORMAT_PCM_24:
             case SF_FORMAT_DWVW_24:
+            case SF_FORMAT_PCM_32:
+            case SF_FORMAT_FLOAT:
                 FrameSize = 3 * ChannelCount;
                 break;
             default:
@@ -86,12 +88,14 @@ namespace LinuxSampler {
         }
         if(!DontClose) Close();
 
+        if (FrameSize == 3 * ChannelCount && (
 #if HAVE_DECL_SF_FORMAT_FLAC
-        if (FrameSize == 3 * ChannelCount &&
-            (Format & SF_FORMAT_TYPEMASK) == SF_FORMAT_FLAC) {
+                (Format & SF_FORMAT_TYPEMASK) == SF_FORMAT_FLAC ||
+#endif
+                (Format & SF_FORMAT_SUBMASK) == SF_FORMAT_FLOAT ||
+                (Format & SF_FORMAT_SUBMASK) == SF_FORMAT_PCM_32)) {
             pConvertBuffer = new int[CONVERT_BUFFER_SIZE];
         }
-#endif
     }
 
     SampleFile::~SampleFile() {
@@ -205,11 +209,15 @@ namespace LinuxSampler {
 #endif
             ) {
             return sf_readf_short(pSndFile, static_cast<short*>(pBuffer), FrameCount);
+        } else if (FrameSize == 3 * ChannelCount && (
 #if HAVE_DECL_SF_FORMAT_FLAC
-        } else if (FrameSize == 3 * ChannelCount &&
-                   (Format & SF_FORMAT_TYPEMASK) == SF_FORMAT_FLAC) {
+                       (Format & SF_FORMAT_TYPEMASK) == SF_FORMAT_FLAC ||
+#endif
+                       (Format & SF_FORMAT_SUBMASK) == SF_FORMAT_FLOAT ||
+                       (Format & SF_FORMAT_SUBMASK) == SF_FORMAT_PCM_32)) {
             // 24 bit flac needs to be converted from the 32 bit
-            // integers returned by libsndfile
+            // integers returned by libsndfile. Float and 32 bit pcm
+            // are treated in the same way.
             int j = 0;
             sf_count_t count = FrameCount;
             const sf_count_t bufsize = CONVERT_BUFFER_SIZE / ChannelCount;
@@ -225,7 +233,6 @@ namespace LinuxSampler {
                 count -= n;
             }
             return FrameCount - count;
-#endif            
         } else
 #endif
         {
