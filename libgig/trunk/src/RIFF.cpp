@@ -29,6 +29,10 @@
 
 #include "helper.h"
 
+#if POSIX
+# include <errno.h>
+#endif
+
 namespace RIFF {
 
 // *************** Internal functions **************
@@ -1547,9 +1551,10 @@ namespace RIFF {
         ResizedChunks.push_back(reinterpret_cast<Chunk*>(new std::set<Chunk*>));
         #if POSIX
         hFileRead = hFileWrite = open(path.c_str(), O_RDONLY | O_NONBLOCK);
-        if (hFileRead <= 0) {
+        if (hFileRead == -1) {
             hFileRead = hFileWrite = 0;
-            throw RIFF::Exception("Can't open \"" + path + "\"");
+            String sError = strerror(errno);
+            throw RIFF::Exception("Can't open \"" + path + "\": " + sError);
         }
         #elif defined(WIN32)
         hFileRead = hFileWrite = CreateFile(
@@ -1626,9 +1631,10 @@ namespace RIFF {
                     #if POSIX
                     if (hFileRead) close(hFileRead);
                     hFileRead = hFileWrite = open(Filename.c_str(), O_RDONLY | O_NONBLOCK);
-                    if (hFileRead < 0) {
+                    if (hFileRead == -1) {
                         hFileRead = hFileWrite = 0;
-                        throw Exception("Could not (re)open file \"" + Filename + "\" in read mode");
+                        String sError = strerror(errno);
+                        throw Exception("Could not (re)open file \"" + Filename + "\" in read mode: " + sError);
                     }
                     #elif defined(WIN32)
                     if (hFileRead != INVALID_HANDLE_VALUE) CloseHandle(hFileRead);
@@ -1655,9 +1661,10 @@ namespace RIFF {
                     #if POSIX
                     if (hFileRead) close(hFileRead);
                     hFileRead = hFileWrite = open(Filename.c_str(), O_RDWR | O_NONBLOCK);
-                    if (hFileRead < 0) {
+                    if (hFileRead == -1) {
                         hFileRead = hFileWrite = open(Filename.c_str(), O_RDONLY | O_NONBLOCK);
-                        throw Exception("Could not open file \"" + Filename + "\" in read+write mode");
+                        String sError = strerror(errno);
+                        throw Exception("Could not open file \"" + Filename + "\" in read+write mode: " + sError);
                     }
                     #elif defined(WIN32)
                     if (hFileRead != INVALID_HANDLE_VALUE) CloseHandle(hFileRead);
@@ -1847,9 +1854,10 @@ namespace RIFF {
         // open the other (new) file for writing and truncate it to zero size
         #if POSIX
         hFileWrite = open(path.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP);
-        if (hFileWrite < 0) {
+        if (hFileWrite == -1) {
             hFileWrite = hFileRead;
-            throw Exception("Could not open file \"" + path + "\" for writing");
+            String sError = strerror(errno);
+            throw Exception("Could not open file \"" + path + "\" for writing: " + sError);
         }
         #elif defined(WIN32)
         hFileWrite = CreateFile(

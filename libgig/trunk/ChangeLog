@@ -92,6 +92,8 @@ Version CVS HEAD (?)
     - added 2nd, alternative method for List::MoveSubChunk(), the old 1st one
       allows to move a subchunk within the current List, whereas the new 2nd
       one allows to move the subchunk from the current list to another list
+    - POSIX: only assume -1 result value as error on open() calls
+    - POSIX: show operating system's error reason if opening a file failed
 
   * src/gigextract.cpp:
     - export sample loop, unity note and fine tune with libsndfile
