@@ -67,6 +67,7 @@ Version CVS HEAD (?)
     - added new method Region::GetDimensionRegionIndexByValue()
     - added new method Script::GetGroup()
     - added new method Region::SetDimensionType()
+    - Added support for custom progress notification while saving to gig file.
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
@@ -75,6 +76,7 @@ Version CVS HEAD (?)
     - added new method File::SetFileName() allowing to call File::Save()
       later on without passing a file name
     - added inline helper methods overlaps() for struct range_t
+    - Added support for custom progress notification while saving to DLS file.
 
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: avoid calling read() with count 0 when writing a file,
@@ -94,6 +96,7 @@ Version CVS HEAD (?)
       one allows to move the subchunk from the current list to another list
     - POSIX: only assume -1 result value as error on open() calls
     - POSIX: show operating system's error reason if opening a file failed
+    - Added support for custom progress notification while saving to RIFF file.
 
   * src/gigextract.cpp:
     - export sample loop, unity note and fine tune with libsndfile

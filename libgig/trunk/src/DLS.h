@@ -104,6 +104,7 @@
 namespace DLS {
 
     typedef std::string String;
+    typedef RIFF::progress_t progress_t;
 
     /** Quadtuple version number ("major.minor.release.build"). */
     struct version_t {
@@ -199,7 +200,7 @@ namespace DLS {
         conn_trn_convex  = 0x0002,
         conn_trn_switch  = 0x0003
     } conn_trn_t;
-
+    
     /** Lower and upper limit of a range. */
     struct range_t {
         uint16_t low;  ///< Low value of range.
@@ -276,7 +277,7 @@ namespace DLS {
 
             Articulation(RIFF::Chunk* artl);
             virtual ~Articulation();
-            virtual void UpdateChunks();
+            virtual void UpdateChunks(progress_t* pProgress);
         protected:
             RIFF::Chunk* pArticulationCk;
             uint32_t     HeaderSize;
@@ -288,7 +289,7 @@ namespace DLS {
             Articulator(RIFF::List* ParentList);
             Articulation* GetFirstArticulation();
             Articulation* GetNextArticulation();
-            virtual void  UpdateChunks();
+            virtual void  UpdateChunks(progress_t* pProgress);
             virtual void  CopyAssign(const Articulator* orig);
         protected:
             typedef std::list<Articulation*> ArticulationList;
@@ -330,7 +331,7 @@ namespace DLS {
             Info(RIFF::List* list);
             void SetFixedStringLengths(const string_length_t* lengths);
             virtual ~Info();
-            virtual void UpdateChunks();
+            virtual void UpdateChunks(progress_t* pProgress);
             virtual void CopyAssign(const Info* orig);
         private:
             RIFF::List*            pResourceListChunk;
@@ -348,7 +349,7 @@ namespace DLS {
 
             Resource* GetParent() { return pParent; }
             const Resource* GetParent() const { return pParent; }
-            virtual void UpdateChunks();
+            virtual void UpdateChunks(progress_t* pProgress);
             void GenerateDLSID();
             virtual void CopyAssign(const Resource* orig);
         protected:
@@ -373,7 +374,7 @@ namespace DLS {
             void AddSampleLoop(sample_loop_t* pLoopDef);
             void DeleteSampleLoop(sample_loop_t* pLoopDef);
             virtual void SetGain(int32_t gain);
-            virtual void UpdateChunks();
+            virtual void UpdateChunks(progress_t* pProgress);
             virtual void CopyAssign(const Sampler* orig);
         protected:
             RIFF::List*    pParentList;
@@ -409,7 +410,7 @@ namespace DLS {
             unsigned long SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
             unsigned long Read(void* pBuffer, unsigned long SampleCount);
             unsigned long Write(void* pBuffer, unsigned long SampleCount);
-            virtual void  UpdateChunks();
+            virtual void  UpdateChunks(progress_t* pProgress);
             virtual void  CopyAssign(const Sample* orig);
         protected:
             RIFF::List*   pWaveList;
@@ -440,7 +441,7 @@ namespace DLS {
             Sample*     GetSample();
             void        SetSample(Sample* pSample);
             virtual void SetKeyRange(uint16_t Low, uint16_t High);
-            virtual void UpdateChunks();
+            virtual void UpdateChunks(progress_t* pProgress);
             virtual void CopyAssign(const Region* orig);
         protected:
             RIFF::List* pCkRegion;
@@ -468,7 +469,7 @@ namespace DLS {
             Region*  GetNextRegion();
             Region*  AddRegion();
             void     DeleteRegion(Region* pRegion);
-            virtual void UpdateChunks();
+            virtual void UpdateChunks(progress_t* pProgress);
             virtual void CopyAssign(const Instrument* orig);
         protected:
             typedef std::list<Region*> RegionList;
@@ -510,9 +511,9 @@ namespace DLS {
             Instrument* AddInstrument();
             void        DeleteInstrument(Instrument* pInstrument);
             RIFF::File* GetExtensionFile(int index);
-            virtual void UpdateChunks();
-            virtual void Save(const String& Path);
-            virtual void Save();
+            virtual void UpdateChunks(progress_t* pProgress);
+            virtual void Save(const String& Path, progress_t* pProgress = NULL);
+            virtual void Save(progress_t* pProgress = NULL);
             virtual ~File();
         protected:
             typedef std::list<Sample*>     SampleList;

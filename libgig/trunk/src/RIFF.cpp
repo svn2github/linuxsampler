@@ -54,6 +54,18 @@ namespace RIFF {
 
 
 
+// *************** progress_t ***************
+// *
+
+    progress_t::progress_t() {
+        callback    = NULL;
+        custom      = NULL;
+        __range_min = 0.0f;
+        __range_max = 1.0f;
+    }
+
+
+
 // *************** Chunk **************
 // *
 
@@ -839,11 +851,12 @@ namespace RIFF {
      *                     chunk should be written to
      * @param ulCurrentDataOffset - offset of current (old) data within
      *                              the file
+     * @param pProgress - optional: callback function for progress notification
      * @returns new write position in the "physical" file, that is
      *          \a ulWritePos incremented by this chunk's new size
      *          (including its header size of course)
      */
-    unsigned long Chunk::WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset) {
+    unsigned long Chunk::WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset, progress_t* pProgress) {
         const unsigned long ulOriginalPos = ulWritePos;
         ulWritePos += CHUNK_HEADER_SIZE;
 
@@ -908,6 +921,8 @@ namespace RIFF {
         // update this chunk's header
         CurrentChunkSize = NewChunkSize;
         WriteHeader(ulOriginalPos);
+
+        __notify_progress(pProgress, 1.0); // notify done
 
         // update chunk's position pointers
         ulStartPos = ulOriginalPos + CHUNK_HEADER_SIZE;
@@ -1336,7 +1351,7 @@ namespace RIFF {
         #endif // POSIX
     }
 
-    void List::LoadSubChunks() {
+    void List::LoadSubChunks(progress_t* pProgress) {
        #if DEBUG
        std::cout << "List::LoadSubChunks()";
        #endif // DEBUG
@@ -1371,11 +1386,20 @@ namespace RIFF {
             }
             SetPos(uiOriginalPos); // restore position before this call
         }
+        __notify_progress(pProgress, 1.0); // notify done
     }
 
-    void List::LoadSubChunksRecursively() {
-        for (List* pList = GetFirstSubList(); pList; pList = GetNextSubList())
-            pList->LoadSubChunksRecursively();
+    void List::LoadSubChunksRecursively(progress_t* pProgress) {
+        const int n = CountSubLists();
+        int i = 0;
+        for (List* pList = GetFirstSubList(); pList; pList = GetNextSubList(), ++i) {
+            // divide local progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, n, i);
+            // do the actual work
+            pList->LoadSubChunksRecursively(&subprogress);
+        }
+        __notify_progress(pProgress, 1.0); // notify done
     }
 
     /** @brief Write list chunk persistently e.g. to disk.
@@ -1388,11 +1412,12 @@ namespace RIFF {
      *                     list chunk should be written to
      * @param ulCurrentDataOffset - offset of current (old) data within
      *                              the file
+     * @param pProgress - optional: callback function for progress notification
      * @returns new write position in the "physical" file, that is
      *          \a ulWritePos incremented by this list chunk's new size
      *          (including its header size of course)
      */
-    unsigned long List::WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset) {
+    unsigned long List::WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset, progress_t* pProgress) {
         const unsigned long ulOriginalPos = ulWritePos;
         ulWritePos += LIST_HEADER_SIZE;
 
@@ -1401,8 +1426,14 @@ namespace RIFF {
 
         // write all subchunks (including sub list chunks) recursively
         if (pSubChunks) {
-            for (ChunkList::iterator iter = pSubChunks->begin(), end = pSubChunks->end(); iter != end; ++iter) {
-                ulWritePos = (*iter)->WriteChunk(ulWritePos, ulCurrentDataOffset);
+            int i = 0;
+            const int n = pSubChunks->size();
+            for (ChunkList::iterator iter = pSubChunks->begin(), end = pSubChunks->end(); iter != end; ++iter, ++i) {
+                // divide local progress into subprogress for loading current Instrument
+                progress_t subprogress;
+                __divide_progress(pProgress, &subprogress, n, i);
+                // do the actual work
+                ulWritePos = (*iter)->WriteChunk(ulWritePos, ulCurrentDataOffset, &subprogress);
             }
         }
 
@@ -1412,6 +1443,8 @@ namespace RIFF {
 
         // offset of this list chunk in new written file may have changed
         ulStartPos = ulOriginalPos + LIST_HEADER_SIZE;
+
+         __notify_progress(pProgress, 1.0); // notify done
 
         return ulWritePos;
     }
@@ -1744,16 +1777,25 @@ namespace RIFF {
      * than it will have at the end of the saving process, in case chunks
      * were grown.
      *
+     * @param pProgress - optional: callback function for progress notification
      * @throws RIFF::Exception if there is an empty chunk or empty list
      *                         chunk or any kind of IO error occured
      */
-    void File::Save() {
+    void File::Save(progress_t* pProgress) {
         //TODO: implementation for the case where first chunk is not a global container (List chunk) is not implemented yet (i.e. Korg files)
         if (Layout == layout_flat)
             throw Exception("Saving a RIFF file with layout_flat is not implemented yet");
 
         // make sure the RIFF tree is built (from the original file)
-        LoadSubChunksRecursively();
+        {
+            // divide progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, 3.f, 0.f); // arbitrarily subdivided into 1/3 of total progress
+            // do the actual work
+            LoadSubChunksRecursively(&subprogress);
+            // notify subprogress done
+            __notify_progress(&subprogress, 1.f);
+        }
 
         // reopen file in write mode
         SetMode(stream_mode_read_write);
@@ -1781,6 +1823,10 @@ namespace RIFF {
 
         // if there are positive size changes...
         if (ulPositiveSizeDiff > 0) {
+            // divide progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, 3.f, 1.f); // arbitrarily subdivided into 1/3 of total progress
+
             // ... we enlarge this file first ...
             ulWorkingFileSize += ulPositiveSizeDiff;
             ResizeFile(ulWorkingFileSize);
@@ -1792,7 +1838,7 @@ namespace RIFF {
             #else
             int iBytesMoved = 1;
             #endif
-            for (unsigned long ulPos = ulFileSize; iBytesMoved > 0; ) {
+            for (unsigned long ulPos = ulFileSize, iNotif = 0; iBytesMoved > 0; ++iNotif) {
                 iBytesMoved = (ulPos < 4096) ? ulPos : 4096;
                 ulPos -= iBytesMoved;
                 #if POSIX
@@ -1811,20 +1857,33 @@ namespace RIFF {
                 fseek(hFileWrite, ulPos + ulPositiveSizeDiff, SEEK_SET);
                 iBytesMoved = fwrite(pCopyBuffer, 1, iBytesMoved, hFileWrite);
                 #endif
+                if (!(iNotif % 8) && iBytesMoved > 0)
+                    __notify_progress(&subprogress, float(ulFileSize - ulPos) / float(ulFileSize));
             }
             delete[] pCopyBuffer;
             if (iBytesMoved < 0) throw Exception("Could not modify file while trying to enlarge it");
+
+            __notify_progress(&subprogress, 1.f); // notify subprogress done
         }
 
-        // rebuild / rewrite complete RIFF tree
-        unsigned long ulTotalSize  = WriteChunk(0, ulPositiveSizeDiff);
+        // rebuild / rewrite complete RIFF tree ...
+
+        // divide progress into subprogress
+        progress_t subprogress;
+        __divide_progress(pProgress, &subprogress, 3.f, 2.f); // arbitrarily subdivided into 1/3 of total progress
+        // do the actual work
+        unsigned long ulTotalSize  = WriteChunk(0, ulPositiveSizeDiff, &subprogress);
         unsigned long ulActualSize = __GetFileSize(hFileWrite);
+        // notify subprogress done
+        __notify_progress(&subprogress, 1.f);
 
         // resize file to the final size
         if (ulTotalSize < ulActualSize) ResizeFile(ulTotalSize);
 
         // forget all resized chunks
         resizedChunks->clear();
+
+        __notify_progress(pProgress, 1.0); // notify done
     }
 
     /** @brief Save changes to another file.
@@ -1839,8 +1898,9 @@ namespace RIFF {
      * the new file (given by \a path) afterwards.
      *
      * @param path - path and file name where everything should be written to
+     * @param pProgress - optional: callback function for progress notification
      */
-    void File::Save(const String& path) {
+    void File::Save(const String& path, progress_t* pProgress) {
         //TODO: we should make a check here if somebody tries to write to the same file and automatically call the other Save() method in that case
 
         //TODO: implementation for the case where first chunk is not a global container (List chunk) is not implemented yet (i.e. Korg files)
@@ -1848,7 +1908,15 @@ namespace RIFF {
             throw Exception("Saving a RIFF file with layout_flat is not implemented yet");
 
         // make sure the RIFF tree is built (from the original file)
-        LoadSubChunksRecursively();
+        {
+            // divide progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, 2.f, 0.f); // arbitrarily subdivided into 1/2 of total progress
+            // do the actual work
+            LoadSubChunksRecursively(&subprogress);
+            // notify subprogress done
+            __notify_progress(&subprogress, 1.f);
+        }
 
         if (!bIsNewFile) SetMode(stream_mode_read);
         // open the other (new) file for writing and truncate it to zero size
@@ -1879,7 +1947,16 @@ namespace RIFF {
         Mode = stream_mode_read_write;
 
         // write complete RIFF tree to the other (new) file
-        unsigned long ulTotalSize  = WriteChunk(0, 0);
+        unsigned long ulTotalSize;
+        {
+            // divide progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, 2.f, 1.f); // arbitrarily subdivided into 1/2 of total progress
+            // do the actual work
+            ulTotalSize = WriteChunk(0, 0, &subprogress);
+            // notify subprogress done
+            __notify_progress(&subprogress, 1.f);
+        }
         unsigned long ulActualSize = __GetFileSize(hFileWrite);
 
         // resize file to the final size (if the file was originally larger)
@@ -1902,6 +1979,8 @@ namespace RIFF {
         bIsNewFile = false;
         Mode = (stream_mode_t) -1;       // Just set it to an undefined mode ...
         SetMode(stream_mode_read_write); // ... so SetMode() has to reopen the file handles.
+
+        __notify_progress(pProgress, 1.0); // notify done
     }
 
     void File::ResizeFile(unsigned long ulNewSize) {

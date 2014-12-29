@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -181,6 +181,27 @@ inline void SaveString(uint32_t ChunkID, RIFF::Chunk* ck, RIFF::List* lstINFO, c
         ck = lstINFO->AddSubChunk(ChunkID, size);
         char* pData = (char*) ck->LoadChunkData();
         strncpy(pData, sToSave.c_str(), size);
+    }
+}
+
+// private helper function to convert progress of a subprocess into the global progress
+inline void __notify_progress(RIFF::progress_t* pProgress, float subprogress) {
+    if (pProgress && pProgress->callback) {
+        const float totalrange    = pProgress->__range_max - pProgress->__range_min;
+        const float totalprogress = pProgress->__range_min + subprogress * totalrange;
+        pProgress->factor         = totalprogress;
+        pProgress->callback(pProgress); // now actually notify about the progress
+    }
+}
+
+// private helper function to divide a progress into subprogresses
+inline void __divide_progress(RIFF::progress_t* pParentProgress, RIFF::progress_t* pSubProgress, float totalTasks, float currentTask) {
+    if (pParentProgress && pParentProgress->callback) {
+        const float totalrange    = pParentProgress->__range_max - pParentProgress->__range_min;
+        pSubProgress->callback    = pParentProgress->callback;
+        pSubProgress->custom      = pParentProgress->custom;
+        pSubProgress->__range_min = pParentProgress->__range_min + totalrange * currentTask / totalTasks;
+        pSubProgress->__range_max = pSubProgress->__range_min + totalrange / totalTasks;
     }
 }
 

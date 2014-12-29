@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2013 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -144,8 +144,10 @@ namespace DLS {
     /**
      * Apply articulation connections to the respective RIFF chunks. You
      * have to call File::Save() to make changes persistent.
+     *
+     * @param pProgress - callback function for progress notification
      */
-    void Articulation::UpdateChunks() {
+    void Articulation::UpdateChunks(progress_t* pProgress) {
         const int iEntrySize = 12; // 12 bytes per connection block
         pArticulationCk->Resize(HeaderSize + Connections * iEntrySize);
         uint8_t* pData = (uint8_t*) pArticulationCk->LoadChunkData();
@@ -217,13 +219,15 @@ namespace DLS {
     /**
      * Apply all articulations to the respective RIFF chunks. You have to
      * call File::Save() to make changes persistent.
+     *
+     * @param pProgress - callback function for progress notification
      */
-    void Articulator::UpdateChunks() {
+    void Articulator::UpdateChunks(progress_t* pProgress) {
         if (pArticulations) {
             ArticulationList::iterator iter = pArticulations->begin();
             ArticulationList::iterator end  = pArticulations->end();
             for (; iter != end; ++iter) {
-                (*iter)->UpdateChunks();
+                (*iter)->UpdateChunks(pProgress);
             }
         }
     }
@@ -336,8 +340,10 @@ namespace DLS {
      *
      * Apply current INFO field values to the respective INFO chunks. You
      * have to call File::Save() to make changes persistent.
+     *
+     * @param pProgress - callback function for progress notification
      */
-    void Info::UpdateChunks() {
+    void Info::UpdateChunks(progress_t* pProgress) {
         if (!pResourceListChunk) return;
 
         // make sure INFO list chunk exists
@@ -464,9 +470,11 @@ namespace DLS {
      * will not be applied at the moment (yet).
      *
      * You have to call File::Save() to make changes persistent.
+     *
+     * @param pProgress - callback function for progress notification
      */
-    void Resource::UpdateChunks() {
-        pInfo->UpdateChunks();
+    void Resource::UpdateChunks(progress_t* pProgress) {
+        pInfo->UpdateChunks(pProgress);
 
         if (pDLSID) {
             // make sure 'dlid' chunk exists
@@ -582,8 +590,10 @@ namespace DLS {
     /**
      * Apply all sample player options to the respective RIFF chunk. You
      * have to call File::Save() to make changes persistent.
+     *
+     * @param pProgress - callback function for progress notification
      */
-    void Sampler::UpdateChunks() {
+    void Sampler::UpdateChunks(progress_t* pProgress) {
         // make sure 'wsmp' chunk exists
         RIFF::Chunk* wsmp = pParentList->GetSubChunk(CHUNK_ID_WSMP);
         int wsmpSize = uiHeaderSize + SampleLoops * 16;
@@ -951,17 +961,18 @@ namespace DLS {
      * Apply sample and its settings to the respective RIFF chunks. You have
      * to call File::Save() to make changes persistent.
      *
+     * @param pProgress - callback function for progress notification
      * @throws Exception if FormatTag != DLS_WAVE_FORMAT_PCM or no sample data
      *                   was provided yet
      */
-    void Sample::UpdateChunks() {
+    void Sample::UpdateChunks(progress_t* pProgress) {
         if (FormatTag != DLS_WAVE_FORMAT_PCM)
             throw Exception("Could not save sample, only PCM format is supported");
         // we refuse to do anything if not sample wave form was provided yet
         if (!pCkData)
             throw Exception("Could not save sample, there is no sample data to save");
         // update chunks of base class as well
-        Resource::UpdateChunks();
+        Resource::UpdateChunks(pProgress);
         // make sure 'fmt' chunk exists
         RIFF::Chunk* pCkFormat = pWaveList->GetSubChunk(CHUNK_ID_FMT);
         if (!pCkFormat) pCkFormat = pWaveList->AddSubChunk(CHUNK_ID_FMT, 16); // assumes PCM format
@@ -1094,9 +1105,10 @@ namespace DLS {
      * Apply Region settings to the respective RIFF chunks. You have to
      * call File::Save() to make changes persistent.
      *
+     * @param pProgress - callback function for progress notification
      * @throws Exception - if the Region's sample could not be found
      */
-    void Region::UpdateChunks() {
+    void Region::UpdateChunks(progress_t* pProgress) {
         // make sure 'rgnh' chunk exists
         RIFF::Chunk* rgnh = pCkRegion->GetSubChunk(CHUNK_ID_RGNH);
         if (!rgnh) rgnh = pCkRegion->AddSubChunk(CHUNK_ID_RGNH, Layer ? 14 : 12);
@@ -1115,8 +1127,8 @@ namespace DLS {
 
         // update chunks of base classes as well (but skip Resource,
         // as a rgn doesn't seem to have dlid and INFO chunks)
-        Articulator::UpdateChunks();
-        Sampler::UpdateChunks();
+        Articulator::UpdateChunks(pProgress);
+        Sampler::UpdateChunks(pProgress);
 
         // make sure 'wlnk' chunk exists
         RIFF::Chunk* wlnk = pCkRegion->GetSubChunk(CHUNK_ID_WLNK);
@@ -1289,12 +1301,13 @@ namespace DLS {
      * Apply Instrument with all its Regions to the respective RIFF chunks.
      * You have to call File::Save() to make changes persistent.
      *
+     * @param pProgress - callback function for progress notification
      * @throws Exception - on errors
      */
-    void Instrument::UpdateChunks() {
+    void Instrument::UpdateChunks(progress_t* pProgress) {
         // first update base classes' chunks
-        Resource::UpdateChunks();
-        Articulator::UpdateChunks();
+        Resource::UpdateChunks(pProgress);
+        Articulator::UpdateChunks(pProgress);
         // make sure 'insh' chunk exists
         RIFF::Chunk* insh = pCkInstrument->GetSubChunk(CHUNK_ID_INSH);
         if (!insh) insh = pCkInstrument->AddSubChunk(CHUNK_ID_INSH, 12);
@@ -1313,9 +1326,14 @@ namespace DLS {
         if (!pRegions) return;
         RegionList::iterator iter = pRegions->begin();
         RegionList::iterator end  = pRegions->end();
-        for (; iter != end; ++iter) {
-            (*iter)->UpdateChunks();
+        for (int i = 0; iter != end; ++iter, ++i) {
+            // divide local progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, pRegions->size(), i);
+            // do the actual work
+            (*iter)->UpdateChunks(&subprogress);
         }
+        __notify_progress(pProgress, 1.0); // notify done
     }
 
     /** @brief Destructor.
@@ -1671,11 +1689,12 @@ namespace DLS {
      * the respective RIFF chunks. You have to call Save() to make changes
      * persistent.
      *
+     * @param pProgress - callback function for progress notification
      * @throws Exception - on errors
      */
-    void File::UpdateChunks() {
+    void File::UpdateChunks(progress_t* pProgress) {
         // first update base class's chunks
-        Resource::UpdateChunks();
+        Resource::UpdateChunks(pProgress);
 
         // if version struct exists, update 'vers' chunk
         if (pVersion) {
@@ -1697,11 +1716,22 @@ namespace DLS {
 
         // update instrument's chunks
         if (pInstruments) {
+            // divide local progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, 20.f, 0.f); // arbitrarily subdivided into 5% of total progress
+
+            // do the actual work
             InstrumentList::iterator iter = pInstruments->begin();
             InstrumentList::iterator end  = pInstruments->end();
-            for (; iter != end; ++iter) {
-                (*iter)->UpdateChunks();
+            for (int i = 0; iter != end; ++iter, ++i) {
+                // divide subprogress into sub-subprogress
+                progress_t subsubprogress;
+                __divide_progress(&subprogress, &subsubprogress, pInstruments->size(), i);
+                // do the actual work
+                (*iter)->UpdateChunks(&subsubprogress);
             }
+
+            __notify_progress(&subprogress, 1.0); // notify subprogress done
         }
 
         // update 'ptbl' chunk
@@ -1719,12 +1749,25 @@ namespace DLS {
 
         // update sample's chunks
         if (pSamples) {
+            // divide local progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, 20.f, 1.f); // arbitrarily subdivided into 95% of total progress
+
+            // do the actual work
             SampleList::iterator iter = pSamples->begin();
             SampleList::iterator end  = pSamples->end();
-            for (; iter != end; ++iter) {
-                (*iter)->UpdateChunks();
+            for (int i = 0; iter != end; ++iter, ++i) {
+                // divide subprogress into sub-subprogress
+                progress_t subsubprogress;
+                __divide_progress(&subprogress, &subsubprogress, pSamples->size(), i);
+                // do the actual work
+                (*iter)->UpdateChunks(&subsubprogress);
             }
+
+            __notify_progress(&subprogress, 1.0); // notify subprogress done
         }
+
+        __notify_progress(pProgress, 1.0); // notify done
     }
 
     /** @brief Save changes to another file.
@@ -1739,11 +1782,26 @@ namespace DLS {
      * the new file (given by \a Path) afterwards.
      *
      * @param Path - path and file name where everything should be written to
+     * @param pProgress - optional: callback function for progress notification
      */
-    void File::Save(const String& Path) {
-        UpdateChunks();
-        pRIFF->Save(Path);
+    void File::Save(const String& Path, progress_t* pProgress) {
+        {
+            // divide local progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, 2.f, 0.f); // arbitrarily subdivided into 50% of total progress
+            // do the actual work
+            UpdateChunks(&subprogress);
+            
+        }
+        {
+            // divide local progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, 2.f, 1.f); // arbitrarily subdivided into 50% of total progress
+            // do the actual work
+            pRIFF->Save(Path, &subprogress);
+        }
         UpdateFileOffsets();
+        __notify_progress(pProgress, 1.0); // notify done
     }
 
     /** @brief Save changes to same file.
@@ -1752,13 +1810,27 @@ namespace DLS {
      * file. The file might temporarily grow to a higher size than it will
      * have at the end of the saving process.
      *
+     * @param pProgress - optional: callback function for progress notification
      * @throws RIFF::Exception if any kind of IO error occured
      * @throws DLS::Exception  if any kind of DLS specific error occured
      */
-    void File::Save() {
-        UpdateChunks();
-        pRIFF->Save();
+    void File::Save(progress_t* pProgress) {
+        {
+            // divide local progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, 2.f, 0.f); // arbitrarily subdivided into 50% of total progress
+            // do the actual work
+            UpdateChunks(&subprogress);
+        }
+        {
+            // divide local progress into subprogress
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, 2.f, 1.f); // arbitrarily subdivided into 50% of total progress
+            // do the actual work
+            pRIFF->Save(&subprogress);
+        }
         UpdateFileOffsets();
+        __notify_progress(pProgress, 1.0); // notify done
     }
 
     /** @brief Updates all file offsets stored all over the file.

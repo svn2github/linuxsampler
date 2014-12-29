@@ -69,6 +69,7 @@
 namespace gig {
 
     typedef std::string String;
+    typedef RIFF::progress_t progress_t;
 
     /** Lower and upper limit of a range. */
     struct range_t {
@@ -311,27 +312,6 @@ namespace gig {
         unsigned long loop_cycles_left;  ///< How many times the loop has still to be passed, this value will be decremented with each loop cycle.
     };
 
-    /**
-     * @brief Used for indicating the progress of a certain task.
-     *
-     * The function pointer argument has to be supplied with a valid
-     * function of the given signature which will then be called on
-     * progress changes. An equivalent progress_t structure will be passed
-     * back as argument to the callback function on each progress change.
-     * The factor field of the supplied progress_t structure will then
-     * reflect the current progress as value between 0.0 and 1.0. You might
-     * want to use the custom field for data needed in your callback
-     * function.
-     */
-    struct progress_t {
-        void (*callback)(progress_t*); ///< Callback function pointer which has to be assigned to a function for progress notification.
-        float factor;                  ///< Reflects current progress as value between 0.0 and 1.0.
-        void* custom;                  ///< This pointer can be used for arbitrary data.
-        float __range_min;             ///< Only for internal usage, do not modify!
-        float __range_max;             ///< Only for internal usage, do not modify!
-        progress_t();
-    };
-
     // just symbol prototyping
     class File;
     class Instrument;
@@ -467,7 +447,7 @@ namespace gig {
             using DLS::Sampler::DeleteSampleLoop;
             // overridden methods
             virtual void SetGain(int32_t gain);
-            virtual void UpdateChunks();
+            virtual void UpdateChunks(progress_t* pProgress);
             virtual void CopyAssign(const DimensionRegion* orig);
         protected:
             uint8_t* VelocityTable; ///< For velocity dimensions with custom defined zone ranges only: used for fast converting from velocity MIDI value to dimension bit number.
@@ -647,7 +627,7 @@ namespace gig {
             unsigned long ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState, DimensionRegion* pDimRgn, buffer_t* pExternalDecompressionBuffer = NULL);
             unsigned long Write(void* pBuffer, unsigned long SampleCount);
             Group*        GetGroup() const;
-            virtual void  UpdateChunks();
+            virtual void  UpdateChunks(progress_t* pProgress);
             void CopyAssignMeta(const Sample* orig);
             void CopyAssignWave(const Sample* orig);
         protected:
@@ -735,7 +715,7 @@ namespace gig {
             void             SetDimensionType(dimension_t oldType, dimension_t newType);
             // overridden methods
             virtual void     SetKeyRange(uint16_t Low, uint16_t High);
-            virtual void     UpdateChunks();
+            virtual void     UpdateChunks(progress_t* pProgress);
             virtual void     CopyAssign(const Region* orig);
         protected:
             Region(Instrument* pInstrument, RIFF::List* rgnList);
@@ -885,7 +865,7 @@ namespace gig {
         protected:
             Script(ScriptGroup* group, RIFF::Chunk* ckScri);
             virtual ~Script();
-            void UpdateChunks();
+            void UpdateChunks(progress_t* pProgress);
             void RemoveAllScriptReferences();
             friend class ScriptGroup;
             friend class Instrument;
@@ -918,7 +898,7 @@ namespace gig {
             ScriptGroup(File* file, RIFF::List* lstRTIS);
             virtual ~ScriptGroup();
             void LoadScripts();
-            void UpdateChunks();
+            void UpdateChunks(progress_t* pProgress);
             friend class Script;
             friend class File;
         private:
@@ -956,7 +936,7 @@ namespace gig {
             Region*   GetNextRegion();
             Region*   AddRegion();
             void      DeleteRegion(Region* pRegion);
-            virtual void UpdateChunks();
+            virtual void UpdateChunks(progress_t* pProgress);
             virtual void CopyAssign(const Instrument* orig);
             // own methods
             Region*   GetRegion(unsigned int Key);
@@ -1024,7 +1004,7 @@ namespace gig {
         protected:
             Group(File* file, RIFF::Chunk* ck3gnm);
             virtual ~Group();
-            virtual void UpdateChunks();
+            virtual void UpdateChunks(progress_t* pProgress);
             void MoveAll();
             friend class File;
         private:
@@ -1080,7 +1060,7 @@ namespace gig {
             ScriptGroup* AddScriptGroup();
             void        DeleteScriptGroup(ScriptGroup* pGroup);
             virtual    ~File();
-            virtual void UpdateChunks();
+            virtual void UpdateChunks(progress_t* pProgress);
         protected:
             // overridden protected methods from DLS::File
             virtual void LoadSamples();

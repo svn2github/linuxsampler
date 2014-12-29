@@ -175,6 +175,27 @@ namespace RIFF {
         layout_flat     = 1  ///< Not a "real" RIFF file: First chunk in file is an ordinary data chunk, not a List chunk, and there might be other chunks after that first chunk.
     };
 
+    /**
+     * @brief Used for indicating the progress of a certain task.
+     *
+     * The function pointer argument has to be supplied with a valid
+     * function of the given signature which will then be called on
+     * progress changes. An equivalent progress_t structure will be passed
+     * back as argument to the callback function on each progress change.
+     * The factor field of the supplied progress_t structure will then
+     * reflect the current progress as value between 0.0 and 1.0. You might
+     * want to use the custom field for data needed in your callback
+     * function.
+     */
+    struct progress_t {
+        void (*callback)(progress_t*); ///< Callback function pointer which has to be assigned to a function for progress notification.
+        float factor;                  ///< Reflects current progress as value between 0.0 and 1.0.
+        void* custom;                  ///< This pointer can be used for arbitrary data.
+        float __range_min;             ///< Only for internal usage, do not modify!
+        float __range_max;             ///< Only for internal usage, do not modify!
+        progress_t();
+    };
+
     /** @brief Ordinary RIFF Chunk
      *
      * Provides convenient methods to access data of ordinary RIFF chunks
@@ -266,7 +287,7 @@ namespace RIFF {
                 }
                 return result;
             }
-            virtual unsigned long WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset);
+            virtual unsigned long WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset, progress_t* pProgress = NULL);
             virtual void __resetPos(); ///< Sets Chunk's read/write position to zero.
 
             friend class List;
@@ -312,9 +333,9 @@ namespace RIFF {
             List(File* pFile, List* pParent, uint32_t uiListID);
             void ReadHeader(unsigned long fPos);
             void WriteHeader(unsigned long fPos);
-            void LoadSubChunks();
-            void LoadSubChunksRecursively();
-            virtual unsigned long WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset);
+            void LoadSubChunks(progress_t* pProgress = NULL);
+            void LoadSubChunksRecursively(progress_t* pProgress = NULL);
+            virtual unsigned long WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset, progress_t* pProgress = NULL);
             virtual void __resetPos(); ///< Sets List Chunk's read/write position to zero and causes all sub chunks to do the same.
             void DeleteChunkList();
     };
@@ -337,8 +358,8 @@ namespace RIFF {
             void SetFileName(const String& path);
             bool IsNew() const;
             layout_t GetLayout() const;
-            virtual void Save();
-            virtual void Save(const String& path);
+            virtual void Save(progress_t* pProgress = NULL);
+            virtual void Save(const String& path, progress_t* pProgress = NULL);
             virtual ~File();
         protected:
             #if POSIX

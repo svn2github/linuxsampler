@@ -53,38 +53,6 @@
 
 namespace gig {
 
-// *************** progress_t ***************
-// *
-
-    progress_t::progress_t() {
-        callback    = NULL;
-        custom      = NULL;
-        __range_min = 0.0f;
-        __range_max = 1.0f;
-    }
-
-    // private helper function to convert progress of a subprocess into the global progress
-    static void __notify_progress(progress_t* pProgress, float subprogress) {
-        if (pProgress && pProgress->callback) {
-            const float totalrange    = pProgress->__range_max - pProgress->__range_min;
-            const float totalprogress = pProgress->__range_min + subprogress * totalrange;
-            pProgress->factor         = totalprogress;
-            pProgress->callback(pProgress); // now actually notify about the progress
-        }
-    }
-
-    // private helper function to divide a progress into subprogresses
-    static void __divide_progress(progress_t* pParentProgress, progress_t* pSubProgress, float totalTasks, float currentTask) {
-        if (pParentProgress && pParentProgress->callback) {
-            const float totalrange    = pParentProgress->__range_max - pParentProgress->__range_min;
-            pSubProgress->callback    = pParentProgress->callback;
-            pSubProgress->custom      = pParentProgress->custom;
-            pSubProgress->__range_min = pParentProgress->__range_min + totalrange * currentTask / totalTasks;
-            pSubProgress->__range_max = pSubProgress->__range_min + totalrange / totalTasks;
-        }
-    }
-
-
 // *************** Internal functions for sample decompression ***************
 // *
 
@@ -528,13 +496,14 @@ namespace {
      * Usually there is absolutely no need to call this method explicitly.
      * It will be called automatically when File::Save() was called.
      *
+     * @param pProgress - callback function for progress notification
      * @throws DLS::Exception if FormatTag != DLS_WAVE_FORMAT_PCM or no sample data
      *                        was provided yet
      * @throws gig::Exception if there is any invalid sample setting
      */
-    void Sample::UpdateChunks() {
+    void Sample::UpdateChunks(progress_t* pProgress) {
         // first update base class's chunks
-        DLS::Sample::UpdateChunks();
+        DLS::Sample::UpdateChunks(pProgress);
 
         // make sure 'smpl' chunk exists
         pCkSmpl = pWaveList->GetSubChunk(CHUNK_ID_SMPL);
@@ -1752,10 +1721,12 @@ namespace {
      *
      * Usually there is absolutely no need to call this method explicitly.
      * It will be called automatically when File::Save() was called.
+     *
+     * @param pProgress - callback function for progress notification
      */
-    void DimensionRegion::UpdateChunks() {
+    void DimensionRegion::UpdateChunks(progress_t* pProgress) {
         // first update base class's chunk
-        DLS::Sampler::UpdateChunks();
+        DLS::Sampler::UpdateChunks(pProgress);
 
         RIFF::Chunk* wsmp = pParentList->GetSubChunk(CHUNK_ID_WSMP);
         uint8_t* pData = (uint8_t*) wsmp->LoadChunkData();
@@ -3026,9 +2997,10 @@ namespace {
      * Usually there is absolutely no need to call this method explicitly.
      * It will be called automatically when File::Save() was called.
      *
+     * @param pProgress - callback function for progress notification
      * @throws gig::Exception if samples cannot be dereferenced
      */
-    void Region::UpdateChunks() {
+    void Region::UpdateChunks(progress_t* pProgress) {
         // in the gig format we don't care about the Region's sample reference
         // but we still have to provide some existing one to not corrupt the
         // file, so to avoid the latter we simply always assign the sample of
@@ -3036,11 +3008,11 @@ namespace {
         pSample = pDimensionRegions[0]->pSample;
 
         // first update base class's chunks
-        DLS::Region::UpdateChunks();
+        DLS::Region::UpdateChunks(pProgress);
 
         // update dimension region's chunks
         for (int i = 0; i < DimensionRegions; i++) {
-            pDimensionRegions[i]->UpdateChunks();
+            pDimensionRegions[i]->UpdateChunks(pProgress);
         }
 
         File* pFile = (File*) GetParent()->GetParent();
@@ -4161,7 +4133,16 @@ namespace {
         memcpy(&data[0], &text[0], text.size());
     }
 
-    void Script::UpdateChunks() {
+    /**
+     * Apply this script to the respective RIFF chunks. You have to call
+     * File::Save() to make changes persistent.
+     *
+     * Usually there is absolutely no need to call this method explicitly.
+     * It will be called automatically when File::Save() was called.
+     *
+     * @param pProgress - callback function for progress notification
+     */
+    void Script::UpdateChunks(progress_t* pProgress) {
         // recalculate CRC32 check sum
         __resetCRC(crc);
         __calculateCRC(&data[0], data.size(), crc);
@@ -4251,7 +4232,16 @@ namespace {
         }
     }
 
-    void ScriptGroup::UpdateChunks() {
+    /**
+     * Apply this script group to the respective RIFF chunks. You have to call
+     * File::Save() to make changes persistent.
+     *
+     * Usually there is absolutely no need to call this method explicitly.
+     * It will be called automatically when File::Save() was called.
+     *
+     * @param pProgress - callback function for progress notification
+     */
+    void ScriptGroup::UpdateChunks(progress_t* pProgress) {
         if (pScripts) {
             if (!pList)
                 pList = pFile->pRIFF->GetSubList(LIST_TYPE_3LS)->AddSubList(LIST_TYPE_RTIS);
@@ -4262,7 +4252,7 @@ namespace {
             for (std::list<Script*>::iterator it = pScripts->begin();
                  it != pScripts->end(); ++it)
             {
-                (*it)->UpdateChunks();
+                (*it)->UpdateChunks(pProgress);
             }
         }
     }
@@ -4472,18 +4462,19 @@ namespace {
      * Usually there is absolutely no need to call this method explicitly.
      * It will be called automatically when File::Save() was called.
      *
+     * @param pProgress - callback function for progress notification
      * @throws gig::Exception if samples cannot be dereferenced
      */
-    void Instrument::UpdateChunks() {
+    void Instrument::UpdateChunks(progress_t* pProgress) {
         // first update base classes' chunks
-        DLS::Instrument::UpdateChunks();
+        DLS::Instrument::UpdateChunks(pProgress);
 
         // update Regions' chunks
         {
             RegionList::iterator iter = pRegions->begin();
             RegionList::iterator end  = pRegions->end();
             for (; iter != end; ++iter)
-                (*iter)->UpdateChunks();
+                (*iter)->UpdateChunks(pProgress);
         }
 
         // make sure 'lart' RIFF list chunk exists
@@ -5004,8 +4995,10 @@ namespace {
      *
      * Usually there is absolutely no need to call this method explicitly.
      * It will be called automatically when File::Save() was called.
+     *
+     * @param pProgress - callback function for progress notification
      */
-    void Group::UpdateChunks() {
+    void Group::UpdateChunks(progress_t* pProgress) {
         // make sure <3gri> and <3gnl> list chunks exist
         RIFF::List* _3gri = pFile->pRIFF->GetSubList(LIST_TYPE_3GRI);
         if (!_3gri) {
@@ -5781,9 +5774,10 @@ namespace {
      * Usually there is absolutely no need to call this method explicitly.
      * It will be called automatically when File::Save() was called.
      *
+     * @param pProgress - callback function for progress notification
      * @throws Exception - on errors
      */
-    void File::UpdateChunks() {
+    void File::UpdateChunks(progress_t* pProgress) {
         bool newFile = pRIFF->GetSubList(LIST_TYPE_INFO) == NULL;
 
         b64BitWavePoolOffsets = pVersion && pVersion->major == 3;
@@ -5806,13 +5800,13 @@ namespace {
                 for (std::list<ScriptGroup*>::iterator it = pScriptGroups->begin();
                      it != pScriptGroups->end(); ++it)
                 {
-                    (*it)->UpdateChunks();
+                    (*it)->UpdateChunks(pProgress);
                 }
             }
         }
 
         // first update base class's chunks
-        DLS::File::UpdateChunks();
+        DLS::File::UpdateChunks(pProgress);
 
         if (newFile) {
             // INFO was added by Resource::UpdateChunks - make sure it
@@ -5849,7 +5843,7 @@ namespace {
             std::list<Group*>::iterator iter = pGroups->begin();
             std::list<Group*>::iterator end  = pGroups->end();
             for (; iter != end; ++iter) {
-                (*iter)->UpdateChunks();
+                (*iter)->UpdateChunks(pProgress);
             }
         }
 
