@@ -92,6 +92,8 @@ Version CVS HEAD (?)
   * Dimension Manager: Clicking on dimension type cell of an existing dimension
     opens a popup to alter the dimension type.
   * Script Tree: Double click opens script editor.
+  * Fixed potential crash if exception was thrown while opening a gig file.
+  * Added support for visual progress bar while saving a gig file.
 
 Version 0.2.0 (2009-07-31)
 

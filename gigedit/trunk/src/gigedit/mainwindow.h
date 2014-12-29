@@ -118,9 +118,9 @@ protected:
     NoteEntry eDimensionKeyRangeHigh;
 };
 
-class LoadDialog : public Gtk::Dialog {
+class ProgressDialog : public Gtk::Dialog {
 public:
-    LoadDialog(const Glib::ustring& title, Gtk::Window& parent);
+    ProgressDialog(const Glib::ustring& title, Gtk::Window& parent);
     void set_fraction(float fraction) { progressBar.set_fraction(fraction); }
 protected:
     Gtk::ProgressBar progressBar;
@@ -131,10 +131,12 @@ public:
     Loader(const char* filename);
     void launch();
     Glib::Dispatcher& signal_progress();
-    Glib::Dispatcher& signal_finished();
+    Glib::Dispatcher& signal_finished(); ///< Finished successfully, without error.
+    Glib::Dispatcher& signal_error();
     void progress_callback(float fraction);
     float get_progress();
-    const char* filename;
+    const Glib::ustring filename;
+    Glib::ustring error_message;
     gig::File* gig;
 
 private:
@@ -142,6 +144,30 @@ private:
     void thread_function();
     Glib::Dispatcher finished_dispatcher;
     Glib::Dispatcher progress_dispatcher;
+    Glib::Dispatcher error_dispatcher;
+    Glib::Threads::Mutex progressMutex;
+    float progress;
+};
+
+class Saver : public sigc::trackable {
+public:
+    Saver(gig::File* file, Glib::ustring filename = ""); ///< one argument means "save", two arguments means "save as"
+    void launch();
+    Glib::Dispatcher& signal_progress();
+    Glib::Dispatcher& signal_finished(); ///< Finished successfully, without error.
+    Glib::Dispatcher& signal_error();
+    void progress_callback(float fraction);
+    float get_progress();
+    gig::File* gig;
+    const Glib::ustring filename;
+    Glib::ustring error_message;
+
+private:
+    Glib::Threads::Thread* thread;
+    void thread_function();
+    Glib::Dispatcher finished_dispatcher;
+    Glib::Dispatcher progress_dispatcher;
+    Glib::Dispatcher error_dispatcher;
     Glib::Threads::Mutex progressMutex;
     float progress;
 };
@@ -205,6 +231,11 @@ protected:
     void dimreg_changed();
     void on_loader_progress();
     void on_loader_finished();
+    void on_loader_error();
+    void on_saver_progress();
+    void on_saver_error();
+    void on_saver_finished();
+
     void dimreg_all_dimregs_toggled();
     gig::Instrument* get_instrument();
     void add_region_to_dimregs(gig::Region* region, bool stereo, bool all_dimregs);
@@ -351,8 +382,9 @@ protected:
                                                int position = -1);
     void remove_instrument_from_menu(int index);
 
-    LoadDialog* load_dialog;
+    ProgressDialog* progress_dialog;
     Loader* loader;
+    Saver* saver;
     void load_gig(gig::File* gig, const char* filename, bool isSharedInstrument = false);
     void updateSampleRefCountMap(gig::File* gig);
 

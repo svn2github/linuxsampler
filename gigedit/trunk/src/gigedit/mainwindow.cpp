@@ -708,20 +708,28 @@ void Loader::progress_callback(float fraction)
 void Loader::thread_function()
 {
     printf("thread_function self=%x\n", Glib::Threads::Thread::self());
-    printf("Start %s\n", filename);
-    RIFF::File* riff = new RIFF::File(filename);
-    gig = new gig::File(riff);
-    gig::progress_t progress;
-    progress.callback = loader_progress_callback;
-    progress.custom = this;
+    printf("Start %s\n", filename.c_str());
+    try {
+        RIFF::File* riff = new RIFF::File(filename);
+        gig = new gig::File(riff);
+        gig::progress_t progress;
+        progress.callback = loader_progress_callback;
+        progress.custom = this;
 
-    gig->GetInstrument(0, &progress);
-    printf("End\n");
-    finished_dispatcher();
+        gig->GetInstrument(0, &progress);
+        printf("End\n");
+        finished_dispatcher();
+    } catch (RIFF::Exception e) {
+        error_message = e.Message;
+        error_dispatcher.emit();
+    } catch (...) {
+        error_message = _("Unknown exception occurred");
+        error_dispatcher.emit();
+    }
 }
 
 Loader::Loader(const char* filename)
-    : filename(filename), thread(0)
+    : filename(filename), thread(0), progress(0.f)
 {
 }
 
@@ -755,11 +763,99 @@ Glib::Dispatcher& Loader::signal_finished()
     return finished_dispatcher;
 }
 
-LoadDialog::LoadDialog(const Glib::ustring& title, Gtk::Window& parent)
+Glib::Dispatcher& Loader::signal_error()
+{
+    return error_dispatcher;
+}
+
+void saver_progress_callback(gig::progress_t* progress)
+{
+    Saver* saver = static_cast<Saver*>(progress->custom);
+    saver->progress_callback(progress->factor);
+}
+
+void Saver::progress_callback(float fraction)
+{
+    {
+        Glib::Threads::Mutex::Lock lock(progressMutex);
+        progress = fraction;
+    }
+    progress_dispatcher.emit();
+}
+
+void Saver::thread_function()
+{
+    printf("thread_function self=%x\n", Glib::Threads::Thread::self());
+    printf("Start %s\n", filename.c_str());
+    try {
+        gig::progress_t progress;
+        progress.callback = saver_progress_callback;
+        progress.custom = this;
+
+        // if no filename was provided, that means "save", if filename was provided means "save as"
+        if (filename.empty()) {
+            gig->Save(&progress);
+        } else {
+            gig->Save(filename, &progress);
+        }
+
+        printf("End\n");
+        finished_dispatcher.emit();
+    } catch (RIFF::Exception e) {
+        error_message = e.Message;
+        error_dispatcher.emit();
+    } catch (...) {
+        error_message = _("Unknown exception occurred");
+        error_dispatcher.emit();
+    }
+}
+
+Saver::Saver(gig::File* file, Glib::ustring filename)
+    : gig(file), filename(filename), thread(0), progress(0.f)
+{
+}
+
+void Saver::launch()
+{
+#ifdef OLD_THREADS
+    thread = Glib::Thread::create(sigc::mem_fun(*this, &Saver::thread_function), true);
+#else
+    thread = Glib::Threads::Thread::create(sigc::mem_fun(*this, &Saver::thread_function));
+#endif
+    printf("launch thread=%x\n", thread);
+}
+
+float Saver::get_progress()
+{
+    float res;
+    {
+        Glib::Threads::Mutex::Lock lock(progressMutex);
+        res = progress;
+    }
+    return res;
+}
+
+Glib::Dispatcher& Saver::signal_progress()
+{
+    return progress_dispatcher;
+}
+
+Glib::Dispatcher& Saver::signal_finished()
+{
+    return finished_dispatcher;
+}
+
+Glib::Dispatcher& Saver::signal_error()
+{
+    return error_dispatcher;
+}
+
+ProgressDialog::ProgressDialog(const Glib::ustring& title, Gtk::Window& parent)
     : Gtk::Dialog(title, parent, true)
 {
     get_vbox()->pack_start(progressBar);
     show_all_children();
+    resize(600,50);
 }
 
 // Clear all GUI elements / controls. This method is typically called
@@ -828,8 +924,17 @@ bool MainWindow::close_confirmation_dialog()
     dialog.set_default_response(Gtk::RESPONSE_YES);
     int response = dialog.run();
     dialog.hide();
-    if (response == Gtk::RESPONSE_YES) return file_save();
-    return response != Gtk::RESPONSE_CANCEL;
+
+    // TODO: the following return valid is disabled and hard coded instead for
+    // now, due to the fact that saving with progress bar is now implemented
+    // asynchronously, as a result the app does not close automatically anymore
+    // after saving the file has completed
+    //
+    //   if (response == Gtk::RESPONSE_YES) return file_save();
+    //   return response != Gtk::RESPONSE_CANCEL;
+    //
+    if (response == Gtk::RESPONSE_YES) file_save();
+    return false; // always prevent closing the app for now (see comment above)
 }
 
 bool MainWindow::leaving_shared_mode_dialog() {
@@ -880,13 +985,20 @@ void MainWindow::on_action_file_open()
 void MainWindow::load_file(const char* name)
 {
     __clear();
-    load_dialog = new LoadDialog(_("Loading..."), *this);
-    load_dialog->show_all();
-    loader = new Loader(strdup(name));
+
+    progress_dialog = new ProgressDialog( //FIXME: memory leak!
+        _("Loading") +  Glib::ustring(" '") +
+        Glib::filename_display_basename(name) + "' ...",
+        *this
+    );
+    progress_dialog->show_all();
+    loader = new Loader(name); //FIXME: memory leak!
     loader->signal_progress().connect(
         sigc::mem_fun(*this, &MainWindow::on_loader_progress));
     loader->signal_finished().connect(
         sigc::mem_fun(*this, &MainWindow::on_loader_finished));
+    loader->signal_error().connect(
+        sigc::mem_fun(*this, &MainWindow::on_loader_error));
     loader->launch();
 }
 
@@ -928,15 +1040,23 @@ void MainWindow::load_instrument(gig::Instrument* instr) {
 
 void MainWindow::on_loader_progress()
 {
-    load_dialog->set_fraction(loader->get_progress());
+    progress_dialog->set_fraction(loader->get_progress());
 }
 
 void MainWindow::on_loader_finished()
 {
     printf("Loader finished!\n");
     printf("on_loader_finished self=%x\n", Glib::Threads::Thread::self());
-    load_gig(loader->gig, loader->filename);
-    load_dialog->hide();
+    load_gig(loader->gig, loader->filename.c_str());
+    progress_dialog->hide();
+}
+
+void MainWindow::on_loader_error()
+{
+    Glib::ustring txt = _("Could not load file: ") + loader->error_message;
+    Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+    msg.run();
+    progress_dialog->hide();
 }
 
 void MainWindow::on_action_file_save()
@@ -975,23 +1095,54 @@ bool MainWindow::file_save()
 
     std::cout << "Saving file\n" << std::flush;
     file_structure_to_be_changed_signal.emit(this->file);
-    try {
-        file->Save();
-        if (file_is_changed) {
-            set_title(get_title().substr(1));
-            file_is_changed = false;
-        }
-    } catch (RIFF::Exception e) {
-        file_structure_changed_signal.emit(this->file);
-        Glib::ustring txt = _("Could not save file: ") + e.Message;
-        Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
-        msg.run();
-        return false;
-    }
-    std::cout << "Saving file done\n" << std::flush;
-    __import_queued_samples();
-    file_structure_changed_signal.emit(this->file);
+
+    progress_dialog = new ProgressDialog( //FIXME: memory leak!
+        _("Saving") +  Glib::ustring(" '") +
+        Glib::filename_display_basename(this->filename) + "' ...",
+        *this
+    );
+    progress_dialog->show_all();
+    saver = new Saver(this->file); //FIXME: memory leak!
+    saver->signal_progress().connect(
+        sigc::mem_fun(*this, &MainWindow::on_saver_progress));
+    saver->signal_finished().connect(
+        sigc::mem_fun(*this, &MainWindow::on_saver_finished));
+    saver->signal_error().connect(
+        sigc::mem_fun(*this, &MainWindow::on_saver_error));
+    saver->launch();
+
     return true;
+}
+
+void MainWindow::on_saver_progress()
+{
+    progress_dialog->set_fraction(saver->get_progress());
+}
+
+void MainWindow::on_saver_error()
+{
+    file_structure_changed_signal.emit(this->file);
+    Glib::ustring txt = _("Could not save file: ") + saver->error_message;
+    Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+    msg.run();
+}
+
+void MainWindow::on_saver_finished()
+{
+    this->file = saver->gig;
+    this->filename = saver->filename;
+    current_gig_dir = Glib::path_get_dirname(filename);
+    set_title(Glib::filename_display_basename(filename));
+    file_has_name = true;
+    file_is_changed = false;
+    std::cout << "Saving file done. Importing queued samples now ...\n" << std::flush;
+    __import_queued_samples();
+    std::cout << "Importing queued samples done.\n" << std::flush;
+
+    file_structure_changed_signal.emit(this->file);
+
+    load_gig(this->file, this->filename.c_str());
+    progress_dialog->hide();
 }
 
 void MainWindow::on_action_file_save_as()
@@ -1056,28 +1207,28 @@ bool MainWindow::file_save_as()
     descriptionArea.show_all();
 
     if (dialog.run() == Gtk::RESPONSE_OK) {
-        file_structure_to_be_changed_signal.emit(this->file);
-        try {
-            std::string filename = dialog.get_filename();
-            if (!Glib::str_has_suffix(filename, ".gig")) {
-                filename += ".gig";
-            }
-            printf("filename=%s\n", filename.c_str());
-            file->Save(filename);
-            this->filename = filename;
-            current_gig_dir = Glib::path_get_dirname(filename);
-            set_title(Glib::filename_display_basename(filename));
-            file_has_name = true;
-            file_is_changed = false;
-        } catch (RIFF::Exception e) {
-            file_structure_changed_signal.emit(this->file);
-            Glib::ustring txt = _("Could not save file: ") + e.Message;
-            Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
-            msg.run();
-            return false;
+        std::string filename = dialog.get_filename();
+        if (!Glib::str_has_suffix(filename, ".gig")) {
+            filename += ".gig";
         }
-        __import_queued_samples();
-        file_structure_changed_signal.emit(this->file);
+        printf("filename=%s\n", filename.c_str());
+
+        progress_dialog = new ProgressDialog( //FIXME: memory leak!
+            _("Saving") +  Glib::ustring(" '") +
+            Glib::filename_display_basename(filename) + "' ...",
+            *this
+        );
+        progress_dialog->show_all();
+
+        saver = new Saver(file, filename); //FIXME: memory leak!
+        saver->signal_progress().connect(
+            sigc::mem_fun(*this, &MainWindow::on_saver_progress));
+        saver->signal_finished().connect(
+            sigc::mem_fun(*this, &MainWindow::on_saver_finished));
+        saver->signal_error().connect(
+            sigc::mem_fun(*this, &MainWindow::on_saver_error));
+        saver->launch();
+
         return true;
     }
     return false;
@@ -2735,8 +2886,27 @@ void MainWindow::mergeFiles(const std::vector<std::string>& filenames) {
         );
     }
 
-    // Note: requires that this file already has a filename !
-    this->file->Save();
+    // Finally save gig file persistently to disk ...
+    //NOTE: requires that this gig file already has a filename !
+    {
+        std::cout << "Saving file\n" << std::flush;
+        file_structure_to_be_changed_signal.emit(this->file);
+
+        progress_dialog = new ProgressDialog( //FIXME: memory leak!
+            _("Saving") +  Glib::ustring(" '") +
+            Glib::filename_display_basename(this->filename) + "' ...",
+            *this
+        );
+        progress_dialog->show_all();
+        saver = new Saver(this->file); //FIXME: memory leak!
+        saver->signal_progress().connect(
+            sigc::mem_fun(*this, &MainWindow::on_saver_progress));
+        saver->signal_finished().connect(
+            sigc::mem_fun(*this, &MainWindow::on_saver_finished));
+        saver->signal_error().connect(
+            sigc::mem_fun(*this, &MainWindow::on_saver_error));
+        saver->launch();
+    }
 }
 
 void MainWindow::on_action_merge_files() {
