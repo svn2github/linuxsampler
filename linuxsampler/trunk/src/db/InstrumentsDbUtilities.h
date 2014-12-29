@@ -277,7 +277,7 @@ namespace LinuxSampler {
             String CurrentFile;
 
             int JobId;
-            struct ::gig::progress_t GigFileProgress;
+            ::gig::progress_t GigFileProgress;
 
         private:
             int TotalFileCount;
