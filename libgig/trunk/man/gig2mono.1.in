@@ -30,6 +30,7 @@ Convert by using left audio channel data.
 Convert by using right audio channel data.
 
 .SH "SEE ALSO"
+.BR gig2stereo(1),
 .BR gigextract(1),
 .BR gigdump(1),
 .BR gigmerge(1)

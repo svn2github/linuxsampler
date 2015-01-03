@@ -23,7 +23,8 @@ print version and exit
 .SH "SEE ALSO"
 .BR gigdump(1),
 .BR gigmerge(1),
-.BR gig2mono(1)
+.BR gig2mono(1),
+.BR gig2stereo(1)
 
 .SH "BUGS"
 None. Report bugs to http://bugs.linuxsampler.org

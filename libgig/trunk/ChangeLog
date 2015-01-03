@@ -17,6 +17,7 @@ Version CVS HEAD (?)
     - Header files are now installed under $(prefix)/include/libgig/ by default.
     - Fixed various packaging issues regarding installation directories
       (fixes #218).
+    - added new command line tool "gig2stereo" (and a man page for it)
 
   * SoundFont file format:
     - initial implementation
@@ -97,6 +98,8 @@ Version CVS HEAD (?)
     - POSIX: only assume -1 result value as error on open() calls
     - POSIX: show operating system's error reason if opening a file failed
     - Added support for custom progress notification while saving to RIFF file.
+    - Fixed embarrassing old bug: POSIX read() errors were never detected on
+      Chunk::Read() calls due to signment incompatible variable. 
 
   * src/gigextract.cpp:
     - export sample loop, unity note and fine tune with libsndfile

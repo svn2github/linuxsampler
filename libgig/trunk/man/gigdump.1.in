@@ -18,6 +18,7 @@ print version and exit
 .BR gigextract(1),
 .BR gigmerge(1),
 .BR gig2mono(1),
+.BR gig2stereo(1),
 .BR dlsdump(1)
 
 .SH "BUGS"

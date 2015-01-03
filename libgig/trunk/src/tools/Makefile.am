@@ -11,7 +11,7 @@ audiofileaccess_libs = $(AUDIOFILE_LIBS) -ldl
 audiofileaccess_flags = $(AUDIOFILE_CFLAGS)
 endif
 
-bin_PROGRAMS = rifftree dlsdump gigdump gigextract gigmerge gig2mono sf2dump korgdump korg2gig akaidump akaiextract
+bin_PROGRAMS = rifftree dlsdump gigdump gigextract gigmerge gig2mono gig2stereo sf2dump korgdump korg2gig akaidump akaiextract
 
 rifftree_SOURCES = rifftree.cpp
 rifftree_LDADD = $(top_builddir)/src/libgig.la
@@ -32,6 +32,9 @@ gigmerge_LDADD = $(top_builddir)/src/libgig.la
 
 gig2mono_SOURCES = gig2mono.cpp
 gig2mono_LDADD = $(top_builddir)/src/libgig.la
+
+gig2stereo_SOURCES = gig2stereo.cpp
+gig2stereo_LDADD = $(top_builddir)/src/libgig.la
 
 sf2dump_SOURCES = sf2dump.cpp
 sf2dump_LDADD = $(top_builddir)/src/libgig.la

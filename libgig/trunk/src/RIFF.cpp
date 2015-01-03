@@ -302,8 +302,13 @@ namespace RIFF {
         if (ulPos + WordCount * WordSize >= CurrentChunkSize) WordCount = (CurrentChunkSize - ulPos) / WordSize;
         #if POSIX
         if (lseek(pFile->hFileRead, ulStartPos + ulPos, SEEK_SET) < 0) return 0;
-        unsigned long readWords = read(pFile->hFileRead, pData, WordCount * WordSize);
-        if (readWords < 1) return 0;
+        ssize_t readWords = read(pFile->hFileRead, pData, WordCount * WordSize);
+        if (readWords < 1) {
+            #if DEBUG
+            std::cerr << "POSIX read() failed: " << strerror(errno) << std::endl << std::flush;
+            #endif // DEBUG
+            return 0;
+        }
         readWords /= WordSize;
         #elif defined(WIN32)
         if (SetFilePointer(pFile->hFileRead, ulStartPos + ulPos, NULL/*32 bit*/, FILE_BEGIN) == INVALID_SET_FILE_POINTER) return 0;
@@ -313,7 +318,7 @@ namespace RIFF {
         readWords /= WordSize;
         #else // standard C functions
         if (fseek(pFile->hFileRead, ulStartPos + ulPos, SEEK_SET)) return 0;
-        unsigned long readWords = fread(pData, WordSize, WordCount, pFile->hFileRead);
+        size_t readWords = fread(pData, WordSize, WordCount, pFile->hFileRead);
         #endif // POSIX
         if (!pFile->bEndianNative && WordSize != 1) {
             switch (WordSize) {

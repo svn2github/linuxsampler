@@ -1,0 +1,82 @@
+.TH "gig2stereo" "1" "03 Jan 2015" "libgig @VERSION@" "libgig tools"
+.SH NAME
+gig2stereo \- Converts Gigasampler (.gig) files from mono pairs to true stereo.
+.SH SYNOPSIS
+.B gig2stereo
+[-v] [--verbose [LEVEL]] [-r] [--keep] [--force-replace] FILE_OR_DIR1 [ FILE_OR_DIR2 ... ]
+.SH DESCRIPTION
+Takes a list of Gigasampler (.gig) files and / or directories as argument(s) and
+converts the individual Gigasampler files from two separate mono sample pairs to
+true stereo interleaved format. Given directories are scanned for .gig files.
+The Gigasampler files are directly modified, not copied. Since at this point the
+Gigasampler format only defines mono and stereo samples, this program currently
+also assumes all samples in the .gig files provided to be either mono or stereo.
+
+Background: The Gigasampler/GigaStudio format allows to create stereo
+instruments in two ways: either by referencing true stereo (interleaved) samples
+in the instruments, or by referencing a pair of (two) mono samples. Unfortunately
+LinuxSampler does not support the latter at the moment, thus if a gig instrument
+uses mono sample pairs, you will still hear it in mono. This tool was created to
+circumvent this issue by allowing to convert gig files to using real stereo
+(interlaved) samples instead. And even if LinuxSampler would add support for
+mono sample pairs, it would be less efficient than using real stereo samples,
+both concerning disk streaming as well as DSP processing after streaming input.
+
+After conversion, you will find all newly created true stereo samples in
+separate new sample group(s), which will be postfixed with " STEREO" in their
+group names. So you should easily be able to distinguish the newly created true
+stereo samples (i.e. when editing the .gig file with
+.BR gigedit (1)
+) from old samples. Also, if the original (now replaced) mono samples were
+postfixed with a channel indicator in their sample names
+(i.e. "Spiccato D3 -L"), the new stereo samples will have a similar sample name,
+but without such an audio channel indicator at the end of their names. Thus in
+the mentioned example, the newly created stereo sample would be named
+"Spiccato D3" instead.
+.SH OPTIONS
+.TP
+.B \ FILE_OR_DIR1
+Gigasampler (.gig) filename or directory
+.TP
+.B \ FILE_OR_DIR2
+Gigasampler (.gig) filename or directory
+.TP
+.B \ --force-replace
+Force replacing any found old mono sample reference by the new true stereo
+samples. By default certain references of the old mono samples are not replaced
+by new true stereo samples, usually because the respective old mono reference is
+been used in an instrument context that seems to be entirely a mono use case,
+not stereo, and thus replacing the mono sample reference by stereo ones might
+not be intended for the respective instrument. Because there might indeed be
+instruments in the same .gig file which are designed as explicit mono variant
+(i.e. to allow the musician to save resources while playing, or for live
+mix-down reasons, which are usually mono on live venues). By using
+--force-replace all those old mono sample references in question will also be
+replaced by the new stereo sample references.
+.TP
+.B \ --keep
+Keep old mono samples. By default old converted mono samples, if they are not
+referenced by any instrument anymore, will automatically be deleted after
+conversion. By using this argument it will preserve all of the old mono samples.
+.TP
+.B \ -r
+Recurse through subdirectories.
+.TP
+.B \ -v
+Print version and exit.
+.TP
+.B \ --verbose [LEVEL]
+Be verbose and print additional informations while converting. The additional
+numeric argument is optional, it allows to define the verbosity level
+(1 .. 2, default: 1).
+
+.SH "SEE ALSO"
+.BR gig2mono(1),
+.BR gigextract(1),
+.BR gigdump(1),
+.BR gigmerge(1)
+
+.SH "BUGS"
+None. Report bugs to http://bugs.linuxsampler.org
+.SH "Author"
+Written by Christian Schoenebeck <cuse@users.sf.net>
