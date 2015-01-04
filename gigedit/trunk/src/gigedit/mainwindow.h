@@ -233,6 +233,7 @@ protected:
     void on_sel_change();
     void region_changed();
     void dimreg_changed();
+    void select_sample(gig::Sample* sample);
     void on_loader_progress();
     void on_loader_finished();
     void on_loader_error();

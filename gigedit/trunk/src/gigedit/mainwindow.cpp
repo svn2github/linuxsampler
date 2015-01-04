@@ -562,6 +562,10 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_samples_to_be_removed)
     );
 
+    dimreg_edit.signal_select_sample().connect(
+        sigc::mem_fun(*this, &MainWindow::select_sample)
+    );
+
     m_RegionChooser.signal_instrument_struct_to_be_changed().connect(
         sigc::hide(
             sigc::bind(
@@ -1879,6 +1883,25 @@ void MainWindow::on_instrument_selection_change(Gtk::RadioMenuItem* item) {
             m_TreeView.get_selection()->select(Gtk::TreePath(ToString(index)));
 
             m_RegionChooser.set_instrument(file->GetInstrument(index));
+        }
+    }
+}
+
+void MainWindow::select_sample(gig::Sample* sample) {
+    Glib::RefPtr<Gtk::TreeModel> model = m_TreeViewSamples.get_model();
+    for (int g = 0; g < model->children().size(); ++g) {
+        Gtk::TreeModel::Row rowGroup = model->children()[g];
+        for (int s = 0; s < rowGroup.children().size(); ++s) {
+            Gtk::TreeModel::Row rowSample = rowGroup.children()[s];
+            if (rowSample[m_SamplesModel.m_col_sample] == sample) {
+                show_samples_tab();
+                m_TreeViewSamples.get_selection()->select(rowGroup.children()[s]);
+                Gtk::TreePath path(
+                    m_TreeViewSamples.get_selection()->get_selected()
+                );
+                m_TreeViewSamples.scroll_to_row(path);
+                return;
+            }
         }
     }
 }

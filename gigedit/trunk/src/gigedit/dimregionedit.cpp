@@ -241,6 +241,7 @@ DimRegionEdit::DimRegionEdit() :
     eSampleLoopType(_("Loop type")),
     eSampleLoopInfinite(_("Infinite loop")),
     eSampleLoopPlayCount(_("Playback count"), 1),
+    buttonSelectSample(Glib::ustring("<- ") + _("Select Sample")),
     update_model(0)
 {
     connect(eEG1PreAttack, &gig::DimensionRegion::EG1PreAttack);
@@ -350,6 +351,9 @@ DimRegionEdit::DimRegionEdit() :
     connect(eSampleLoopLength, &DimRegionEdit::set_LoopLength);
     connect(eSampleLoopInfinite, &DimRegionEdit::set_LoopInfinite);
     connect(eSampleLoopPlayCount, &DimRegionEdit::set_LoopPlayCount);
+    buttonSelectSample.signal_clicked().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::onButtonSelectSamplePressed)
+    );
 
     for (int i = 0 ; i < 7 ; i++) {
         table[i] = new Gtk::Table(3, 1);
@@ -359,6 +363,9 @@ DimRegionEdit::DimRegionEdit() :
     // set tooltips
     eUnityNote.set_tip(
         _("Note this sample is associated with (a.k.a. 'root note')")
+    );
+    buttonSelectSample.set_tooltip_text(
+        _("Selects the sample of this dimension region on the left hand side's sample tree view.")
     );
     eSampleStartOffset.set_tip(_("Sample position at which playback should be started"));
     ePan.set_tip(_("Stereo balance (left/right)"));
@@ -453,6 +460,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eUnityNote);
     addProp(eSampleFormatInfo);
     addProp(eSampleID);
+    addRightHandSide(buttonSelectSample);
     addHeader(_("Optional Settings"));
     addProp(eSampleStartOffset);
     addProp(eChannelOffset);
@@ -884,6 +892,12 @@ void DimRegionEdit::addProp(LabelWidget& prop)
     rowno++;
 }
 
+void DimRegionEdit::addRightHandSide(Gtk::Widget& widget)
+{
+    table[pageno]->attach(widget, 2, 3, rowno, rowno + 1,
+                          Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK);
+    rowno++;
+}
 
 void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
 {
@@ -1007,6 +1021,7 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
         }
         eSampleID.text.set_text(s);
     }
+    buttonSelectSample.set_sensitive(d && d->pSample);
     eFineTune.set_value(d->FineTune);
     eGain.set_value(d->Gain);
     eGainPlus6.set_value(d->Gain);
@@ -1452,4 +1467,14 @@ void DimRegionEdit::set_LoopInfinite(gig::DimensionRegion* d, bool value)
 void DimRegionEdit::set_LoopPlayCount(gig::DimensionRegion* d, uint32_t value)
 {
     if (d->pSample) d->pSample->LoopPlayCount = value;
+}
+
+void DimRegionEdit::onButtonSelectSamplePressed() {
+    if (!dimregion) return;
+    if (!dimregion->pSample) return;
+    select_sample_signal.emit(dimregion->pSample);
+}
+
+sigc::signal<void, gig::Sample*>& DimRegionEdit::signal_select_sample() {
+    return select_sample_signal;
 }

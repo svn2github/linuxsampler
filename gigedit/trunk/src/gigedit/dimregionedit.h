@@ -80,6 +80,7 @@ public:
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_to_be_changed();
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_changed();
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& signal_sample_ref_changed();
+    sigc::signal<void, gig::Sample*>& signal_select_sample();
 
     std::set<gig::DimensionRegion*> dimregs;
 
@@ -88,6 +89,7 @@ protected:
     sigc::signal<void, gig::DimensionRegion*> dimreg_changed_signal;
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> sample_ref_changed_signal;
     sigc::signal<void> instrument_changed;
+    sigc::signal<void, gig::Sample*> select_sample_signal;
 
     gig::DimensionRegion* dimregion;
 
@@ -197,6 +199,8 @@ protected:
     Gtk::Label* lEG2;
     Gtk::Label* lLFO2;
 
+    Gtk::Button buttonSelectSample;
+
     int rowno;
     int pageno;
     int firstRowInBlock;
@@ -208,6 +212,7 @@ protected:
     void addString(const char* labelText, Gtk::Label*& label,
                    Gtk::Entry*& widget);
     Gtk::Label* addHeader(const char* text);
+    void addRightHandSide(Gtk::Widget& widget);
     void nextPage();
 
     void VCFEnabled_toggled();
@@ -301,6 +306,8 @@ protected:
     void set_LoopLength(gig::DimensionRegion* d, uint32_t value);
     void set_LoopInfinite(gig::DimensionRegion* d, bool value);
     void set_LoopPlayCount(gig::DimensionRegion* d, uint32_t value);
+
+    void onButtonSelectSamplePressed();
 };
 
 #endif
