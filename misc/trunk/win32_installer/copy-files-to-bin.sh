@@ -15,7 +15,8 @@ cd $WIN/bin
 cp libsndfile-1.dll libsqlite3-0.dll \
     libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
     rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
-    gig2mono.exe korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
+    gig2mono.exe gig2stereo.exe \
+    korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
     sf2dump.exe \
     linuxsampler.exe \
     gigedit.exe \
@@ -72,7 +73,8 @@ rm -rf $DIST
 mkdir -p $DIST
 cd $WIN/bin
 cp rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
-    gig2mono.exe korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
+    gig2mono.exe gig2stereo.exe \
+    korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
     sf2dump.exe linuxsampler.exe \
     $DIST
 cd $WIN/lib/bin
@@ -91,7 +93,8 @@ cd $WIN/bin
 cp libsndfile-1.dll libsqlite3-0.dll \
     libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
     rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
-    gig2mono.exe korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
+    gig2mono.exe gig2stereo.exe \
+    korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
     sf2dump.exe \
     linuxsampler.exe gigedit.exe \
     $DIST
