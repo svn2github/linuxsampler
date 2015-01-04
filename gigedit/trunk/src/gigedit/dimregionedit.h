@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2013 Andreas Persson
+ * Copyright (C) 2006-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -183,6 +183,8 @@ protected:
     BoolEntry eMSDecode;
     NumEntryTemp<uint16_t> eSampleStartOffset;
     NoteEntry eUnityNote;
+    ReadOnlyLabelWidget eSampleFormatInfo;
+    ReadOnlyLabelWidget eSampleID;
     NumEntryTemp<int16_t> eFineTune;
     NumEntryGain eGain;
     BoolEntryPlus6 eGainPlus6;

@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2014 Andreas Persson
+ * Copyright (C) 2006-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -66,6 +66,14 @@ protected:
     Gtk::Tooltips tooltips;
 #endif
     sigc::signal<void> sig_changed;
+};
+
+class ReadOnlyLabelWidget : public LabelWidget {
+public:
+    Gtk::Label text;
+
+    ReadOnlyLabelWidget(const char* leftHandText);
+    ReadOnlyLabelWidget(const char* leftHandText, const char* rightHandText);
 };
 
 class NumEntry : public LabelWidget {

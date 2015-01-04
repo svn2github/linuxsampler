@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 Andreas Persson
+ * Copyright (C) 2006-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -230,6 +230,8 @@ DimRegionEdit::DimRegionEdit() :
     eMSDecode(_("Decode Mid/Side Recordings")),
     eSampleStartOffset(_("Sample start offset"), 0, 2000),
     eUnityNote(_("Unity note")),
+    eSampleFormatInfo(_("Sample Format")),
+    eSampleID("Sample ID"),
     eFineTune(_("Fine tune"), -49, 50),
     eGain(_("Gain"), -96, 0, 2, -655360),
     eGainPlus6(_("Gain +6dB"), eGain, 6 * -655360),
@@ -449,6 +451,8 @@ DimRegionEdit::DimRegionEdit() :
     wSample->set_tooltip_text(_("Drag & drop a sample here"));
 #endif
     addProp(eUnityNote);
+    addProp(eSampleFormatInfo);
+    addProp(eSampleID);
     addHeader(_("Optional Settings"));
     addProp(eSampleStartOffset);
     addProp(eChannelOffset);
@@ -972,6 +976,37 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
     eMSDecode.set_value(d->MSDecode);
     eSampleStartOffset.set_value(d->SampleStartOffset);
     eUnityNote.set_value(d->UnityNote);
+    // assemble sample format info string
+    {
+        Glib::ustring s;
+        if (d->pSample) {
+            switch (d->pSample->Channels) {
+                case 1: s = _("Mono"); break;
+                case 2: s = _("Stereo"); break;
+                default:
+                    s = ToString(d->pSample->Channels) + _(" audio channels");
+                    break;
+            }
+            s += " " + ToString(d->pSample->BitDepth) + " Bits";
+            s += " " + ToString(d->pSample->SamplesPerSecond/1000) + "."
+                      + ToString((d->pSample->SamplesPerSecond%1000)/100) + " kHz";
+        } else {
+            s = _("No sample assigned to this dimension region.");
+        }
+        eSampleFormatInfo.text.set_text(s);
+    }
+    // generate sample's memory address pointer string
+    {
+        Glib::ustring s;
+        if (d->pSample) {
+            char buf[64] = {};
+            snprintf(buf, sizeof(buf), "%p", d->pSample);
+            s = buf;
+        } else {
+            s = "---";
+        }
+        eSampleID.text.set_text(s);
+    }
     eFineTune.set_value(d->FineTune);
     eGain.set_value(d->Gain);
     eGainPlus6.set_value(d->Gain);

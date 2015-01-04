@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 Andreas Persson
+ * Copyright (C) 2006-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -159,6 +159,19 @@ void LabelWidget::set_sensitive(bool sensitive)
 {
     label.set_sensitive(sensitive);
     widget.set_sensitive(sensitive);
+}
+
+ReadOnlyLabelWidget::ReadOnlyLabelWidget(const char* leftHandText)
+    : LabelWidget(leftHandText, text)
+{
+    text.set_alignment(Gtk::ALIGN_START, Gtk::ALIGN_START);
+}
+
+ReadOnlyLabelWidget::ReadOnlyLabelWidget(const char* leftHandText, const char* rightHandText)
+   : LabelWidget(leftHandText, text)
+{
+    text.set_alignment(Gtk::ALIGN_START, Gtk::ALIGN_START);
+    text.set_text(rightHandText);
 }
 
 NumEntry::NumEntry(const char* labelText, double lower, double upper,
