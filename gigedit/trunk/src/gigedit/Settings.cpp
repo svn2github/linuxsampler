@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014 Christian Schoenebeck
+    Copyright (c) 2014-2015 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -15,4 +15,5 @@ Settings* Settings::singleton() {
 
 Settings::Settings() {
     warnUserOnExtensions = true;
+    syncSamplerInstrumentSelection = true;
 }

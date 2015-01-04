@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006 - 2014 Andreas Persson
+ * Copyright (C) 2006 - 2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -196,6 +196,8 @@ public:
     sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_hit();
     sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_released();
 
+    sigc::signal<void, gig::Instrument*>& signal_switch_sampler_instrument();
+
 protected:
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;
     Glib::RefPtr<Gtk::UIManager> uiManager;
@@ -224,6 +226,8 @@ protected:
 
     sigc::signal<void, int/*key*/, int/*velocity*/> note_on_signal;
     sigc::signal<void, int/*key*/, int/*velocity*/> note_off_signal;
+
+    sigc::signal<void, gig::Instrument*> switch_sampler_instrument_signal;
 
     void on_instrument_selection_change(Gtk::RadioMenuItem* item);
     void on_sel_change();
@@ -352,6 +356,7 @@ protected:
     void show_script_slots();
     void on_action_view_status_bar();
     void on_action_warn_user_on_extensions();
+    void on_action_sync_sampler_instrument_selection();
     void on_action_help_about();
 
     // sample right-click popup actions

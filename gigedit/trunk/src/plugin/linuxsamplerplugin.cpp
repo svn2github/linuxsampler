@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007, 2008 Andreas Persson
+ * Copyright (C) 2007 - 2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,6 +20,8 @@
 #include "linuxsamplerplugin.h"
 
 #include <linuxsampler/plugins/InstrumentEditorFactory.h>
+#include <linuxsampler/engines/Engine.h>
+#include <linuxsampler/engines/EngineChannel.h>
 #include "../gigedit/gigedit.h"
 #include "../gigedit/global.h"
 
@@ -119,6 +121,9 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
     app->signal_keyboard_key_released().connect(
         sigc::mem_fun(*this, &LinuxSamplerPlugin::__onVirtualKeyboardKeyReleased)
     );
+    app->signal_switch_sampler_instrument().connect(
+        sigc::mem_fun(*this, &LinuxSamplerPlugin::__requestSamplerToSwitchInstrument)
+    );
 
     // register a timeout job to gigedit's main loop, so we can poll the
     // the sampler periodically for MIDI events (I HOPE it works on all
@@ -171,6 +176,36 @@ void LinuxSamplerPlugin::__onVirtualKeyboardKeyReleased(int Key, int Velocity) {
     #if HAVE_LINUXSAMPLER_VIRTUAL_MIDI_DEVICE
     SendNoteOffToSampler(Key, Velocity);
     #endif
+}
+
+void LinuxSamplerPlugin::__requestSamplerToSwitchInstrument(gig::Instrument* pInstrument) {
+    if (!pInstrument) return;
+
+    LinuxSampler::EngineChannel* pEngineChannel = GetEngineChannel();
+    if (!pEngineChannel) return;
+
+    LinuxSampler::Engine* pEngine = pEngineChannel->GetEngine();
+    if (!pEngine) return;
+
+    LinuxSampler::InstrumentManager* pInstrumentManager = pEngine->GetInstrumentManager();
+    if (!pInstrumentManager) return;
+
+    gig::File* pFile = (gig::File*) pInstrument->GetParent();
+
+    // resolve instrument's index number in its gig file
+    int index = -1;
+    for (int i = 0; pFile->GetInstrument(i); ++i) {
+        if (pFile->GetInstrument(i) == pInstrument) {
+            index = i;
+            break;
+        }
+    }
+    if (index < 0) return;
+
+    LinuxSampler::InstrumentManager::instrument_id_t id;
+    id.FileName = pFile->GetFileName();
+    id.Index    = index;
+    pInstrumentManager->LoadInstrumentInBackground(id, pEngineChannel);
 }
 
 bool LinuxSamplerPlugin::IsTypeSupported(String sTypeName, String sTypeVersion) {

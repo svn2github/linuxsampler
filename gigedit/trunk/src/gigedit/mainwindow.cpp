@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 Andreas Persson
+ * Copyright (C) 2006-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -217,6 +217,14 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_action_warn_user_on_extensions)
     );
 
+    toggle_action =
+        Gtk::ToggleAction::create("SyncSamplerInstrumentSelection", _("Synchronize sampler's instrument selection"));
+    toggle_action->set_active(Settings::singleton()->syncSamplerInstrumentSelection);
+    actionGroup->add(
+        toggle_action,
+        sigc::mem_fun(*this, &MainWindow::on_action_sync_sampler_instrument_selection)
+    );
+
 
     actionGroup->add(Gtk::Action::create("MenuTools", _("_Tools")));
 
@@ -336,6 +344,7 @@ MainWindow::MainWindow() :
         "    </menu>"
         "    <menu action='MenuSettings'>"
         "      <menuitem action='WarnUserOnExtensions'/>"
+        "      <menuitem action='SyncSamplerInstrumentSelection'/>"
         "    </menu>"
         "    <menu action='MenuHelp'>"
         "      <menuitem action='About'/>"
@@ -394,6 +403,11 @@ MainWindow::MainWindow() :
         Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
             uiManager->get_widget("/MenuBar/MenuSettings/WarnUserOnExtensions"));
         item->set_tooltip_text(_("If checked, a warning will be shown whenever you try to use a feature which is based on a LinuxSampler extension ontop of the original gig format, which would not work with the Gigasampler/GigaStudio application."));
+    }
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuSettings/SyncSamplerInstrumentSelection"));
+        item->set_tooltip_text(_("If checked, the sampler's current instrument will automatically be switched whenever another instrument was selected in gigedit (only available in live-mode)."));
     }
     {
         Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
@@ -688,6 +702,10 @@ void MainWindow::on_sel_change()
     }
 
     m_RegionChooser.set_instrument(get_instrument());
+
+    if (Settings::singleton()->syncSamplerInstrumentSelection) {
+        switch_sampler_instrument_signal.emit(get_instrument());
+    }
 }
 
 void loader_progress_callback(gig::progress_t* progress)
@@ -1339,6 +1357,11 @@ void MainWindow::on_action_warn_user_on_extensions() {
         !Settings::singleton()->warnUserOnExtensions;
 }
 
+void MainWindow::on_action_sync_sampler_instrument_selection() {
+    Settings::singleton()->syncSamplerInstrumentSelection =
+        !Settings::singleton()->syncSamplerInstrumentSelection;
+}
+
 void MainWindow::on_action_help_about()
 {
     Gtk::AboutDialog dialog;
@@ -1348,7 +1371,7 @@ void MainWindow::on_action_help_about()
     dialog.set_name("Gigedit");
 #endif
     dialog.set_version(VERSION);
-    dialog.set_copyright("Copyright (C) 2006-2014 Andreas Persson");
+    dialog.set_copyright("Copyright (C) 2006-2015 Andreas Persson");
     const std::string sComment =
         _("Built " __DATE__ "\nUsing ") +
         ::gig::libraryName() + " " + ::gig::libraryVersion() + "\n\n" +
@@ -2996,6 +3019,12 @@ void MainWindow::set_file_is_shared(bool b) {
             Gdk::Pixbuf::create_from_xpm_data(status_detached_xpm)
         );
     }
+
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuSettings/SyncSamplerInstrumentSelection"));
+        if (item) item->set_sensitive(b);
+    }
 }
 
 void MainWindow::on_sample_ref_count_incremented(gig::Sample* sample, int offset) {
@@ -3096,4 +3125,8 @@ sigc::signal<void, int/*key*/, int/*velocity*/>& MainWindow::signal_keyboard_key
 
 sigc::signal<void, int/*key*/, int/*velocity*/>& MainWindow::signal_keyboard_key_released() {
     return m_RegionChooser.signal_keyboard_key_released();
+}
+
+sigc::signal<void, gig::Instrument*>& MainWindow::signal_switch_sampler_instrument() {
+    return switch_sampler_instrument_signal;
 }

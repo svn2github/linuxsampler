@@ -94,6 +94,9 @@ Version CVS HEAD (?)
   * Script Tree: Double click opens script editor.
   * Fixed potential crash if exception was thrown while opening a gig file.
   * Added support for visual progress bar while saving a gig file.
+  * Automatically switch the sampler's (audible) instrument whenever another
+    instrument was selected in gigedit (this default behavior can be switched
+    off in the settings menu of gigedit).
 
 Version 0.2.0 (2009-07-31)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2013 Andreas Persson
+ * Copyright (C) 2007-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -235,6 +235,9 @@ void connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {
     mainwindow->signal_keyboard_key_released().connect(
         gigedit->signal_keyboard_key_released().make_slot()
     );
+    mainwindow->signal_switch_sampler_instrument().connect(
+        gigedit->signal_switch_sampler_instrument().make_slot()
+    );
 }
 
 } // namespace
@@ -333,6 +336,10 @@ sigc::signal<void, int/*key*/, int/*velocity*/>& GigEdit::signal_keyboard_key_hi
 
 sigc::signal<void, int/*key*/, int/*velocity*/>& GigEdit::signal_keyboard_key_released() {
     return keyboard_key_released_signal;
+}
+
+sigc::signal<void, gig::Instrument*>& GigEdit::signal_switch_sampler_instrument() {
+    return switch_sampler_instrument_signal;
 }
 
 #ifdef OLD_THREADS

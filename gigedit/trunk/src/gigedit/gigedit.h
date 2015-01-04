@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2007-2011 Andreas Persson
+ * Copyright (C) 2007-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -45,6 +45,7 @@ public:
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& signal_sample_ref_changed();
     sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_hit();
     sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_released();
+    sigc::signal<void, gig::Instrument*>& signal_switch_sampler_instrument();
 
     void on_note_on_event(int key, int velocity);
     void on_note_off_event(int key, int velocity);
@@ -62,6 +63,7 @@ private:
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> sample_ref_changed_signal;
     sigc::signal<void, int/*key*/, int/*velocity*/> keyboard_key_hit_signal;
     sigc::signal<void, int/*key*/, int/*velocity*/> keyboard_key_released_signal;
+    sigc::signal<void, gig::Instrument*> switch_sampler_instrument_signal;
     void* state;
 };
 
