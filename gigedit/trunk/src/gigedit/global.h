@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2007-2013 Andreas Persson
+ * Copyright (C) 2007-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -39,6 +39,9 @@
 # define PACKAGE "gigedit"
 # define VERSION VER_STRING // VER_STRING defined in libgig_private.h
 #endif // WIN32
+
+#define UNICODE_RIGHT_ARROW     Glib::ustring(1, gunichar(0x2192))
+#define UNICODE_LEFT_ARROW      Glib::ustring(1, gunichar(0x2190))
 
 template<class T> inline std::string ToString(T o) {
     std::stringstream ss;

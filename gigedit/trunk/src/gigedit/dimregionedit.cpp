@@ -241,7 +241,7 @@ DimRegionEdit::DimRegionEdit() :
     eSampleLoopType(_("Loop type")),
     eSampleLoopInfinite(_("Infinite loop")),
     eSampleLoopPlayCount(_("Playback count"), 1),
-    buttonSelectSample(Glib::ustring("<- ") + _("Select Sample")),
+    buttonSelectSample(UNICODE_LEFT_ARROW + "  " + _("Select Sample")),
     update_model(0)
 {
     connect(eEG1PreAttack, &gig::DimensionRegion::EG1PreAttack);
