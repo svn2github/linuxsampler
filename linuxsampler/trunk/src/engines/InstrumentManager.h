@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2015 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -176,6 +176,8 @@ namespace LinuxSampler {
              *
              * This method has to be implemented by the descendant.
              *
+             * @param pEngineChannel - engine channel for which an instrument
+             *                         editor shall be launched for
              * @param ID - the instrument for which an editor should be
              *             spawned for
              * @param pUserData - (optional) arbitrary 3rd party user data
@@ -185,7 +187,7 @@ namespace LinuxSampler {
              * @throws InstrumentManagerException - in case no compatible
              *         instrument editor is registered to the sampler
              */
-            virtual InstrumentEditor* LaunchInstrumentEditor(instrument_id_t ID, void* pUserData = NULL) throw (InstrumentManagerException) = 0;
+            virtual InstrumentEditor* LaunchInstrumentEditor(EngineChannel* pEngineChannel, instrument_id_t ID, void* pUserData = NULL) throw (InstrumentManagerException) = 0;
 
             /**
              * Returns a list of instrument IDs of the provided instrument

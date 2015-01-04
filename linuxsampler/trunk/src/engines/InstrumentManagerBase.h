@@ -57,7 +57,7 @@ namespace LinuxSampler {
             InstrumentManagerBase() : AbstractInstrumentManager() { }
             virtual ~InstrumentManagerBase() { }
 
-            virtual InstrumentEditor* LaunchInstrumentEditor(instrument_id_t ID, void* pUserData = NULL) throw (InstrumentManagerException) OVERRIDE {
+            virtual InstrumentEditor* LaunchInstrumentEditor(EngineChannel* pEngineChannel, instrument_id_t ID, void* pUserData = NULL) throw (InstrumentManagerException) OVERRIDE {
                  throw InstrumentManagerException(
                     "Instrument editing is not supported for this instrument format"
                 );

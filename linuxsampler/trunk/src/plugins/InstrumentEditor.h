@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2007 - 2015 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -31,6 +31,7 @@ namespace LinuxSampler {
 
     // just symbol prototyping
     class InstrumentEditorListener;
+    class EngineChannel;
 
     /** @brief Instrument Editor Interface (external plugin)
      *
@@ -194,11 +195,26 @@ namespace LinuxSampler {
          * editor will be spawned in its own thread and this method will
          * return as soon as the editor's thread actually started.
          *
+         * @param pEngineChannel - the engine channel on which @a pInstrument is
+         *                         currently used on and for which the instrument
+         *                         editor shall be spawned for editing
+         * @param pInstrument - pointer to the respective instrument object
+         * @param sTypeName - format of the instrument data structure
+         *                    (i.e. @c "libgig" )
+         * @param sTypeVersion - version of the instrument data structure
+         *                       (i.e. @c "3.0.1" ).
          * @param pUserData - (optional) arbitrary 3rd party data that might
          *                    e.g. been passed by
          *                    InstrumentManager::LaunchInstrumentEditor()
          */
-        void Launch(void* pInstrument, String sTypeName, String sTypeVersion, void* pUserData = NULL);
+        void Launch(EngineChannel* pEngineChannel, void* pInstrument, String sTypeName, String sTypeVersion, void* pUserData = NULL);
+
+        /**
+         * Returns the EngineChannel for which this instrument editor was
+         * spawned for, for editing the respective instrument loaded on that
+         * EngineChannel.
+         */
+        EngineChannel* GetEngineChannel();
 
         /**
          * Registers object that wants to be notified on events.
@@ -230,6 +246,7 @@ namespace LinuxSampler {
         String   sTypeName;
         String   sTypeVersion;
         void*    pUserData;
+        EngineChannel* pEngineChannel;
     };
 
     /** @brief Instrument Editor Notifications

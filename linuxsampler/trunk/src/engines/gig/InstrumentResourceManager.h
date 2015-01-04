@@ -46,6 +46,7 @@ namespace LinuxSampler { namespace gig {
 #include "../../plugins/InstrumentEditor.h"
 
 namespace LinuxSampler { namespace gig {
+
     class Engine;
     class EngineChannel;
 
@@ -70,7 +71,7 @@ namespace LinuxSampler { namespace gig {
             virtual String GetInstrumentName(instrument_id_t ID);
             virtual String GetInstrumentDataStructureName(instrument_id_t ID);
             virtual String GetInstrumentDataStructureVersion(instrument_id_t ID);
-            virtual InstrumentEditor* LaunchInstrumentEditor(instrument_id_t ID, void* pUserData = NULL) throw (InstrumentManagerException);
+            virtual InstrumentEditor* LaunchInstrumentEditor(LinuxSampler::EngineChannel* pEngineChannel, instrument_id_t ID, void* pUserData = NULL) throw (InstrumentManagerException) OVERRIDE;
             virtual std::vector<instrument_id_t> GetInstrumentFileContent(String File) throw (InstrumentManagerException);
             virtual instrument_info_t GetInstrumentInfo(instrument_id_t ID) throw (InstrumentManagerException);
 

@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2007 - 2015 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -30,18 +30,20 @@ namespace LinuxSampler {
     InstrumentEditor::InstrumentEditor() : Thread(false, false, -1, 0) {
         pInstrument = NULL;
         pUserData   = NULL;
+        pEngineChannel = NULL;
     }
 
     InstrumentEditor::~InstrumentEditor() {
     }
 
-    void InstrumentEditor::Launch(void* pInstrument, String sTypeName, String sTypeVersion, void* pUserData) {
+    void InstrumentEditor::Launch(EngineChannel* pEngineChannel, void* pInstrument, String sTypeName, String sTypeVersion, void* pUserData) {
         dmsg(1,("InstrumentEditor::Launch(instr=%x,type=%s,version=%s)\n", pInstrument, sTypeName.c_str(), sTypeVersion.c_str()));
         // prepare the editor's mandatory parameters
         this->pInstrument  = pInstrument;
         this->sTypeName    = sTypeName;
         this->sTypeVersion = sTypeVersion;
         this->pUserData    = pUserData;
+        this->pEngineChannel = pEngineChannel;
         // start the editor in its own thread
         StartThread();
     }
@@ -63,6 +65,10 @@ namespace LinuxSampler {
         );
         // done
         return iResult;
+    }
+
+    EngineChannel* InstrumentEditor::GetEngineChannel() {
+        return pEngineChannel;
     }
 
     void InstrumentEditor::AddListener(InstrumentEditorListener* pListener) {

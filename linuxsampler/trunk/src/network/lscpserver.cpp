@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2015 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -3153,7 +3153,7 @@ String LSCPServer::EditSamplerChannelInstrument(uint uiSamplerChannel) {
         InstrumentManager::instrument_id_t instrumentID;
         instrumentID.FileName = pEngineChannel->InstrumentFileName();
         instrumentID.Index    = pEngineChannel->InstrumentIndex();
-        pInstrumentManager->LaunchInstrumentEditor(instrumentID);
+        pInstrumentManager->LaunchInstrumentEditor(pEngineChannel, instrumentID);
     } catch (Exception e) {
         result.Error(e);
     }

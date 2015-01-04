@@ -339,6 +339,12 @@ Version CVS HEAD (?)
     - VST: implemented retrieval and switching of programs using the
       sampler's internal MIDI instrument mapping system
 
+  * Instrument editor interface:
+    - Changed instrument editor plugin interface, providing additional
+      informations like the EngineChannel for which the instrument editor was
+      spawned for. This allows the instrument editors to interact more actively
+      with the sampler.
+
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding
       the ALSA sequencer client name
