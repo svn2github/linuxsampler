@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014 Christian Schoenebeck
+    Copyright (c) 2014,2015 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -31,21 +31,23 @@ ReferencesView::ReferencesView(Gtk::Window& parent) :
 #endif
     m_descriptionLabel.set_text(_(
         "Selected sample is referenced by the following instruments and their "
-        "respective regions:"
+        "respective regions. Click on a reference below to jump directly to "
+        "its specific dimension region."
     ));
 
     m_refTreeModel = RefsTreeStore::create(m_columns);
     m_treeView.set_model(m_refTreeModel);
     m_treeView.set_tooltip_text(_(
-        "Amount of times the selected sample in question is referenced."
+        "Amount of times the selected sample in question is referenced. Click "
+        "to jump to the specific reference."
     ));
     m_treeView.append_column(_("Name"), m_columns.m_col_name);
     m_treeView.append_column(_("References"), m_columns.m_col_refcount);
     m_treeView.set_headers_visible(true);
-    //m_treeView.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
-    //m_treeView.get_selection()->signal_changed().connect(
-    //    sigc::mem_fun(*this, &ReferencesView::onSelectionChanged)
-    //);
+    m_treeView.get_selection()->set_mode(Gtk::SELECTION_SINGLE);
+    m_treeView.get_selection()->signal_changed().connect(
+        sigc::mem_fun(*this, &ReferencesView::onSelectionChanged)
+    );
 
     m_buttonBox.set_layout(Gtk::BUTTONBOX_END);
     m_buttonBox.set_border_width(5);
@@ -126,4 +128,42 @@ void ReferencesView::setSample(gig::Sample* sample) {
 
     // unfold all instruments by default
     m_treeView.expand_all();
+}
+
+void ReferencesView::onSelectionChanged() {
+    if (!m_sample) return;
+
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_treeView.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    Gtk::TreeModel::Row row = *it;
+    if (!it) return;
+    gig::Instrument* pInstrument = row[m_columns.m_col_instr];
+    gig::Region* pRegion = row[m_columns.m_col_region];
+    gig::DimensionRegion* pDimRgn = NULL;
+    if (pRegion) {
+        // pick the 1st dimension region of that region referencing the sample
+        for (int dr = 0; dr < pRegion->DimensionRegions && pRegion->pDimensionRegions[dr]; ++dr) {
+            if (pRegion->pDimensionRegions[dr]->pSample == m_sample) {
+                pDimRgn = pRegion->pDimensionRegions[dr];
+                break;
+            }
+        }
+    } else if (pInstrument) {
+        // pick the 1st region and its 1st dimension region referencing the sample
+        for (pRegion = pInstrument->GetFirstRegion(); pRegion; pRegion = pInstrument->GetNextRegion()) {
+            for (int dr = 0; dr < pRegion->DimensionRegions && pRegion->pDimensionRegions[dr]; ++dr) {
+                if (pRegion->pDimensionRegions[dr]->pSample == m_sample) {
+                    pDimRgn = pRegion->pDimensionRegions[dr];
+                    break;
+                }
+            }
+        }
+    } else {
+        return; // no dimension region resolved to be selected, so do nothing
+    }
+
+    if (pDimRgn) {
+        bool selectionSuccess = dimension_region_selected.emit(pDimRgn);
+        if (selectionSuccess) hide();
+    }
 }

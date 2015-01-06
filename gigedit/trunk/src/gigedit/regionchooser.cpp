@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 Andreas Persson
+ * Copyright (C) 2006-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -619,6 +619,13 @@ gig::Region* RegionChooser::get_region(int key)
         if (key <= r->KeyRange.high) return r;
     }
     return 0;
+}
+
+void RegionChooser::set_region(gig::Region* region) {
+    this->region = region;
+    queue_draw();
+    region_selected();
+    dimensionManager.set_region(region);
 }
 
 void RegionChooser::motion_resize_region(int x, int y)

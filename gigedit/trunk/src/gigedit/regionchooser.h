@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2011 Andreas Persson
+ * Copyright (C) 2006-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -73,6 +73,7 @@ public:
     sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_released();
 
     gig::Region* get_region() { return region; }
+    void set_region(gig::Region* region);
 
     void on_note_on_event(int key, int velocity);
     void on_note_off_event(int key, int velocity);

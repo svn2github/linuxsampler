@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014 Christian Schoenebeck
+    Copyright (c) 2014,2015 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -21,6 +21,14 @@ class ReferencesView : public Gtk::Dialog {
 public:
     ReferencesView(Gtk::Window& parent);
     void setSample(gig::Sample* sample);
+
+    // When the user single clicked on a sample reference on this reference
+    // view dialog, then this signal is emitted and the dimension region editor
+    // shall select the respective, instrument, region and dimension region for
+    // further editing. The editor shall return true if selection was successful
+    // or should return false on errors.
+    sigc::signal<bool, gig::DimensionRegion*> dimension_region_selected;
+
 protected:
     gig::Sample* m_sample;
 
@@ -64,6 +72,8 @@ protected:
     };
 
     Glib::RefPtr<RefsTreeStore>  m_refTreeModel;
+
+    void onSelectionChanged();
 };
 
 #endif // GIGEDIT_REFERENCESVIEW_H

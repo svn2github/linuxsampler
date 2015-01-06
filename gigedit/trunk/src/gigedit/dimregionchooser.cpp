@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 Andreas Persson
+ * Copyright (C) 2006-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -931,6 +931,58 @@ bool DimRegionChooser::onKeyReleased(GdkEventKey* key) {
     //printf("key up\n");
     if (key->keyval == GDK_KEY_Control_L || key->keyval == GDK_KEY_Control_R)
         multiSelectKeyDown = false;
+}
+
+void DimRegionChooser::resetSelectedZones() {
+    this->dimzones.clear();
+    if (!region) {
+        queue_draw(); // redraw required parts
+        return;
+    }
+    if (maindimregno < 0 || maindimregno >= region->DimensionRegions) {
+        queue_draw(); // redraw required parts
+        return;
+    }
+    if (!region->pDimensionRegions[maindimregno]) {
+        queue_draw(); // redraw required parts
+        return;
+    }
+    gig::DimensionRegion* dimrgn = region->pDimensionRegions[maindimregno];
+
+    bool isValidZone;
+    this->maindimcase = caseOfDimRegion(dimrgn, &isValidZone);
+    if (!isValidZone) {
+        queue_draw(); // redraw required parts
+        return;
+    }
+
+    for (std::map<gig::dimension_t,int>::const_iterator it = this->maindimcase.begin();
+         it != this->maindimcase.end(); ++it)
+    {
+        this->dimzones[it->first].insert(it->second);
+    }
+
+    // redraw required parts
+    queue_draw();
+}
+
+bool DimRegionChooser::select_dimregion(gig::DimensionRegion* dimrgn) {
+    if (!region) return false; //.selection failed
+
+    for (int dr = 0; dr < region->DimensionRegions && region->pDimensionRegions[dr]; ++dr) {
+        if (region->pDimensionRegions[dr] == dimrgn) {
+            // reset dim region zone selection to the requested specific dim region case
+            maindimregno = dr;
+            resetSelectedZones();
+
+            // emit signal that dimregion selection has changed, for external entities
+            dimregion_selected();
+
+            return true; // selection success
+        }
+    }
+
+    return false; //.selection failed
 }
 
 gig::DimensionRegion* DimRegionChooser::get_main_dimregion() const {

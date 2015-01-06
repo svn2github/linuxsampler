@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2014 Andreas Persson
+ * Copyright (C) 2006-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -46,6 +46,7 @@ public:
     gig::DimensionRegion* get_main_dimregion() const;
     void get_dimregions(const gig::Region* region, bool stereo,
                         std::set<gig::DimensionRegion*>& dimregs) const;
+    bool select_dimregion(gig::DimensionRegion* dimrgn);
 
 protected:
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
@@ -62,6 +63,7 @@ protected:
     void refresh_all();
     void split_dimension_zone();
     void delete_dimension_zone();
+    void resetSelectedZones();
 
     Gdk::RGBA red, black, white;
 

@@ -503,7 +503,7 @@ MainWindow::MainWindow() :
     m_TreeViewScripts.signal_button_press_event().connect_notify(
         sigc::mem_fun(*this, &MainWindow::on_script_treeview_button_release)
     );
-    //FIXME: why the heck does this double click signal_row_activated() only fired while CTRL key is pressed ?
+    //FIXME: why the heck does this double click signal_row_activated() only fire while CTRL key is pressed ?
     m_TreeViewScripts.signal_row_activated().connect(
         sigc::mem_fun(*this, &MainWindow::script_double_clicked)
     );
@@ -1893,6 +1893,39 @@ void MainWindow::on_instrument_selection_change(Gtk::RadioMenuItem* item) {
     }
 }
 
+/// Returns true if requested dimension region was successfully selected and scrolled to in the list view, false on error.
+bool MainWindow::select_dimension_region(gig::DimensionRegion* dimRgn) {
+    gig::Region* pRegion = (gig::Region*) dimRgn->GetParent();
+    gig::Instrument* pInstrument = (gig::Instrument*) pRegion->GetParent();
+
+    Glib::RefPtr<Gtk::TreeModel> model = m_TreeView.get_model();
+    for (int i = 0; i < model->children().size(); ++i) {
+        Gtk::TreeModel::Row row = model->children()[i];
+        if (row[m_Columns.m_col_instr] == pInstrument) {
+            // select and show the respective instrument in the list view
+            show_intruments_tab();
+            m_TreeView.get_selection()->select(model->children()[i]);
+            Gtk::TreePath path(
+                m_TreeView.get_selection()->get_selected()
+            );
+            m_TreeView.scroll_to_row(path);
+            on_sel_change(); // the regular instrument selection change callback
+
+            // select respective region in the region selector
+            m_RegionChooser.set_region(pRegion);
+
+            // select and show the respective dimension region in the editor
+            //update_dimregs();
+            if (!m_DimRegionChooser.select_dimregion(dimRgn)) return false;
+            //dimreg_edit.set_dim_region(dimRgn);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void MainWindow::select_sample(gig::Sample* sample) {
     Glib::RefPtr<Gtk::TreeModel> model = m_TreeViewSamples.get_model();
     for (int g = 0; g < model->children().size(); ++g) {
@@ -2865,6 +2898,9 @@ void MainWindow::on_action_view_references() {
 
     ReferencesView* d = new ReferencesView(*this);
     d->setSample(sample);
+    d->dimension_region_selected.connect(
+        sigc::mem_fun(*this, &MainWindow::select_dimension_region)
+    );
     d->show_all();
     d->resize(500, 400);
     d->run();
