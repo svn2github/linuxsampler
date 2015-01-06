@@ -103,6 +103,9 @@ Version CVS HEAD (?)
   * Dimension Region Editor: Added button "Select Sample" on the sample tab,
     which allows to conveniently select the dimension region's sample on the
     left hand side's samples tree view.
+  * Sample Referenve View Dialog: Clicking on a reference in the list closes
+    the dialog and jumps directly to the respective instrument, region and
+    dimension region the respective sample reference is located at.
 
 Version 0.2.0 (2009-07-31)
 
