@@ -59,6 +59,8 @@ static void printUsage() {
     cout << endl;
     cout << "   --force-replace  Replace all old mono references by the new stereo ones." << endl;
     cout << endl;
+    cout << "   --incompatible   Also match sample pairs that seem to be incompatible." << endl;
+    cout << endl;
     cout << "   --keep           Keep orphaned mono samples after conversion." << endl;
     cout << endl;
     cout << "   -r               Recurse through subdirectories." << endl;
@@ -174,6 +176,14 @@ static string stripAudioChannelFromName(const string& s) {
     return s;
 }
 
+#define OPTIONAL_SKIP_CHECK() \
+    if (skipIncompatible) { \
+        cerr << " Skipping!\n"; \
+        continue; /* skip to convert this sample pair */ \
+    } else { \
+        cerr << " Merging anyway (upon request)!\n"; \
+    }
+
 /**
  * Converts .gig file given by @a path towards using true stereo interleaved
  * samples.
@@ -188,11 +198,15 @@ static string stripAudioChannelFromName(const string& s) {
  *                       mono, not stereo. By enabling this argument all those
  *                       old references will be replaced by the new stereo
  *                       sample reference instead as well.
+ * @param matchIncompatible - if set to true, only mono sample pairs will be
+ *                            qualified to be merged to true stereo samples if
+ *                            their main sample characteristics match, if set
+ *                            to true this sanity check will be skipped
  * @param verbosity - verbosity level, defines whether and how much additional
  *                    informations to be printed to the console while doing the
  *                    conversion (0 .. 2)
  */
-static bool convertFileToStereo(const string path, bool keep, bool forceReplace, int verbose) {
+static bool convertFileToStereo(const string path, bool keep, bool forceReplace, bool skipIncompatible, int verbose) {
     try {
         // open .gig file
         RIFF::File riff(path);
@@ -216,7 +230,7 @@ static bool convertFileToStereo(const string path, bool keep, bool forceReplace,
                             if (!rgn->pDimensionRegions[dr]->pSample) continue; // no sample assigned, ignore
                             if (rgn->pDimensionRegions[dr]->pSample->Channels != 1) continue; // seems already to be a true stereo sample, ignore
 
-                            const int channel = (dr & ~(1 << bits)) ? 1 : 0;
+                            const int channel = (dr & (1 << bits)) ? 1 : 0;
                             if (channel == 1) continue; // ignore right audio channel dimension region here
 
                             // so current dimension region is for left channel, so now get its matching right channel dimension region ...
@@ -282,45 +296,45 @@ static bool convertFileToStereo(const string path, bool keep, bool forceReplace,
             // bunch of sanity checks which ensure that both mono samples are
             // using the same base parameter characteristics
             if (pSampleL->SamplesPerSecond != pSampleR->SamplesPerSecond) {
-                cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different sample rate!\n";
-                continue; // skip to convert this sample pair
+                cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different sample rate! Skipping!\n";
+                continue;
             }
             if (pSampleL->FrameSize != pSampleR->FrameSize) {
-                cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different frame size!\n";
-                continue; // skip to convert this sample pair
+                cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different frame size! Skipping!\n";
+                continue;
             }
             if (pSampleL->MIDIUnityNote != pSampleR->MIDIUnityNote) {
-                cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different unity notes!\n";
-                continue; // skip to convert this sample pair
+                cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different unity notes!";
+                OPTIONAL_SKIP_CHECK();
             }
             if (pSampleL->FineTune != pSampleR->FineTune) {
-                cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different fine tune!\n";
-                continue; // skip to convert this sample pair
+                cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different fine tune!";
+                OPTIONAL_SKIP_CHECK();
             }
             if (pSampleL->Loops != pSampleR->Loops) {
-                cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop amount!\n";
+                cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop amount! Skipping!\n";
                 continue; // skip to convert this sample pair
             }
             if (pSampleL->Loops == 1 && pSampleR->Loops == 1) {
                 if (pSampleL->LoopType != pSampleR->LoopType) {
-                    cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop type!\n";
-                    continue; // skip to convert this sample pair
+                    cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop type!";
+                    OPTIONAL_SKIP_CHECK();
                 }
                 if (pSampleL->LoopStart != pSampleR->LoopStart) {
-                    cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop start!\n";
+                    cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop start! Skipping!\n";
                     continue; // skip to convert this sample pair
                 }
                 if (pSampleL->LoopEnd != pSampleR->LoopEnd) {
-                    cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop end!\n";
+                    cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop end! Skipping!\n";
                     continue; // skip to convert this sample pair
                 }
                 if (pSampleL->LoopSize != pSampleR->LoopSize) {
-                    cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop size!\n";
+                    cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop size! Skipping!\n";
                     continue; // skip to convert this sample pair
                 }
                 if (pSampleL->LoopPlayCount != pSampleR->LoopPlayCount) {
-                    cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop play count!\n";
-                    continue; // skip to convert this sample pair
+                    cerr << "WARNING: Sample pair ['" << pSampleL->pInfo->Name << "', '" << pSampleR->pInfo->Name << "'] with different loop play count!";
+                    OPTIONAL_SKIP_CHECK();
                 }
             }
 
@@ -564,6 +578,7 @@ int main(int argc, char *argv[]) {
     bool bOptionRecurse = false;
     bool bOptionKeep = false;
     bool bOptionForceReplace = false;
+    bool bOptionMatchIncompatible = false;
     int iVerbose = 0;
 
     // validate & parse arguments provided to this program
@@ -591,6 +606,9 @@ int main(int argc, char *argv[]) {
         } else if (opt == "--force-replace") {
             nOptions++;
             bOptionForceReplace = true;    
+        } else if (opt == "--incompatible") {
+            nOptions++;
+            bOptionMatchIncompatible = true;
         } else if (opt == "--verbose") {
             nOptions++;
             iVerbose = 1;
@@ -639,7 +657,10 @@ int main(int argc, char *argv[]) {
         for (set<string>::const_iterator it = g_files.begin(); it != g_files.end(); ++it, ++i) {
             cout << "Converting file " << (i+1) << "/" << int(g_files.size()) << ": " << *it << " ... " << flush;
             if (iVerbose) cout << endl;
-            bool bSuccess = convertFileToStereo(*it, bOptionKeep, bOptionForceReplace, iVerbose);
+            bool bSuccess = convertFileToStereo(
+                *it, bOptionKeep, bOptionForceReplace, !bOptionMatchIncompatible,
+                iVerbose
+            );
             if (!bSuccess) return EXIT_FAILURE;
             cout << "OK" << endl;
         }

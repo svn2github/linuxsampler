@@ -1,9 +1,9 @@
-.TH "gig2stereo" "1" "03 Jan 2015" "libgig @VERSION@" "libgig tools"
+.TH "gig2stereo" "1" "06 Jan 2015" "libgig @VERSION@" "libgig tools"
 .SH NAME
 gig2stereo \- Converts Gigasampler (.gig) files from mono pairs to true stereo.
 .SH SYNOPSIS
 .B gig2stereo
-[-v] [--verbose [LEVEL]] [-r] [--keep] [--force-replace] FILE_OR_DIR1 [ FILE_OR_DIR2 ... ]
+[ OPTIONS ] FILE_OR_DIR1 [ FILE_OR_DIR2 ... ]
 .SH DESCRIPTION
 Takes a list of Gigasampler (.gig) files and / or directories as argument(s) and
 converts the individual Gigasampler files from two separate mono sample pairs to
@@ -54,6 +54,23 @@ mix-down reasons, which are usually mono on live venues). By using
 --force-replace all those old mono sample references in question will also be
 replaced by the new stereo sample references.
 .TP
+.B \ --incompatible
+Also match incompatible mono samples as pairs. By default, when searching for
+potential mono samples that could be combined to true stereo samples, some
+sanity checks are performed. Thus if two mono samples have completely different
+characterstics (i.e. different fine tune setting, different loop types) then
+they are by default considered to be incompatible and will not be merged to a
+true stereo sample to avoid undesired audible errors in the modified file. Under
+certain circumstances you might want to circumvent this sanity check, for
+instance when you think that few cents fine tuning difference in the mono
+samples are no reason for you to not merge them into a stereo sample. In this
+case you can use this option to force the conversion. However certain
+fundamental incompatibilities are still not ignored, even if you use
+--incompatible, for example if the two mono samples have different bit depth,
+sample rate or loop start and loop end points, in such cases those mono samples
+will still not be merged to stereo samples, because the actual result of the
+merge under that condition will certainly not be desired.
+.TP
 .B \ --keep
 Keep old mono samples. By default old converted mono samples, if they are not
 referenced by any instrument anymore, will automatically be deleted after
@@ -77,6 +94,6 @@ numeric argument is optional, it allows to define the verbosity level
 .BR gigmerge(1)
 
 .SH "BUGS"
-None. Report bugs to http://bugs.linuxsampler.org
+Check and report bugs at http://bugs.linuxsampler.org
 .SH "Author"
-Written by Christian Schoenebeck <cuse@users.sf.net>
+Application and manual page written by Christian Schoenebeck <cuse@users.sf.net>
