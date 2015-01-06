@@ -947,6 +947,12 @@ bool MainWindow::close_confirmation_dialog()
     int response = dialog.run();
     dialog.hide();
 
+    // user decided to exit app without saving
+    if (response == Gtk::RESPONSE_NO) return true;
+
+    // user cancelled dialog, thus don't close app
+    if (response == Gtk::RESPONSE_CANCEL) return false;
+
     // TODO: the following return valid is disabled and hard coded instead for
     // now, due to the fact that saving with progress bar is now implemented
     // asynchronously, as a result the app does not close automatically anymore
