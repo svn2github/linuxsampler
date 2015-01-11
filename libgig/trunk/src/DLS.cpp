@@ -1281,7 +1281,7 @@ namespace DLS {
 
     void Instrument::MoveRegion(Region* pSrc, Region* pDst) {
         RIFF::List* lrgn = pCkInstrument->GetSubList(LIST_TYPE_LRGN);
-        lrgn->MoveSubChunk(pSrc->pCkRegion, pDst ? pDst->pCkRegion : 0);
+        lrgn->MoveSubChunk(pSrc->pCkRegion, (RIFF::Chunk*) (pDst ? pDst->pCkRegion : 0));
 
         pRegions->remove(pSrc);
         RegionList::iterator iter = find(pRegions->begin(), pRegions->end(), pDst);

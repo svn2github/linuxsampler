@@ -69,6 +69,9 @@ Version CVS HEAD (?)
     - added new method Script::GetGroup()
     - added new method Region::SetDimensionType()
     - Added support for custom progress notification while saving to gig file.
+    - Bugfix: Adding a new region in between two existing regions caused the
+      new one being dropped after save operation and the gig file being tainted
+      (chunks at wrong location in the RIFF tree).
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()
@@ -78,6 +81,9 @@ Version CVS HEAD (?)
       later on without passing a file name
     - added inline helper methods overlaps() for struct range_t
     - Added support for custom progress notification while saving to DLS file.
+    - Bugfix: Adding a new region in between two existing regions caused the
+      new one being dropped after save operation and the gig file being tainted
+      (chunks at wrong location in the RIFF tree).
 
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: avoid calling read() with count 0 when writing a file,
