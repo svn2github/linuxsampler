@@ -1169,7 +1169,7 @@ void MainWindow::on_saver_finished()
 
     file_structure_changed_signal.emit(this->file);
 
-    load_gig(this->file, this->filename.c_str());
+    __refreshEntireGUI();
     progress_dialog->hide();
 }
 
