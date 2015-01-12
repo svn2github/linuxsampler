@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2015 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -65,7 +65,7 @@
 # define CHUNK_ID_SCSL  0x4c534353 // own gig format extension
 #endif // WORDS_BIGENDIAN
 
-/** Gigasampler specific classes and definitions */
+/** Gigasampler/GigaStudio specific classes and definitions */
 namespace gig {
 
     typedef std::string String;
@@ -321,17 +321,47 @@ namespace gig {
     class Script;
     class ScriptGroup;
 
-    /** @brief Encapsulates articulation information of a dimension region.
+    /** @brief Encapsulates articulation informations of a dimension region.
      *
-     *  Every Gigasampler Instrument has at least one dimension region
-     *  (exactly then when it has no dimension defined).
+     * This is the most important data object of the Gigasampler / GigaStudio
+     * format. A DimensionRegion provides the link to the sample to be played
+     * and all required articulation informations to be interpreted for playing
+     * back the sample and processing it appropriately by the sampler software.
+     * Every Region of a Gigasampler Instrument has at least one dimension
+     * region (exactly then when the Region has no dimension defined). Many
+     * Regions though provide more than one DimensionRegion, which reflect
+     * different playing "cases". For example a different sample might be played
+     * if a certain pedal is pressed down, or if the note was triggered with
+     * different velocity.
      *
-     *  Gigasampler provides three Envelope Generators and Low Frequency
-     *  Oscillators:
+     * One instance of a DimensionRegion reflects exactly one particular case
+     * while playing an instrument (for instance "note between C3 and E3 was
+     * triggered AND note on velocity was between 20 and 42 AND modulation wheel
+     * controller is between 80 and 127). The DimensionRegion defines what to do
+     * under that one particular case, that is which sample to play back and how
+     * to play that sample back exactly and how to process it. So a
+     * DimensionRegion object is always linked to exactly one sample. It may
+     * however also link to no sample at all, for defining a "silence" case
+     * where nothing shall be played (for example when note on velocity was
+     * below 6).
+     *
+     * Note that a DimensionRegion object only defines "what to do", but it does
+     * not define "when to do it". To actually resolve which DimensionRegion to
+     * pick under which situation, you need to refer to the DimensionRegions'
+     * parent Region object. The Region object contains the necessary
+     * "Dimension" definitions, which in turn define which DimensionRegion is
+     * associated with which playing case exactly.
+     *
+     * The Gigasampler/GigaStudio format defines 3 Envelope Generators and 3
+     * Low Frequency Oscillators:
      *
      *  - EG1 and LFO1, both controlling sample amplitude
      *  - EG2 and LFO2, both controlling filter cutoff frequency
      *  - EG3 and LFO3, both controlling sample pitch
+     *
+     * Since the gig format was designed as extension to the DLS file format,
+     * this class is derived from the DLS::Sampler class. So also refer to
+     * DLS::Sampler for additional informations, class attributes and methods.
      */
     class DimensionRegion : protected DLS::Sampler {
         public:
@@ -573,7 +603,13 @@ namespace gig {
             double* CreateVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling);
     };
 
-    /** @brief Encapsulates sample waves used for playback.
+    /** @brief Encapsulates sample waves of Gigasampler/GigaStudio files used for playback.
+     *
+     * This class provides access to the actual audio sample data of a
+     * Gigasampler/GigaStudio file. Along to the actual sample data, it also
+     * provides access to the sample's meta informations like bit depth,
+     * sample rate, encoding type, but also loop informations. The latter may be
+     * used by instruments for resembling sounds with arbitary note lengths.
      *
      * In case you created a new sample with File::AddSample(), you should
      * first update all attributes with the desired meta informations
@@ -587,6 +623,10 @@ namespace gig {
      * retrieved from the respective DimensionRegon instead from the Sample
      * itself. This was made for allowing different loop definitions for the
      * same sample under different conditions.
+     *
+     * Since the gig format was designed as extension to the DLS file format,
+     * this class is derived from the DLS::Sample class. So also refer to
+     * DLS::Sample for additional informations, class attributes and methods.
      */
     class Sample : public DLS::Sample {
         public:
@@ -678,21 +718,25 @@ namespace gig {
     };
 
     // TODO: <3dnl> list not used yet - not important though (just contains optional descriptions for the dimensions)
-    /** @brief Defines Region information of an Instrument.
+    /** @brief Defines Region information of a Gigasampler/GigaStudio instrument.
      *
-     * A Region reflects a consecutive area on the keyboard. The individual
-     * regions in the gig format may not overlap with other regions (of the same
-     * instrument). Further, in the gig format a Region is merely a container
-     * for DimensionRegions (a.k.a. "Cases"). The Region itself does not provide
-     * the sample mapping or articulation informations used, even though the
-     * data structures indeed provide such informations. The latter is however
-     * just of historical nature, because the gig format was derived from the
-     * DLS format.
+     * A Region reflects a consecutive area (key range) on the keyboard. The
+     * individual regions in the gig format may not overlap with other regions
+     * (of the same instrument that is). Further, in the gig format a Region is
+     * merely a container for DimensionRegions (a.k.a. "Cases"). The Region
+     * itself does not provide the sample mapping or articulation informations
+     * used, even though the data structures of regions indeed provide such
+     * informations. The latter is however just of historical nature, because
+     * the gig file format was derived from the DLS file format.
      *
      * Each Region consists of at least one or more DimensionRegions. The actual
      * amount of DimensionRegions depends on which kind of "dimensions" are
      * defined for this region, and on the split / zone amount for each of those
      * dimensions.
+     *
+     * Since the gig format was designed as extension to the DLS file format,
+     * this class is derived from the DLS::Region class. So also refer to
+     * DLS::Region for additional informations, class attributes and methods.
      */
     class Region : public DLS::Region {
         public:
@@ -728,7 +772,48 @@ namespace gig {
             friend class Instrument;
     };
 
-    /** Abstract base class for all MIDI rules. */
+    /** @brief Abstract base class for all MIDI rules.
+     *
+     * Note: Instead of using MIDI rules, we recommend you using real-time
+     * instrument scripts instead. Read about the reasons below.
+     *
+     * MIDI Rules (also called "iMIDI rules" or "intelligent MIDI rules") were
+     * introduced with GigaStudio 4 as an attempt to increase the power of
+     * potential user controls over sounds. At that point other samplers already
+     * supported certain powerful user control features, which were not possible
+     * with GigaStudio yet. For example triggering new notes by MIDI CC
+     * controller.
+     *
+     * Such extended features however were usually implemented by other samplers
+     * by requiring the sound designer to write an instrument script which the
+     * designer would then bundle with the respective instrument file. Such
+     * scripts are essentially text files, using a very specific programming 
+     * language for the purpose of controlling the sampler in real-time. Since
+     * however musicians are not typically keen to writing such cumbersome
+     * script files, the GigaStudio designers decided to implement such extended
+     * features completely without instrument scripts. Instead they created a
+     * set of rules, which could be defined and altered conveniently by mouse
+     * clicks in GSt's instrument editor application. The downside of this
+     * overall approach however, was that those MIDI rules were very limited in
+     * practice. As sound designer you easily came across the possiblities such
+     * MIDI rules were able to offer.
+     *
+     * Due to such severe use case constraints, support for MIDI rules is quite
+     * limited in libgig. At the moment only the "Control Trigger", "Alternator"
+     * and the "Legato" MIDI rules are supported by libgig. Consequently the
+     * graphical instrument editor application gigedit just supports the
+     * "Control Trigger" and "Legato" MIDI rules, and LinuxSampler even does not
+     * support any MIDI rule type at all and LinuxSampler probably will not
+     * support MIDI rules in future either.
+     *
+     * Instead of using MIDI rules, we introduced real-time instrument scripts
+     * as extension to the original GigaStudio file format. This script based
+     * solution is much more powerful than MIDI rules and is already supported
+     * by libgig, gigedit and LinuxSampler.
+     *
+     * @deprecated Just provided for backward compatiblity, use Script for new
+     *             instruments instead.
+     */
     class MidiRule {
         public:
             virtual ~MidiRule() { }
@@ -737,7 +822,19 @@ namespace gig {
             friend class Instrument;
     };
 
-    /** MIDI rule for triggering notes by control change events. */
+    /** @brief MIDI rule for triggering notes by control change events.
+     *
+     * A "Control Trigger MIDI rule" allows to trigger new notes by sending MIDI
+     * control change events to the sampler.
+     *
+     * Note: "Control Trigger" MIDI rules are only supported by gigedit, but not
+     * by LinuxSampler. We recommend you using real-time instrument scripts
+     * instead. Read more about the details and reasons for this in the
+     * description of the MidiRule base class.
+     *
+     * @deprecated Just provided for backward compatiblity, use Script for new
+     *             instruments instead. See description of MidiRule for details.
+     */
     class MidiRuleCtrlTrigger : public MidiRule {
         public:
             uint8_t ControllerNumber;   ///< MIDI controller number.
@@ -759,7 +856,26 @@ namespace gig {
             friend class Instrument;
     };
 
-    /** MIDI rule for instruments with legato samples. */
+    /** @brief MIDI rule for instruments with legato samples.
+     *
+     * A "Legato MIDI rule" allows playing instruments resembling the legato
+     * playing technique. In the past such legato articulations were tried to be
+     * simulated by pitching the samples of the instrument. However since
+     * usually a high amount of pitch is needed for legatos, this always sounded
+     * very artificial and unrealistic. The "Legato MIDI rule" thus uses another
+     * approach. Instead of pitching the samples, it allows the sound designer
+     * to bundle separate, additional samples for the individual legato
+     * situations and the legato rules defined which samples to be played in
+     * which situation.
+     *
+     * Note: "Legato MIDI rules" are only supported by gigedit, but not
+     * by LinuxSampler. We recommend you using real-time instrument scripts
+     * instead. Read more about the details and reasons for this in the
+     * description of the MidiRule base class.
+     *
+     * @deprecated Just provided for backward compatiblity, use Script for new
+     *             instruments instead. See description of MidiRule for details.
+     */
     class MidiRuleLegato : public MidiRule {
         public:
             uint8_t LegatoSamples;     ///< Number of legato samples per key in each direction (always 12)
@@ -780,7 +896,18 @@ namespace gig {
             friend class Instrument;
     };
 
-    /** MIDI rule to automatically cycle through specified sequences of different articulations. The instrument must be using the smartmidi dimension. */
+    /** @brief MIDI rule to automatically cycle through specified sequences of different articulations.
+     *
+     * The instrument must be using the smartmidi dimension.
+     *
+     * Note: "Alternator" MIDI rules are neither supported by gigedit nor by
+     * LinuxSampler. We recommend you using real-time instrument scripts
+     * instead. Read more about the details and reasons for this in the
+     * description of the MidiRule base class.
+     *
+     * @deprecated Just provided for backward compatiblity, use Script for new
+     *             instruments instead. See description of MidiRule for details.
+     */
     class MidiRuleAlternator : public MidiRule {
         public:
             uint8_t Articulations;     ///< Number of articulations in the instrument
@@ -821,7 +948,19 @@ namespace gig {
             friend class Instrument;
     };
 
-    /** A MIDI rule not yet implemented by libgig. */
+    /** @brief A MIDI rule not yet implemented by libgig.
+     *
+     * This class is currently used as a place holder by libgig for MIDI rule
+     * types which are not supported by libgig yet.
+     *
+     * Note: Support for missing MIDI rule types are probably never added to
+     * libgig. We recommend you using real-time instrument scripts instead.
+     * Read more about the details and reasons for this in the description of
+     * the MidiRule base class.
+     *
+     * @deprecated Just provided for backward compatiblity, use Script for new
+     *             instruments instead. See description of MidiRule for details.
+     */
     class MidiRuleUnknown : public MidiRule {
         protected:
             MidiRuleUnknown() { }
@@ -838,7 +977,8 @@ namespace gig {
      *
      * This is an extension of the GigaStudio format, thus a feature which was
      * not available in the GigaStudio 4 software. It is currently only
-     * supported by LinuxSampler and gigedit.
+     * supported by LinuxSampler and gigedit. Scripts will not load with the
+     * original GigaStudio software.
      */
     class Script {
         public:
@@ -907,7 +1047,21 @@ namespace gig {
             std::list<Script*>*  pScripts;
     };
 
-    /** Provides all neccessary information for the synthesis of an <i>Instrument</i>. */
+    /** @brief Provides access to a Gigasampler/GigaStudio instrument.
+     *
+     * This class provides access to Gigasampler/GigaStudio instruments
+     * contained in .gig files. A gig instrument is merely a set of keyboard
+     * ranges (called Region), plus some additional global informations about
+     * the instrument. The major part of the actual instrument definition used
+     * for the synthesis of the instrument is contained in the respective Region
+     * object (or actually in the respective DimensionRegion object being, see
+     * description of Region for details).
+     *
+     * Since the gig format was designed as extension to the DLS file format,
+     * this class is derived from the DLS::Instrument class. So also refer to
+     * DLS::Instrument for additional informations, class attributes and
+     * methods.
+     */
     class Instrument : protected DLS::Instrument {
         public:
             // derived attributes from DLS::Resource
@@ -979,16 +1133,12 @@ namespace gig {
             std::vector<_ScriptPooolRef>* pScriptRefs;
     };
 
-    /** @brief Group of Gigasampler objects
+    /** @brief Group of Gigasampler samples
      *
-     * Groups help to organize a huge collection of Gigasampler objects.
+     * Groups help to organize a huge collection of Gigasampler samples.
      * Groups are not concerned at all for the synthesis, but they help
      * sound library developers when working on complex instruments with an
      * instrument editor (as long as that instrument editor supports it ;-).
-     *
-     * At the moment, it seems as only samples can be grouped together in
-     * the Gigasampler format yet. If this is false in the meantime, please
-     * tell us !
      *
      * A sample is always assigned to exactly one Group. This also means
      * there is always at least one Group in a .gig file, no matter if you
@@ -1012,7 +1162,42 @@ namespace gig {
             RIFF::Chunk* pNameChunk; ///< '3gnm' chunk
     };
 
-    /** Parses Gigasampler files and provides abstract access to the data. */
+    /** @brief Provides convenient access to Gigasampler/GigaStudio .gig files.
+     *
+     * This is the entry class for accesing a Gigasampler/GigaStudio (.gig) file
+     * with libgig. It allows you to open existing .gig files, modifying them
+     * and saving them persistently either under the same file name or under a
+     * different location.
+     *
+     * A .gig file is merely a monolithic file. That means samples and the
+     * defintion of the virtual instruments are contained in the same file. A
+     * .gig file contains an arbitrary amount of samples, and an arbitrary
+     * amount of instruments which are referencing those samples. It is also
+     * possible to store samples in .gig files not being referenced by any
+     * instrument. This is not an error from the file format's point of view and
+     * it is actually often used in practice during the design phase of new gig
+     * instruments.
+     *
+     * So on toplevel of the gig file format you have:
+     *
+     * - A set of samples (see Sample).
+     * - A set of virtual instruments (see Instrument).
+     *
+     * And as extension to the original GigaStudio format, we added:
+     *
+     * - Real-time instrument scripts (see Script).
+     *
+     * Note that the latter however is only supported by libgig, gigedit and
+     * LinuxSampler. Scripts are not supported by the original GigaStudio
+     * software.
+     *
+     * All released Gigasampler/GigaStudio file format versions are supported
+     * (so from first Gigasampler version up to including GigaStudio 4).
+     *
+     * Since the gig format was designed as extension to the DLS file format,
+     * this class is derived from the DLS::File class. So also refer to
+     * DLS::File for additional informations, class attributes and methods.
+     */
     class File : protected DLS::File {
         public:
             static const DLS::version_t VERSION_2;
