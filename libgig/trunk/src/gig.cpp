@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2015 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -4633,6 +4633,63 @@ namespace {
         DLS::Instrument::DeleteRegion((DLS::Region*) pRegion);
         // update Region key table for fast lookup
         UpdateRegionKeyTable();
+    }
+
+    /**
+     * Move this instrument at the position before @arg dst.
+     *
+     * This method can be used to reorder the sequence of instruments in a
+     * .gig file. This might be helpful especially on large .gig files which
+     * contain a large number of instruments within the same .gig file. So
+     * grouping such instruments to similar ones, can help to keep track of them
+     * when working with such complex .gig files.
+     *
+     * When calling this method, this instrument will be removed from in its
+     * current position in the instruments list and moved to the requested
+     * target position provided by @param dst. You may also pass NULL as
+     * argument to this method, in that case this intrument will be moved to the
+     * very end of the .gig file's instrument list.
+     *
+     * You have to call Save() to make the order change persistent to the .gig
+     * file.
+     *
+     * Currently this method is limited to moving the instrument within the same
+     * .gig file. Trying to move it to another .gig file by calling this method
+     * will throw an exception.
+     *
+     * @param dst - destination instrument at which this instrument will be
+     *              moved to, or pass NULL for moving to end of list
+     * @throw gig::Exception if this instrument and target instrument are not
+     *                       part of the same file
+     */
+    void Instrument::MoveTo(Instrument* dst) {
+        if (dst && GetParent() != dst->GetParent())
+            throw Exception(
+                "gig::Instrument::MoveTo() can only be used for moving within "
+                "the same gig file."
+            );
+
+        File* pFile = (File*) GetParent();
+
+        // move this instrument within the instrument list
+        {
+            DLS::File::InstrumentList& list = *pFile->pInstruments;
+
+            DLS::File::InstrumentList::iterator itFrom =
+                std::find(list.begin(), list.end(), static_cast<DLS::Instrument*>(this));
+
+            DLS::File::InstrumentList::iterator itTo =
+                std::find(list.begin(), list.end(), static_cast<DLS::Instrument*>(dst));
+
+            list.splice(itTo, list, itFrom);
+        }
+
+        // move the instrument's actual list RIFF chunk appropriately
+        RIFF::List* lstCkInstruments = pFile->pRIFF->GetSubList(LIST_TYPE_LINS);
+        lstCkInstruments->MoveSubChunk(
+            this->pCkInstrument,
+            (dst) ? dst->pCkInstrument : NULL
+        );
     }
 
     /**

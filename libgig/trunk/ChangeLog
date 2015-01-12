@@ -72,6 +72,8 @@ Version CVS HEAD (?)
     - Bugfix: Adding a new region in between two existing regions caused the
       new one being dropped after save operation and the gig file being tainted
       (chunks at wrong location in the RIFF tree).
+    - Added new method Instrument::MoveTo() which allows to rearrange the order
+      of instruments within the same gig file.
 
   * src/DLS.cpp, src/DLS.h:
     - added new method File::GetFileName()

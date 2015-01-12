@@ -3,7 +3,7 @@
 
 m4_define(libgig_release_major, 3)
 m4_define(libgig_release_minor, 3)
-m4_define(libgig_release_build, 0.svn25)
+m4_define(libgig_release_build, 0.svn26)
 
 
 AC_INIT([libgig],[libgig_release_major.libgig_release_minor.libgig_release_build])

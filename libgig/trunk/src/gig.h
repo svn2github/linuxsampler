@@ -1090,6 +1090,7 @@ namespace gig {
             Region*   GetNextRegion();
             Region*   AddRegion();
             void      DeleteRegion(Region* pRegion);
+            void      MoveTo(Instrument* dst);
             virtual void UpdateChunks(progress_t* pProgress);
             virtual void CopyAssign(const Instrument* orig);
             // own methods
@@ -1259,6 +1260,7 @@ namespace gig {
             void SetSampleChecksum(Sample* pSample, uint32_t crc);
             friend class Region;
             friend class Sample;
+            friend class Instrument;
             friend class Group; // so Group can access protected member pRIFF
             friend class ScriptGroup; // so ScriptGroup can access protected member pRIFF
         private:
