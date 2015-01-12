@@ -448,7 +448,7 @@ MainWindow::MainWindow() :
     // Create the Tree model:
     m_refTreeModel = Gtk::ListStore::create(m_Columns);
     m_TreeView.set_model(m_refTreeModel);
-    m_TreeView.set_tooltip_text(_("Right click here for actions on instruments & MIDI Rules."));
+    m_TreeView.set_tooltip_text(_("Right click here for actions on instruments & MIDI Rules. Drag & drop to change the order of instruments."));
     instrument_name_connection = m_refTreeModel->signal_row_changed().connect(
         sigc::mem_fun(*this, &MainWindow::instrument_name_changed)
     );
@@ -456,6 +456,24 @@ MainWindow::MainWindow() :
     // Add the TreeView's view columns:
     m_TreeView.append_column_editable("Instrument", m_Columns.m_col_name);
     m_TreeView.set_headers_visible(false);
+    
+    // establish drag&drop within the instrument tree view, allowing to reorder
+    // the sequence of instruments within the gig file
+    {
+        std::vector<Gtk::TargetEntry> drag_target_instrument;
+        drag_target_instrument.push_back(Gtk::TargetEntry("gig::Instrument"));
+        m_TreeView.drag_source_set(drag_target_instrument);
+        m_TreeView.drag_dest_set(drag_target_instrument);
+        m_TreeView.signal_drag_begin().connect(
+            sigc::mem_fun(*this, &MainWindow::on_instruments_treeview_drag_begin)
+        );
+        m_TreeView.signal_drag_data_get().connect(
+            sigc::mem_fun(*this, &MainWindow::on_instruments_treeview_drag_data_get)
+        );
+        m_TreeView.signal_drag_data_received().connect(
+            sigc::mem_fun(*this, &MainWindow::on_instruments_treeview_drop_drag_data_received)
+        );
+    }
 
     // create samples treeview (including its data model)
     m_refSamplesTreeModel = SamplesTreeStore::create(m_SamplesModel);
@@ -1893,6 +1911,25 @@ void MainWindow::on_instrument_selection_change(Gtk::RadioMenuItem* item) {
     }
 }
 
+void MainWindow::select_instrument(gig::Instrument* instrument) {
+    if (!instrument) return;
+
+    Glib::RefPtr<Gtk::TreeModel> model = m_TreeView.get_model();
+    for (int i = 0; i < model->children().size(); ++i) {
+        Gtk::TreeModel::Row row = model->children()[i];
+        if (row[m_Columns.m_col_instr] == instrument) {
+            // select and show the respective instrument in the list view
+            show_intruments_tab();
+            m_TreeView.get_selection()->select(model->children()[i]);
+            Gtk::TreePath path(
+                m_TreeView.get_selection()->get_selected()
+            );
+            m_TreeView.scroll_to_row(path);
+            on_sel_change(); // the regular instrument selection change callback
+        }
+    }
+}
+
 /// Returns true if requested dimension region was successfully selected and scrolled to in the list view, false on error.
 bool MainWindow::select_dimension_region(gig::DimensionRegion* dimRgn) {
     gig::Region* pRegion = (gig::Region*) dimRgn->GetParent();
@@ -2674,6 +2711,62 @@ void MainWindow::on_scripts_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragC
     selection_data.set(selection_data.get_target(), 0/*unused*/,
                        (const guchar*)&script,
                        sizeof(script)/*length of data in bytes*/);
+}
+
+// see comment on on_sample_treeview_drag_begin()
+void MainWindow::on_instruments_treeview_drag_begin(const Glib::RefPtr<Gdk::DragContext>& context)
+{
+    first_call_to_drag_data_get = true;
+}
+
+void MainWindow::on_instruments_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&,
+                                                       Gtk::SelectionData& selection_data, guint, guint)
+{
+    if (!first_call_to_drag_data_get) return;
+    first_call_to_drag_data_get = false;
+
+    // get selected source instrument
+    gig::Instrument* src = NULL;
+    {
+        Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeView.get_selection();
+        Gtk::TreeModel::iterator it = sel->get_selected();
+        if (it) {
+            Gtk::TreeModel::Row row = *it;
+            src = row[m_Columns.m_col_instr];
+        }
+    }
+    if (!src) return;
+
+    // pass the source gig::Instrument as pointer
+    selection_data.set(selection_data.get_target(), 0/*unused*/, (const guchar*)&src,
+                       sizeof(src)/*length of data in bytes*/);
+}
+
+void MainWindow::on_instruments_treeview_drop_drag_data_received(
+    const Glib::RefPtr<Gdk::DragContext>& context, int x, int y,
+    const Gtk::SelectionData& selection_data, guint, guint time)
+{
+    gig::Instrument* src = *((gig::Instrument**) selection_data.get_data());
+    if (!src || selection_data.get_length() != sizeof(gig::Instrument*))
+        return;
+
+    gig::Instrument* dst = NULL;
+    {
+        Gtk::TreeModel::Path path;
+        const bool found = m_TreeView.get_path_at_pos(x, y, path);
+        if (!found) return;
+
+        Gtk::TreeModel::iterator iter = m_refTreeModel->get_iter(path);
+        if (!iter) return;
+        Gtk::TreeModel::Row row = *iter;
+        dst = row[m_Columns.m_col_instr];
+    }
+    if (!dst) return;
+
+    //printf("dragdrop received src=%s dst=%s\n", src->pInfo->Name.c_str(), dst->pInfo->Name.c_str());
+    src->MoveTo(dst);
+    __refreshEntireGUI();
+    select_instrument(src);
 }
 
 // For some reason drag_data_get gets called two times for each

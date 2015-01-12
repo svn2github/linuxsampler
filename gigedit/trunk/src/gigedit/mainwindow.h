@@ -233,6 +233,7 @@ protected:
     void on_sel_change();
     void region_changed();
     void dimreg_changed();
+    void select_instrument(gig::Instrument* instrument);
     bool select_dimension_region(gig::DimensionRegion* dimRgn);
     void select_sample(gig::Sample* sample);
     void on_loader_progress();
@@ -410,6 +411,13 @@ protected:
     bool check_if_savable();
 
     void on_button_release(GdkEventButton* button);
+    void on_instruments_treeview_drag_begin(const Glib::RefPtr<Gdk::DragContext>& context);
+    void on_instruments_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&,
+                                               Gtk::SelectionData& selection_data, guint, guint);
+    void on_instruments_treeview_drop_drag_data_received(
+        const Glib::RefPtr<Gdk::DragContext>& context, int, int,
+        const Gtk::SelectionData& selection_data, guint, guint time
+    );
     void on_scripts_treeview_drag_begin(const Glib::RefPtr<Gdk::DragContext>& context);
     void on_scripts_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&,
                                            Gtk::SelectionData& selection_data, guint, guint);
