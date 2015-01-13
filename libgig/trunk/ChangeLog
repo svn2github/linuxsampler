@@ -108,6 +108,7 @@ Version CVS HEAD (?)
     - Added support for custom progress notification while saving to RIFF file.
     - Fixed embarrassing old bug: POSIX read() errors were never detected on
       Chunk::Read() calls due to signment incompatible variable. 
+    - Cleanup of an old DLL binary backward compatibility hack.
 
   * src/gigextract.cpp:
     - export sample loop, unity note and fine tune with libsndfile

@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2015 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -39,6 +39,7 @@
 #include <string>
 #include <list>
 #include <map>
+#include <set>
 #include <iostream>
 
 #ifdef HAVE_CONFIG_H
@@ -322,6 +323,7 @@ namespace RIFF {
         protected:
             typedef std::map<uint32_t, RIFF::Chunk*>  ChunkMap;
             typedef std::list<Chunk*>                 ChunkList;
+            typedef std::set<Chunk*>                  ChunkSet;
 
             uint32_t   ListType;
             ChunkList* pSubChunks;
@@ -383,7 +385,7 @@ namespace RIFF {
             friend class List;
         private:
             stream_mode_t  Mode;
-            ChunkList ResizedChunks; ///< All chunks which have been resized (enlarged / shortened).
+            ChunkSet ResizedChunks; ///< All chunks which have been resized (enlarged / shortened).
 
             void __openExistingFile(const String& path, uint32_t* FileType = NULL);
             unsigned long GetFileSize();

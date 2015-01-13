@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2015 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -1475,10 +1475,6 @@ namespace RIFF {
 // *************** File ***************
 // *
 
-//HACK: to avoid breaking DLL compatibility to older versions of libgig we roll the new std::set<Chunk*> into the old std::list<Chunk*> container, should be replaced on member variable level soon though
-#define _GET_RESIZED_CHUNKS() \
-	(reinterpret_cast<std::set<Chunk*>*>(ResizedChunks.front()))
-
     /** @brief Create new RIFF file.
      *
      * Use this constructor if you want to create a new RIFF file completely
@@ -1496,8 +1492,6 @@ namespace RIFF {
     File::File(uint32_t FileType)
         : List(this), bIsNewFile(true), Layout(layout_standard)
     {
-        //HACK: see _GET_RESIZED_CHUNKS() comment
-        ResizedChunks.push_back(reinterpret_cast<Chunk*>(new std::set<Chunk*>));
         #if defined(WIN32)
         hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
         #else
@@ -1585,8 +1579,7 @@ namespace RIFF {
      *                         given RIFF file or RIFF-alike file
      */
     void File::__openExistingFile(const String& path, uint32_t* FileType) {
-        //HACK: see _GET_RESIZED_CHUNKS() comment
-        ResizedChunks.push_back(reinterpret_cast<Chunk*>(new std::set<Chunk*>));
+        ResizedChunks.clear();
         #if POSIX
         hFileRead = hFileWrite = open(path.c_str(), O_RDONLY | O_NONBLOCK);
         if (hFileRead == -1) {
@@ -1814,8 +1807,7 @@ namespace RIFF {
 
         // first we sum up all positive chunk size changes (and skip all negative ones)
         unsigned long ulPositiveSizeDiff = 0;
-        std::set<Chunk*>* resizedChunks = _GET_RESIZED_CHUNKS();
-        for (std::set<Chunk*>::const_iterator iter = resizedChunks->begin(), end = resizedChunks->end(); iter != end; ++iter) {
+        for (std::set<Chunk*>::const_iterator iter = ResizedChunks.begin(), end = ResizedChunks.end(); iter != end; ++iter) {
             if ((*iter)->GetNewSize() == 0) {
                 throw Exception("There is at least one empty chunk (zero size): " + __resolveChunkPath(*iter));
             }
@@ -1886,7 +1878,7 @@ namespace RIFF {
         if (ulTotalSize < ulActualSize) ResizeFile(ulTotalSize);
 
         // forget all resized chunks
-        resizedChunks->clear();
+        ResizedChunks.clear();
 
         __notify_progress(pProgress, 1.0); // notify done
     }
@@ -1968,7 +1960,7 @@ namespace RIFF {
         if (ulTotalSize < ulActualSize) ResizeFile(ulTotalSize);
 
         // forget all resized chunks
-        _GET_RESIZED_CHUNKS()->clear();
+        ResizedChunks.clear();
 
         #if POSIX
         if (hFileWrite) close(hFileWrite);
@@ -2028,16 +2020,15 @@ namespace RIFF {
         #endif // POSIX
         DeleteChunkList();
         pFile = NULL;
-        //HACK: see _GET_RESIZED_CHUNKS() comment
-        delete _GET_RESIZED_CHUNKS();
+        ResizedChunks.clear();
     }
 
     void File::LogAsResized(Chunk* pResizedChunk) {
-        _GET_RESIZED_CHUNKS()->insert(pResizedChunk);
+        ResizedChunks.insert(pResizedChunk);
     }
 
     void File::UnlogResized(Chunk* pResizedChunk) {
-        _GET_RESIZED_CHUNKS()->erase(pResizedChunk);
+        ResizedChunks.erase(pResizedChunk);
     }
 
     unsigned long File::GetFileSize() {
