@@ -4688,7 +4688,7 @@ namespace {
         RIFF::List* lstCkInstruments = pFile->pRIFF->GetSubList(LIST_TYPE_LINS);
         lstCkInstruments->MoveSubChunk(
             this->pCkInstrument,
-            (dst) ? dst->pCkInstrument : NULL
+            (RIFF::Chunk*) ((dst) ? dst->pCkInstrument : NULL)
         );
     }
 
