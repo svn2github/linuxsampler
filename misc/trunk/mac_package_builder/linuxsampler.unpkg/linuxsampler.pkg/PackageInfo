@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pkg-info relocatable="false" auth="root" postinstall-action="none" version="1.0.0" install-location="/usr/local/" identifier='org.linuxsampler' overwrite-permissions="true" format-version="2">
+
+    <payload numberOfFiles='4' installKBytes='352'/>
+
+    <bundle-version/>
+
+    <upgrade-bundle/>
+
+    <update-bundle/>
+
+    <atomic-update-bundle/>
+
+    <strict-identifier/>
+
+    <relocate/>
+
+    <relocate/>
+
+    <scripts>
+    </scripts>
+</pkg-info>

@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pkg-info relocatable="false" auth="root" postinstall-action="none" version="1.0.0" install-location="/Library/Audio/Plug-Ins/Components/" identifier='org.linuxsampler.au' overwrite-permissions="true" format-version="2">
+
+    <payload numberOfFiles='10' installKBytes='396'/>
+
+    <bundle-version/>
+
+    <upgrade-bundle/>
+
+    <update-bundle/>
+
+    <atomic-update-bundle/>
+
+    <strict-identifier/>
+
+    <relocate/>
+
+    <relocate/>
+
+    <scripts>
+    </scripts>
+</pkg-info>

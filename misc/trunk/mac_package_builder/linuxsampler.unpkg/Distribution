@@ -1,0 +1,135 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<installer-gui-script minSpecVersion='1'>
+    <title>LinuxSampler</title>
+    <welcome file='welcome.rtf'/>
+    <license file='license.rtf'/>
+    <background file='linuxsampler_splash_bg.png' alignment='topleft' scaling='none'/>
+    <installation-check script='req_install_check();'/>
+    <options allow-external-scripts='yes' rootVolumeOnly='true' customize='allow'/>
+    <script>
+        function req_install_check() {
+            system.log("LinuxSampler installer launched ...");
+            if (!(system.version.ProductVersion >= '10.6.0')) {
+                my.result.title = 'Wrong Mac OS X Version';
+                my.result.message = 'You need at least Mac OS X 10.6.0 to install this software';
+                my.result.type = 'Fatal';
+                return false;
+            }
+            return true;
+        }
+
+        function req_libgig() {
+            return choices['libsampler'].selected ||
+                   choices['libgigedit'].selected ||
+                   choices['qsampler'].selected ||
+                   choices['linuxsampler'].selected ||
+                   choices['au_plugin'].selected ||
+                   choices['vst_plugin'].selected ||
+                   choices['gigedit'].selected;
+        }
+
+        function req_libsampler() {
+            return choices['linuxsampler'].selected ||
+                   choices['au_plugin'].selected ||
+                   choices['vst_plugin'].selected;
+        }
+
+        function req_codecs() {
+            return choices['libsampler'].selected ||
+                   choices['libgigedit'].selected ||
+                   choices['linuxsampler'].selected ||
+                   choices['au_plugin'].selected ||
+                   choices['vst_plugin'].selected ||
+                   choices['gigedit'].selected;
+        }
+
+        function req_libgigedit() {
+            return choices['gigedit'].selected;
+        }
+
+        function req_gtk() {
+            return choices['libgigedit'].selected ||
+                   choices['gigedit'].selected;
+        }
+    </script>
+
+    <pkg-ref auth='Admin' id='org.linuxsampler.libgig' version='3.3.0' installKBytes='1076' onConclusion='None'>#libgig.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.codecs' version='1.0.0' installKBytes='8580' onConclusion='None'>#codecs.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.libgtk' version='2.0.0' installKBytes='36412' onConclusion='None'>#libgtk.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.liblinuxsampler' version='1.0.0' installKBytes='11072' onConclusion='None'>#liblinuxsampler.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.libgigedit' version='0.2.0' installKBytes='4368' onConclusion='None'>#libgigedit.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.au' version='1.0.0' installKBytes='396' onConclusion='None'>#linuxsampler_au.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.vst' version='1.0.0' installKBytes='224' onConclusion='None'>#linuxsampler_vst.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.qsampler' version='0.2.3' installKBytes='33116' onConclusion='None'>#qsampler.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler' version='1.0.0' installKBytes='352' onConclusion='None'>#linuxsampler.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.gigedit' version='0.2.0' installKBytes='56' onConclusion='None'>#gigedit.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.fantasia' version='0.9.0' installKBytes='4324' onConclusion='None'>#fantasia.pkg</pkg-ref>
+
+    <choice start_selected='true' start_enabled='false' title='libgig 3.3.0' id='libgig' start_visible='true' description='LIBGIG_DESCR' selected='req_libgig();'>
+        <pkg-ref id='org.linuxsampler.libgig'/>
+    </choice>
+
+    <choice start_selected='true' start_enabled='false' title='Audio Codecs' id='codecs' start_visible='true' description='CODECS_DESCR' selected='req_codecs();'>
+        <pkg-ref id='org.linuxsampler.codecs'/>
+    </choice>
+
+    <choice start_selected='true' start_enabled='false' title='GTK 2' id='libgtk' start_visible='true' description='GTK_DESCR' selected='req_gtk();'>
+        <pkg-ref id='org.linuxsampler.libgtk'/>
+    </choice>
+
+    <choice start_selected='false' start_enabled='false' title='LinuxSampler 1.0.0 (DLL)' id='libsampler' start_visible='true' description='LINUXSAMPLER_DLL_DESCR' selected='req_libsampler();'>
+        <pkg-ref id='org.linuxsampler.liblinuxsampler'/>
+    </choice>
+
+    <choice start_selected='true' start_enabled='false' title='libgigedit 0.2.0' id='libgigedit' start_visible='true' description='LIBGIGEDIT_DESCR' selected='req_libgigedit();'>
+        <pkg-ref id='org.linuxsampler.libgigedit'/>
+    </choice>
+
+    <choice start_selected='true' start_enabled='true' title='Audio Unit (AU) Plugin' id='au_plugin' start_visible='true' description='AU_DESCR'>
+        <pkg-ref id='org.linuxsampler.au'/>
+    </choice>
+
+    <choice start_selected='true' start_enabled='true' title='VST Plugin' id='vst_plugin' start_visible='true' description='VST_DESCR'>
+        <pkg-ref id='org.linuxsampler.vst'/>
+    </choice>
+
+    <choice start_selected='true' start_enabled='true' title='QSampler 0.2.3' id='qsampler' start_visible='true' description='QSAMPLER_DESCR'>
+        <pkg-ref id='org.linuxsampler.qsampler'/>
+    </choice>
+
+    <choice start_selected='true' start_enabled='true' title='Stand-Alone Backend' id='linuxsampler' start_visible='true' description='LINUXSAMPLER_BACKEND_DESCR'>
+        <pkg-ref id='org.linuxsampler'/>
+    </choice>
+
+    <choice start_selected='true' start_enabled='true' title='GigEdit 0.2.0' id='gigedit' start_visible='true' description='GIGEDIT_DESCR'>
+        <pkg-ref id='org.linuxsampler.gigedit'/>
+    </choice>
+
+    <choice start_selected='true' start_enabled='true' title='Fantasia 0.9.0' id='fantasia' start_visible='true' description='FANTASIA_DESCR'>
+        <pkg-ref id='org.linuxsampler.fantasia'/>
+    </choice>
+
+    <choice start_selected='true' start_enabled='true' title='LinuxSampler 1.0.0' id='linuxsampler_group' start_visible='true' description='LINUXSAMPLER_GROUP_DESCR' />
+    <choice start_selected='true' start_enabled='false' title='3rd-party DLLs' id='3rd_libs_group' start_visible='true' description='3RD_PARTY_DLLS_DESCR' />
+    <choice start_selected='true' start_enabled='false' title='Program Libraries (DLLs)' id='libs_group' start_visible='true' description='DLL_GROUP_DESCR' />
+
+    <choices-outline>
+        <line choice='linuxsampler_group'>
+            <line choice='linuxsampler'/>
+            <line choice='au_plugin'/>
+            <line choice='vst_plugin'/>
+        </line>
+        <line choice='qsampler'/>
+        <line choice='fantasia'/>
+        <line choice='gigedit'/>
+        <line choice='libs_group'>
+            <line choice='libgig'/>
+            <line choice='libgigedit'/>
+            <line choice='libsampler'/>
+            <line choice='3rd_libs_group'>
+                <line choice='codecs'/>
+                <line choice='libgtk'/>
+            </line>
+        </line>
+    </choices-outline>
+</installer-gui-script>

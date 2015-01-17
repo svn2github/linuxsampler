@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pkg-info relocatable="false" auth="root" postinstall-action="none" version="0.9.0" install-location="/Applications/" identifier='org.linuxsampler.fantasia' overwrite-permissions="true" format-version="2">
+
+    <payload numberOfFiles='13' installKBytes='4324'/>
+
+    <bundle-version/>
+
+    <upgrade-bundle/>
+
+    <update-bundle/>
+
+    <atomic-update-bundle/>
+
+    <strict-identifier/>
+
+    <relocate/>
+
+    <relocate/>
+
+    <scripts>
+    </scripts>
+</pkg-info>
