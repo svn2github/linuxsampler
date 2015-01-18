@@ -150,7 +150,7 @@ dlib="$PWD/components/$component.pkg/lib"
 mkdir -p $dlib
 (
     cd $D/lib/
-    for f in `ls -d gdk* gtk* locale/*/LC_MESSAGES/gtk20.mo pango libatk* libcairo* libffi* libfont* libfreetype* libgailutil* libgdk* libgio* libglib* libgmodule* libgobject* libgthread* libgtk* libintl* libjpeg* libpango* libpixman* libpng* libgsigc* libtiff*`; do
+    for f in `ls -d gdk* gtk* locale/*/LC_MESSAGES/gtk20.mo pango libatk* libcairo* libffi* libfont* libfreetype* libgailutil* libgdk* libgio* libglib* libgmodule* libgobject* libgthread* libgtk* libintl* libjpeg* libpango* libpixman* libpng* libsigc* libtiff*`; do
         cp -r --parents $f $dlib
     done
 )
