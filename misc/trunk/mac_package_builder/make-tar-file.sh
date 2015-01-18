@@ -19,6 +19,7 @@ createuniv ()
 rm -rf linuxsampler_*
 rm -rf components
 rm -rf linuxsampler.prepkg
+rm -rf LinuxSampler.pkg
 mkdir -p "$D/LinuxSampler" "$D/lib"
 
 
