@@ -17,6 +17,8 @@ createuniv ()
 
 
 rm -rf linuxsampler_*
+rm -rf components
+rm -rf linuxsampler.prepkg
 mkdir -p "$D/LinuxSampler" "$D/lib"
 
 
@@ -106,6 +108,108 @@ cp /home/persson/macgtk64/share/locale/de/LC_MESSAGES/gtk20.mo "$D/lib/locale/de
 cp /home/persson/macgtk64/share/locale/sv/LC_MESSAGES/gtk20.mo "$D/lib/locale/sv/LC_MESSAGES"
 
 
-# package
+# generate OS X .pkg package / installer ...
 
-tar cjf "$D.tar.bz2" "$D"
+component="codecs"
+dlib="components/$component.pkg/lib"
+mkdir -p $dlib
+for f in `ls $D/lib/libFLAC* $D/lib/libogg* $D/lib/libsndfile* $D/lib/libvorbis*`; do
+    cp $f $dlib
+done
+
+component="fantasia"
+dlib="components/$component.pkg/LinuxSampler"
+mkdir -p $dlib
+cp -r $D/LinuxSampler/Fantasia.app $dlib
+
+component="gigedit"
+dlib="components/$component.pkg/LinuxSampler"
+mkdir -p $dlib
+cp -r $D/LinuxSampler/$component.app $dlib
+
+component="libgig"
+dlib="components/$component.pkg/lib"
+mkdir -p $dlib
+for f in `ls $D/lib/libgig.*`; do
+    cp $f $dlib
+done
+
+component="libgigedit"
+dlib="$PWD/components/$component.pkg/lib"
+mkdir -p $dlib
+(
+    cd $D/lib/
+    for f in `ls -d linuxsampler libgigedit* locale/*/LC_MESSAGES/gigedit.mo`; do
+        cp -r --parents $f $dlib
+    done
+)
+
+component="libgtk"
+dlib="$PWD/components/$component.pkg/lib"
+mkdir -p $dlib
+(
+    cd $D/lib/
+    for f in `ls -d gdk* gtk* locale/*/LC_MESSAGES/gtk20.mo pango libatk* libcairo* libffi* libfont* libfreetype* libgailutil* libgdk* libgio* libglib* libgmodule* libgobject* libgthread* libgtk* libintl* libjpeg* libpango* libpixman* libpng* libgsigc* libtiff*`; do
+        cp -r --parents $f $dlib
+    done
+)
+
+component="liblinuxsampler"
+dlib="components/$component.pkg/lib"
+mkdir -p $dlib
+for f in `ls $D/lib/liblinuxsampler*`; do
+    cp $f $dlib
+done
+mkdir -p "$dlib/linuxsampler/plugins"
+
+component="linuxsampler"
+dlib="components/$component.pkg/bin"
+mkdir -p $dlib
+for f in `ls $D/LinuxSampler/linuxsampler $D/LinuxSampler/lscp`; do
+    cp $f $dlib
+done
+
+component="linuxsampler_au"
+dlib="components/$component.pkg"
+mkdir -p $dlib
+cp -r $D/LinuxSamplerAU.component $dlib
+
+component="linuxsampler_vst"
+dlib="components/$component.pkg"
+mkdir -p $dlib
+cp -r $D/LinuxSampler.vst $dlib
+
+component="qsampler"
+dlib="components/$component.pkg/LinuxSampler"
+mkdir -p $dlib
+cp -r $D/LinuxSampler/$component.app $dlib
+
+
+mkdir linuxsampler.prepkg
+cp linuxsampler.unpkg/Distribution linuxsampler.prepkg
+rsync -r --exclude='.svn' linuxsampler.unpkg/Resources linuxsampler.prepkg
+(
+    cd components
+    for d in `ls -d *.pkg`; do
+        mkdir -p ../linuxsampler.prepkg/$d
+        (
+            cd $d
+            find . | cpio -o --format odc --owner 0:80 | gzip -c
+        ) > ../linuxsampler.prepkg/$d/Payload
+        mkbom -u 0 -g 80 $d ../linuxsampler.prepkg/$d/Bom
+        size_kb=`du -sk $d | cut -f 1`
+        entries_count=`find . | wc -l`
+        cp ../linuxsampler.unpkg/$d/PackageInfo ../linuxsampler.prepkg/$d
+        xmltxt=`xmlstarlet ed -u '/pkg-info/payload/@numberOfFiles' -v $entries_count ../linuxsampler.prepkg/$d/PackageInfo | xmlstarlet ed -u '/pkg-info/payload/@installKBytes' -v $size_kb -`
+        echo $xmltxt > ../linuxsampler.prepkg/$d/PackageInfo
+        identifier=`xmlstarlet sel -t -v '/pkg-info/@identifier' ../linuxsampler.prepkg/$d/PackageInfo`
+        xmltxt=`xmlstarlet ed -u "/installer-gui-script/pkg-ref[@id='$identifier']/@installKBytes" -v $size_kb ../linuxsampler.prepkg/Distribution`
+        echo $xmltxt > ../linuxsampler.prepkg/Distribution
+    done
+)
+(
+    cd linuxsampler.prepkg
+    xar --compression none -cf ../LinuxSampler.pkg .
+)
+
+tar cjf "$D.tar.bz2" README LinuxSampler.pkg

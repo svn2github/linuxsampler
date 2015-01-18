@@ -1,17 +1,24 @@
-This package contains snapshot builds of the LinuxSampler standalone
-application, the LinuxSampler VST and AU plugins and the Fantasia and
-QSampler GUI front-end applications.
+This package contains a snapshot build of the LinuxSampler standalone
+application, the LinuxSampler VST and AU plugins, the Fantasia and QSampler
+GUI front-end applications, the GigEdit instrument editor and some command
+line tools helpful with the sampler.
 
 Installation instructions
 =========================
 
-Copy the files in the lib folder to /usr/local/lib, or drag and drop
-the lib folder to your home folder. This step is required.
+Double click on LinuxSampler.pkg and follow the instruction of the installer.
 
-Drag and drop the LinuxSampler folder to /Applications.
+Some Notes
+==========
 
-If you want to use the AU plugin, drag and drop
-LinuxSamplerAU.component to /Library/Audio/Plug-Ins/Components.
+The required DLLs and command line tools will be installed to /usr/local/lib
+and /usr/local/bin respectively.
 
-If you want to use the VST plugin, drag and drop LinuxSampler.vst to
-/Library/Audio/Plug-Ins/VST.
+All GUI applications will be installed to /Applications/LinuxSampler.
+
+By default the AU plugin version of LinuxSampler will be installed to
+/Library/Audio/Plug-Ins/Components/LinuxSamplerAU.component
+
+
+And the VST plugin will be installed by default to
+/Library/Audio/Plug-Ins/VST/LinuxSampler.vst
