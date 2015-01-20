@@ -1,5 +1,17 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2015-01-18">
+    <link ref="http://download.linuxsampler.org/pix/screenshots/mac_installer_1.jpg" img="http://download.linuxsampler.org/pix/screenshots/mac_installer_1_240x169.jpg"></link>
+    For the Mac users out there: We finally have a convenient installer for the
+    OS X version of LinuxSampler. This is already integrated in our automatic
+    build system. So from now on all
+    <link ref="http://download.linuxsampler.org/packages/osx/snapshots/">daily snapshot builds for Mac</link>
+    are automatically built with an installer. By default the installer will
+    install all components (LinuxSampler stand-alone application, VST and
+    Audi Unit plugin version of LinuxSampler, QSampler, Fantasia, GigEdit and
+    command line tools. At step "Installation Type" you can however also
+    override the default installation and select which components to install.
+  </entry>
   <entry date="2014-06-19">
     <link ref="http://download.linuxsampler.org/packages/osx/snapshots/" img="gfx/logos/apple.png"></link>
     <link ref="http://download.linuxsampler.org/packages/osx/snapshots/">gigedit finally included with OS X snapshots!</link>
