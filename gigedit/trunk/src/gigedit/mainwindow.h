@@ -367,6 +367,7 @@ protected:
     void on_action_sample_properties();
     void on_action_add_group();
     void on_action_add_sample();
+    void on_action_replace_sample();
     void on_action_replace_all_samples_in_all_groups();
     void on_action_remove_sample();
     
@@ -447,6 +448,8 @@ protected:
     void on_sample_ref_changed(gig::Sample* oldSample, gig::Sample* newSample);
     void on_sample_ref_count_incremented(gig::Sample* sample, int offset);
     void on_samples_to_be_removed(std::list<gig::Sample*> samples);
+
+    void add_or_replace_sample(bool replace);
 
     void __import_queued_samples();
     void __clear();

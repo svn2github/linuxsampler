@@ -261,6 +261,11 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_action_view_references)
     );
     actionGroup->add(
+        Gtk::Action::create("ReplaceSample",
+                            _("Replace Sample...")),
+        sigc::mem_fun(*this, &MainWindow::on_action_replace_sample)
+    );
+    actionGroup->add(
         Gtk::Action::create("ReplaceAllSamplesInAllGroups",
                             _("Replace All Samples in All Groups...")),
         sigc::mem_fun(*this, &MainWindow::on_action_replace_all_samples_in_all_groups)
@@ -312,6 +317,7 @@ MainWindow::MainWindow() :
         "      <menuitem action='AddGroup'/>"
         "      <menuitem action='AddSample'/>"
         "      <menuitem action='ShowSampleRefs'/>"
+        "      <menuitem action='ReplaceSample' />"
         "      <menuitem action='ReplaceAllSamplesInAllGroups' />"
         "      <separator/>"
         "      <menuitem action='RemoveSample'/>"
@@ -364,6 +370,7 @@ MainWindow::MainWindow() :
         "    <menuitem action='AddGroup'/>"
         "    <menuitem action='AddSample'/>"
         "    <menuitem action='ShowSampleRefs'/>"
+        "    <menuitem action='ReplaceSample' />"
         "    <menuitem action='ReplaceAllSamplesInAllGroups' />"
         "    <separator/>"
         "    <menuitem action='RemoveSample'/>"
@@ -2334,28 +2341,40 @@ void MainWindow::on_action_add_group() {
     file_changed();
 }
 
+void MainWindow::on_action_replace_sample() {
+    add_or_replace_sample(true);
+}
+
 void MainWindow::on_action_add_sample() {
+    add_or_replace_sample(false);
+}
+
+void MainWindow::add_or_replace_sample(bool replace) {
     if (!file) return;
-    // get selected group
+
+    // get selected group (and probably selected sample)
     Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
     Gtk::TreeModel::iterator it = sel->get_selected();
     if (!it) return;
     Gtk::TreeModel::Row row = *it;
+    gig::Sample* sample = NULL;
     gig::Group* group = row[m_SamplesModel.m_col_group];
     if (!group) { // not a group, but a sample is selected (probably)
-        gig::Sample* sample = row[m_SamplesModel.m_col_sample];
-        if (!sample) return;
+        if (replace) sample = row[m_SamplesModel.m_col_sample];
+        if (!row[m_SamplesModel.m_col_sample]) return;
         it = row.parent(); // resolve parent (that is the sample's group)
         if (!it) return;
-        row = *it;
-        group = row[m_SamplesModel.m_col_group];
+        if (!replace) row = *it;
+        group = (*it)[m_SamplesModel.m_col_group];
         if (!group) return;
     }
+    if (replace && !sample) return;
+
     // show 'browse for file' dialog
-    Gtk::FileChooserDialog dialog(*this, _("Add Sample(s)"));
+    Gtk::FileChooserDialog dialog(*this, replace ? _("Replace Sample with") : _("Add Sample(s)"));
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
-    dialog.set_select_multiple(true);
+    dialog.set_select_multiple(!replace); // allow multi audio file selection only when adding new samples, does not make sense when replacing a specific sample
 
     // matches all file types supported by libsndfile
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
@@ -2426,8 +2445,8 @@ void MainWindow::on_action_add_sample() {
                         sf_close(hFile); // close sound file
                         throw std::string(_("format not supported")); // unsupported subformat (yet?)
                 }
-                // add a new sample to the .gig file
-                gig::Sample* sample = file->AddSample();
+                // add a new sample to the .gig file (if adding is requested actually)
+                if (!replace) sample = file->AddSample();
                 // file name without path
                 Glib::ustring filename = Glib::filename_display_basename(*iter);
                 // remove file extension if there is one
@@ -2478,7 +2497,7 @@ void MainWindow::on_action_add_sample() {
                 // physically when File::Save() is called)
                 sample->Resize(info.frames);
                 // make sure sample is part of the selected group
-                group->AddSample(sample);
+                if (!replace) group->AddSample(sample);
                 // schedule that physical resize and sample import
                 // (data copying), performed when "Save" is requested
                 SampleImportItem sched_item;
@@ -2486,13 +2505,17 @@ void MainWindow::on_action_add_sample() {
                 sched_item.sample_path = *iter;
                 m_SampleImportQueue.push_back(sched_item);
                 // add sample to the tree view
-                Gtk::TreeModel::iterator iterSample =
-                    m_refSamplesTreeModel->append(row.children());
-                Gtk::TreeModel::Row rowSample = *iterSample;
-                rowSample[m_SamplesModel.m_col_name] =
-                    gig_to_utf8(sample->pInfo->Name);
-                rowSample[m_SamplesModel.m_col_sample] = sample;
-                rowSample[m_SamplesModel.m_col_group]  = NULL;
+                if (replace) {
+                    row[m_SamplesModel.m_col_name] = gig_to_utf8(sample->pInfo->Name);
+                } else {
+                    Gtk::TreeModel::iterator iterSample =
+                        m_refSamplesTreeModel->append(row.children());
+                    Gtk::TreeModel::Row rowSample = *iterSample;
+                    rowSample[m_SamplesModel.m_col_name] =
+                        gig_to_utf8(sample->pInfo->Name);
+                    rowSample[m_SamplesModel.m_col_sample] = sample;
+                    rowSample[m_SamplesModel.m_col_group]  = NULL;
+                }
                 // close sound file
                 sf_close(hFile);
                 file_changed();
@@ -2503,7 +2526,11 @@ void MainWindow::on_action_add_sample() {
         }
         // show error message box when some file(s) could not be opened / added
         if (!error_files.empty()) {
-            Glib::ustring txt = _("Could not add the following sample(s):\n") + error_files;
+            Glib::ustring txt =
+                (replace
+                    ? _("Failed to replace sample with:\n")
+                    : _("Could not add the following sample(s):\n"))
+                + error_files;
             Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
             msg.run();
         }

@@ -108,6 +108,7 @@ Version CVS HEAD (?)
     dimension region the respective sample reference is located at.
   * Fixed instruments, samples and scripts to appear twice after save.
   * Implemented reordering of instruments by drag & drop.
+  * Implemented replacing of existing samples.
 
 Version 0.2.0 (2009-07-31)
 
