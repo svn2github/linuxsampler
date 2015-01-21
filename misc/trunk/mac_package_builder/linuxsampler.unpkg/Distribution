@@ -9,9 +9,9 @@
     <script>
         function req_install_check() {
             system.log("LinuxSampler installer launched ...");
-            if (!(system.version.ProductVersion >= '10.6.0')) {
+            if (!(system.version.ProductVersion >= '10.5.0')) {
                 my.result.title = 'Wrong Mac OS X Version';
-                my.result.message = 'You need at least Mac OS X 10.6.0 to install this software';
+                my.result.message = 'You need at least Mac OS X 10.5.0 to install this software';
                 my.result.type = 'Fatal';
                 return false;
             }
