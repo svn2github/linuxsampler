@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2004, 2005 Grame                                        *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2015 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -94,6 +94,10 @@ namespace LinuxSampler {
 					void connectToAllSources();
 					void onNewSourceAppeared(MIDIEndpointRef source);
 					void onNewSourceDisappeared(MIDIEndpointRef source);
+                    void onCoreMIDIDeviceAppeared(MIDIDeviceRef device);
+                    void onCoreMIDIDeviceDisappeared(MIDIDeviceRef device);
+                    void onCoreMIDIEntityAppeared(MIDIEntityRef entity);
+                    void onCoreMIDIEntityDisappeared(MIDIEntityRef entity);
                     friend class MidiInputDeviceCoreMidi;
                 private:
                     MidiInputDeviceCoreMidi* pDevice;

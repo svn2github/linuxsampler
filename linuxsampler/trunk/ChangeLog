@@ -368,6 +368,8 @@ Version CVS HEAD (?)
     - MME bugfix: driver wasn't closed properly
     - CoreMIDI: automatically connect to all input sources by default (driver
       parameter "AUTO_BIND").
+    - CoreMIDI: fixed auto bind feature to CoreMIDI ports that go online
+    - CoreMIDI: fixed minor memory leak
 
   * audio driver:
     - ASIO driver fixes for newer gcc versions (fix from PortAudio)

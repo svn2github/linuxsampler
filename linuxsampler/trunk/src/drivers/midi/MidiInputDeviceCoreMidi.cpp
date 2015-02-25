@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2004, 2005 Grame                                        *
- *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2015 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -147,6 +147,7 @@ namespace LinuxSampler {
 		str = CFStringCreateWithCString(NULL, buf, kCFStringEncodingUTF8);
 		MIDIDestinationCreate(pDevice->hCoreMidiClient, str, ReadProc, this, &pDestination);
 		/*  */
+		CFRelease(str);
 
 		if (!pDestination) throw MidiInputException("Error creating CoreMidi virtual destination");
 		this->portNumber = pPortID++;
@@ -224,6 +225,38 @@ namespace LinuxSampler {
 		}
 	}
 
+    void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::onCoreMIDIDeviceAppeared(MIDIDeviceRef device) {
+        ItemCount entityCount = MIDIDeviceGetNumberOfEntities(device);
+        for (ItemCount e = 0; e < entityCount; ++e) {
+            MIDIEntityRef entity = MIDIDeviceGetEntity(device, e);
+            onCoreMIDIEntityAppeared(entity);
+        }
+    }
+
+    void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::onCoreMIDIDeviceDisappeared(MIDIDeviceRef device) {
+        ItemCount entityCount = MIDIDeviceGetNumberOfEntities(device);
+        for (ItemCount e = 0; e < entityCount; ++e) {
+            MIDIEntityRef entity = MIDIDeviceGetEntity(device, e);
+            onCoreMIDIEntityDisappeared(entity);
+        }
+    }
+
+    void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::onCoreMIDIEntityAppeared(MIDIEntityRef entity) {
+        ItemCount sourceCount = MIDIEntityGetNumberOfSources(entity);
+        for (ItemCount s = 0; s < sourceCount; ++s) {
+            MIDIEndpointRef source = MIDIEntityGetSource(entity, s);
+            onNewSourceAppeared(source);
+        }
+    }
+
+    void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::onCoreMIDIEntityDisappeared(MIDIEntityRef entity) {
+        ItemCount sourceCount = MIDIEntityGetNumberOfSources(entity);
+        for (ItemCount s = 0; s < sourceCount; ++s) {
+            MIDIEndpointRef source = MIDIEntityGetSource(entity, s);
+            onNewSourceDisappeared(source);
+        }
+    }
+
 
 // *************** MidiInputDeviceCoreMidi ***************
 // *
@@ -274,34 +307,135 @@ namespace LinuxSampler {
 		switch (message->messageID) {
 			case kMIDIMsgObjectAdded: {
 				MIDIObjectAddRemoveNotification* notification = (MIDIObjectAddRemoveNotification*) message;
-				if (notification->childType == kMIDIObjectType_Source) {
-					for (std::map<int,MidiInputPort*>::iterator iter = pDevice->Ports.begin();
-						 iter != pDevice->Ports.end(); ++iter)
-					{
-						MidiInputPortCoreMidi* pPort = (MidiInputPortCoreMidi*) iter->second;
-						MIDIEndpointRef source = (MIDIEndpointRef) notification->child;
-						pPort->onNewSourceAppeared(source);
+				switch (notification->childType) {
+					case kMIDIObjectType_Device: {
+						MIDIDeviceRef device = (MIDIDeviceRef) notification->child;
+						for (std::map<int,MidiInputPort*>::iterator iter = pDevice->Ports.begin();
+						     iter != pDevice->Ports.end(); ++iter)
+						{
+							MidiInputPortCoreMidi* pPort = (MidiInputPortCoreMidi*) iter->second;
+							pPort->onCoreMIDIDeviceAppeared(device);
+						}
+						break;
 					}
+					case kMIDIObjectType_Entity: {
+						MIDIEntityRef entity = (MIDIEntityRef) notification->child;
+						for (std::map<int,MidiInputPort*>::iterator iter = pDevice->Ports.begin();
+						     iter != pDevice->Ports.end(); ++iter)
+						{
+							MidiInputPortCoreMidi* pPort = (MidiInputPortCoreMidi*) iter->second;
+							pPort->onCoreMIDIEntityAppeared(entity);
+						}
+						break;
+					}
+					case kMIDIObjectType_Source: {
+						MIDIEndpointRef source = (MIDIEndpointRef) notification->child;
+						for (std::map<int,MidiInputPort*>::iterator iter = pDevice->Ports.begin();
+						     iter != pDevice->Ports.end(); ++iter)
+						{
+							MidiInputPortCoreMidi* pPort = (MidiInputPortCoreMidi*) iter->second;
+							pPort->onNewSourceAppeared(source);
+						}
+						break;
+					}
+					default:
+						break;
 				}
 				break;
 			}
-				
+
 			case kMIDIMsgObjectRemoved: {
 				MIDIObjectAddRemoveNotification* notification = (MIDIObjectAddRemoveNotification*) message;
-				if (notification->childType == kMIDIObjectType_Source) {
-					for (std::map<int,MidiInputPort*>::iterator iter = pDevice->Ports.begin();
-						 iter != pDevice->Ports.end(); ++iter)
-					{
-						MidiInputPortCoreMidi* pPort = (MidiInputPortCoreMidi*) iter->second;
+				switch (notification->childType) {
+					case kMIDIObjectType_Device: {
+						MIDIDeviceRef device = (MIDIDeviceRef) notification->child;
+						for (std::map<int,MidiInputPort*>::iterator iter = pDevice->Ports.begin();
+						     iter != pDevice->Ports.end(); ++iter)
+						{
+							MidiInputPortCoreMidi* pPort = (MidiInputPortCoreMidi*) iter->second;
+							pPort->onCoreMIDIDeviceDisappeared(device);
+						}
+						break;
+					}
+					case kMIDIObjectType_Entity: {
+						MIDIEntityRef entity = (MIDIEntityRef) notification->child;
+						for (std::map<int,MidiInputPort*>::iterator iter = pDevice->Ports.begin();
+						     iter != pDevice->Ports.end(); ++iter)
+						{
+							MidiInputPortCoreMidi* pPort = (MidiInputPortCoreMidi*) iter->second;
+							pPort->onCoreMIDIEntityDisappeared(entity);
+						}
+						break;
+					}
+					case kMIDIObjectType_Source: {
 						MIDIEndpointRef source = (MIDIEndpointRef) notification->child;
-						pPort->onNewSourceDisappeared(source);
+						for (std::map<int,MidiInputPort*>::iterator iter = pDevice->Ports.begin();
+						     iter != pDevice->Ports.end(); ++iter)
+						{
+							MidiInputPortCoreMidi* pPort = (MidiInputPortCoreMidi*) iter->second;
+							pPort->onNewSourceDisappeared(source);
+						}
+						break;
+					}
+					default:
+						break;
+				}
+				break;
+			}
+
+			case kMIDIMsgPropertyChanged: {
+				MIDIObjectPropertyChangeNotification* notification = (MIDIObjectPropertyChangeNotification*) message;
+				if (notification->propertyName == kMIDIPropertyOffline) {
+					SInt32 offline = 0;
+					MIDIObjectGetIntegerProperty(notification->object, kMIDIPropertyOffline, &offline);
+					switch (notification->objectType) {
+						case kMIDIObjectType_Device: {
+							MIDIDeviceRef device = (MIDIDeviceRef) notification->object;
+							for (std::map<int,MidiInputPort*>::iterator iter = pDevice->Ports.begin();
+							     iter != pDevice->Ports.end(); ++iter)
+							{
+								MidiInputPortCoreMidi* pPort = (MidiInputPortCoreMidi*) iter->second;
+								if (offline)
+									pPort->onCoreMIDIDeviceDisappeared(device);
+								else
+									pPort->onCoreMIDIDeviceAppeared(device);
+							}
+							break;
+						}
+						case kMIDIObjectType_Entity: {
+							MIDIEntityRef entity = (MIDIEntityRef) notification->object;
+							for (std::map<int,MidiInputPort*>::iterator iter = pDevice->Ports.begin();
+							     iter != pDevice->Ports.end(); ++iter)
+							{
+								MidiInputPortCoreMidi* pPort = (MidiInputPortCoreMidi*) iter->second;
+								if (offline)
+									pPort->onCoreMIDIEntityDisappeared(entity);
+								else
+									pPort->onCoreMIDIEntityAppeared(entity);
+							}
+							break;
+						}
+						case kMIDIObjectType_Source: {
+							MIDIEndpointRef endpoint = (MIDIEndpointRef) notification->object;
+							for (std::map<int,MidiInputPort*>::iterator iter = pDevice->Ports.begin();
+							     iter != pDevice->Ports.end(); ++iter)
+							{
+								MidiInputPortCoreMidi* pPort = (MidiInputPortCoreMidi*) iter->second;
+								if (offline)
+									pPort->onNewSourceDisappeared(endpoint);
+								else
+									pPort->onNewSourceAppeared(endpoint);
+							}
+							break;
+						}
+						default:
+							break;
 					}
 				}
 				break;
 			}
-				
+
 			case kMIDIMsgSetupChanged:
-			case kMIDIMsgPropertyChanged:
 			case kMIDIMsgThruConnectionsChanged:
 			case kMIDIMsgSerialPortOwnerChanged:
 			case kMIDIMsgIOError:
