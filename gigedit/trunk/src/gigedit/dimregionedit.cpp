@@ -450,7 +450,12 @@ DimRegionEdit::DimRegionEdit() :
     firstRowInBlock = 0;
 
     addHeader(_("Mandatory Settings"));
-    addString(_("Sample"), lSample, wSample);
+    addString(_("Sample"), lSample, wSample, buttonNullSampleReference);
+    buttonNullSampleReference->set_label("X");
+    buttonNullSampleReference->set_tooltip_text(_("Remove current sample reference (NULL reference). This can be used to define a \"silent\" case where no sample shall be played."));
+    buttonNullSampleReference->signal_clicked().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::nullOutSampleReference)
+    );
     //TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
 #ifdef OLD_TOOLTIPS
     tooltips.set_tip(*wSample, _("Drag & drop a sample here"));
@@ -830,6 +835,28 @@ void DimRegionEdit::addString(const char* labelText, Gtk::Label*& label,
     widget = new Gtk::Entry();
 
     table[pageno]->attach(*widget, 2, 3, rowno, rowno + 1,
+                          Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK);
+
+    rowno++;
+}
+
+void DimRegionEdit::addString(const char* labelText, Gtk::Label*& label,
+                              Gtk::Entry*& widget, Gtk::Button*& button)
+{
+    label = new Gtk::Label(Glib::ustring(labelText) + ":");
+    label->set_alignment(Gtk::ALIGN_START);
+
+    table[pageno]->attach(*label, 1, 2, rowno, rowno + 1,
+                          Gtk::FILL, Gtk::SHRINK);
+
+    widget = new Gtk::Entry();
+    button = new Gtk::Button();
+
+    Gtk::HBox* hbox = new Gtk::HBox;
+    hbox->pack_start(*widget);
+    hbox->pack_start(*button, Gtk::PACK_SHRINK);
+
+    table[pageno]->attach(*hbox, 2, 3, rowno, rowno + 1,
                           Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK);
 
     rowno++;
@@ -1467,6 +1494,52 @@ void DimRegionEdit::set_LoopInfinite(gig::DimensionRegion* d, bool value)
 void DimRegionEdit::set_LoopPlayCount(gig::DimensionRegion* d, uint32_t value)
 {
     if (d->pSample) d->pSample->LoopPlayCount = value;
+}
+
+void DimRegionEdit::nullOutSampleReference() {
+    if (!dimregion) return;
+    gig::Sample* oldref = dimregion->pSample;
+    if (!oldref) return;
+
+    dimreg_to_be_changed_signal.emit(dimregion);
+
+    // in case currently assigned sample is a stereo one, then remove both
+    // references (expected to be due to a "stereo dimension")
+    gig::DimensionRegion* d[2] = { dimregion, NULL };
+    if (oldref->Channels == 2) {
+        gig::Region* region = dimregion->GetParent();
+        int stereo_bit = 0;
+        {
+            int bitcount = 0;
+            for (int dim = 0 ; dim < region->Dimensions ; dim++) {
+                if (region->pDimensionDefinitions[dim].dimension == gig::dimension_samplechannel) {
+                    stereo_bit = 1 << bitcount;
+                    break;
+                }
+                bitcount += region->pDimensionDefinitions[dim].bits;
+            }
+
+            if (stereo_bit) {
+                int dimregno;
+                for (dimregno = 0 ; dimregno < region->DimensionRegions ; dimregno++) {
+                    if (region->pDimensionRegions[dimregno] == dimregion) {
+                        break;
+                    }
+                }
+                d[0] = region->pDimensionRegions[dimregno & ~stereo_bit];
+                d[1] = region->pDimensionRegions[dimregno | stereo_bit];
+            }
+        }
+    }
+
+    if (d[0]) d[0]->pSample = NULL;
+    if (d[1]) d[1]->pSample = NULL;
+
+    // update UI elements
+    set_dim_region(dimregion);
+
+    sample_ref_changed_signal.emit(oldref, NULL);
+    dimreg_changed_signal.emit(dimregion);
 }
 
 void DimRegionEdit::onButtonSelectSamplePressed() {

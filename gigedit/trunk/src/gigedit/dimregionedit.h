@@ -77,6 +77,7 @@ public:
     void set_dim_region(gig::DimensionRegion* d);
     bool set_sample(gig::Sample* sample, bool copy_sample_unity, bool copy_sample_tune, bool copy_sample_loop);
     Gtk::Entry* wSample;
+    Gtk::Button* buttonNullSampleReference;
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_to_be_changed();
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_changed();
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& signal_sample_ref_changed();
@@ -211,6 +212,8 @@ protected:
     void addProp(LabelWidget& labelwidget);
     void addString(const char* labelText, Gtk::Label*& label,
                    Gtk::Entry*& widget);
+    void addString(const char* labelText, Gtk::Label*& label,
+                   Gtk::Entry*& widget, Gtk::Button*& button);
     Gtk::Label* addHeader(const char* text);
     void addRightHandSide(Gtk::Widget& widget);
     void nextPage();
@@ -234,6 +237,7 @@ protected:
     void loop_start_changed();
     void loop_length_changed();
     void loop_infinite_toggled();
+    void nullOutSampleReference();
 
     int update_model;
 
