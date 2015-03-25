@@ -1,0 +1,635 @@
+<ui version="4.0" >
+ <author>rncbc aka Rui Nuno Capela</author>
+ <comment>qsampler - A LinuxSampler Qt GUI Interface.
+
+   Copyright (C) 2004-2015, rncbc aka Rui Nuno Capela. All rights reserved.
+   Copyright (C) 2007,2008,2015 Christian Schoenebeck
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation, Inc.,
+   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+</comment>
+ <class>qsamplerMainForm</class>
+ <widget class="QMainWindow" name="qsamplerMainForm" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>MainWindow</string>
+  </property>
+  <property name="windowIcon" >
+   <iconset resource="qsampler.qrc" >:/images/qsampler.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget" />
+  <widget class="QToolBar" name="fileToolbar" >
+   <property name="orientation" >
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <attribute name="toolBarArea" >
+    <number>4</number>
+   </attribute>
+   <addaction name="fileNewAction"/>
+   <addaction name="fileOpenAction"/>
+   <addaction name="fileSaveAction"/>
+   <addaction name="separator" />
+   <addaction name="fileResetAction"/>
+   <addaction name="fileRestartAction"/>
+   <addaction name="separator" />
+   <addaction name="viewInstrumentsAction"/>
+   <addaction name="viewDevicesAction"/>
+  </widget>
+  <widget class="QToolBar" name="editToolbar" >
+   <property name="orientation" >
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <attribute name="toolBarArea" >
+    <number>4</number>
+   </attribute>
+   <addaction name="editAddChannelAction"/>
+   <addaction name="editRemoveChannelAction"/>
+   <addaction name="separator" />
+   <addaction name="editSetupChannelAction"/>
+   <addaction name="editEditChannelAction"/>
+   <addaction name="separator" />
+   <addaction name="editResetChannelAction"/>
+   <addaction name="editResetAllChannelsAction"/>
+  </widget>
+  <widget class="QToolBar" name="channelsToolbar" >
+   <property name="orientation" >
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <attribute name="toolBarArea" >
+    <number>4</number>
+   </attribute>
+   <addaction name="channelsArrangeAction"/>
+  </widget>
+  <widget class="QMenuBar" name="MenuBar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="editMenu" >
+    <property name="title" >
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="editAddChannelAction" />
+    <addaction name="editRemoveChannelAction" />
+    <addaction name="separator" />
+    <addaction name="editSetupChannelAction" />
+    <addaction name="editEditChannelAction" />
+    <addaction name="separator" />
+    <addaction name="editResetChannelAction" />
+    <addaction name="editResetAllChannelsAction" />
+   </widget>
+   <widget class="QMenu" name="viewMenu" >
+    <property name="title" >
+     <string>&amp;View</string>
+    </property>
+    <widget class="QMenu" name="viewMidiDeviceStatusMenu" >
+     <property name="title" >
+      <string>MIDI Device Status</string>
+     </property>
+    </widget>
+    <addaction name="viewMenubarAction" />
+    <addaction name="viewToolbarAction" />
+    <addaction name="viewStatusbarAction" />
+    <addaction name="separator" />
+    <addaction name="viewMessagesAction" />
+    <addaction name="viewInstrumentsAction" />
+    <addaction name="viewDevicesAction" />
+    <addaction name="separator" />
+    <addaction name="viewMidiDeviceStatusMenu" />
+    <addaction name="separator" />
+    <addaction name="viewOptionsAction" />
+   </widget>
+   <widget class="QMenu" name="channelsMenu" >
+    <property name="title" >
+     <string>&amp;Channels</string>
+    </property>
+    <addaction name="channelsArrangeAction" />
+    <addaction name="channelsAutoArrangeAction" />
+   </widget>
+   <widget class="QMenu" name="helpMenu" >
+    <property name="title" >
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="helpAboutAction" />
+    <addaction name="helpAboutQtAction" />
+   </widget>
+   <widget class="QMenu" name="fileMenu" >
+    <property name="title" >
+     <string>&amp;File</string>
+    </property>
+    <widget class="QMenu" name="fileOpenRecentMenu" >
+     <property name="title" >
+      <string>Open &amp;Recent</string>
+     </property>
+    </widget>
+    <addaction name="fileNewAction" />
+    <addaction name="separator" />
+    <addaction name="fileOpenAction" />
+    <addaction name="fileOpenRecentMenu" />
+    <addaction name="separator" />
+    <addaction name="fileSaveAction" />
+    <addaction name="fileSaveAsAction" />
+    <addaction name="separator" />
+    <addaction name="fileResetAction" />
+    <addaction name="fileRestartAction" />
+    <addaction name="separator" />
+    <addaction name="fileExitAction" />
+   </widget>
+   <addaction name="fileMenu" />
+   <addaction name="editMenu" />
+   <addaction name="viewMenu" />
+   <addaction name="channelsMenu" />
+   <addaction name="separator" />
+   <addaction name="helpMenu" />
+  </widget>
+  <widget class="QStatusBar" name="statusbar" />
+  <action name="fileNewAction" >
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/fileNew.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;New</string>
+   </property>
+   <property name="iconText" >
+    <string>New</string>
+   </property>
+   <property name="toolTip" >
+    <string>New session</string>
+   </property>
+   <property name="statusTip" >
+    <string>New sampler session</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="fileOpenAction" >
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/fileOpen.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Open...</string>
+   </property>
+   <property name="iconText" >
+    <string>Open</string>
+   </property>
+   <property name="toolTip" >
+    <string>Open session</string>
+   </property>
+   <property name="statusTip" >
+    <string>Open sampler session</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="fileSaveAction" >
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/fileSave.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Save</string>
+   </property>
+   <property name="iconText" >
+    <string>Save</string>
+   </property>
+   <property name="toolTip" >
+    <string>Save session</string>
+   </property>
+   <property name="statusTip" >
+    <string>Save sampler session</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="fileSaveAsAction" >
+   <property name="text" >
+    <string>Save &amp;As...</string>
+   </property>
+   <property name="iconText" >
+    <string>Save As</string>
+   </property>
+   <property name="statusTip" >
+    <string>Save current sampler session with another name</string>
+   </property>
+   <property name="shortcut" >
+    <string/>
+   </property>
+  </action>
+  <action name="fileResetAction" >
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/fileReset.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Rese&amp;t</string>
+   </property>
+   <property name="iconText" >
+    <string>Reset</string>
+   </property>
+   <property name="toolTip" >
+    <string>Reset instance</string>
+   </property>
+   <property name="statusTip" >
+    <string>Reset sampler instance</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="fileRestartAction" >
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/fileRestart.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Restart</string>
+   </property>
+   <property name="iconText" >
+    <string>Restart</string>
+   </property>
+   <property name="toolTip" >
+    <string>Restart instance</string>
+   </property>
+   <property name="statusTip" >
+    <string>Restart sampler instance</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+Shift+R</string>
+   </property>
+  </action>
+  <action name="fileExitAction" >
+   <property name="text" >
+    <string>E&amp;xit</string>
+   </property>
+   <property name="iconText" >
+    <string>Exit</string>
+   </property>
+   <property name="statusTip" >
+    <string>Exit this application program</string>
+   </property>
+   <property name="shortcut" >
+    <string/>
+   </property>
+  </action>
+  <action name="editAddChannelAction" >
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/editAddChannel.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Add Channel</string>
+   </property>
+   <property name="iconText" >
+    <string>Add</string>
+   </property>
+   <property name="toolTip" >
+    <string>Add channel</string>
+   </property>
+   <property name="statusTip" >
+    <string>Add a new sampler channel</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="editRemoveChannelAction" >
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/editRemoveChannel.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Remove Channel</string>
+   </property>
+   <property name="iconText" >
+    <string>Remove</string>
+   </property>
+   <property name="toolTip" >
+    <string>Remove channel</string>
+   </property>
+   <property name="statusTip" >
+    <string>Remove current sampler channel</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="editResetChannelAction" >
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/editResetChannel.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Re&amp;set Channel</string>
+   </property>
+   <property name="iconText" >
+    <string>Reset</string>
+   </property>
+   <property name="toolTip" >
+    <string>Reset channel</string>
+   </property>
+   <property name="statusTip" >
+    <string>Reset current sampler channel</string>
+   </property>
+   <property name="shortcut" >
+    <string/>
+   </property>
+  </action>
+  <action name="editResetAllChannelsAction" >
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/editResetAllChannels.png</iconset>
+   </property>
+   <property name="text" >
+    <string>R&amp;eset All Channels</string>
+   </property>
+   <property name="iconText" >
+    <string>Reset All</string>
+   </property>
+   <property name="toolTip" >
+    <string>Reset all channels</string>
+   </property>
+   <property name="statusTip" >
+    <string>Reset all sampler channels</string>
+   </property>
+   <property name="shortcut" >
+    <string/>
+   </property>
+  </action>
+  <action name="editSetupChannelAction" >
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/editSetupChannel.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Setup Channel...</string>
+   </property>
+   <property name="iconText" >
+    <string>Setup</string>
+   </property>
+   <property name="toolTip" >
+    <string>Setup channel</string>
+   </property>
+   <property name="statusTip" >
+    <string>Setup current sampler channel</string>
+   </property>
+   <property name="shortcut" >
+    <string>F2</string>
+   </property>
+  </action>
+  <action name="editEditChannelAction" >
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/editEditChannel.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Ed&amp;it Channel...</string>
+   </property>
+   <property name="iconText" >
+    <string>Edit</string>
+   </property>
+   <property name="toolTip" >
+    <string>Edit channel</string>
+   </property>
+   <property name="statusTip" >
+    <string>Edit current sampler channel</string>
+   </property>
+   <property name="shortcut" >
+    <string>F9</string>
+   </property>
+  </action>
+  <action name="viewMenubarAction" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>&amp;Menubar</string>
+   </property>
+   <property name="iconText" >
+    <string>Menubar</string>
+   </property>
+   <property name="toolTip" >
+    <string>Show/hide menubar</string>
+   </property>
+   <property name="statusTip" >
+    <string>Show/hide the main program window menubar</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="viewToolbarAction" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>&amp;Toolbar</string>
+   </property>
+   <property name="iconText" >
+    <string>viewToolbars</string>
+   </property>
+   <property name="toolTip" >
+    <string>Show/hide toolbar</string>
+   </property>
+   <property name="statusTip" >
+    <string>Show/hide main program window toolbars</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="viewStatusbarAction" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>&amp;Statusbar</string>
+   </property>
+   <property name="iconText" >
+    <string>Statusbar</string>
+   </property>
+   <property name="toolTip" >
+    <string>Show/hide statusbar</string>
+   </property>
+   <property name="statusTip" >
+    <string>Show/hide the main program window statusbar</string>
+   </property>
+   <property name="shortcut" >
+    <string/>
+   </property>
+  </action>
+  <action name="viewMessagesAction" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>M&amp;essages</string>
+   </property>
+   <property name="iconText" >
+    <string>Messages</string>
+   </property>
+   <property name="toolTip" >
+    <string>Show/hide messages</string>
+   </property>
+   <property name="statusTip" >
+    <string>Show/hide the messages window</string>
+   </property>
+   <property name="shortcut" >
+    <string/>
+   </property>
+  </action>
+  <action name="viewInstrumentsAction" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/qsamplerInstrument.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Instruments</string>
+   </property>
+   <property name="iconText" >
+    <string>Instruments</string>
+   </property>
+   <property name="toolTip" >
+    <string>MIDI instruments configuration</string>
+   </property>
+   <property name="statusTip" >
+    <string>Show/hide the MIDI instruments configuration window</string>
+   </property>
+   <property name="shortcut" >
+    <string>F10</string>
+   </property>
+  </action>
+  <action name="viewDevicesAction" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/qsamplerDevice.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Devices</string>
+   </property>
+   <property name="iconText" >
+    <string>Devices</string>
+   </property>
+   <property name="toolTip" >
+    <string>Device configuration</string>
+   </property>
+   <property name="statusTip" >
+    <string>Show/hide the device configuration window</string>
+   </property>
+   <property name="shortcut" >
+    <string>F11</string>
+   </property>
+  </action>
+  <action name="viewOptionsAction" >
+   <property name="text" >
+    <string>&amp;Options...</string>
+   </property>
+   <property name="iconText" >
+    <string>Options</string>
+   </property>
+   <property name="toolTip" >
+    <string>General options</string>
+   </property>
+   <property name="statusTip" >
+    <string>Change general application program options</string>
+   </property>
+   <property name="shortcut" >
+    <string>F12</string>
+   </property>
+  </action>
+  <action name="channelsArrangeAction" >
+   <property name="checkable" >
+    <bool>false</bool>
+   </property>
+   <property name="icon" >
+    <iconset resource="qsampler.qrc" >:/images/channelsArrange.png</iconset>
+   </property>
+   <property name="text" >
+    <string>&amp;Arrange</string>
+   </property>
+   <property name="iconText" >
+    <string>Arrange</string>
+   </property>
+   <property name="toolTip" >
+    <string>Arrange channels</string>
+   </property>
+   <property name="statusTip" >
+    <string>Line up all channel strips</string>
+   </property>
+   <property name="shortcut" >
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="channelsAutoArrangeAction" >
+   <property name="checkable" >
+    <bool>true</bool>
+   </property>
+   <property name="text" >
+    <string>A&amp;uto Arrange</string>
+   </property>
+   <property name="iconText" >
+    <string>Auto Arrange</string>
+   </property>
+   <property name="toolTip" >
+    <string>Auto-arrange channels</string>
+   </property>
+   <property name="statusTip" >
+    <string>Auto-arrange channel strips</string>
+   </property>
+   <property name="shortcut" >
+    <string/>
+   </property>
+  </action>
+  <action name="helpAboutAction" >
+   <property name="text" >
+    <string>&amp;About...</string>
+   </property>
+   <property name="iconText" >
+    <string>About</string>
+   </property>
+   <property name="statusTip" >
+    <string>Show information about this application program</string>
+   </property>
+   <property name="shortcut" >
+    <string/>
+   </property>
+  </action>
+  <action name="helpAboutQtAction" >
+   <property name="text" >
+    <string>About &amp;Qt...</string>
+   </property>
+   <property name="iconText" >
+    <string>About Qt</string>
+   </property>
+   <property name="statusTip" >
+    <string>Show information about the Qt toolkit</string>
+   </property>
+   <property name="shortcut" >
+    <string/>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="qsampler.qrc" />
+ </resources>
+</ui>
