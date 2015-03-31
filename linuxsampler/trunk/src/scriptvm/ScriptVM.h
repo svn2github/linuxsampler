@@ -40,7 +40,7 @@ namespace LinuxSampler {
      * - 1. Create an instance of this ScriptVM class (or of one of its deriving
      *      classes).
      * - 2. Load a script by passing its source code to method loadScript(),
-     *      which will return the parsed represenation of the script.
+     *      which will return the parsed representation of the script.
      * - 3. Create a VM execution context by calling createExecContext().
      * - 4. Execute the script by calling method exec().
      *
@@ -61,14 +61,14 @@ namespace LinuxSampler {
 
         /**
          * Loads a script given by its source code (passed as argument @a s to
-         * this method) and returns the parsed represenation of that script.
+         * this method) and returns the parsed representation of that script.
          * After calling this method you must check the returned VMParserContext
          * object whether there had been any parser errors. If there were no
          * parser errors, you may pass the VMParserContext object to method
          * exec() for actually executing the script.
          *
          * @param s - entire source code of the script to be loaded
-         * @returns parsed represenation of the script
+         * @returns parsed representation of the script
          */
         VMParserContext* loadScript(const String& s);
 
@@ -78,7 +78,7 @@ namespace LinuxSampler {
          *
          * @param is - input stream from which the entire source code of the
          *             script is to be read and loaded from
-         * @returns parsed represenation of the script
+         * @returns parsed representation of the script
          */
         VMParserContext* loadScript(std::istream* is);
 
@@ -87,7 +87,7 @@ namespace LinuxSampler {
          * argument @a context, to stdout. This method is for debugging purposes
          * only.
          *
-         * @param context - parsed represenation of the script
+         * @param context - parsed representation of the script
          * @see loadScript()
          */
         void dumpParsedScript(VMParserContext* context);
@@ -99,7 +99,7 @@ namespace LinuxSampler {
          * context differs for every script. So you must (re)create the
          * execution context for each script being loaded.
          *
-         * @param parserContext - parsed represenation of the script
+         * @param parserContext - parsed representation of the script
          * @see loadScript()
          */
         VMExecContext* createExecContext(VMParserContext* parserContext);
@@ -119,7 +119,7 @@ namespace LinuxSampler {
          * wait() function). You must check the return value of this method to
          * find out which case applies.
          *
-         * @param parserContext - parsed represenation of the script (see loadScript())
+         * @param parserContext - parsed representation of the script (see loadScript())
          * @param execContext - VM execution context (see createExecContext())
          * @param handler - precise event handler (i.e. "on note ... end on"
          *                  code block) to be executed
