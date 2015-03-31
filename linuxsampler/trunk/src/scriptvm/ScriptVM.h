@@ -88,6 +88,7 @@ namespace LinuxSampler {
          * only.
          *
          * @param context - parsed represenation of the script
+         * @see loadScript()
          */
         void dumpParsedScript(VMParserContext* context);
 
@@ -97,6 +98,9 @@ namespace LinuxSampler {
          * general real-time design of this virtual machine, the VM execution
          * context differs for every script. So you must (re)create the
          * execution context for each script being loaded.
+         *
+         * @param parserContext - parsed represenation of the script
+         * @see loadScript()
          */
         VMExecContext* createExecContext(VMParserContext* parserContext);
 
@@ -115,7 +119,7 @@ namespace LinuxSampler {
          * wait() function). You must check the return value of this method to
          * find out which case applies.
          *
-         * @param parserContext - parsed represenation of the script
+         * @param parserContext - parsed represenation of the script (see loadScript())
          * @param execContext - VM execution context (see createExecContext())
          * @param handler - precise event handler (i.e. "on note ... end on"
          *                  code block) to be executed
