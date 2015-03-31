@@ -11,8 +11,8 @@ on init
     shall be ignored. The ignored code parts will never be executed and thus
     will not waste any resources at runtime.
 
-    There are also built-in coditions, already defined by the sampler, which
-    allows you to execude script parts depending on certain circumstances.
+    There are also built-in conditions, already defined by the sampler, which
+    allows you to execute script parts depending on certain circumstances.
   }
 
   SET_CONDITION(foo)
