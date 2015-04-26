@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>num_elements() function</title>
+    <meta name="description" content="Returns the size of the requested array variable.">
+  </head>
+  <body>
+    <h1>num_elements()</h1>
+    <p>
+      Returns the size of the requested array variable, that is the amount of
+      total values that array variable contains.
+    </p>
+    
+    <h3>Function Prototype</h3>
+    <p/>
+    <code>
+num_elements(??array-variable??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??array-variable??</code></td>
+        <td>Integer Array</td>
+        <td>Array variable for which the size shall be obtained from.<br>
+            [required]</td>
+      </tr>
+    </table>
+    
+    <h3>Return Value</h3>
+    <table>
+      <tr>
+        <th>Description</th> <th>Data Type</th>
+      </tr>
+      <tr>
+        <td>Size of the passed array variable.</td>
+        <td>Integer Number</td>
+      </tr>
+    </table>
+    
+    <h3>Examples</h3>
+    <p/>
+    <code>
+on init
+  declare const $SIZE := 5
+  declare %a[$SIZE] := ( 0,1,2,3,4 )
+  
+  $i := 0
+  while ($i < num_elements(%a))
+    message("array[" & $i & "] = " & %a[$i])
+    $i := $i + 1
+  end while
+end on
+    </code>
+
+  </body>
+</html>

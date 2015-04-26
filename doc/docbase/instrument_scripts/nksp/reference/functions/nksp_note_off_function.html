@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>note_off() function</title>
+    <meta name="description" content="Releases the requested note.">
+  </head>
+  <body>
+    <h1>note_off()</h1>
+    <p>
+      Releases a note by passing the note's event ID to this function.
+      This is almost like sending a MIDI note off event programmatically, however
+      a call to this function will only affect one single note instead.
+    </p>
+    <p>
+      The argument this function takes is optional. If you omit passing an
+      argument to this function, then the controller event ID will be used that
+      caused this current <code>controller</code> event handler to be executed.
+    </p>
+    <p>
+      There is also an <code>ignore_event()</code> function. With
+      NKSP the two functions are both doing the same thing though.
+      The two exist merely due to compatibility reasons with KSP.
+    </p>
+
+    <h3>Function Prototype</h3>
+    <p/>
+    <code>
+note_off(??event-id??, [??velocity??])
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??event-id??</code></td>
+        <td>Event ID Number or Event ID Array</td>
+        <td>Event ID(s) of the note(s) to be released.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??velocity??</code></td>
+        <td>Integer Number</td>
+        <td>MIDI note off velocity value.<br>
+            [optional, default: 127]</td>
+      </tr>
+    </table>
+    
+    <h3>Return Value</h3>
+    <p>None.</p>
+    
+    <h3>Examples</h3>
+    <p>None yet.<p>
+
+    <note>
+      Passing an array of event IDs is only supported by NKSP. If you want
+      to keep compatibility to KSP, then you should only pass a single
+      event ID to this function.
+    </note>
+    
+    <note>
+      The second argument of this function <code>??velocity??</code> is only
+      supported by NKSP. If you want to keep compatibility with KSP, then you
+      should only pass one argument to this function.
+    </note>
+
+  </body>
+</html>

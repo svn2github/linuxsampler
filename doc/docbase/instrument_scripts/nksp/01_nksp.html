@@ -1,0 +1,1262 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>NKSP Language</title>
+    <meta name="description" content="Introduction to the NKSP real-time instrument script language.">
+  </head>
+  <body>
+    <p>
+      This document intends to give you a compact introduction and overview to
+      the NKSP real-time instrument script language, so you can start writing
+      your own instrument scripts in short time. It concentrates on describing
+      the script language. If you rather want to learn how to modify and
+      attach scripts to your sounds, then please refer to the gigedit manual for
+      <a href="gigedit_scripts.html">how to manage instrument scripts with gigedit</a>.
+    </p>
+
+    <h3>At a Glance</h3>
+    <p>
+      <img src="nksp_file.png" style="height:111px; margin-right:12px;">
+      NKSP stands for "is <b>N</b>ot <b>KSP</b>", which denotes its distinction
+      to an existing proprieatary language called <i>KSP</i>.
+      NSKP is a script language specifically designed to write real-time capable
+      software extensions to LinuxSampler's sampler engines that can be bundled
+      individually with sounds by sound designers themselves.
+
+      Instead of defining a completely new script language, NKSP is leaned on
+      that mentioned properiatary script language. The biggest advantage is that
+      sound designers and musicians can leverage the huge amount of existing KSP
+      scripts which are already available for various purposes on the Internet,
+      instead of being forced to write all scripts from scratch in a completely
+      different language.
+    </p>
+    <p>
+      That also means however that there are some differences between those two
+      languages. Some extensions have been added to the NKSP core language to
+      make it a bit more convenient and less error prone to write scripts, and
+      various new functions had to be added due to the large difference of the
+      sampler engines and their underlying sampler format. Efforts have been
+      made though to make NKSP as much compatible to KSP as possible.
+      The NKSP documentation will emphasize individual differences in
+      the two languages and function implementations wherever they may occur, to
+      give you immediate hints where you need to take care of regarding
+      compatibility issues when writing scripts that should be spawned on both
+      platforms.
+    </p>
+    <p>
+      Please note that the current focus of NKSP is the sound controlling aspect
+      of sounds. At this point there is no support for the graphical user
+      interface function set of KSP in NKSP.
+    </p>
+
+    <h2>Event Handlers</h2>
+    <p>
+      NKSP is an event-driven language. That means you are writing so called
+      <i>event handlers</i> which define what the sampler shall do on individual
+      events that occur, while using the sound the script was bundled with.
+      An event handler in general looks like this:
+    </p>
+    <code lang="nksp">
+on ??event-name??
+
+  ??statements??
+
+end on
+    </code>
+    <p>
+      There are currently four events available:
+    </p>
+      <table>
+        <tr>
+          <th>Event Type</th> <th>Description</th>
+        </tr>
+        <tr>
+          <td><code>on note</code></td> <td>This event handler is executed when a new note was triggered, i.e. when hitting a key on a MIDI keyboard.</td>
+        </tr>
+        <tr>
+          <td><code>on release</code></td> <td>This event handler is executed when a new note was released, i.e. when releasing a key on a MIDI keyboard.</td>
+        </tr>
+        <tr>
+          <td><code>on controller</code></td> <td>This event handler is executed when a MIDI control change event occurred. For instance when turning the modulation wheel at a MIDI keyboard.</td>
+        </tr>
+        <tr>
+          <td><code>on init</code></td> <td>Executed only once, as very first event handler, right after the script had been loaded. This code block is usually used to initialize variables in your script with some initial, useful data.</td>
+        </tr>
+      </table>
+    <p>
+      You are free to decide for which ones of those event types you are going to
+      write an event handler for. You can write an event handler for only one
+      event type or write event handlers for all of those event types. Also
+      dependent on the respective event type, there are certain things you can
+      do and things which you can't do. But more on that later.
+    </p>
+    
+    <h3>Note Events</h3>
+    <p>
+      As a first example, the following tiny script will print a message to your
+      terminal whenever you trigger a new note with your MIDI keyboard.
+    </p>
+    <code>
+on note
+  message("A new note was triggered!")
+end on
+    </code>
+    <p>
+      Probably you are also interested to see which note you triggered exactly.
+      The sampler provides you a so called
+      <i title="A script variable which is provided by the sampler and which has a very specific purpose which you cannot override for other purposes.">
+        built-in variable
+      </i>
+      called <code>$EVENT_NOTE</code> which reflects the note number
+      (as value between 0 and 127) of the note that has just been triggered. Additionally
+      the built-in variable <code>$EVENT_VELOCITY</code> provides you the
+      velocity value (also between 0 and 127) of the note event.
+    </p>
+    <code>
+on note
+  message("Note " & $EVENT_NOTE & " was triggered with velocity " & $EVENT_VELOCITY)
+end on
+    </code>
+    <p>
+      The <code>&</code> character concatenates text strings with each other.
+      In this case it is also automatically converting the note number into a
+      text string.
+    </p>
+    <note class="important">
+      The message() function is not appropriate for being used with your final
+      production sounds, since it can lead to audio dropouts.
+      You should only use the message() function to try out things, and to spot
+      and debug problems with your scripts.
+    </note>
+    
+    <h3>Release Events</h3>
+    <p>
+      As counter part to the <code>note</code> event handler, there is also the
+      <code>release</code> event handler, which is executed when a note was
+      released. This event handler can be used similarly:
+    </p>
+    <code>
+on release
+  message("Note " & $EVENT_NOTE & " was released with release velocity " & $EVENT_VELOCITY)
+end on
+    </code>
+    <p>
+      Please note that you can hardly find MIDI keyboards which support release
+      velocity. So with most keyboards this value will be 127.
+    </p>
+    
+    <h3>Controller Events</h3>
+    <p>  
+      Now let's extend the first script to not only show note-on and note-off
+      events, but also to show a message whenever
+      you use a MIDI controller (i.e. modulation wheel, sustain pedal, etc.).
+    </p>
+    <code>
+on note
+  message("Note " & $EVENT_NOTE & " was triggered with velocity " & $EVENT_VELOCITY)
+end on
+
+on release
+  message("Note " & $EVENT_NOTE & " was released with release velocity " & $EVENT_VELOCITY)
+end on
+
+on controller
+  message("MIDI Controller " & $CC_NUM " changed its value to " & %CC[$CC_NUM])
+end on
+    </code>
+    <p>
+      It looks very similar to the note event handlers. <code>$CC_NUM</code>
+      reflects the MIDI controller number of the MIDI controller that had been
+      changed and <code>%CC</code> is a so called <i>array variable</i>, which not only
+      contains a single number value, but instead it contains several values at
+      the same time. The built-in <code>%CC</code> array variable contains the current
+      controller values of all 127 MIDI controllers. So <code>%CC[1]</code> for
+      example would give you the current controller value of the modulation
+      wheel, and therefore <code>%CC[$CC_NUM]</code> reflects the new controller
+      value of the controller that just had been changed.
+    </p>
+    <p>
+      There is some special aspect you need to be aware about: in contrast to the MIDI standard,
+      monophonic aftertouch (a.k.a. channel pressure) and pitch beend wheel are
+      handled by NKSP as if they were regular MIDI controllers. So a value change
+      of one of those two triggers a regular <code>controller</code> event handler
+      to be executed. To obtain the current aftertouch value you can use
+      <code>%CC[$VCC_MONO_AT]</code>, and to get the current pitch bend wheel
+      value use <code>%CC[$VCC_PITCH_BEND]</code>.
+    </p>
+    
+    <h3>Script Load Event</h3>
+    <p>
+      As the last one of the four event types available with NKSP, the following
+      is an example of an <code>init</code> event handler.
+    </p>
+    <code>
+on init
+  message("This script has been loaded and is ready now!")
+end on
+    </code>
+    <p>
+      You might think, that this is probably a very exotic event. Because in
+      fact, this "event" is only executed once for your script: exactly when
+      the script was loaded by the sampler. This is not an unimportant event
+      handler though. Because it is used to prepare your script for various
+      purposes. We will get more about that later.
+    </p>
+
+    <h2>Comments</h2>
+    <p>
+      Let's face it: software code is sometimes hard to read, especially when you
+      are not a professional software developer who deals with such kinds of
+      things every day. To make it more easy for you to understand, what you
+      had in mind when you wrote a certain script three years ago, and also if
+      some other developer might need to continue working on your scripts one
+      day, you should place as many comments into your scripts as possible. A
+      comment in NKSP is everything that is nested into a an opening and closing
+      pair of curly braces.
+    </p>
+    <code>{ This is a comment. }</code>
+    <p>
+      You cannot only use this to leave some human readable explanations here
+      and there, you might also use such curly braces to quickly disable parts
+      of your scripts for a moment, i.e. when debugging certain things.
+    </p>
+    <code>
+on init
+  { The following will be prompted to the terminal when the sampler loaded this script. }
+  message("My script loaded.")
+
+  { This code block is commented out, so these two messages will not be displayed }
+  { 
+    message("Another text")
+    message("And another one")
+  }
+end on
+    </code>
+    
+    <h2>Variables</h2>
+    <p>
+      In order to be able to write more complex and more useful scripts, you
+      also need to remember some data somewhere for being able to use that
+      data at a later point. This can be done by using
+      <i title="A variable is a storage location paired with an associated symbolic name.">
+        variables
+      </i>.
+      We already came across some <i>built-in variables</i>, which are already
+      defined by the sampler for you. To store your own data you need to declare
+      your own <i>user variables</i>, which has the following form:
+    </p>
+    <p>
+      <code>declare $??variable-name?? := ??initial-value??
+    </p>
+    <p>
+      The left hand side's <code>??variable-name??</code> is an arbitrary name
+      you can chose for your variable. That name might consist of English
+      letters A to Z (lower and upper case) and the underscore character "<code>_</code>".
+      Variable names must be unique. So you can neither declare several variables
+      with the same name, nor can you use a name for your variable that is
+      already been reserved by <i>built-in variables</i>.
+      The right hand side's <code>??initial-value??</code> is simply the first
+      value the variable should store right after it was created. You can also
+      omit that.
+    </p>
+    <p>
+      <code>declare $??variable-name??
+    </p>
+    <p>
+      In that case the sampler will automatically assign <code>0</code> for you
+      as the variable's initial value. This way we could for example count the
+      total amount of notes triggered.
+    </p>
+    <code>
+on init
+  declare $numberOfNotes := 0
+end on
+
+on note
+  $numberOfNotes := $numberOfNotes + 1
+
+  message("This is the " & $numberOfNotes & "th note triggered so far.")
+end on
+    </code>
+    <p>
+      In the <code>init</code> event handler we create our own variable
+      <code>$numberOfNotes</code> and assign <code>0</code> to it as its
+      initial value. Like mentioned before, that initial assignment is optional.
+      In the <code>note</code> event handler we then increase the
+      <code>$numberOfNotes</code> variable by one, each time a new note was
+      triggered and then print a message to the terminal with the current total
+      amount of notes that have been triggered so far.
+    </p>
+    <note>
+      NKSP allows you to declare variables in all event handlers, however if
+      you want to keep compatibility with KSP, then you should only
+      declare variables in <code>init</code> event handlers.
+    </note>
+
+    <h3>Variable Types</h3>
+    <p>
+      There are currently three different variable types, which you can easily
+      recognize upon their first character.
+    </p>
+    <table>
+      <tr>
+        <th>Variable Form</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>$??variable-name??</code></td> <td>Integer Scalar</td> <td>Stores one single integer number value.</td>
+      </tr>
+      <tr>
+        <td><code>%??variable-name??</code></td> <td>Integer Array</td> <td>Stores a certain amount of integer number values.</td>
+      </tr>
+      <tr>
+        <td><code>@??variable-name??</code></td> <td>String</td> <td>Stores one text string.</td>
+      </tr>
+    </table>
+    <p>
+      So the first character just before the actual variable name, always
+      denotes the data type of the variable. Also note that all variable types
+      share the same variable name space. That means you cannot declare a
+      variable with a name that has already been used to declare a variable of
+      another variable type.
+    </p>
+    
+    <h3>Array Variables</h3>
+    <p>
+      We already used the first two variable types. However we have not seen yet
+      how to declare such array variables. This is the common declaration form
+      for creating your own array variables.
+    </p>
+    <code>
+on init
+  declare %??variable-name??[??array-size??] :=  ( ??list-of-values?? )
+end on
+    </code>
+    <p>
+      So let's say you wanted to create an array variable with the first 12
+      prime numbers, then it might look like this.
+    </p>
+    <code>
+on init
+  declare %primes[12] :=  ( 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 )
+end on
+    </code>
+    <p>
+      Like with integer variables, assigning some initial values with
+      <code>??list-of-values??</code> is optional. The array
+      declaration form without initial value assignment looks like this.
+    </p>
+    <code>
+on init
+  declare %??variable-name??[??array-size??]
+end on
+    </code>
+    <p>
+      When you omit that initial assignment, then all numbers of that array will
+      automatically be initialized with <code>0</code> each. With array
+      variables however, it is always mandatory to provide
+      <code>??array-size??</code> with an array
+      variable declaration, so the sampler can create that array with the
+      requested amount of values when the script is loaded. In contrast to many
+      other programming languages, changing that amount of values of an array
+      variable is not possible after the variable had been declared. That's due
+      to the fact that this language is dedicated to real-time applications, and
+      changing the size of an array variable at runtime would harm real-time
+      stability of the sampler and thus could lead to audio dropouts. So NKSP
+      does not allow you to do that.
+    </p>
+
+
+    <h3>String Variables</h3>
+    <p>
+      You might also store text with variables. These are called <i>text string
+      variables</i>, or short: <i>string variables</i>. Let's skip the common declaration
+      form of string variables and let us modify a prior example to just use
+      such kind of variable.
+    </p>
+    <code>
+on init
+  declare $numberOfNotes
+  declare @firstText := "This is the "
+  declare @secondText
+end on
+
+on note
+  $numberOfNotes := $numberOfNotes + 1
+  @secondText := "th note triggered so far."
+  message(@firstText & $numberOfNotes & @secondText)
+end on
+    </code>
+    <p>
+      It behaves exactly like the prior example and shall just give you a
+      first idea how to declare and use string variables.
+    </p>
+    <note class="important">
+      Like with the message() function, you should not use string variables
+      with your final production sounds, since it can lead to audio dropouts.
+      You should only use string variables to try out things, and to spot
+      and debug problems with your scripts.
+    </note>
+
+    <h3>Variable Scope</h3>
+    <p>
+      By default, all variables you declare with NKSP are
+      <i title="A variable that is accessible throughout an entire script.">
+        global variables
+      </i>. That means every event handler can access the data of such a global
+      variable. Furthermore, each instance of an event handler accesses the same
+      data when it is referencing that variable. And the latter fact can be a
+      problem sometimes, which we will outline next.
+    </p>
+    <p>
+      Let's assume you wanted to write an instrument script that shall resemble
+      a simple delay effect. You could do that by writing an note event handler
+      that automatically triggers several new notes for each note being
+      triggered on a MIDI keyboard. The following example demonstrates how that
+      could be achieved.
+    </p>
+    <note class="important">
+      The following example does not fully work with LinuxSampler yet. That's
+      because the used <code>wait()</code> function is not fully implemented
+      yet. Currently a <code>wait()</code> function call suspends execution,
+      but since the respective scheduler code is yet missing, the script
+      will automatically be resumed with the next audio fragment cycle. So
+      effectively a <code>wait()</code> call will pause your script for a few
+      miliseconds with LinuxSampler right now, no matter which function argument
+      you provided. Hopefully this will be implemented soon though.
+    </note>
+    <code>
+on init
+  { The amount of notes to play }
+  declare const $delayNotes := 4
+  { Tempo with which the new notes will follow the orignal note }
+  declare const $bpm := 90
+  { Convert BPM to microseconds (duration between the notes) }
+  declare const $delayMicroSeconds := 60 * 1000000 / $bpm
+  { Just a working variable for being used with the while loop below }
+  declare $i
+  { For each successive note we trigger, we will reduce the velocity a bit}
+  declare $velocity
+end on
+
+on note
+  { First initialize the variable $i with 4 each time we enter this event
+    handler, because each time we executed this handler, the variable will be 0 }
+  $i := $delayNotes
+
+  { Loop which will be executed 4 times in a row }
+  while ($i)
+    { Calculate the velocity for the next note being triggered }
+    $velocity := 127 * $i / ($delayNotes + 1)
+    { Suspend this script for a short moment ... }
+    wait($delayMicroSeconds)
+    { ... and after that short break, trigger a new note. }
+    play_note($EVENT_NOTE, $velocity)
+    { Decrement loop counter $i by one }
+    $i := $i - 1
+  end while
+end on
+    </code>
+    <p>
+      In this example we used a new keyword <code>const</code>. This additional
+      variable qualifier defines that we don't intend to change this variable
+      after declaration. So if you know beforehand, that a certain variable should
+      remain with a certain value, then you might use the <code>const</code>
+      qualifier to avoid that you i.e. change the value accidently when you
+      modify the script somewhere in future.
+    </p>
+    <p>
+      Now when you trigger one single note on your keyboard with that script,
+      you will hear the additional notes being triggered. And also when you
+      hit another note after a while, everything seems to be fine. However if
+      you start playing quick successive notes, you will notice something goes
+      wrong. The amount of notes being triggered by the script is now incorrect
+      and also the volume of the individual notes triggered by the script is wrong.
+      What's going on?
+    </p>
+    <p>
+      To understand the problem in the last example, let's consider what is
+      happening when executing that script exactly: Each time you play a note
+      on your keyboard, a new instance of the <code>note</code> event handler
+      will be spawned and executed by the sampler. In all our examples so far
+      our scripts were so simple, that in practice only one handler instance
+      was executed at a time. This is different in this case though. Because
+      by calling the <code>wait()</code> function, the respective handler
+      execution instance is paused for a while and in total each handler
+      instance will be executed for more than 2 seconds in this particular
+      example. As a consequence, when
+      you play multiple, successive notes on your keyboard in short time, you
+      will have several instances of the <code>note</code> event handler running
+      simultaniously. And that's where the problem starts. Because by default,
+      as said, all variables are global variables. So the handler instances
+      which are now running in parallel, are all reading and modifying the same
+      data. Thus the individual handler instances will modify the
+      <code>$i</code> and <code>$velocity</code> variables of each other, causing
+      an undesired misbehavior.
+    </p>
+    <note>
+      NKSP's built-in function <code>play_note()</code> allows you to pass
+      between one and four function arguments. For the function arguments you
+      don't provide to a <code>play_note()</code> call, NKSP will automatically
+      use default values. If you want your script to be compatible with KSP,
+      then you should always pass four arguments to that function though.
+    </note>
+
+    <h3>Polyphonic Variables</h3>
+    <p>
+      As a logical consequence of the previously described data concurrency
+      problem, it would be desirable to have each event handler instance use
+      its own variable instance, so that the individual handler instances stop
+      interfering with each other. For this purpose the so called
+      <i title="A variable which is effectively a separate variable for each event handler instance.">
+        polyphonic variable
+      </i>
+      qualifier exists with NKSP. Declaring such a variable is identical to
+      declaring a regular variable, just that you add the keyword <code>polyphonic</code>.
+    </p>
+    <code>
+declare polyphonic $??variable-name??
+    </code>
+    <p>
+      So to fix the bug in our previous example, we simply make the variables
+      <code>$i</code> and <code>$velocity</code> polyphonic variables.
+    </p>
+    <code>
+on init
+  { The amount of notes to play }
+  declare const $delayNotes := 4
+  { Tempo with which the new notes will follow the orignal note }
+  declare const $bpm := 90
+  { Convert BPM to microseconds (duration between the notes) }
+  declare const $delayMicroSeconds := 60 * 1000000 / $bpm
+  { Just a working variable for being used with the while loop below }
+  declare polyphonic $i  { < --- NOW POLYPHONIC !!! }
+  { For each successive note we trigger, we will reduce the velocity a bit}
+  declare polyphonic $velocity  { < --- NOW POLYPHONIC !!! }
+end on
+
+on note
+  { First initialize the variable $i with 4 each time we enter this event
+    handler, because each time we executed this handler, the variable will be 0 }
+  $i := $delayNotes
+
+  { Loop which will be executed 4 times in a row }
+  while ($i)
+    { Calculate the velocity for the next note being triggered }
+    $velocity := 127 * $i / ($delayNotes + 1)
+    { Suspend this script for a short moment ... }
+    wait($delayMicroSeconds)
+    { ... and after that short break, trigger a new note. }
+    play_note($EVENT_NOTE, $velocity)
+    { Decrement loop counter $i by one }
+    $i := $i - 1
+  end while
+end on
+    </code>
+    <p>
+      And that's it! The script works now as intended. Now you might wonder, why
+      are variables not <i>polyphonic</i> by default? Isn't that more common and
+      wouldn't that be more safer than using global variables by default? The reason is that
+      a polyphonic variable consumes a lot more memory than a regular (global) variable.
+      That's because for each polyphonic variable, the sampler has to allocate
+      in advance (when the script is loaded) as many instances of that
+      polyphonic variable as there are maximum events
+      allowed with the sampler. So that's a lot! Considering that today's
+      computers have plenty of RAM this might be a theoretical aspect, but in the
+      end: this default scope of variables was already like this with <i>KSP</i>
+      so we are also doing it like this with NKSP for compatibility reasons.
+    </p>
+    <p>
+      Please note that the <i>polyphonic</i> qualifier only exists for integer
+      variables. So you cannot declare polyphonic string variables, nor can you
+      declare polyphonic array variables. Like in the previous explanation,
+      this is due to the fact that it would consume a huge amount of memory
+      for such variables. And with string variables and array variables, the
+      required amount of memory would be much higher than with simple integer
+      variables.
+    </p>
+    <p>
+      As summary, the following are guideline rules describing when you should
+      use the polyphonic qualifier for a certain variable. You should declare
+      a particular variable polyphonic if one (or even both) of the following two
+      conditions apply to that variable.
+    </p>
+    <ol>
+      <li>
+        If you call the <code>wait()</code> function within your event
+        handlers and the respective variable is modified and read before
+        and after at least one of the individual <code>wait()</code> calls.
+      </li>
+      <li>
+        If you have loops that might run for a very long time, while accessing
+        the respective variable in between. That's because if your script is
+        running consecutively for too long, the sampler will automatically suspend your
+        script for a while to avoid your script becoming a real-time stability
+        hazard for the sampler. Your script will then automatically be resumed
+        after a short moment by the sampler, so effectively this is similar to
+        something like an "automated" <code>wait()</code> function call by
+        the sampler.
+      </li>
+    </ol>
+    <p>
+      In all other cases you should rather use regular (global) variables instead.
+      But keep in mind that you might need to re-assign a certain value for
+      some global variables when you enter the respective event handler, just
+      like we did with <code>$i := $delayNotes</code> right from the start
+      during discussion of the previous example script.
+    </p>
+
+    <h2>Control Structures</h2>
+    <p>
+      A computer is more than a calculator that adds numbers and stores them
+      somewhere. One of the biggest strength of a computer, which makes it
+      such powerful, is the ability to do different things depending on various
+      conditions. For example your computer might clean up your hard drive
+      while you are not sitting in front of it, and it might immediately stop
+      doing so when you need all its resources to cut your latest video which
+      you just shot.
+    </p>
+    <p>
+      In order to do that for you, a computer program allows you to define
+      conditions and a list of instructions the computer shall
+      perform for you under those individual conditions. These kinds of
+      software mechanisms are called <i>Control Structures</i>.
+    </p>
+    
+    <h3>if Branches</h3>
+    <p>
+      The most fundamental control structure are <i>if branches</i>, which has
+      the following general form.
+    </p>
+    <code>
+if (??condition??)
+  
+  ??statements??
+
+end if
+    </code>
+    <p>
+      The specified <code>??condition??</code> is evaluated each time script
+      execution reaches this control block. The condition can for example be
+      the value of a variable, some arithmetic expression, a function call or
+      a combination of them. In all cases the sampler expects the
+      <code>??condition??</code> expression to evaluate to some numeric
+      (or boolean) value. If the evaluated number is exactly <code>0</code> then
+      the condition is interpreted to be <i>false</i> and thus the list of
+      <code>??statements??</code> is not executed. If the evaluated value is any
+      other value than <code>0</code> then the condition is interpreted to be
+      <i>true</i> and accordingly the list of <code>??statements??</code> will be
+      executed.
+    </p>
+    <p>
+      Alternatively you might also specify a list of instructions which shall be
+      executed when the condition is <i>false</i>.
+    </p>
+    <code>
+if (??condition??)
+
+  ??statements-when-true??
+
+else
+
+  ??statements-when-false??
+
+end if
+    </code>
+    <p>
+      In this case the first list of statements is executed when the
+      <code>??condition??</code> evaluated to <i>true</i>, otherwise the second
+      list of statements is executed instead.
+    </p>
+    <p>
+      Once again, let's get back to the example of counting triggered notes.
+      You might have noticed that it did not output correct English for the
+      first three notes. Let's correct this now.
+    </p>
+        <code>
+on init
+  declare $numberOfNotes
+  declare @postfix
+end on
+
+on note
+  $numberOfNotes := $numberOfNotes + 1
+
+  if ($numberOfNotes == 1)
+    @postfix := "st"
+  else
+    if ($numberOfNotes == 2)
+      @postfix := "nd"
+    else
+      if ($numberOfNotes == 3)
+        @postfix := "rd"
+      else
+        @postfix := "th"
+      end if
+    end if
+  end if
+
+  message("This is the " & $numberOfNotes & @postfix & " note triggered so far.")
+end on
+    </code>
+    <p>
+      We are now checking the value of <code>$numberOfNotes</code> before we
+      print out a message. If <code>$numberOfNotes</code> equals one, then we
+      assign the string <code>"st"</code> to the variable <code>@postfix</code>,
+      if <code>$numberOfNotes</code> equals 2 instead we assign the string
+      <code>"nd"</code> instead, if it equals 3 instead we assign
+      <code>"rd"</code>, in all other cases we assign the string
+      <code>"th"</code>. And finally we assemble the text message to be
+      printed out to the terminal on line 23.
+    </p>
+
+    <h3>Select Case Branches</h3>
+    <p>
+      The previous example now outputs the numbers in correct English. But the
+      script code looks a bit bloated, right? That's why there is a short hand
+      form.
+    </p>
+    <code>
+select ??expression??
+
+  case ??integer-1??
+  
+    ??statements-1??
+
+    
+  case ??integer-2??
+  
+    ??statements-2??
+    
+          .
+          .
+          .      
+end select
+    </code>
+    <p>
+      The provided <code>??expression??</code> is first evaluated to an integer
+      value. Then this value is compared to the integer values of the nested
+      <code>case</code> lines. So it first compares the evaluated value of
+      <code>??expression??</code> with <code>??integer-1??</code>, then it
+      compares it with <code>??integer-2??</code>, and so on. The first integer
+      number that matches with the evaluated value of <code>??expression??</code>,
+      will be interpreted as being the current valid condition. So if
+      <code>??expression??</code> equals <code>??integer-1??</code>,
+      then <code>??statements-1??</code> will be executed, otherwise if
+      <code>??expression??</code> equals <code>??integer-2??</code>,
+      then <code>??statements-2??</code> will be executed, and so on.
+    </p>
+    <p>  
+      Using a select-case construct, our previous example would look like follows.
+    </p>
+    <code>
+on init
+  declare $numberOfNotes
+  declare @postfix
+end on
+
+on note
+  $numberOfNotes := $numberOfNotes + 1
+  @postfix := "th"
+
+  select $numberOfNotes
+    case 1
+      @postfix := "st"
+    case 2
+      @postfix := "nd"
+    case 3
+      @postfix := "rd"
+  end if
+
+  message("This is the " & $numberOfNotes & @postfix & " note triggered so far.")
+end on
+    </code>
+    <note>
+      If you like, you can also put parentheses around the select expression,
+      like <code>select (??expression??)</code>. Some developers familiar with
+      other programming languages might prefer this style. However if you want
+      to keep compatibility with KSP, you should not use parentheses for
+      select expressions.
+    </note>
+    <p>  
+      The amount
+      of case conditions you add to such select-case blocks is completely up
+      to you. Just remember that the case conditions will be compared one by one,
+      from top to down. The latter can be important when you define a case line
+      that defines a value range. So for instance the following example will
+      not do what was probably intended.
+    </p>
+    <code>
+on init
+  declare $numberOfNotes
+end on
+
+on note
+  $numberOfNotes := $numberOfNotes + 1
+
+  select $numberOfNotes
+    case 1 to 99
+      message("Less than 100 notes triggered so far")
+      exit
+    case 1
+      message("First note was triggered!") { Will never be printed ! }
+      exit
+    case 2
+      message("Second note was triggered!") { Will never be printed ! }
+      exit
+    case 3
+      message("Third note was triggered!") { Will never be printed ! }
+      exit
+  end if
+
+  message("Wow, already the " & $numberOfNotes & "th note triggered.")
+end on
+    </code>
+    <p>
+      You probably get the idea what this script "should" do. For the 1st note
+      it should print <code>"First note was triggered!"</code>, for the 2nd
+      note it should print <code>"Second note was triggered!"</code>, for the 3rd
+      note it should print <code>"Third note was triggered!"</code>, for the 4th
+      up to 99th note it should print <code>"Less than 100 notes triggered so far"</code>,
+      and starting from the 100th note and all following ones, it should print
+      the precise note number according to line 23. However, it doesn't!
+    </p>
+    <p>
+      To correct this problem, you need to move the first case block to the end,
+      like follows.
+    </p>
+    <code>
+on init
+  declare $numberOfNotes
+end on
+
+on note
+  $numberOfNotes := $numberOfNotes + 1
+
+  select $numberOfNotes
+    case 1
+      message("First note was triggered!")
+      exit
+    case 2
+      message("Second note was triggered!")
+      exit
+    case 3
+      message("Third note was triggered!")
+      exit
+    case 1 to 99
+      message("Less than 100 notes triggered so far")
+      exit
+  end if
+
+  message("Wow, already the " & $numberOfNotes & "th note triggered.")
+end on
+    </code>
+    <p>
+      Or you could of course fix the questioned case range from <code>case 1 to 99</code>
+      to <code>case 4 to 99</code>. Both solutions will do.
+    </p>
+    <p>
+      We also used the <i>built-in function</i> <code>exit()</code> in the
+      previous example. You can use it to stop execution at that point of your
+      script. In the previous example it prevents multiple messages to be
+      printed to the terminal.
+    </p>
+    <note class="important">
+      The <code>exit()</code> function only stops execution of the <b>current</b>
+      event handler instance! It does <b>not</b> stop execution of other
+      instances of the same event handler, nor does it stop execution of other
+      handlers of other event types, and especially it does <b>not</b> stop or
+      prevent further or future execution of your entire script! In other words,
+      you should rather see this function as a return statement, in case you are
+      familiar with other programming languages already.
+    </note>
+    
+    <h3>while Loops</h3>
+    <p>
+      Another fundamental control construct of program flow are loops.
+      You can use so called
+      <i title="Repeats a given list of instructions until the defined condition turns false.">
+        while loops
+      </i>
+      with NKSP.
+    </p>
+    <code>
+while (??condition??)
+
+  ??statements??
+
+end while
+    </code>
+    <p>
+      A while loop is entered if the provided <code>??condition??</code>
+      expression evaluates to <i>true</i> and will then continue to execute
+      the given list of <code>??statements??</code> down to the end of the statements
+      list. The <code>??condition??</code> is re-evaluated each time execution
+      reached the end of the <code>??statements??</code> list and according to
+      that latest evaluated <code>??condition??</code> value at that point, it
+      will or will not repeat executing the statements again. If the condition
+      turned <i>false</i> instead, it will leave the loop and continue executing
+      statements that follow after the while loop block.
+    </p>
+    <p>
+      The next example will print the same message three times in a row to the
+      terminal, right after the script had been loaded by the sampler.
+    </p>
+    <code>
+on init
+  declare $i := 3
+  
+  while ($i)
+    message("Print this three times.")
+    $i := $i - 1
+  end while
+end on
+    </code>
+    <p>
+      When the while loop is reached for the first time in this example, the
+      condition value is <code>3</code>. And as we learned before, all integer
+      values that are not <code>0</code> are interpreted as being a <i>true</i> condition.
+      Accordingly the while loop is entered, the message is printed to the
+      terminal and the variable <code>$i</code> is reduced by one. We reached
+      the end of the loop's statements list, so it is now re-evaluating the
+      condition, which is now the value <code>2</code> and thus the loop
+      instructions are executed again. That is repeated until the loop was
+      executed for the third time. The variable <code>$i</code> is now
+      <code>0</code>, so the loop condition turned finally to <i>false</i> and the
+      loop is thus left at that point and the text message was printed
+      three times in total.
+    </p>
+    
+    <h2>Operators</h2>
+    <p>
+      A programming language provides so called <i>operators</i> to perform
+      certain kinds of transformations of data placed next to the operators.
+      These are the operators available with NKSP.
+    </p>
+
+    <h3>Arithmetic Operators</h3>
+    <p>
+      These are the most basic mathematical operators, which allow to add,
+      subtract, multiply and divide integer values with each other.
+    </p>
+    <code>
+on init
+  message("4 + 3 is " & 4 + 3)        { Add }
+  message("4 - 3 is " & 4 - 3)        { Subtract }
+  message("4 * 3 is " & 4 * 3)        { Multiply }
+  message("35 / 5 is " & 35 / 5)      { Divide }
+  message("35 mod 5 is " & 35 mod 5)  { Remainder of Division ("modulo") }
+end on
+    </code>
+    <p>
+      You may either use direct integer literal numbers like used in the upper
+      example, or you can use integer number variables or integer array variables.
+    </p>
+    
+    <h3>Boolean Operators</h3>
+    <p>
+      To perform logical transformations of <i>boolean</i> data, you may use the
+      following boolean operators:
+    </p>
+    <code>
+on init
+  message("1 and 1 is " & 1 and 1)  { logical "and" }
+  message("1 and 0 is " & 1 and 0)  { logical "and" }
+  message("1 or 1 is " & 1 or 1)    { logical "or" }
+  message("1 or 0 is " & 1 or 0)    { logical "or" }
+  message("not 1 is " & not 1)      { logical "not" }
+  message("not 0 is " & not 0)      { logical "not" }
+end on
+    </code>
+    <p>
+      Remember that with boolean operations, all integer values other than <code>0</code>
+      are interpreted as boolean <i>true</i> while an integer value of
+      precisely <code>0</code> is interpreted of being boolean <i>false</i>.
+    </p>
+    
+    <h3>Comparison Operators</h3>
+    <p>
+      For branches in your program flow, it is often required to compare data
+      with each other. This is done by using comparison operators, enumerated
+      below.
+    </p>
+    <code>
+on init
+  message("Relation 3 < 4 -> " & 3 < 4)    { "smaller than" comparison }
+  message("Relation 3 > 4 -> " & 3 > 4)    { "greater than" comparison }
+  message("Relation 3 <= 4 -> " & 3 <= 4)  { "smaller or equal than" comparison}
+  message("Relation 3 >= 4 -> " & 3 >= 4)  { "greater or equal than" comparison}
+  message("Relation 3 # 4 -> " & 3 # 4)    { "not equal to" comparison}
+  message("Relation 3 = 4 -> " & 3 = 4)    { "is equal to" comparison}
+end on
+    </code>
+    <p>
+      All these operations yield in a <i>boolean</i> result which could then
+      by used i.e. with <code>if</code> or <code>while</code> loop statements.
+    </p>
+    
+    <h3>String Operators</h3>
+    <p>
+      Last but not least, there is exactly one operator for text string data;
+      the string concatenation operator <code>&</code>, which
+      combines two text strings with each other.
+    </p>
+    <code>
+on init    
+  declare @s := "foo" & " bar"
+  message(@s)
+end on
+    </code>
+    <p>
+      We have used it now frequently in various examples before.
+    </p>
+
+    <h2>Preprocessor Statements</h2>
+    <p>
+      Similar to low-level programming languages like C, C++, Objective C
+      and the like, NKSP supports a set of so called preprocessor statements.
+      These are essentially "instructions" which are "executed" or rather
+      processed, before (and only before) the script is executed by the sampler,
+      and even before the script is parsed by the actual NKSP language parser.
+      You can think of a preprocessor as a very primitive parser, which is the
+      first one getting in touch with your script, it modifies the script code
+      if requested by your preprocessor statements in the script, and then
+      passes the (probably) modified script to the actual NKSP language parser.
+    </p>
+    <p>
+      When we discussed <a href="#comments">comments</a> in NKSP scripts before,
+      it was suggested that you might comment out certain code parts to disable
+      them for a while during development of scripts. It was also suggested
+      during this language tour that you should not use string variables or use
+      the <code>message()</code> function with your final production sounds.
+      However those are very handy things during development of your instrument
+      scripts. You might even have a bunch of additional code in your scripts
+      which only satisfies the purpose to make debugging of your scripts more easy,
+      which however wastes on the other hand precious CPU time. So what do you
+      do? Like suggested, you could comment out the respective code sections as
+      soon as development of your script is completed. But then one day you
+      might continue to improve your scripts, and the debugging code would be
+      handy, so you would uncomment all the relevant code sections to get them
+      back. When you think about this, that might be quite some work each time.
+      Fortunately there is an alternative by using preprocessor statements.
+    </p>
+    
+    <h3>Set a Condition</h3>
+    <p>
+      First you need to set a preprocessor condition in your script. You can do
+      that like this:
+    </p>
+    <code>
+SET_CONDITION(??condition-name??)
+    </code>
+    <p>
+      This preprocessor "condition" is just like some kind of
+      <i title="A variable which can only have two states: i.e. true or false.">
+        boolean variable
+      </i>
+      which is only available to the preprocessor and by using
+      <code>SET_CONDITION(??condition-name??)</code>, this is like setting this
+      preprocessor condition to <i>true</i>. Like with regular script
+      variables, a preprocessor condition name can be chosen quite arbitrarily
+      by you. But again, there are some pre-defined preprocessor conditions
+      defined by the sampler for you. So you can only set a condition name here
+      which is not already reserved by a built-in preprocessor condition. Also
+      you shall not set a condition in your script again if you have already set it
+      before somewhere in your script. The NKSP preprocessor will ignore setting
+      a condition a 2nd time and will just print a warning when the script is
+      loaded, but you should take care of it, because it might be a cause for
+      some bug.
+    </p>
+
+    <h3>Reset a Condition</h3>
+    <p>
+      To clear a condition in your script, you might reset the condition like so:
+    </p>
+    <code>
+RESET_CONDITION(??condition-name??)
+    </code>
+    <p>
+      This is like setting that preprocessor condition back to <i>false</i> again.
+      You should only reset a preprocessor condition that way if you did set it
+      with <code>SET_CONDITION(??condition-name??)</code> before. Trying to
+      reset a condition that has not been set before, or trying to reset a
+      condition that has already been reset, will both be ignored by the samlper,
+      but again you will get a warning, and you should take care about it.
+    </p>
+    
+    <h3>Conditionally Using Code</h3>
+    <p>
+      Now what do you actually do with such preprocessor conditions? You can use
+      them for the NKSP language parser to either
+    </p>
+    <ul>
+      <li>use certain parts of your code</i>
+      <li><b>and</b> / <b>or</b> to ignore certain parts of your code</i>
+    </ul>
+    <p>
+      You can achieve that by wrapping NKSP code parts into a pair of either
+    </p>
+    <code>
+USE_CODE_IF(??condition-name??)
+
+  ??some-NKSP-code-goes-here??
+
+END_USE_CODE
+    </code>
+    <p>
+      preprocessor statements, or between
+    </p>
+    <code>
+USE_CODE_IF_NOT(??condition-name??)
+
+  ??some-NKSP-code-goes-here??
+
+END_USE_CODE
+    </code>
+    <p>
+      statements. In the first case, the NKSP code portion is used by the NKSP
+      language parser if the given preprocessor <code>??condition-name??</code> is set
+      (that is if condition is <i>true</i>).
+      If the condition is not set, the NKSP code portion in between is
+      completely ignored by the NKSP language parser.
+    </p>
+    <p>
+      In the second case, the NKSP code portion is used by the NKSP
+      language parser if the given preprocessor <code>??condition-name??</code> is <b>not</b> set
+      (or was reset)
+      (that is if condition is <i>false</i>).
+      If the condition is set, the NKSP code portion in between is
+      completely ignored by the NKSP language parser.
+    </p>
+    <p>
+      Let's look at an example how to use that to define conditional debugging
+      code.
+    </p>
+    <code>
+SET_CONDITION(DEBUG_MODE)
+
+on init
+  declare const %primes[12] :=  ( 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 )
+  declare $i
+
+  USE_CODE_IF(DEBUG_MODE)
+  message("This script has just been loaded.")
+  
+  $i := 0
+  while ($i < num_elements(%primes))
+    message("Prime " & $i & " is " & %primes[$i])
+    $i := $i + 1
+  end while
+  END_USE_CODE
+end on
+
+on note
+  USE_CODE_IF(DEBUG_MODE)
+  message("Note " & $EVENT_NOTE & " was triggered with velocity " & $EVENT_VELOCITY)
+  END_USE_CODE
+end on
+
+on release
+  USE_CODE_IF(DEBUG_MODE)
+  message("Note " & $EVENT_NOTE & " was released with release velocity " & $EVENT_VELOCITY)
+  END_USE_CODE
+end on
+
+on controller
+  USE_CODE_IF(DEBUG_MODE)
+  message("MIDI Controller " & $CC_NUM " changed its value to " & %CC[$CC_NUM])
+  END_USE_CODE
+end on
+    </code>
+    <p>
+      The <i>built-in function</i> <code>num_elements()</code> used above, can
+      be called to obtain the size of an array variable at runtime.
+      As this script looks now, the debug messages will be printed out. However
+      it requires you to just remove the first line, or to comment out the first
+      line, in order to disable all debug code portions in just a second:
+    </p>
+    <code>
+{ Setting the condition is commented out, so our DEBUG_MODE is disabled now. }
+{ SET_CONDITION(DEBUG_MODE) }
+
+on init
+  declare const %primes[12] :=  ( 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37 )
+  declare $i
+
+  USE_CODE_IF(DEBUG_MODE) { Condition is not set, so this entire block will be ignored now. }
+  message("This script has just been loaded.")
+  
+  $i := 0
+  while ($i < num_elements(%primes))
+    message("Prime " & $i & " is " & %primes[$i])
+    $i := $i + 1
+  end while
+  END_USE_CODE
+end on
+
+on note
+  USE_CODE_IF(DEBUG_MODE) { Condition is not set, no message will be printed. }
+  message("Note " & $EVENT_NOTE & " was triggered with velocity " & $EVENT_VELOCITY)
+  END_USE_CODE
+end on
+
+on release
+  USE_CODE_IF(DEBUG_MODE) { Condition is not set, no message will be printed. }
+  message("Note " & $EVENT_NOTE & " was released with release velocity " & $EVENT_VELOCITY)
+  END_USE_CODE
+end on
+
+on controller
+  USE_CODE_IF(DEBUG_MODE) { Condition is not set, no message will be printed. }
+  message("MIDI Controller " & $CC_NUM " changed its value to " & %CC[$CC_NUM])
+  END_USE_CODE
+end on
+    </code>
+    <p>
+      Now you might say, you could also achieve that by declaring and using
+      a regular NKSP variable. That's correct, but there are two major
+      advantages by using preprocessor statements.
+    </p>
+    <ol>
+      <li>
+        <b>Saving Resources</b> -
+        The preprocessor conditions are only processed before the script is
+        loaded into the NKSP parser. So in contrast to using NKSP variables,
+        the preprocessor solution does not waste any CPU time or memory
+        resources while executing the script. That also means that variable
+        declarations can be disabled with the preprocessor this way
+        and thus will also safe resources.
+      </li>
+      <li>
+        <b>Cross Platform Support</b> -
+        Since the code portions filtered out by the preprocessor never make it
+        into the NKSP language parser, those filtered code portions might also
+        contain code which would have lead to parser errors. For example you
+        could use a built-in preprocessor condition to check whether your script
+        was loaded into LinuxSampler or rather into another sampler. That way
+        you could maintain one script for both platforms: NKSP and KSP.
+        Accordingly you could
+        also check a built-in variable to obtain the version of the sampler in 
+        order to enable or disable code portions of your script that might
+        use some newer script features of the sampler which don't exist in older
+        version of the sampler.
+      </li>
+    </ol>
+    <p>
+      As a rule of thumb: if there are things that you could move from your
+      NKSP executed programming code out to the preprocessor, then you should
+      use the preprocessor instead for such things. And like stated above,
+      there are certain things which you can only achieve with the preprocessor.
+    </p>
+    
+    <h2>What Next?</h2>
+    <p>
+      You have completed the introduction of the NKSP real-time instrument
+      script language at this point. You can now dive into the details of the
+      NKSP language by moving on to the
+      <a href="nksp_reference.html">NKSP reference documentation</a>.
+      Which provides you an overview and quick access to the details of all
+      built-in functions, built-in variables and more.
+    </p>
+
+  </body>
+</html>

@@ -1,0 +1,131 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>Instrument Scripts</title>
+    <meta name="description" content="Introduction to real-time instrument scripts.">
+  </head>
+  <body>
+    <h1>Real-Time Instrument Scripts</h1>
+    <p>
+      The sampler technology is constantly evolving to satisfy new feature
+      requirements of sound designer in order to allow them creating more and
+      more realistic sounds. As an example you might look at state of the art
+      orchestra libraries. They not only allow you pick one of the individual
+      instrument sounds of an orchestra, they also allow you to control the
+      articulation of the respective orchestra instrument while playing them
+      live with your keyboard. So you might start playing an interesting intro
+      with a string ensemble in
+      <i title="Technique that uses a bowing style that leaves the string clearly to produce a light 'bouncing' sound.">spiccato</i>
+      playing style, then you might go over into a slow bridge part where the
+      string ensemble is resembling a
+      <i title="Of successive notes in performance, connected without any intervening silence of articulation.">legato</i>
+      articulation or even
+      <i title="Portamento is a continous pitch sliding from one note to another.">portamento</i>
+      in between, which makes that part of the song very calm and
+      relaxed, and then you shock your audience all of a sudden with a loud
+      <i title="Staccato signifies a note of shortened duration, separated from the note that may follow by silence.">staccato</i>,
+      automatically supported by kettledrum and brass sounds, that wakes up even
+      the last one in the back row. And the best thing: you did not switch to
+      another instrument during that entire song.
+    </p>
+
+    <h3>Technical Challenge</h3>
+    <p>
+      Adding these kinds of features to a sampler had long been a challenge for
+      software developers. On one hand you need to provide the musician
+      additional controls to let him switch between such kind of orchestra
+      articulations. Sound designers came up with various ideas to let the
+      keyboard player do this. For example by
+      <ul>
+        <li>using continous controllers like the keyboard's modulation wheel</li>
+        <li>using a dedicated keys section on the keyboard where each key selects another playing style</li>
+        <li>utilizing aftertouch support of keyboards</li>
+      </ul>
+      and some more. And on the other hand developers needed to extend the
+      sampler software and the instrument file format to deal with all those
+      extensions. Thinking about <i>portamento</i> for example, the sampler not
+      only has to pick the right sample for the first key the keyboard player
+      hits, the sampler also has to detect the next note and needs to pick a
+      special dedicated portamento sample that goes specifically from that one
+      note to that other note. If the sampler would do that synthetically
+      instead, then it would sound synthetically.
+    </p>
+    <p>
+      And if that was not enough, sound designers started even to ask for very
+      exotic features, specifically for just a bunch of sounds or even for just
+      one single sound of
+      theirs, for example
+      a specific note pattern that shall automatically be added by the sampler
+      to each note being played by the keyboard player.
+      The requested feature set became such large, that sampler developers
+      failed to put all this into their stock sampler software package.
+      A completely new solution was required.
+    </p>
+
+    <h3>Scripts as Solution</h3>
+    <p>
+      Instead of bloating the sampler engine with more and more suboptimal
+      features that not really suited anybody, the sampler developers turned the
+      way around and opened the sampler engine for sound designers, so that they
+      could add their own custom software components and bundle them with their
+      sounds. These kinds of software plugins that are directly glued and
+      shipped with sounds are called <i>Instrument Scripts</i>, they extend
+      the sampler software with new software features required by the
+      respective sound.
+    </p>
+    <p>
+      Sound designers were finally free to add their own features to the sampler
+      and used <i>Instrument Scripts</i> extensively to create stunning new
+      sounds. For example they came up with a feature called
+      <i title="Sympathetic resonance is a harmonic phenomenon wherein a formerly passive string responds to external vibrations to which it has a harmonic likeness.">
+        symphatetic resonance
+      </i> for their piano sound libraries, which brought piano sounds another
+      great leap forward to match their real, physical counter parts.
+    </p>
+    
+    <h2>Using Scripts with LinuxSampler</h2>
+    <p>
+      LinuxSampler allows you to write and use such <i>Instrument Scripts</i>
+      as well. At this point however, support for instrument scripts is limited
+      to the GigaStudio format engine of LinuxSampler yet. The script engine was
+      developed in a very modular design, where most of the script engine's
+      software is independent from the actual sampler format and the
+      respective sampler format engine is just adding its format specific
+      extensions to the script language. For example the GigaStudio format
+      engine adds scripting functions to allow the sound designer to control the
+      dimension region by scripts.
+    </p>  
+    <p>
+      In other words: adding script support to the SFZ format engine for
+      example would not be much work. Simply nobody so far had time and
+      passion to add the scripting feature to the SFZ engine yet.
+    </p>
+
+    <h3>Bundling Scripts with Sounds</h3>
+    <p>
+      Our graphical instrument editor for the GigaStudio format - <i>gigedit</i> -
+      includes an instrument script editor and allows you to attach
+      instrument scripts to individual GigaStudio format sounds. Refer to the
+      gigedit manual for <a href="gigedit_scripts.html">how to manage instrument scripts with gigedit.</a>
+    </p>
+
+    <h3>Learning the Script Language</h3>
+    <p>
+      You certainly find some instrument scripts ready to be used on the
+      Internet. So you can simply download and attach them to your sounds with
+      <i>gigedit</i>. In order to write your own custom instrument scripts though, you
+      need to get in touch with the scripting language. Refer to the
+      <a href="nksp.html">NKSP Language Tour</a>
+      for learning how to write your own scripts.
+    </p>
+
+    <h3>Script Language Reference</h3>
+    <p>
+      If you are already familiar with the instrument script language basics,
+      and just need details and examples to the individual built-in functions
+      and built-in variables, then refer to the
+      <a href="nksp_reference.html">NKSP Reference Manual</a>.
+    </p>
+
+  </body>
+</html>

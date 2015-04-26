@@ -1,0 +1,100 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>gig_set_dim_zone() function</title>
+    <meta name="description" content="Changes the currently active dimension zone.">
+  </head>
+  <body>
+    <h1>gig_set_dim_zone()</h1>
+    <p>
+      Overrides and selects another active zone of a particular GigaStudio dimension.
+      Usually each dimension is assigned to some MIDI controller, or to 
+      note-on velocity or other sources, and by changing the respective MIDI
+      controller or velocity or the respective source, the respective dimension
+      zone is selected accordingly. With this function you have an alternative
+      to change the currently active dimension zone(s) programmatically at any time.
+    </p>
+
+    <h3>Function Prototype</h3>
+    <p/>
+    <code>
+gig_set_dim_zone(??events??, ??dimension??, ??zone??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??events??</code></td>
+        <td>Event Group ID Number or Event Group ID Array</td>
+        <td>Note on event ID(s) of the note(s) where the current dimension zone
+            shall be changed.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??dimension??</code></td>
+        <td>Dimension ID Number</td>
+        <td>The dimension that shall be changed. You should pass one of the
+            built-in constants (listed below) to select one of the available
+            dimension types.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??zone??</code></td>
+        <td>Integer Number</td>
+        <td>The zone index of the dimension that shall become active.<br>
+            [required]</td>
+      </tr>
+    </table>
+    
+    <h3>Return Value</h3>
+    <p>None.</p>
+    
+    <h3>Dimension Constants</h3>
+    <p>
+      You should use one of the following built-in constants for the
+      <code>??dimension??</code> argument:
+      <ul>
+        <li><code>$GIG_DIM_CHANNEL</code></li>
+        <li><code>$GIG_DIM_LAYER</code></li>
+        <li><code>$GIG_DIM_VELOCITY</code></li>
+        <li><code>$GIG_DIM_AFTERTOUCH</code></li>
+        <li><code>$GIG_DIM_RELEASE</code></li>
+        <li><code>$GIG_DIM_KEYBOARD</code></li>
+        <li><code>$GIG_DIM_ROUNDROBIN</code></li>
+        <li><code>$GIG_DIM_RANDOM</code></li>
+        <li><code>$GIG_DIM_SMARTMIDI</code></li>
+        <li><code>$GIG_DIM_ROUNDROBINKEY</code></li>
+        <li><code>$GIG_DIM_MODWHEEL</code></li>
+        <li><code>$GIG_DIM_BREATH</code></li>
+        <li><code>$GIG_DIM_FOOT</code></li>
+        <li><code>$GIG_DIM_PORTAMENTOTIME</code></li>
+        <li><code>$GIG_DIM_EFFECT1</code></li>
+        <li><code>$GIG_DIM_EFFECT2</code></li>
+        <li><code>$GIG_DIM_GENPURPOSE1</code></li>
+        <li><code>$GIG_DIM_GENPURPOSE2</code></li>
+        <li><code>$GIG_DIM_GENPURPOSE3</code></li>
+        <li><code>$GIG_DIM_GENPURPOSE4</code></li>
+        <li><code>$GIG_DIM_SUSTAIN</code></li>
+        <li><code>$GIG_DIM_PORTAMENTO</code></li>
+        <li><code>$GIG_DIM_SOSTENUTO</code></li>
+        <li><code>$GIG_DIM_SOFT</code></li>
+        <li><code>$GIG_DIM_GENPURPOSE5</code></li>
+        <li><code>$GIG_DIM_GENPURPOSE6</code></li>
+        <li><code>$GIG_DIM_GENPURPOSE7</code></li>
+        <li><code>$GIG_DIM_GENPURPOSE8</code></li>
+        <li><code>$GIG_DIM_EFFECT1DEPTH</code></li>
+        <li><code>$GIG_DIM_EFFECT2DEPTH</code></li>
+        <li><code>$GIG_DIM_EFFECT3DEPTH</code></li>
+        <li><code>$GIG_DIM_EFFECT4DEPTH</code></li>
+        <li><code>$GIG_DIM_EFFECT5DEPTH</code></li>
+      </ul>
+    </p>
+    
+    <h3>Examples</h3>
+    <p>None yet.</p>
+
+  </body>
+</html>

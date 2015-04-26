@@ -1,0 +1,53 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>ignore_event() function</title>
+    <meta name="description" content="Drops the given event.">
+  </head>
+  <body>
+    <h1>ignore_event()</h1>
+    <p>
+      Drops the given event and thus prevents the supplied event to be further
+      processed by the sampler. You can use this function i.e. to filter out
+      MIDI note on and MIDI note off events, before they are causing new notes
+      to be triggered.
+    </p>
+    <p>
+      There is also an <code>ignore_controller()</code> function. With
+      NKSP the two functions are both doing the same thing though.
+      The two exist merely due to compatibility reasons with KSP.
+    </p>
+
+    <h3>Function Prototype</h3>
+    <p/>
+    <code>
+ignore_event(??event-id??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??event-id??</code></td>
+        <td>Event ID Number or Event ID Array</td>
+        <td>MIDI event(s) to be dropped.<br>
+            [required]</td>
+      </tr>
+    </table>
+    
+    <h3>Return Value</h3>
+    <p>None.</p>
+    
+    <h3>Examples</h3>
+    <p>None yet.<p>
+
+    <note>
+      Passing an array of event IDs is only supported by NKSP. If you want
+      to keep compatibility to KSP, then you should only pass a single
+      event ID to this function.
+    </note>
+
+  </body>
+</html>

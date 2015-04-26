@@ -1,0 +1,878 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>Writing Docs</title>
+    <meta name="description" content="Writing new articles for this site.">
+  </head>
+  <body>
+    <p>
+      This article provides a short introduction about how to write documents
+      for this site. We appreciate any volunteers trying to help us writing
+      documentation for LinuxSampler and friends.
+    </p>
+
+    <h3>At a Glance</h3>
+    <p>
+      There are plenty of documentation systems out there. Why did we need yet
+      another one? Most of those systems require you to learn some kind of custom,
+      exotic markup language to write documents with them. Then there are
+      <i title="<u><b>W</b>hat <b>Y</b>ou <b>S</b>ee <b>I</b>s <b>W</b>hat <b>Y</b>ou <b>G</b>et:</u> A system that immediately shows you the result while creating content.">
+      WYSIWG  
+      </i> systems which require to maintain user accounts for people who want to
+      add or change content and are suffering under periodic security issues,
+      which in turn require frequent software updates to avoid the site getting
+      compromised. And last but not least; they don't deliver everything you
+      need and are often hard to extend or to be customized.
+    </p>
+    <p>
+      <img src="new_article.png" style="height:112px; margin-right:15px;">
+      This site is using one of the best, most flexible, and well known markup
+      languages as basis for writing documents:
+      <a href="http://en.wikipedia.org/wiki/HTML">HTML</a>. But obviously there
+      are some caveats to use HTML as-is. Most notably it requires you to write 
+      a lot of monothonic, superfluous things again and again just to achieve
+      simple things. And on the other hand it requires authors to invest a
+      substantial amount of time learning the numerous required aspects of HTML
+      and <a href="http://en.wikipedia.org/wiki/Cascading_Style_Sheets">CSS</a>.
+      Fortunately; you don't have to. You don't need to have any precognition
+      of HTML or CSS to write articles for this site.
+    </p>
+    <p>
+      Here are some of the features of our documentation system in overview:
+      <ul>
+        <li>
+          Articles are created as plain and extremely simple HTML files, which
+          do not neccessarily require any previous knowledge in HTML
+          (or even CSS) by article authors.
+        </li>
+        <li>
+          The article's HTML file can immediately be previewed on the author's
+          local computer by just opening it with a browser. No upload or web
+          application required while creating or editing articles.
+        </li>
+        <li>
+          Once the article is ready, it can be submitted to our server, which
+          will then be filled up automatically by our software to generate our
+          documentation site. The software performs all redundant work that is
+          usually required to build websites with regular HTML files. This
+          automatic generation supports the following features:
+          <ol>
+            <li>
+              Automatic generation of the site's article structure. The site's
+              structure can very easily be changed, by just moving around the 
+              article source HTML files in the article source repository. No single
+              article needs to be edited for any site structure changes.
+            </li>
+            <li>
+              Automatic correction of links and image references in articles,
+              i.e. on site structure changes, trivial input errors or file type
+              changes. No user interventation required.
+            </li>
+            <li>
+              Automatic syntax highlighting of source code snippets in articles,
+              so the author can concentrate simply on the content and correctness
+              of his source code snippets. The software
+              generates the correct look of your source code examples for you.
+            </li>
+            <li>
+              Automatic generation of site's navigation bar, article's table of
+              contents and article section IDs for the entire website.
+            </li>
+            <li>
+              Automated generation of tooltips for links to other articles and
+              technical terms or abbreviations.
+            </li>
+            <li>
+              Automatic detection of fundamental errors in articles. Our system
+              tries to correct any kind of issues automatically as much and as far
+              as possible, in order to avoid bothering article authors with any kind of trivial
+              things. However there are cases where it simply cannot resolve
+              issues with individual articles on its own, even not by "guessing".
+              In this case it will notify the author(s) about the precise problem,
+              so they are aware about it and asks them to do the manual correction.
+            </li>
+            <li>
+              This site's software is written in native C++, it generates and
+              updates the entire site extremely fast. And since it is only
+              updating the site's files when some input article changed, it can
+              also be run as unpriviliged user and/or in a sandbox environment.
+            </li>
+          </ol>
+        </li>
+        <li>
+          The site's template is a regular, static HTML file. So you can edit and
+          test the site's overall look with a regular browser. No need to comment
+          in/out things just for changing the general look of the site.
+        </li>
+        <li>
+          Extensible: all articles are still real HTML after all. So you can
+          easily add any kind of HTML, CSS and Java Script on your own for
+          individual articles of yours if really required. So it is not neccessarily
+          required to change our site's software just to add some kind of customization
+          for some of your articles.
+        </li>
+      </ul>
+    </p>
+    <p>
+      Enough said, let's dive in and actually see how to create an article.
+    </p>
+
+    <h2>A Base Article</h2>
+    <p>
+      Creating a new article for this site is as simple as creating a new text
+      file and adding following text:
+    </p>
+    <code l="html">
+<h1>My First Article</h1>
+<p>
+  This is the first paragraph.
+</p>
+    </code>
+    <p>
+      This would already be sufficient to be a valid document and all the rest
+      would  automatically be added by our site's software for you. It is
+      recommended though to start new documents always with following template
+      instead:
+    </p>
+    <code>
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title>??article-title??&lt;/title&gt;
+    &lt;meta name="author" content="??author-name??"&gt;
+    &lt;meta name="description" content="??short-description??"&gt;
+    &lt;link rel="stylesheet" href="http://doc.linuxsampler.org/css/preview.css"&gt;
+    &lt;script type="text/javascript" src="http://doc.linuxsampler.org/js/preview.js"&gt;&lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    <h1>??article-headline??</h1>
+    <p>
+      This is the first paragraph.
+    </p>
+  &lt;/body&gt;
+&lt;/html&gt;
+    </code>
+    <p>
+      Add this to an empty text file and rename the file to a HTML file with
+      arbitrary name like <code>my_first_article.html</code>.
+      That template above has the advantage that you can simply open that file
+      locally on your machine with your web browser and immediately preview how
+      the article will look like on our website while you are writing the
+      article. So you don't need to upload it somewhere for that purpose.
+    </p>
+    <p>
+      Don't worry, you don't need to understand everything that's there. All you
+      need to know is described next.
+    </p>
+    
+    <h3>Article Short Description</h3>
+    <p>
+      You may provide a short description of your article with
+      <code>??short-description??</code>. This is completely optional. It is used
+      for example when your article is linked from another article. In that
+      case the reader may i.e. move the mouse pointer over the link and a tooltip
+      will popup with the document's title and the short description as summary
+      of what that article is about.
+    </p>
+
+    <h3>Article Title</h3>
+    <p>
+      With <code>??article-title??</code> you provide the title of the article,
+      which will be displayed in the browser's window title bar and it will also
+      be displayed on our site's horizontal navigation bar, which you can find
+      at the top of each page. It will also be used by our site to auto generate
+      a directory structure for the generated website, thus it also has an
+      impact on the final <i>URL</i> of your article.
+    </p>
+    <p>
+      With <code>??article-headline??</code> you define the prominent headline
+      shown at the very beginning of the article.
+    </p>
+    <p>
+      In most cases <code>??article-title??</code> and
+      <code>??article-headline??</code> will probably be the same text for one
+      article. In that case you may also omit either one of the two. The
+      software will then automatically add the missing headline or title for
+      you.
+    </p>
+    <p>
+      In some few cases you may want to have more control over the aspects of
+      the article's title, its final URL path and what shall be displayed in
+      the navigation bar. In this case you may use some additional optional tags
+      in your document's head like this:
+    </p>
+    <code>
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title>??article-title??&lt;/title&gt; <!-- article's title -->
+    
+    &lt;urlpath>??article-path??&lt;/urlpath&gt; <!-- article's directory (in URL path) -->
+    
+    &lt;navpath>??nav-bar-name??&lt;/navpath&gt; <!-- article's name in navigation bar -->
+
+    &lt;meta name="author" content="John Smith"&gt;
+    &lt;meta name="description" content="This is my first article."&gt;
+    &lt;link rel="stylesheet" href="http://doc.linuxsampler.org/css/preview.css"&gt;
+    &lt;script type="text/javascript" src="http://doc.linuxsampler.org/js/preview.js"&gt;&lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    <h1>??article-headline??</h1>
+    <p>
+      This is the first paragraph.
+    </p>
+  &lt;/body&gt;
+&lt;/html&gt;
+    </code>
+    <p>
+      In this case, <code>??article-title??</code> is now only used for displaying the
+      article's name in the browser's title bar and in case the reader
+      bookmarks your article with his browser.
+      <code>??article-path??</code> is the directory
+      name where the final, generated article shall be place at. Accordingly
+      this also changes the final URL to the article. And last but not least,
+      <code>??nav-bar-name??</code> defines the name of your article as it shall
+      be displayed on the site's navigation bar. As said, these additional tags
+      are completely optional. In most cases you should be fine by just providing
+      a <code>&lt;title&gt;</code> and/or <code>&lt;h1&gt;</code> with your
+      article.
+    </p>
+    
+    <h3>Article Authors</h3>
+    <p>
+      Also completely optional is providing <code>??author-name??</code> as 
+      name(s) of the person(s) who wrote the article. If you provide that information,
+      then the name will be displayed in the footer section of the article on
+      our site. Don't be shy and add your name to get credited for your work.
+      If you change an already existing article, you may simply add your name
+      by adding a comma like so:
+    </p>
+    <code>
+&lt;meta name="author" content="John Doe, Bob Fox, Mary Smith"&gt;
+    </code>
+    <p>
+      The author information may also be useful for people to contact the person
+      who wrote the original article in order to ask some questions about it.
+    </p>
+
+    <h2>Headlines</h2>
+    <p>
+      All headlines in your article are defined with regular HTML headline
+      tags. The following three headline types are available:
+    </p>
+    <ol>
+      <li><code><h1>??article-headline??</h1></code> Like described in the
+          previous section, a <code><h1></code> headline is the most prominent
+          headline of your article. It should only be used once; at the very
+          beginning of your article to display the general topic of the article.
+      </li>
+      <li><code><h2>??sub-headline??</h2></code> This headline type is a bit
+          less prominent than a <code><h1></code> headline. You may use 
+          <code><h2></code> headlines to introduce important sections
+          of your article.
+      </li>
+      <li><code><h3>??sub-sub-headline??</h3></code> This is the least
+          prominent headline type. You may use it to further subdivide your
+          article in smaller sections.
+      </li>
+    </ol>
+    <p>
+      This is the corresponding look for each one of the three headline types:
+    </p>
+    <example>
+      <h1>This is a &lt;h1&gt; headline</h1>
+      <h2>This is a &lt;h2&gt; headline</h2>
+      <h3>This is a &lt;h3&gt; headline</h3>
+    </example>
+    <p>
+      It's completely up to you which one of those three headline types to use,
+      how often you use them and where. All of them will be taken by the site's
+      software to automatically generate a table of content of your Article,
+      which will be shown at the left side next to your article on our site.
+    </p>
+    <p>
+      Once your article is uploaded to our site, IDs for the individual
+      headlines will automatically be generated for you. If for example you had
+      somewhere in your article a headline called "Conclusion of Topic", then
+      this particular paragraph of your article may be directly linked to from
+      other articles or other sites with an URL like
+      <code>http://doc.linuxsampler.org/path/to/your/article/#conclusion_of_topic</code>.
+      If you want to override this behavior, because you rather want to use your
+      own ID for a paragraph of your article, then simply set the desired ID with
+      your headline:
+    </p>
+    <code>
+<h3 id="my_conclusion">Conclusion of topic</h3>
+    </code>
+    
+    <h2>Paragraphs</h2>
+    <p>
+      You should wrap each continous text block of your article in between
+      a paragraph tag pair like:
+    </p>
+    <code>
+<p>
+  This is a paragraph. All the text in a paragraph is combined to one continous
+  text block. You may add as much text as you want to a paragraph of your article,
+  but better separate you article into logical parts of separate paragraphs. So to start a
+  new paragraph, wrap the next text block into a new pair of paragraph tags.
+</p>
+<p>
+  This is the next paragraph. There will be an empty line between this paragraph and
+  the previous and next paragraph, to separate paragraphs visually from each other.
+</p>
+    </code>
+    <p>
+      Which would look like:
+    </p>
+    <example>
+      <p>
+        This is a paragraph. All the text in a paragraph is combined to one continous
+        text block. You may add as much text as you want to a paragraph of your article,
+        but better separate you article into logical parts of separate paragraphs. So to start a
+        new paragraph, wrap the next text block into a new pair of paragraph tags.
+      </p>
+      <p>
+        This is the next paragraph. There will be an empty line between this paragraph and
+        the previous and next paragraph, to separate paragraphs visually from each other.
+      </p>
+    </example>
+    <p>
+      Wrapping paragraphs into <code><p>??text??</p></code> blocks not only causes
+      trivial new lines in between them. This construct also allows you to easily
+      define whether certain additional content like images and source code
+      examples shall be shown directly embedded within the text block or shall
+      rather be shown separately outside of text blocks, like described next.
+    </p>
+
+    <h2>Pictures</h2>
+    <p>
+      To display i.e. screen shots, figures and other kinds of images in your
+      article, simply place the picture file in the directory where your
+      current article's file is located at. Then add the image to your article
+      with an <code><img src="some_picture.png"></code> HTML tag. There are two
+      distinct ways to do that, like described below.
+    </p>
+    <h3>Stand-Alone Pictures</h3>
+    <p>
+      To place a picture on
+      its own between two text paragraphs, simply place the <code><img></code>
+      tag between the two paragraphs in your HTML file:
+    </p>
+    <code>
+<p>
+  This is the first paragraph. Just before the picture.
+</p>
+
+<img src="some_picture.png" caption="??footnote??" title="??tooltip-text??">
+
+<p>
+  This is the next paragraph, just after the picture.
+</p>
+    </code>
+    <p>
+      The optional <code>??footnote??</code> adds a footnote text just below the
+      image and the optional <code>??tooltip-text??</code> defines a text which
+      will popup if the reader points his mouse over the image. The previous
+      example would look like this:
+    </p>
+    <example>
+      <p>
+        This is the first paragraph. Just before the picture.
+      </p>
+      <img src="a_picture.png" caption="Some Explanation" title="A tooltip text">
+      <p>
+        This is the next paragraph, just after the picture.
+      </p>
+    </example>
+    <p>
+      You also don't have to care about the size of the image. If the image
+      resolution is largen than the width of the article would currently require
+      on the user's screen, then the image will automatically be downscaled to
+      fit the width of the article. It is recommended though to keep the width
+      of images approximately below 1200px, just to not waste too much repository space
+      (that is disk space) and network bandwidth.
+    </p>
+
+    <h3>Embedded Pictures</h3>
+    <p>
+      Sometimes however it looks nicer to have a picture embedded directly inside a
+      paragraph of text and let that text float around that picture, especially
+      when using rather small images. To achieve that, simply place the image
+      tag inside the paragraph of your HTML file like:
+    </p>
+    <code>
+<p>
+  <img src="some_picture.png">
+  This is some text of a paragraph. In this particular case, this text will
+  float around the picture. The rest of this text is just repeating,
+  repeating, repeating, repeating, repeating, repeating, repeating,
+  repeating, repeating, repeating, repeating, repeating, repeating,
+  repeating, repeating, repeating, repeating, repeating, repeating,
+  repeating, repeating, repeating, repeating, repeating, repeating,
+  repeating, repeating, repeating, repeating, repeating, repeating,
+  repeating, repeating, repeating, repeating, repeating, repeating,
+  repeating, repeating, repeating, repeating, repeating, repeating,
+  repeating, repeating, repeating, repeating, repeating, repeating,
+  repeating, repeating, repeating, repeating, repeating, repeating.
+</p>
+    </code>
+    <p>
+      Which would look like this:
+    </p>
+    <example  style="clear:both;">
+      <p>
+        <img src="a_picture.png">
+        This is some text of a paragraph. In this particular case, this text will
+        float around the picture. The rest of this text is just repeating,
+        repeating, repeating, repeating, repeating, repeating, repeating,
+        repeating, repeating, repeating, repeating, repeating, repeating,
+        repeating, repeating, repeating, repeating, repeating, repeating,
+        repeating, repeating, repeating, repeating, repeating, repeating,
+        repeating, repeating, repeating, repeating, repeating, repeating, 
+        repeating, repeating, repeating, repeating, repeating, repeating, 
+        repeating, repeating, repeating, repeating, repeating, repeating, 
+        repeating, repeating, repeating, repeating, repeating, repeating, 
+        repeating, repeating, repeating, repeating, repeating, repeating.
+      </p>
+    </example>
+    <p>
+      As you can see, no special knowledge in i.e. HTML or CSS required to achieve
+      such things very easily.
+    </p>
+    
+    <h3>Unique Pictures</h3>
+    <p>
+      Once your article and its picture(s) are uploaded to our server, our
+      system will automatically check that all images on our entire site have
+      unique and unambiguous file names, no matter at which directory they
+      are stored to exactly. The "file name" that is checked in this case, is
+      actually the picture's file name without its file type extension
+      (i.e. without ".png", ".jpg", ".gif", etc. at its end). There are two reasons for this:
+      <ol>
+        <li><b>Site Structure Changes:</b>
+          After a while, the structure on a website changes. Certain articles
+          are moved to completely different directories and some article's may
+          reference pictures that were already added and used by other articles before.
+          Which makes sense of course, why saving the exact same picture 10 times
+          under different image files if you can just reference that already existing image file from your new article?
+          Now when those articles and/or the images move to different locations,
+          the image references within such articles might turn to dead references.
+          Our system automatically detects this and corrects the references in
+          articles to any kind of image file automatically, without requiring
+          any user intervention. So we can change the structure of the website
+          at any time without having to update any article file.
+        </li>
+        <li><b>File Type Changes:</b>
+          Sometimes it happens that a picture needs to be replaced with a
+          picture in a different file format. For example the original picture
+          was added in .jpeg format to have a very small file size, but later on
+          some kind of transparency is required for the picture, which is not
+          supported by JPEG. In this case the picture would i.e. be updated
+          and replaced with a .png image file. Our system also detects this and
+          automatically updates all references to that image file in all articles
+          to the precise new name of the image file. Again, no user intervention
+          required.
+        </li>
+      </ol>
+      But for the system to be able to that automatically, it requires all
+      image files to have unique file names, like described above. If you try
+      to upload a new image file to our system which uses a file name that was 
+      already taken by another image, then you will automatically be notified by
+      our system via email, asking you to rename one of the image files.
+    </p>
+    
+    <h2>Source Code</h2>
+    <p>
+      You might need to post example source code in some of your articles. This
+      is very simple to do. Just wrap your source code into a pair of
+      <code>&lt;code&gt;</code> tags like this:
+    </p>
+    <code>
+&lt;code&gt;
+
+  ??source-code??
+  
+&lt;/code&gt;
+    </code>
+    <p>
+      Syntax highlighting is automatically generated for you, according to the
+      programming language or markup language used by you. That way you don't
+      have to waste time on how to display source code nicely, and rather
+      concentrate on the content of your article. Like with images, you can
+      decide in which context the source code shall appear in your article,
+      as described next.
+    </p>
+
+    <h3>Stand-Alone Code</h3>
+    <p>
+      If you put your code block outside of paragraphs, that is between
+      paragraph blocks in your HTML file, then the source code will also appear
+      on its own between the paragraph blocks. Here is an example for the
+      <a href="nksp.html">NKSP script language</a>.
+    </p>
+    <code>
+<p>
+  Paragraph just before the source code block.
+</p>
+&lt;code&gt;
+on init
+  @foo := "A message"
+  message(@foo)
+end on
+&lt;/code&gt;
+<p>
+  Next paragraph just after the source code block.
+</p>
+    </code>
+    <p>
+      Which would appear like:
+    </p>
+    <example>
+      <p>
+        Paragraph just before the source code block.
+      </p>
+      <code lang="nksp">
+on init
+  @foo := "A message"
+  message(@foo)
+end on      
+      </code>
+      <p>
+        Next paragraph just after the source code block.
+      </p>
+    </example>
+    <p>
+      The source code automatically appears nicely in color and with line
+      numbers between the two paragraphs. This site's software will also take
+      care about removing white lines at the front and end of your source code
+      blocks appropriately.
+    </p>
+
+    <h3>Embedded Code</h3>
+    <p>
+      In case you are mentioning a very small part of the source code in your
+      text, then you probably might want that to be displayed actually as source code
+      directly embedded into your paragraph. You might already guess how to
+      do that: simply put the code block into the paragraph text block of your
+      HTML file:
+    </p>
+    <code>
+<p>
+  A variable is assigned with NKSP like this &lt;code&gt;$foo := 5&lt;/code&gt;, in this
+  case you are assigning &lt;code&gt;5&lt;/code&gt; to the integer variable &lt;code&gt;$foo&lt;/code&gt;.
+</p>
+    </code>
+    <p>
+      And this would be the result:
+    </p>
+    <example>
+      <p>
+        A variable is assigned with NKSP like this <code lang="nksp">$foo := 5</code>, in this
+        case you are assigning <code lang="nksp">5</code> to the integer variable <code lang="nksp">$foo</code>.
+      </p>
+    </example>
+    <p>
+      That looks now much more easier to read, doesn't it?
+    </p>
+
+    <note>
+      Syntax highlighting of source code is automatically generated by our site's software
+      once the document is uploaded to our server. So when you are just
+      previewing your article with source code snippets on your local machine,
+      then those source code snippets will yet be displayed monochrome,
+      without any syntax highlighting.
+    </note>
+    
+    <note>
+      Automatic syntax highlighting is currently available for the
+      <ul>
+        <li>NKSP real-time instrument script language
+        <li>HTML markup language</li>
+      </ul>
+      If you need another source code language, just tell
+      <a href="http://www.linuxsampler.org/developers.html#Schoenebeck">Christian</a>
+      and he will add the required module for any kind of language
+      (even the most exotic one) on our server in short time.
+    </note>
+    
+    <h3>Metaphors</h3>
+    <p>
+      You might have noticed, we have used a special kind of <code>??place-holder??</code> for 
+      human-readable portions in source code before, which shall outline to the reader
+      that it is not actually "real" source code, but just reflecting its semantic meaning.
+      Simply put the respective pseudo-code into a pair of two question marks,
+      like so:
+    </p>
+    <code>
+&lt;code&gt;
+on init
+  declare const $i = \?\?some-value\?\?
+  
+  message(\?\?text-string\?\?)
+end on
+&lt;/code&gt;
+    </code>
+    <p>
+      Which will look like this:
+    </p>
+    <example>
+      <code lang="nksp">
+on init
+  declare const $i = ??some-value??
+  
+  message(??text-string??)
+end on
+      </code>
+    </example>
+    <p>
+      These <i>metaphors</i> are especially useful in beginners tutorials for 
+      clearly separating real source code portions from pseudo-code portions,
+      and to point the reader's eyes to the most important locations of your
+      source code snippet.
+    </p>
+    
+    <h2>Links and Article File Names</h2>
+    <p>
+      If you want to add links in your article to another article or to some
+      other website, then you just use an ordinary HTML link tag pair:
+    </p>
+    <code>
+<p>
+  This paragraph contains &lt;a href="../nksp.html"&gt;a link to another article&lt;/a&gt;
+  and to &lt;a href="http://www.linuxsampler.org"&gt;another website&lt;/a&gt;.
+</p>
+    </code>
+    <example>
+<p>
+  This paragraph contains <a href="../nksp.html">a link to another article</a>
+  and to <a href="http://www.linuxsampler.org">another website</a>.
+</p>
+    </example>
+    <p>
+      Concerning links to other websites, there is nothing special for you to know about.
+    </p>
+    <p>
+      Regarding local links to another article however: these are monitored
+      similar like references to image files (as <a href="#unique_pictures">described before</a>), that is
+      our system automatically detects if the path of some of your local links to
+      another article is incorrect, i.e. because the website structure changed
+      in the meantime, and it will automatically correct the path to the correct
+      location of the article for you, without requiring any user intervention.
+      For this reason, all articles must have unique file names for the entire
+      site, no matter in which directory the respective article's HTML file is
+      located at exactly.
+    </p>
+    <p>  
+      An article file on our site usually has the following
+      file name form:
+    </p>
+    <code>
+??number-prefix??_??unique-name??.html
+    </code>
+    <p>
+      The <code>??number-prefix??</code> is optional. It allows us to control
+      the order of articles on the same website structure level (i.e.
+      concerning its location in the navigation bar).
+      The <code>??unique-name??</code> portion of the file name though is actually the
+      relevant part our site's software is looking at. This "root" of its file
+      name must be globally unique among our entire site. If you add a new
+      article to our site with a file name that is already taken by another
+      article, then our system will automatically inform you via email to
+      resolve this issue by renaming one of them. Also note that the file name
+      just acts as internal ID while writing articles. The original file name
+      of the input HTML file will not be directly exposed to readers on our
+      documentation site.
+    </p>
+
+    <h2>Terms</h2>
+    <p>
+      Technical terms and abbreviations are often used in articles to reduce
+      the amount of text for transmitting some kind of information about a
+      certain topic to the reader. You might want to emphasize technical terms and abbreviations
+      in your article, by wrapping the term into a pair of <code><i></code> HTML
+      tags. On our site this will not only show the term in a special unified
+      font style (currently italic), but it allows you also to define the
+      meaning of the term <b>once</b>. Which goes like this:
+    </p>
+    
+    <h3>Defining a Term</h3>
+     <p>
+      You may define a new term like this:
+    </p>
+    <code>
+<p>
+  He left the bar and jumped right into his
+  &lt;i title="A very large vehicle."&gt;Mega Liner&lt;/i&gt;
+  to follow the street right into sunset.
+</p>
+    </code>
+    <example>
+<p>
+  He left the bar and jumped right into his
+  <i title="A very large truck vehicle.">Mega Liner</i>
+  to follow the street right into sunset.
+</p>
+    </example>
+    <p>
+      Now when you point your mouse over the term, a popup will appear,
+      describing the meaning of the term. 
+    </p>
+
+    <h3>Referencing an already defined Term</h3>
+    <p>
+      Obviously you don't want to define
+      the same term over and over again, just to provide the user the meaning of
+      it at any occurence of the site. That's why our software does that
+      automatically for you once your article is uploaded to our server. Now
+      when you use the term at another place, i.e. in another article, then
+      it will automatically have the same meaning attached to it:
+    </p>
+    <code>
+<p>
+  Once again he was sitting behind the wheel of his &lt;i&gt;Mega Liner&lt;/i&gt;,
+  but things were different back then.
+</p>
+    </code>
+    <example>
+<p>
+  Once again he was sitting behind the wheel of his <i>Mega Liner</i>, but
+  things were different back then.
+</p>
+    </example>
+    <p>
+      Point your mouse again over the term, and you will notice that the same
+      term definition will popup as tooltip, like at its original location where
+      it was defined before.
+    <p>
+    </p>
+      Due to this fact, our site's software does not even allow you to define the
+      same term more than once (at least not with a different meaning that is).
+      It will scan all documents in our current pool and if somebody tries to
+      re-declare an already existing term again with a different meaning, he
+      will automatically be notified by our system via email and kindly asked
+      to resolve the ambiguousness.
+    </p>
+    <note>
+      Our system automatically handles redundant variants of terms. That means
+      first of all, that all term names are stored, compared and looked up case insensitive,
+      and the system automatically tries to auto complete i.e. plural forms
+      of the same term.
+    </note>
+    
+    <h2>Tables</h2>
+    <p>
+      Tables are written like ordinary HTML tables. That is:
+    </p>
+    <code>
+<table>
+  <tr>
+    <th>Name</th> <th>Description</th>
+  </tr>
+  <tr>
+    <td>Foo</td> <td>Some text.</td>
+  </tr>
+  <tr>
+    <td>Bar</td> <td>And more text.</td>
+  </tr>
+  <tr>
+    <td>Thing</td> <td>And that's it.</td>
+  </tr>
+</table>
+    </code>
+    <example>
+      <table>
+        <tr>
+          <th>Name</th> <th>Description</th>
+        </tr>
+        <tr>
+          <td>Foo</td> <td>Some text.</td>
+        </tr>
+        <tr>
+          <td>Bar</td> <td>And more text.</td>
+        </tr>
+        <tr>
+          <td>Thing</td> <td>And that's it.</td>
+        </tr>
+      </table>
+    </example>
+    <p>
+      So <code>&lt;tr&gt;</code> wraps up individual rows of a table,
+      <code>&lt;th&gt;</code> contains the individual cells of the table header,
+      and <code>&lt;td&gt;</code> contains the individual cells of the table's
+      body.
+    </p>
+    
+    <h2>Note Boxes</h2>
+    <p>
+      Once in a while you need to inform the reader about noteworthy issues.
+      For this purpose we are using a special <code>&lt;note&gt;</code> tag.
+    </p>
+    <h3>Regular Notes</h3>
+    <p>
+      To add regular notes to your article with low or normal importance, add
+      the note like this:
+    </p>
+    <code>
+&lt;note&gt;
+  This is an issue you need to know about. Please read this carefully to avoid
+  making any mistakes.
+&lt;/note&gt;  
+    </code>
+    <example>
+      <note>
+         This is an issue you need to know about. Please read this carefully to avoid
+         making any mistakes.
+      </note>
+    </example>
+    <p>
+      This is not a regular HTML tag defined in the HTML standard, but with
+      modern browsers supporting CSS3, it should display just as intended.
+    </p>
+
+    <h3>Important Notes</h3>
+    <p>
+      If you need to inform the reader about a very important issue instead,
+      then you might use the following slightly different form:
+    </p>
+    <code>
+&lt;note class="important"&gt;
+  Now this is a very important issue you need to be aware of. If you ignore it,
+  your task will fail.
+&lt;/note&gt;  
+    </code>
+    <example>
+      <note class="important">
+         Now this is a very important issue you need to be aware of. If you ignore it,
+         your task will fail.
+      </note>
+    </example>
+    <p>
+      The only thing that changed compared to the regular note, is the "class"
+      attribute of the note tag.
+    </p>
+    
+    <h2>Extensions</h2>
+    <p>
+      This is almost the end of this article. You are still seeking for features
+      for one of your articles, that are not already covered by our system?
+      Then either ask <a href="http://www.linuxsampler.org/developers.html#Schoenebeck">Christian</a>
+      whether that feature could be added, or ... extend your article on your
+      own. It's real HTML after all! So you can add your own HTML, CSS and
+      Java Script to your articles at any time!
+    </p>
+    
+    <h2>What next?</h2>
+    <p>
+      You are at the end of our tour introducing our documentation system.
+      You may now start writing your first article. Once you are done with it,
+      simply
+      <a href="http://www.linuxsampler.org/developers.html">
+        send your article to some of us
+      </a>, or request an account to our Subversion repository, so you can
+      manage articles of our documentation site on your own.
+    </p>
+    <p>
+      Thanks for your support!
+    </p>
+    
+  </body>
+</html>

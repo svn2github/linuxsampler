@@ -1,0 +1,52 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>delete_event_mark() function</title>
+    <meta name="description" content="Removes an event from some event group.">
+  </head>
+  <body>
+    <h1>delete_event_mark()</h1>
+    <p>
+      Removes the supplied event from the requested event group, which had
+      previously been added to that group by calling
+      <code>set_event_mark()</code>.
+    </p>
+
+    <h3>Function Prototype</h3>
+    <p/>
+    <code>
+delete_event_mark(??event-id??, ??group-id??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??event-id??</code></td>
+        <td>Event ID Number</td>
+        <td>Event to be removed from the group.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??group-id??</code></td>
+        <td>Event Group ID Number</td>
+        <td>Event group where the event shall be removed from. You should pass one
+            of the built-in constant variables <code>$MARK_1</code> to
+            <code>$MARK_28</code> for this argument to select one of the
+            28 available groups.<br>
+            [required]</td>
+      </tr>
+    </table>
+    
+    <h3>Return Value</h3>
+    <p>None.</p>
+    
+    <h3>Examples</h3>
+    <p>
+      None yet.
+    </p>
+
+  </body>
+</html>

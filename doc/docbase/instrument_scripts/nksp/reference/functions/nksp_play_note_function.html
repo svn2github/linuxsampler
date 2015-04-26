@@ -1,0 +1,107 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>play_note() function</title>
+    <meta name="description" content="Triggers a new note.">
+  </head>
+  <body>
+    <h1>play_note()</h1>
+    <p>
+      Triggers a new note to be played by the sampler. This is like generating
+      a new MIDI note-on event programmatically.
+    </p>
+    
+    <h3>Function Prototype</h3>
+    <p/>
+    <code>
+play_note(??note??, [??velocity??], [??offset-us??], [??duration-us??])
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??note??</code></td>
+        <td>Integer Number</td>
+        <td>Note number (absolute pitch).<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??velocity??</code></td>
+        <td>Integer Number</td>
+        <td>Trigger velocity.<br>
+            [optional, default: 127]</td>
+      </tr>
+      <tr>
+        <td><code>??offset-us??</code></td>
+        <td>Integer Number</td>
+        <td>Start offset of the sample to be played in microseconds.<br>
+            [optional, default: 0]</td>
+      </tr>
+      <tr>
+        <td><code>??duration-us??</code></td>
+        <td>Integer Number</td>
+        <td>Length of the note to be played in microseconds.<br>
+            -1: The note will be stopped when the event
+                handler's note stops.<br>
+            0: The entire note's sample will be played to its end.<br>
+            [optional, default: 0]</td>
+      </tr>
+    </table>
+
+    <note class="important">
+    Passing any other value than <code>0</code> for <code>??duration-us??</code>
+    is not supported by LinuxSampler yet.
+    </note>
+    
+    <h3>Return Value</h3>
+    <table>
+      <tr>
+        <th>Description</th> <th>Data Type</th>
+      </tr>
+      <tr>
+        <td>Note's event ID of the new note that has been triggered. This event ID can be
+            used to control the note during its life time.</td>
+        <td>Event ID Number</td>
+      </tr>
+    </table>
+    
+    <h3>Examples</h3>
+    <p/>
+    <code>
+on init
+  { The amount of notes to play }
+  declare const $delayNotes := 4
+  { Tempo with which the new notes will follow the orignal note }
+  declare const $bpm := 90
+  { Convert BPM to microseconds (duration between the notes) }
+  declare const $delayMicroSeconds := 60 * 1000000 / $bpm
+  { Just a working variable for being used with the while loop below }
+  declare polyphonic $i
+  { For each successive note we trigger, we will reduce the velocity a bit}
+  declare polyphonic $velocity
+end on
+
+on note
+  { First initialize the variable $i with 4 each time we enter this event
+    handler, because each time we executed this handler, the variable will be 0 }
+  $i := $delayNotes
+
+  { Loop which will be executed 4 times in a row }
+  while ($i)
+    { Calculate the velocity for the next note being triggered }
+    $velocity := 127 * $i / ($delayNotes + 1)
+    { Suspend this script for a short moment ... }
+    wait($delayMicroSeconds)
+    { ... and after that short break, trigger a new note. }
+    play_note($EVENT_NOTE, $velocity)
+    { Decrement loop counter $i by one }
+    $i := $i - 1
+  end while
+end on
+    </code>
+
+  </body>
+</html>

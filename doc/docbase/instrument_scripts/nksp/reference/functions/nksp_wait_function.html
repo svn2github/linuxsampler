@@ -1,0 +1,90 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>wait() function</title>
+    <meta name="description" content="Pauses execution for a certain amount of time.">
+  </head>
+  <body>
+    <h1>wait()</h1>
+    <p>
+      Suspends / pauses the current event handler instance for the requested
+      amount of microseconds.
+    </p>
+    
+    <h3>Function Prototype</h3>
+    <p/>
+    <code>
+wait(??duration-us??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??duration-us??</code></td>
+        <td>Integer Number</td>
+        <td>Amount of microseconds to pause execution.<br>
+            [required]</td>
+      </tr>
+    </table>
+    
+    <h3>Return Value</h3>
+    <p>None.</p>
+    
+    <h3>Examples</h3>
+    <p/>
+    <code>
+on init
+  { The amount of notes to play }
+  declare const $delayNotes := 4
+  { Tempo with which the new notes will follow the orignal note }
+  declare const $bpm := 90
+  { Convert BPM to microseconds (duration between the notes) }
+  declare const $delayMicroSeconds := 60 * 1000000 / $bpm
+  { Just a working variable for being used with the while loop below }
+  declare polyphonic $i
+  { For each successive note we trigger, we will reduce the velocity a bit}
+  declare polyphonic $velocity
+end on
+
+on note
+  { First initialize the variable $i with 4 each time we enter this event
+    handler, because each time we executed this handler, the variable will be 0 }
+  $i := $delayNotes
+
+  { Loop which will be executed 4 times in a row }
+  while ($i)
+    { Calculate the velocity for the next note being triggered }
+    $velocity := 127 * $i / ($delayNotes + 1)
+    { Suspend this script for a short moment ... }
+    wait($delayMicroSeconds)
+    { ... and after that short break, trigger a new note. }
+    play_note($EVENT_NOTE, $velocity)
+    { Decrement loop counter $i by one }
+    $i := $i - 1
+  end while
+end on
+    </code>
+    
+    <note class="important">
+      Using the <code>wait()</code> function can lead to concurrency issues with
+      regular variables, which are global variables by default. You might need
+      to use <a href="nksp.html#polyphonic_variables">polyphonic variables</a>
+      in such cases.
+    </note>
+    
+    <note class="important">
+      The <code>wait()</code> function is not fully implemented in LinuxSampler
+      yet. Currently a <code>wait()</code> function call suspends execution,
+      but since the respective scheduler code is yet missing in LinuxSampler,
+      the script will automatically be resumed with the next audio fragment
+      cycle. So effectively a <code>wait()</code> call will pause your script
+      for a few miliseconds with LinuxSampler right now, no matter which
+      function argument you provided. Hopefully this will be implemented soon
+      though.
+    </note>
+
+  </body>
+</html>

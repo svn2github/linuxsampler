@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>abs() function</title>
+    <meta name="description" content="Calculates the absolute value of a given value.">
+  </head>
+  <body>
+    <h1>abs()</h1>
+    <p>
+      Returns the absolute value of the passed value argument. That means, if a
+      positive number or zero is passed, then the same number is returned.
+      If however a negative number is passed, then the signment of the number
+      is flipped to positive. So it behaves like simply removing the minus
+      sign if any.
+    </p>
+    
+    <h3>Function Prototype</h3>
+    <p/>
+    <code>
+abs(??number??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??number??</code></td>
+        <td>Integer Number</td>
+        <td>The number to convert.<br>
+            [required]</td>
+      </tr>
+    </table>
+    
+    <h3>Return Value</h3>
+    <table>
+      <tr>
+        <th>Description</th> <th>Data Type</th>
+      </tr>
+      <tr>
+        <td>Absolute value of the passed number.</td>
+        <td>Integer Number</td>
+      </tr>
+    </table>
+    
+    <h3>Examples</h3>
+    <p/>
+    <code>
+on init
+  declare %values[7] := ( -3, -2, -1, 0, 1, 2, 3 )
+  declare $i := 0
+  while ($i < num_elements(values))
+    message("The absolute value of " & $values[$i] & " is " & abs($values[$i]))
+  end while
+end on
+    </code>
+
+  </body>
+</html>

@@ -1,0 +1,340 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>NKSP Reference</title>
+    <urlpath>Reference</urlpath>
+    <navpath>Reference Manual</navpath>
+    <meta name="description" content="Reference documentation of the NKSP real-time instrument script language.">
+  </head>
+  <body>
+    <h1>NKSP Reference</h1>
+    <p>
+      This document gives you an overview of all built-in functions and built-in
+      variables provided by the NKSP real-time instrument script language.
+    </p>
+
+    <h2>Built-In Functions</h2>
+    <p>
+      These are the built-in functions available with the NKSP realt-time
+      instrument script language.
+    </p>
+
+    <h3>Core Language Functions</h3>
+    <p>
+      Most fundamental NKSP functions, independent from any purpose of being used in a sampler.
+    </p>
+    <table>
+      <tr>
+        <th>Function</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>message()</code></td>
+        <td>Prints text to the sampler's terminal.</td>
+      </tr>
+      <tr>
+        <td><code>exit()</code></td>
+        <td>Stops execution of the current event handler instance.</td>
+      </tr>
+      <tr>
+        <td><code>wait()</code></td>
+        <td>Pauses execution for a certain amount of time.</td>
+      </tr>
+      <tr>
+        <td><code>abs()</code></td>
+        <td>Calculates the absolute value of a given value.</td>
+      </tr>
+      <tr>
+        <td><code>random()</code></td>
+        <td>Random number generator.</td>
+      </tr>
+      <tr>
+        <td><code>num_elements()</code></td>
+        <td>Returns the size of the requested array variable.</td>
+      </tr>
+    </table>
+    
+    <h3>Common Sampler Functions</h3>
+    <p>
+      Basic sampler related functions, independent from a particular sampler
+      format or sampler engine.
+    </p>
+    <table>
+      <tr>
+        <th>Function</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>play_note()</code></td>
+        <td>Triggers a new note.</td>
+      </tr>
+      <tr>
+        <td><code>set_controller()</code></td>
+        <td>Creates a MIDI control change event.</td>
+      </tr>
+      <tr>
+        <td><code>ignore_event()</code></td>
+        <td>Drops the given event.</td>
+      </tr>
+      <tr>
+        <td><code>ignore_controller()</code></td>
+        <td>Drops the given MIDI control change event.</td>
+      </tr>
+      <tr>
+        <td><code>note_off()</code></td>
+        <td>Releases the requested note.</td>
+      </tr>
+      <tr>
+        <td><code>set_event_mark()</code></td>
+        <td>Adds an event to an event group.</td>
+      </tr>
+      <tr>
+        <td><code>delete_event_mark()</code></td>
+        <td>Removes an event from some event group.</td>
+      </tr>
+      <tr>
+        <td><code>by_marks()</code></td>
+        <td>Returns all events of an event group.</td>
+      </tr>
+    </table>
+    
+    <h3>GigaStudio Format Functions</h3>
+    <p>
+      Sampler format specific functions, dedicated to the individual features
+      of the GigaStudio format engine.
+    </p>
+    <table>
+      <tr>
+        <th>Function</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>gig_set_dim_zone()</code></td>
+        <td>Changes the currently active dimension zone.</td>
+      </tr>
+    </table>
+
+    <h2>Built-In Variables</h2>
+    <p>
+      These are the built-in variables and built-in constants available with the
+      NKSP realt-time instrument script language.
+    </p>
+    
+    <h3>Common Sampler Variables</h3>
+    <p>
+      Basic sampler related built-in variables and constants, independent from a
+      particular sampler format or sampler engine.
+    </p>
+    <table>
+      <tr>
+        <th>Variable</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>$CC_NUM</code></td>
+        <td>MIDI controller number that caused the <code>controller</code>
+            handler to be executed (only useful in the context of a
+            <code>controller</code> handler).</td>
+      </tr>
+      <tr>
+        <td><code>%CC[]</code></td>
+        <td>Provides access to all current MIDI controller values. This can be
+            used in any context. Use the respective MIDI controller number as
+            index to this integer array variable. For instance <code>%CC[1]</code>
+            would give you the current value of the modulation wheel.
+            </td>
+      </tr>
+      <tr>
+        <td><code>$EVENT_ID</code></td>
+        <td>ID of the event that caused the current event handler to be executed. In
+            the context of a <code>note</code> handler this would be the event
+            ID of the note, within a <code>controller</code> handler it would
+            be the controller event ID, etc.</td>
+      </tr>
+      <tr>
+        <td><code>$EVENT_NOTE</code></td>
+        <td>MIDI note number that caused a note related
+            handler to be executed (only useful in the context of a
+            <code>note</code> or <code>release</code> handler).</td>
+      </tr>
+      <tr>
+        <td><code>$EVENT_VELOCITY</code></td>
+        <td>MIDI velocity value of the note that caused that note related
+            handler to be executed (only useful in the context of a
+            <code>note</code> or <code>release</code> handler).</td>
+      </tr>
+      <tr>
+        <td><code>%KEY_DOWN[]</code></td>
+        <td>This can be used in any context to check whether a certain MIDI
+            key is currently pressed down. Use the respective MIDI note number
+            as index to this array variable.</td>
+      </tr>
+      <tr>
+        <td><code>$VCC_MONO_AT</code></td>
+        <td>Constant identifying the MIDI monophonic aftertouch controller (also
+            called <i title="Amount of force on held-down key.">
+              MIDI channel pressure
+            </i>). This is somewhat different than in the MIDI standard. With
+            NKSP aftertouch is handled like an additional "regular" MIDI CC controller.
+            Therefore use
+            <code>%CC[$VCC_MONO_AT]</code> to obtain the current aftertouch value
+            in the context of a <code>controller</code> event handler.
+         </td>
+      </tr>
+      <tr>
+        <td><code>$VCC_PITCH_BEND</code></td>
+        <td>Constant identifying the pitch bend wheel controller.
+            This is somewhat different than in the MIDI standard. With
+            NKSP pitch bend is handled like an additional "regular" MIDI CC controller.
+            Therefore use
+            <code>%CC[$VCC_PITCH_BEND]</code> to obtain the current aftertouch value
+            in the context of a <code>controller</code> event handler.</td>
+      </tr>
+      <tr>
+        <td><code>$MARK_1</code> to <code>$MARK_28</code></td>
+        <td>Used to select one of the available 28 event groups.
+        See <code>set_event_mark()</code> for details.</td>
+      </tr>
+    </table>
+
+    <h3>GigaStudio Format Variables</h3>
+    <p>
+      Sampler format specific built-in variables and constants, dedicated to the
+      individual features of the GigaStudio format engine.
+    </p>
+    <table>
+      <tr>
+        <th>Variable</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_CHANNEL</code></td>
+        <td>Constant that identifies the <i>stereo dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_LAYER</code></td>
+        <td>Constant that identifies the <i>layer dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_VELOCITY</code></td>
+        <td>Constant that identifies the <i>velocity dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_AFTERTOUCH</code></td>
+        <td>Constant that identifies the <i>aftertouch dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_RELEASE</code></td>
+        <td>Constant that identifies the <i>release trigger dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_KEYBOARD</code></td>
+        <td>Constant that identifies the <i>keyboard position dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_ROUNDROBIN"</code></td>
+        <td>Constant that identifies the <i>round robin dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_RANDOM</code></td>
+        <td>Constant that identifies the <i>random dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_SMARTMIDI</code></td>
+        <td>Constant that identifies the <i>start MIDI dimension</i> (a.k.a iMIDI rules).</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_ROUNDROBINKEY</code></td>
+        <td>Constant that identifies the <i>round robin key dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_MODWHEEL</code></td>
+        <td>Constant that identifies the <i>modulation wheel dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_SUSTAIN</code></td>
+        <td>Constant that identifies the <i>sustain pedal dimension</i> (a.k.a. hold pedal).</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_PORTAMENTO</code></td>
+        <td>Constant that identifies the <i>portamento MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_SOSTENUTO</code></td>
+        <td>Constant that identifies the <i>sostenuto MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_SOFT</code></td>
+        <td>Constant that identifies the <i>soft pedal dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_BREATH</code></td>
+        <td>Constant that identifies the <i>breath controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_FOOT</code></td>
+        <td>Constant that identifies the <i>foot pedal dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_PORTAMENTOTIME</code></td>
+        <td>Constant that identifies the <i>portamento time controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_EFFECT1</code></td>
+        <td>Constant that identifies the <i>effect 1 MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_EFFECT2</code></td>
+        <td>Constant that identifies the <i>effect 2 MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_EFFECT1DEPTH</code></td>
+        <td>Constant that identifies the <i>effect 1 depth MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_EFFECT2DEPTH</code></td>
+        <td>Constant that identifies the <i>effect 2 depth MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_EFFECT3DEPTH</code></td>
+        <td>Constant that identifies the <i>effect 3 depth MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_EFFECT4DEPTH</code></td>
+        <td>Constant that identifies the <i>effect 4 depth MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_EFFECT5DEPTH</code></td>
+        <td>Constant that identifies the <i>effect 5 depth MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_GENPURPOSE1</code></td>
+        <td>Constant that identifies the <i>general purpose 1 MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_GENPURPOSE2</code></td>
+        <td>Constant that identifies the <i>general purpose 2 MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_GENPURPOSE3</code></td>
+        <td>Constant that identifies the <i>general purpose 3 MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_GENPURPOSE4</code></td>
+        <td>Constant that identifies the <i>general purpose 4 MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_GENPURPOSE5</code></td>
+        <td>Constant that identifies the <i>general purpose 5 MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_GENPURPOSE6</code></td>
+        <td>Constant that identifies the <i>general purpose 6 MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_GENPURPOSE7</code></td>
+        <td>Constant that identifies the <i>general purpose 7 MIDI controller dimension</i>.</td>
+      </tr>
+      <tr>
+        <td><code>$GIG_DIM_GENPURPOSE8</code></td>
+        <td>Constant that identifies the <i>general purpose 8 MIDI controller dimension</i>.</td>
+      </tr>
+    </table>
+    
+  </body>
+</html>

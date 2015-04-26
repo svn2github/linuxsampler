@@ -1,0 +1,65 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>message() function</title>
+    <meta name="description" content="Prints text to the sampler's terminal.">
+  </head>
+  <body>
+    <h1>message()</h1>
+    <p>
+      Prints the provided text to the sampler's terminal. This function is
+      merely for script development and debugging purposes.
+    </p>
+    
+    <h3>Function Prototype</h3>
+    <p/>
+    <code>
+message(??text??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??text??</code></td>
+        <td>String</td>
+        <td>The text to be printed to the terminal.<br>
+            [required]</td>
+      </tr>
+    </table>
+    
+    <h3>Return Value</h3>
+    <p>None.</p>
+    
+    <h3>Examples</h3>
+    <p/>
+    <code>
+on note
+  message("Note " & $EVENT_NOTE & " was triggered with velocity " & $EVENT_VELOCITY)
+end on
+
+on release
+  message("Note " & $EVENT_NOTE & " was released with release velocity " & $EVENT_VELOCITY)
+end on
+
+on controller
+  message("MIDI Controller " & $CC_NUM " changed its value to " & %CC[$CC_NUM])
+end on
+    </code>
+    
+    <note class="important">
+      The message() function is not appropriate for being used with your final
+      production sounds, since it can lead to audio dropouts.
+      You should only use the message() function to try out things, and to spot
+      and debug problems with your scripts. Same applies to all text string
+      variables in general. Don't use any
+      <a href="nksp.html#string_variables">string variables</a> in your final
+      production sounds.
+      You may use <a href="nksp.html#preprocessor_statements">preprocessor statements</a>
+      to handle this effectively.
+    </note>
+
+  </body>
+</html>

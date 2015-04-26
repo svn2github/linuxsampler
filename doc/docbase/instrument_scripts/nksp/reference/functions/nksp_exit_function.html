@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>exit() function</title>
+    <meta name="description" content="Stops execution of the current event handler instance.">
+  </head>
+  <body>
+    <h1>exit()</h1>
+    <p>
+      Stops execution of the current event handler instance.
+      It does <b>not</b> stop execution of other
+      instances of the same event handler, nor does it stop execution of other
+      handlers of other event types, and especially it does <b>not</b> stop or
+      prevent further or future execution of your entire script! In other words,
+      you should rather see this function as a return statement, in case you are
+      familiar with other programming languages already.
+    </p>
+    
+    <h3>Function Prototype</h3>
+    <p/>
+    <code>
+exit()
+    </code>
+
+    <h3>Arguments</h3>
+    <p>None.</p>
+    
+    <h3>Return Value</h3>
+    <p>None.</p>
+    
+    <h3>Examples</h3>
+    <p/>
+    <code>
+on init
+  declare $numberOfNotes
+end on
+
+on note
+  $numberOfNotes := $numberOfNotes + 1
+
+  select $numberOfNotes
+    case 1
+      message("First note was triggered!") { Will never be printed ! }
+      exit
+    case 2
+      message("Second note was triggered!") { Will never be printed ! }
+      exit
+    case 3
+      message("Third note was triggered!") { Will never be printed ! }
+      exit
+  end if
+
+  message("The " & $numberOfNotes & "th note triggered.")
+end on
+    </code>
+
+  </body>
+</html>
