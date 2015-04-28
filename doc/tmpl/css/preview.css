@@ -391,6 +391,7 @@ body dir {
     padding:0px;
     margin:0px;
     font-family:CRDCour;
+    font-size:15px;
     color:#000000;
 }
 
@@ -412,5 +413,6 @@ body dir file {
     background-repeat:no-repeat;
     background-position:2px top;
     font-family:CRDCour;
+    font-size:15px;
     color:#6f6f6f;
 }
