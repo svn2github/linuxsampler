@@ -1,0 +1,198 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>Uploading Docs</title>
+    <meta name="description" content="Uploading articles for this site.">
+    <link rel="stylesheet" href="http://doc.linuxsampler.org/css/preview.css">
+    <script type="text/javascript" src="http://doc.linuxsampler.org/js/preview.js"></script>
+    <style type="text/css"><!--
+dir.new {
+    color:#009c31;
+}
+
+file.new {
+    color:#13c64b;
+}
+  --></style>
+  </head>
+  <body>
+    <p>
+      This article is intended for people who already have an user account for
+      our Subversion server.
+      It provides a short introduction about how to upload and manage articles
+      for this site.
+    </p>
+
+    <h3>Subversion Repository</h3>
+    <p>
+      The source HTML files of all articles on this site, as well as all template
+      files which make up the general look of this site, are contained and
+      managed by our regular Subversion server. You may also 
+      <a href="http://svn.linuxsampler.org/cgi-bin/viewvc.cgi/doc/">browse the source article files</a>
+      with our SVN server's web frontend.
+    </p>
+    <p>
+      So to start, first checkout the SVN repository of this site:
+    </p>
+    <code>
+svn co https://svn.linuxsampler.org/svn/doc doc.ls.org
+    </code>
+    <p>
+      Now you have downloaded this site's source files with a directory
+      structure that should look like this:
+    </p>
+    <dir>doc.ls.org
+      <dir>docbase</dir>
+      <dir>tmpl
+        <dir>css</dir>
+        <dir>fonts</dir>
+        <dir>js</dir>
+        <dir>pix</dir>
+        <file>index.html</file>
+      </dir>
+    </dir>
+    <p>
+      The <code>docbase</code> directory contains all articles of this site
+      (the content), whereas the <code>tmpl</code> directory contains all files
+      which make up the look of this site (layout). Most notably the
+      <code>index.html</code> file, in the directory structure shown above, is
+      the main template file for this site.
+    </p>
+
+    <h3>Modifying an Article</h3>
+    <p>
+      To modify an existing article, simply open the respective HTML file
+      (which is located somewhere below the <code>docbase</code> directory) with a
+      text editor of your choice. You can preview the article locally with your
+      web browser while doing your modifications. After you are done with your
+      changes, simply commit the modified articles to our Subversion repository:
+    </p>
+    <code>
+cd doc.ls.org
+svn commit
+    </code>
+    <p>
+      Like with commits regarding all our software projects, you must
+      always supply a comment with each one of your Subversion commits.
+      Once your files are commited successfully, our system will process the
+      files and rebuild this site automatically.
+    </p>
+
+    <h3>Error Detection</h3>
+    <p>
+      Our site's software will try to solve problems on its own as much as
+      possible in order to avoid bothering you. However if your modifications
+      introduced some kind of severe error which the software is not able to
+      solve on its own, then you will automatically get an email concerning the
+      problem introduced by you. In this case please resolve the issue manually
+      as being told by the software and then commit your changes again.
+      You will also get an automated email in this case once your new changes
+      actually solved the problem(s) with a "everything is now back at normal"
+      message. As long as there is a severe yet unresolved problem, the site's
+      appearance will remain in the previous, last valid state.
+    </p>
+
+    <h3>Adding an Article</h3>
+    <p>
+      To add a new article for this site, simply add the new article's HTML
+      file somewhere below the <code>docbase</code> directory. Please don't
+      add the new file directly into the <code>docbase</code> directory, because
+      in that particular directory there should always be only one HTML file
+      (<code>root.html</code> - our site's front page). So rather create a
+      new directory and add your new HTML file there, i.e. like this:
+    </p>
+    <dir>doc.ls.org
+      <dir>docbase
+        <dir class="new">my_new_article
+          <file class="new">01_foo.html</file>
+          <file class="new">some_picture.png</file>
+        </dir>
+        <file>root.html</file>
+      </dir>
+      <dir>tmpl</dir>
+    </dir>
+    <p>
+      Neither the directory name <code>my_new_article</code>, nor the HTML
+      file name <code>01_foo.html</code> will directly be exposed to the readers
+      of this site. So the name of the directory is almost irrelevant regarding
+      the precise URL name or article name. Only the directory structure
+      (the tree) is relevant for the site, because it defines which article shall
+      be located "under" which other article(s), which effectively defines its
+      appearance in the navigation bar, as well as how the URL of the article
+      is assembled.
+    </p>
+    <p>
+      If you are writing an article that you want to be splitted into separate
+      pages, or if you want to add articles that shall directly be associated with
+      each other, then you can add them to the same directory like this:
+    </p>
+    <dir>doc.ls.org
+      <dir>docbase
+        <dir class="new">my_new_article
+          <file class="new">01_foo.html</file>
+          <file class="new">02_bar.html</file>
+          <file class="new">03_some_more.html</file>
+          <file class="new">some_picture.png</file>
+        </dir>
+      </dir>
+    </dir>
+    <p>
+      Which will cause those articles to get "Next" and "Previous" buttons to
+      browse between them conveniently. The prefixed numbers of the HTML
+      files define the order in which they are linked with each other and
+      appearing this way on our site.
+    </p>
+    <p>
+      Once you are done, commit your new article(s) to our Subversion server:
+    </p>
+    <code>
+cd doc.ls.org/docbase
+svn add my_new_article
+svn commit
+    </code>
+    <p>
+      So far you should only commit .html files and image files
+      (.png, .jpg, .gif) to our Subversion server. All other files will be
+      ignored. Please also make sure your images are not too large.
+    </p>
+
+    <h3>Changing the Look</h3>
+    <p>
+      If you just want to modify the look of your article, you may just add
+      regular CSS code to your article's HTML source file. If you rather want to change
+      the overall appearance of the entire website, then have a look at the previously
+      mentioned <code>tmpl</code> directory.
+    </p>
+    <p>
+      The <code>tmpl/index.html</code> file
+      will be used by our site's software to generate all pages of this
+      website, that is it takes that file as skeleton, and replaces its
+      <code lang="html">&lt;article&gt;</code> section with the
+      respective content of the article's source HTML file. So that
+      <code>tmpl/index.html</code> file defines the HTML code that will be generated
+      for each page, which however is essentially just the data model of the page,
+      not its actual appearance. Note that this file is a real HTML file, not
+      a fragmented exotic file filled up with markers or something, like it is
+      usually the case with template files of other systems. In other words: you can simply
+      open <code>tmpl/index.html</code> with your web browser and immediately
+      test your style changes locally before commiting them.
+    </p>
+    <p>
+      The actual visual appearance (view) for the website is defined by the
+      file <code>tmpl/css/main.css</code>. This CSS file is taken verbatim as-is.
+      All files contained in subdirectories below the <code>tmpl</code> will
+      simply be copied as they are. So open <code>tmpl/index.html</code> on
+      your local machine with a web browser, modify the CSS files etc. until
+      you are modified with the look, and finally commit your changes to our
+      Subversion server.
+    </p>
+    
+    <h3>What Next?</h3>
+    <p>
+      That's it!
+      If there is something unclear, or if you encounter any kind of problem,
+      please contact <a href="http://www.linuxsampler.org/developers.html#Schoenebeck">Christian</a>.
+    </p>
+
+  </body>
+</html>
