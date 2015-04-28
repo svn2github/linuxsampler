@@ -859,6 +859,39 @@ article example {
     padding:5px 15px 8px 24px;
 }
 
+article dir {
+    display:block;
+    list-style-type:none;
+    background-image:url('../pix/folder.png');
+    background-repeat:no-repeat;
+    background-position:2px top;
+    padding:0px;
+    margin:0px;
+    font-family:CRDCour;
+    color:#000000;
+}
+
+article > dir {
+    padding-left:66px;
+    background-position:36px top;
+}
+
+article dir > * {
+    padding-top:2px;
+    padding-bottom:2px;
+    padding-left:31px;
+}
+
+article dir file {
+    display:block;
+    list-style-type:none;
+    background-image:url('../pix/file.png');
+    background-repeat:no-repeat;
+    background-position:2px top;
+    font-family:CRDCour;
+    color:#6f6f6f;
+}
+
 
 
 /* article footer */
