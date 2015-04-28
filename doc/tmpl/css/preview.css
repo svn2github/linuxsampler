@@ -1,0 +1,383 @@
+/*
+  CrudeDoc CSS Style (for previewing an article on a local machine)
+  Copyright (c) 2015 Christian Schoenebeck. All rights reserved.
+  http://www.crudebyte.com
+ */
+
+@import 'fontsbase.css';
+@import 'jquery-ui.css';
+
+html {
+    font-family:CRDSans;
+    font-weight:200;
+    font-size:17px;
+    line-height:1.2;
+}
+
+
+/* Article */
+
+body {
+    padding: 16px 70px 95px 70px;
+    font-size:18px;
+    font-weight:200;
+    counter-reset:oli;
+    counter-reset:codeline;
+    background-color:white;
+    border:none;
+}
+
+
+body h1 {
+    clear:both;
+    border-bottom-style:solid;
+    border-bottom-width:1px;
+    border-bottom-color:#898989;
+    text-align:center;
+    font-family:CRDHigh;
+    font-size:32px;
+    font-weight:700;
+    color:#a19f9f;
+    padding-top:45px;
+    padding-bottom:28px;
+    margin-top:0;
+    margin-bottom:40px;
+}
+
+body h2 {
+    clear:both;
+    border-bottom-style:solid;
+    border-bottom-width:1px;
+    border-bottom-color:#898989;
+    font-family:CRDHigh;
+    font-size:26px;
+    font-weight:400;
+    padding-top:35px;
+    padding-bottom:16px;
+    margin-top:0;
+    margin-bottom:28px;
+}
+
+body h3 {
+    clear:both;
+    padding-top:20px;
+    padding-bottom:0px;
+    margin-top:0;
+    margin-bottom:0;
+    font-family:CRDHigh;
+    color:#9a6938;
+    font-size:24px;
+    font-weight:300;
+}
+
+body a {
+    font-weight:400;
+    color:#1ba1dd;
+    text-decoration:none;
+    outline:none;
+    border:none;
+}
+
+body a img {
+    border:none;
+    text-decoration:none;
+}
+
+body a:hover {
+    text-decoration:underline;
+}
+
+body ul {
+    font-weight:inherit;
+    padding:0 0 0 60px;
+    margin:0 0 21px 0;
+}
+
+body ul li {
+    list-style-type:disc;
+    padding:4px 0 0 14px;
+    margin:12px 0 0 0;
+}
+
+
+body ol {
+    counter-reset:oli;
+    font-weight:inherit;
+    padding:0 0 0 29px;
+    margin:0 0 21px 0;
+}
+
+body ol li:before {
+    content:counters(oli,".") ".";
+    counter-increment:oli;
+    font-weight:600;
+    margin:0 20px 0 0;
+}
+
+body ol li {
+    list-style-type:none;
+    padding:4px 0 0 14px;
+    margin:12px 0 0 0;
+}
+
+
+
+body code, body .code {
+    font-family:CRDCour;
+    color:#404040;
+    white-space:pre;
+}
+
+body code {
+    display:inline-block;
+    font-size:15px;
+    margin:0 3px 0px 3px;
+    padding:2px 6px 0px 6px;
+    background-color:#fcf9f9;
+}
+
+body > code {
+    display:block;
+    font-size:15px;
+    margin:0 37px 0 37px;
+    padding:2px 6px 0px 6px;
+    background-color:#fcf9f9;
+}
+
+body ul.code {
+    list-style:outside none none;
+    counter-reset:codeline;
+    font-size:14px;
+    font-weight:normal;
+    line-height:1.1;
+    margin:0 0 0 0;
+    padding:8px 0px 8px 0px;
+}
+
+body .code li {
+    display:block;
+    list-style-type:none;
+    white-space:pre-wrap;
+    border-left:32px solid #f9f3f3;
+    text-indent:-30px;
+    background-color:#fcf9f9;
+    margin:0 0 0 0;
+    padding:0 0 0 0;
+}
+
+body .code li:first-child {
+    padding-top:6px;
+}
+
+body .code li:last-child {
+    padding-bottom:3px;
+}
+
+body .code li:before {
+    display:inline-block;
+    white-space:pre;
+    content:counter(codeline,decimal) ". ";
+    counter-increment:codeline;
+    min-width:38px;
+    text-align:right;
+    color:#c9c9c9;
+}
+
+body .code .k, body code .k { /*keyword*/
+    font-weight:bold;
+    color:black;
+}
+
+body .code .n, body code .n { /*number*/
+    color:#c4950c;
+}
+
+body .code .i, body code .i { /*identifier (function name)*/
+    /*color:#0c4fc4;*/
+    color:#1ba1dd;
+}
+
+body .code .a, body code .a { /*array variable*/
+    color:#790cc4;
+    /*color:black;*/
+}
+
+body .code .c, body code .c { /*characters*/
+    color:#c40c0c;
+}
+
+body .code .s, body code .s { /*string variable*/
+    /*color:#9a693c;*/
+    /*color:black;*/
+    color:#790cc4;
+}
+
+body .code .v, body code .v { /*integer variable*/
+    /*color:black;*/
+    color:#790cc4;
+}
+
+body .code .h, body code .h { /*event handler*/
+    font-weight:bold;
+    color:#07c0cf;
+}
+
+body .code .q, body code .q { /*comment*/
+    color:#9c9c9c;
+    font-style:italic;
+}
+
+body .code .p, body code .p { /*preprocessor statements*/
+    /*color:#87b1a8;*/
+    color:#2f8a33;
+    /*font-style:italic;*/
+    font-weight:normal;
+}
+
+body .code .m, body code .m { /* metaphor (natural language text used as pseudo code) */
+    background-color:#ddf4fd;
+    font-size:14px;
+    color:black;
+    font-weight:normal;
+    border:solid 1px #73a3ab;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    margin:0 0 0 0;
+    padding:2px 4px 0px 4px;
+}
+
+body table {
+    margin:20px 37px 20px 37px;
+    padding:0 0 0 0;
+    /*background-color:red;*/
+    border:none;
+    border-collapse:collapse;
+}
+
+body tr {
+    padding:0 0 0 0;
+    margin:0 0 0 0;
+}
+
+body th {
+    background-color:#e8e2e2;
+    padding:0px 8px 0px 8px;
+    margin:0 0 0 0;
+    border:3px solid white;
+    font-size:16px;
+    font-weight:600;
+}
+
+body td {
+    background-color:#f9f7f7;
+    padding:4px 8px 4px 8px;
+    margin:0 0 0 0;
+    border:3px solid white;
+    font-size:16px;
+    font-weight:300;
+    line-height:1.2;
+}
+
+body table a {
+    font-weight:400;
+}
+
+body note:before {
+    white-space:pre-wrap;
+    content:'NOTE:   ';
+    font-weight:500;
+}
+
+body note.important:before {
+    white-space:pre-wrap;
+    content:'IMPORTANT:   ';
+    font-weight:500;
+}
+
+body note {
+    display:table; /*HACK: "block" would stretch the entire page width */
+    background-color:#ede8e8;
+    border-top:none;
+    border-right:none;
+    border-bottom:none;
+    border-left:solid 10px #898989;
+    margin: 24px auto 27px 43px;
+    padding: 15px 18px 15px 18px;
+    max-width: -webkit-calc(100% - 145px);
+    max-width:    -moz-calc(100% - 145px);
+    max-width:      -o-calc(100% - 145px);
+    max-width:         calc(100% - 145px);
+}
+
+body note.important {
+    border-left:solid 10px #ff4141;
+}
+
+body > img, example > img {
+    display:block;
+    clear:both;
+    max-width:100%;
+    margin-left:auto;
+    margin-right:auto;
+    /*border:solid 1px #8e8e8e;*/
+    padding-top:25px;
+    border:none;
+}
+
+body p img {
+    display:inline-block;
+    float:left;
+    margin:4px 20px 0px 0px;
+    padding:0 0 0 0;
+    /*border:solid 1px #8e8e8e;*/
+    border:none;
+    max-width:99%;
+}
+
+body div.imgcptn {
+    display:block;
+    width:100%;
+    text-align:center;
+    font-weight:200;
+    color:#999999;
+    font-size:16px;
+    font-style:italic;
+    margin: 8px 0 16px 0;
+}
+
+body example:before {
+    display:block;
+    position:relative; top:-5px; left:-32px;
+    content:'Example';
+    font-weight:500;
+    color:white;
+    border:none;
+    margin:0;
+    padding:0;
+    width:100px;
+    background-color:#dedede;
+/*        -moz-transform: rotate(30deg);
+    -ms-transform: rotate(30deg);
+    -o-transform: rotate(30deg);
+    -webkit-transform: rotate(30deg);
+    transform: rotate(90deg);
+    transform-origin: 0% 50%;*/
+    text-align:center;
+}
+
+body example {
+    display:inline-block;
+
+    width: -webkit-calc(100% - 80px);
+    width:    -moz-calc(100% - 80px);
+    width:      -o-calc(100% - 80px);
+    width:         calc(100% - 80px);
+
+    border-top:solid 1px #e5e5e5;
+    border-right:solid 18px #dedede;
+    border-bottom:solid 1px #e5e5e5;
+    border-left:solid 18px #dedede;
+    margin:0px, 20px, 0px, 20px;
+    padding:5px 15px 8px 24px;
+}
