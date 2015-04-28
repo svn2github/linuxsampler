@@ -280,8 +280,8 @@ aside {
     position:fixed; top:66px;
     z-index:2;
     width:180px;
-    max-height:    -moz-calc(100% - 67px);
     max-height: -webkit-calc(100% - 67px);
+    max-height:    -moz-calc(100% - 67px);
     max-height:      -o-calc(100% - 67px);
     max-height:         calc(100% - 67px);
     overflow:auto;
@@ -490,8 +490,8 @@ aside > div.toc > div.buttons .arrow {
 
 article {
     display:block;
-    width:    -moz-calc(100% - 181);
     width: -webkit-calc(100% - 181);
+    width:    -moz-calc(100% - 181);
     width:      -o-calc(100% - 181);
     width:         calc(100% - 181);
     background-color:white;
@@ -552,7 +552,7 @@ article a {
     color:#1ba1dd;
     text-decoration:none;
     outline:none;
-    border:0;
+    border:none;
 }
 
 article a:hover {
@@ -776,7 +776,10 @@ article note {
     border-left:solid 10px #898989;
     margin: 24px auto 27px 43px;
     padding: 15px 18px 15px 18px;
-    max-width:calc(100% - 145px);
+    max-width: -webkit-calc(100% - 145px);
+    max-width:    -moz-calc(100% - 145px);
+    max-width:      -o-calc(100% - 145px);
+    max-width:         calc(100% - 145px);
 }
 
 article note.important {
@@ -797,7 +800,7 @@ article > img, example > img {
 article p img {
     display:inline-block;
     float:left;
-    margin:4px 5px 0;
+    margin:4px 20px 0px 0px;
     padding:0 0 0 0;
     /*border:solid 1px #8e8e8e;*/
     border:none;
@@ -838,10 +841,9 @@ article example:before {
 article example {
     display:inline-block;
 
-    width:    -moz-calc(100% - 80px);
     width: -webkit-calc(100% - 80px);
+    width:    -moz-calc(100% - 80px);
     width:      -o-calc(100% - 80px);
-    width:         calc(100% - 80px);
     width:         calc(100% - 80px);
 
     border-top:solid 1px #e5e5e5;
