@@ -555,6 +555,11 @@ article a {
     border:none;
 }
 
+article a img {
+    border:none;
+    text-decoration:none;
+}
+
 article a:hover {
     text-decoration:underline;
 }
