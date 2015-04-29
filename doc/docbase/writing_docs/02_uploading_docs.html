@@ -198,8 +198,12 @@ svn commit
     </p>
     <p>
       The actual visual appearance (view) for the website is defined by the
-      file <code>tmpl/css/main.css</code>. This CSS file is taken verbatim as-is.
-      All files contained in subdirectories below the <code>tmpl</code> will
+      file <code>tmpl/css/main.css</code>. That's because this CSS file is
+      currently linked in the <code lang="html">&lt;head&gt;</code> section of
+      our <code lang="none">tmpl/index.html</code> template file. So it is not
+      hard coded in our software.
+      This mentioned CSS file is taken verbatim as-is. That's because
+      all files contained in subdirectories below the <code lang="none">tmpl</code> will
       simply be copied as they are. So open <code>tmpl/index.html</code> on
       your local machine with a web browser, modify the CSS files etc. until
       you are modified with the look, and finally commit your changes to our
