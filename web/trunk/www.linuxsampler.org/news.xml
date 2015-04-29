@@ -1,5 +1,18 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2015-04-29">
+    A new documentation site has been launched:
+    <link ref="http://doc.linuxsampler.org">http://doc.linuxsampler.org</link> -
+    This separate page dedicated to manuals, tutorials and other kind of
+    articles for the LinuxSampler project, is using a new solution to write
+    and maintain such articles with a minimum of effort. Be invited to help us
+    <link ref="http://doc.linuxsampler.org/Writing_Docs/">writing documentation</link>
+    for LinuxSampler and friends! As one of the first topics, this site is now
+    hosting an introduction to the new
+    <link ref="http://doc.linuxsampler.org/Instrument_Scripts/NKSP_Language/">NKSP Real-Time Instrument Script Language</link>.
+    The long-term plan is to move all documentation of this project from our www
+    server to that new site.
+  </entry>
   <entry date="2015-01-18">
     <link ref="http://download.linuxsampler.org/pix/screenshots/mac_installer_1.jpg" img="http://download.linuxsampler.org/pix/screenshots/mac_installer_1_240x169.jpg"></link>
     For the Mac users out there: We finally have a convenient installer for the
