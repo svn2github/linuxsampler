@@ -386,6 +386,33 @@ src="//pagead2.googlesyndication.com/pagead/show_ads.js">
                       </tbody>
                     </table>
                   </td>
+                  <td valign="top" width=50%>
+                    <table class="cvs_project" width=100%>
+                      <thead>
+                        <tr>
+                          <th scope=col>
+                            <a href="faq.html#aga">Documentation</a>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <div id="cvs_content">
+                              <?php readfile("log/doc_latest.html"); ?>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <span class="cvs_footer">
+                              <a href="svnhistory.php?subproject=doc">More ...</a>
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
                 </tr>
               </tbody>
             </table>

@@ -163,6 +163,7 @@
                         $_GET['subproject'] == "gigedit" ||
                         $_GET['subproject'] == "libgig" ||
                         $_GET['subproject'] == "liblscp" ||
+                        $_GET['subproject'] == "doc" ||
                         $_GET['subproject'] == "jlscp"
                     ) {
                         readfile("log/" . $_GET['subproject'] . "_history.html");
