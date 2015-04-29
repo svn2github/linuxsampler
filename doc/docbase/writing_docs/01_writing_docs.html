@@ -124,7 +124,7 @@
       Creating a new article for this site is as simple as creating a new text
       file and adding following text:
     </p>
-    <code l="html">
+    <code lang="html">
 <h1>My First Article</h1>
 <p>
   This is the first paragraph.
@@ -297,12 +297,12 @@
       somewhere in your article a headline called "Conclusion of Topic", then
       this particular paragraph of your article may be directly linked to from
       other articles or other sites with an URL like
-      <code>http://doc.linuxsampler.org/path/to/your/article/#conclusion_of_topic</code>.
+      <code lang="none">http://doc.linuxsampler.org/path/to/your/article/#conclusion_of_topic</code>.
       If you want to override this behavior, because you rather want to use your
       own ID for a paragraph of your article, then simply set the desired ID with
       your headline:
     </p>
-    <code>
+    <code lang="html">
 <h3 id="my_conclusion">Conclusion of topic</h3>
     </code>
     
@@ -571,7 +571,7 @@ end on
       do that: simply put the code block into the paragraph text block of your
       HTML file:
     </p>
-    <code>
+    <code lang="html">
 <p>
   A variable is assigned with NKSP like this &lt;code&gt;$foo := 5&lt;/code&gt;, in this
   case you are assigning &lt;code&gt;5&lt;/code&gt; to the integer variable &lt;code&gt;$foo&lt;/code&gt;.
@@ -602,13 +602,13 @@ end on
     
     <h3>Metaphors</h3>
     <p>
-      You might have noticed, we have used a special kind of <code>??place-holder??</code> for 
+      You might have noticed, we have used a special kind of <code lang="html">??place-holder??</code> for 
       human-readable portions in source code before, which shall outline to the reader
       that it is not actually "real" source code, but just reflecting its semantic meaning.
       Simply put the respective pseudo-code into a pair of two question marks,
       like so:
     </p>
-    <code>
+    <code lang="html">
 &lt;code&gt;
 on init
   declare const $i = \?\?some-value\?\?
@@ -641,7 +641,7 @@ end on
       If you want to add links in your article to another article or to some
       other website, then you just use an ordinary HTML link tag pair:
     </p>
-    <code>
+    <code lang="html">
 <p>
   This paragraph contains &lt;a href="../nksp.html"&gt;a link to another article&lt;/a&gt;
   and to &lt;a href="http://www.linuxsampler.org"&gt;another website&lt;/a&gt;.
@@ -671,7 +671,7 @@ end on
       An article file on our site usually has the following
       file name form:
     </p>
-    <code>
+    <code lang="none">
 ??number-prefix??_??unique-name??.html
     </code>
     <p>
@@ -694,7 +694,7 @@ end on
       Technical terms and abbreviations are often used in articles to reduce
       the amount of text for transmitting some kind of information about a
       certain topic to the reader. You might want to emphasize technical terms and abbreviations
-      in your article, by wrapping the term into a pair of <code><i></code> HTML
+      in your article, by wrapping the term into a pair of <code lang="html"><i></code> HTML
       tags. On our site this will not only show the term in a special unified
       font style (currently italic), but it allows you also to define the
       meaning of the term <b>once</b>. Which goes like this:
@@ -704,7 +704,7 @@ end on
      <p>
       You may define a new term like this:
     </p>
-    <code>
+    <code lang="html">
 <p>
   He left the bar and jumped right into his
   &lt;i title="A very large vehicle."&gt;Mega Liner&lt;/i&gt;
