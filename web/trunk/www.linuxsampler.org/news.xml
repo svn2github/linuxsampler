@@ -1,6 +1,7 @@
 <?xml version='1.0' ?>
 <news>
   <entry date="2015-04-29">
+    <link ref="http://doc.linuxsampler.org" img="http://doc.linuxsampler.org/new_article.png"></link>
     A new documentation site has been launched:
     <link ref="http://doc.linuxsampler.org">http://doc.linuxsampler.org</link> -
     This separate page dedicated to manuals, tutorials and other kind of
