@@ -505,7 +505,7 @@
       with <code>??language??</code>.
       Obviously it is exhausting to supply such a <code lang="none">lang</code>
       attribute with every single code sample, especially if you are just referring
-      a single code token within your paragraphs. So you don't have to do that.
+      to a single code token within your paragraphs. So you don't have to do that.
       If you omit the <code lang="none">lang</code> attribute, then our site's
       software will automatically use the language defined by you with one of
       the previous code blocks. You may also disable automatic syntax highlighting
@@ -868,7 +868,46 @@ end on
       The only thing that changed compared to the regular note, is the "class"
       attribute of the note tag.
     </p>
-    
+
+    <h2>Directory Listings</h2>
+    <p>
+      Software components often have a certain kind of directory structure.
+      For readers of your articles is it way easier to perceive directory
+      structures if they are displayed in a visual appropriate way. There are
+      two specials tags you can use for this purpose:
+    </p>
+    <code lang="html">
+      &lt;dir&gt;/
+        &lt;dir&gt;home
+          &lt;dir&gt;bob
+            &lt;file&gt;README.txt&lt;/file&gt;
+            &lt;file&gt;foo.sh&lt;/file&gt;
+          &lt;/dir&gt;
+        &lt;/dir&gt;
+        &lt;dir&gt;tmp
+          &lt;file&gt;bla.tmp&lt;/file&gt;
+        &lt;/dir&gt;
+      &lt;/dir&gt;
+    </code>
+    <example>
+      <dir>/
+        <dir>home
+          <dir>bob
+            <file>README.txt</file>
+            <file>foo.sh</file>
+          </dir>
+        </dir>
+        <dir>tmp
+          <file>bla.tmp</file>
+        </dir>
+      </dir>
+    </example>
+    <p>
+      Currently for each file the same icon will be displayed. This might change
+      in future, i.e. a an automatic different icon could be picked by the
+      site's software according to the respective file name extension.
+    </p>
+
     <h2>Extensions</h2>
     <p>
       This is almost the end of this article. You are still seeking for features
