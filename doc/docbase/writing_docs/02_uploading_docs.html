@@ -34,7 +34,7 @@ file.new {
     <p>
       So to start, first checkout the SVN repository of this site:
     </p>
-    <code>
+    <code lang="none">
 svn co https://svn.linuxsampler.org/svn/doc doc.ls.org
     </code>
     <p>
@@ -75,7 +75,26 @@ svn commit
       Like with commits regarding all our software projects, you must
       always supply a comment with each one of your Subversion commits.
       Once your files are commited successfully, our system will process the
-      files and rebuild this site automatically.
+      files and rebuild this site automatically. Note that changes regarding
+      articles are also displayed on our <a href="http://www.linuxsampler.org">frontsite</a>.
+      The same rules apply like with our other software commits, that is a SVN
+      comment that begins with a star character like:
+    </p>
+    <code lang="none">
+* Changed article "Foo".
+    </code>
+    <p>
+      Will cause the commit to be displayed in the change log on our
+      <a href="http://www.linuxsampler.org">frontsite</a>. If you omit the star
+      like:
+    </p>
+    <code lang="none">
+- Changed article "Foo".
+    </code>
+    <p>
+      Then your article changes will be a "silent" commit and it will not be
+      displayed on the frontsite. Please only use such silent commits for trivial
+      changes, i.e. when fixing typos and other very trivial things like that.
     </p>
 
     <h3>Error Detection</h3>
@@ -169,7 +188,7 @@ svn commit
       website, that is it takes that file as skeleton, and replaces its
       <code lang="html">&lt;article&gt;</code> section with the
       respective content of the article's source HTML file. So that
-      <code>tmpl/index.html</code> file defines the HTML code that will be generated
+      <code lang="none">tmpl/index.html</code> file defines the HTML code that will be generated
       for each page, which however is essentially just the data model of the page,
       not its actual appearance. Note that this file is a real HTML file, not
       a fragmented exotic file filled up with markers or something, like it is
