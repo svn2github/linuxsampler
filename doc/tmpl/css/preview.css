@@ -395,7 +395,7 @@ body dir {
     color:#000000;
 }
 
-body > dir {
+body > dir, example > dir {
     padding-left:66px;
     background-position:36px top;
 }

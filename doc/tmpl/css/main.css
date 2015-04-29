@@ -872,7 +872,7 @@ article dir {
     color:#000000;
 }
 
-article > dir {
+article > dir, example > dir {
     padding-left:66px;
     background-position:36px top;
 }
