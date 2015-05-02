@@ -997,7 +997,7 @@ namespace gig {
                 COMPRESSION_NONE = 0 ///< Is not compressed at all (default).
             };
             enum Language_t {
-                LANGUAGE_NKSP = 0 ///< NKSP stands for "Is Not KSP" (default).
+                LANGUAGE_NKSP = 0 ///< NKSP stands for "Is Not KSP" (default). Refer to the <a href="http://doc.linuxsampler.org/Instrument_Scripts/NKSP_Language/Reference/">NKSP Reference Manual</a> for details about this script language. 
             };
 
             String         Name;        ///< Arbitrary name of the script, which may be displayed i.e. in an instrument editor.
