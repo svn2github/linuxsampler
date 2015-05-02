@@ -979,6 +979,14 @@ namespace gig {
      * not available in the GigaStudio 4 software. It is currently only
      * supported by LinuxSampler and gigedit. Scripts will not load with the
      * original GigaStudio software.
+     *
+     * You find more informations about Instrument Scripts on the LinuxSampler
+     * documentation site:
+     *
+     * - <a href="http://doc.linuxsampler.org/Instrument_Scripts/">About Instrument Scripts in General</a>
+     * - <a href="http://doc.linuxsampler.org/Instrument_Scripts/NKSP_Language">Introduction to the NKSP Script Language</a>
+     * - <a href="http://doc.linuxsampler.org/Instrument_Scripts/NKSP_Language/Reference/">NKSP Reference Manual</a>
+     * - <a href="http://doc.linuxsampler.org/Gigedit/Managing_Scripts">Using Instrument Scripts with Gigedit</a>
      */
     class Script {
         public:
