@@ -604,6 +604,13 @@ end on
       like we did with <code>$i := $delayNotes</code> right from the start
       during discussion of the previous example script.
     </p>
+    <p>
+      There is another special aspect regarding the variable scope of polyphonic
+      variables: <code>note</code> handlers and <code>release</code> handlers of
+      the same script share the same polyphonic variable scope, that means you
+      may pass data from a particular note's <code>note</code> handler to its
+      <code>release</code> handler by using the same polyphonic variable name.
+    </p>
 
     <h2>Control Structures</h2>
     <p>
