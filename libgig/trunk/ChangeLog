@@ -18,6 +18,8 @@ Version CVS HEAD (?)
     - Fixed various packaging issues regarding installation directories
       (fixes #218).
     - added new command line tool "gig2stereo" (and a man page for it)
+    - unit tests: fixed wrong return value when test suite app exits
+      (patch by Ryan Schmidt)
 
   * SoundFont file format:
     - initial implementation
