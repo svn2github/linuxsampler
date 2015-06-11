@@ -1,7 +1,7 @@
 <?xml version='1.0' ?>
 <news>
   <entry date="2015-06-11">
-    <link ref="http://download.linuxsampler.org/pix/screenshots/mac_installer_1.jpg" img="http://download.linuxsampler.org/pix/screenshots/mac_installer_1_240x169.jpg"></link>
+    <link ref="http://download.linuxsampler.org/packages/osx/snapshots/" img="gfx/logos/apple.png"></link>
     The Mac installer was broken on latest OS X 10.10 Yosemite. This had been
     fixed today. Get the latest 
     <link ref="http://download.linuxsampler.org/packages/osx/snapshots/">snapshot for Mac</link>
