@@ -112,6 +112,9 @@ Version CVS HEAD (?)
   * Added "X" button next to sample reference field, which allows to remove
     the current sample reference, allowing to create a "silent case" where
     no sample shall be played.
+  * Fixed file name disappearing from title bar on certain actions.
+  * Added new menu item "View"->"Refresh All".
+  * Added new menu item "Samples"->"Remove Unused Samples".
 
 Version 0.2.0 (2009-07-31)
 

@@ -186,6 +186,10 @@ MainWindow::MainWindow() :
     actionGroup->add(toggle_action,
                      sigc::mem_fun(
                          *this, &MainWindow::on_action_view_status_bar));
+    actionGroup->add(
+        Gtk::Action::create("RefreshAll", _("_Refresh All")),
+        sigc::mem_fun(*this, &MainWindow::on_action_refresh_all)
+    );                 
 
     action = Gtk::Action::create("MenuHelp", Gtk::Stock::HELP);
     actionGroup->add(Gtk::Action::create("MenuHelp",
@@ -257,6 +261,10 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_action_remove_sample)
     );
     actionGroup->add(
+        Gtk::Action::create("RemoveUnusedSamples", _("Remove _Unused Samples")),
+        sigc::mem_fun(*this, &MainWindow::on_action_remove_unused_samples)
+    );
+    actionGroup->add(
         Gtk::Action::create("ShowSampleRefs", _("Show References...")),
         sigc::mem_fun(*this, &MainWindow::on_action_view_references)
     );
@@ -321,6 +329,7 @@ MainWindow::MainWindow() :
         "      <menuitem action='ReplaceAllSamplesInAllGroups' />"
         "      <separator/>"
         "      <menuitem action='RemoveSample'/>"
+        "      <menuitem action='RemoveUnusedSamples'/>"
         "    </menu>"
         "    <menu action='MenuInstrument'>"
         "      <menu action='AllInstruments'>"
@@ -343,6 +352,8 @@ MainWindow::MainWindow() :
         "    </menu>"
         "    <menu action='MenuView'>"
         "      <menuitem action='Statusbar'/>"
+        "      <separator/>"
+        "      <menuitem action='RefreshAll'/>"
         "    </menu>"
         "    <menu action='MenuTools'>"
         "      <menuitem action='CombineInstruments'/>"
@@ -374,6 +385,7 @@ MainWindow::MainWindow() :
         "    <menuitem action='ReplaceAllSamplesInAllGroups' />"
         "    <separator/>"
         "    <menuitem action='RemoveSample'/>"
+        "    <menuitem action='RemoveUnusedSamples'/>"
         "  </popup>"
         "  <popup name='ScriptPopupMenu'>"
         "    <menuitem action='AddScriptGroup'/>"
@@ -415,6 +427,20 @@ MainWindow::MainWindow() :
         Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
             uiManager->get_widget("/MenuBar/MenuSettings/SyncSamplerInstrumentSelection"));
         item->set_tooltip_text(_("If checked, the sampler's current instrument will automatically be switched whenever another instrument was selected in gigedit (only available in live-mode)."));
+    }
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuSample/RemoveUnusedSamples"));
+        item->set_tooltip_text(_("Removes all samples that are not referenced by any instrument (i.e. red ones)."));
+        // copy tooltip to popup menu
+        Gtk::MenuItem* item2 = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/SamplePopupMenu/RemoveUnusedSamples"));
+        item2->set_tooltip_text(item->get_tooltip_text());
+    }
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuView/RefreshAll"));
+        item->set_tooltip_text(_("Reloads the currently open gig file and updates the entire graphical user interface."));
     }
     {
         Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
@@ -1689,7 +1715,10 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
     file = 0;
     set_file_is_shared(isSharedInstrument);
 
-    this->filename = filename ? filename : _("Unsaved Gig File");
+    this->filename =
+        (filename && strlen(filename) > 0) ?
+            filename : (!gig->GetFileName().empty()) ?
+                gig->GetFileName() : _("Unsaved Gig File");
     set_title(Glib::filename_display_basename(this->filename));
     file_has_name = filename;
     file_is_changed = false;
@@ -1841,6 +1870,10 @@ void MainWindow::show_script_slots() {
     window->setInstrument(instrument);
     //window->reparent(*this);
     window->show();
+}
+
+void MainWindow::on_action_refresh_all() {
+    __refreshEntireGUI();
 }
 
 void MainWindow::on_action_view_status_bar() {
@@ -2714,6 +2747,71 @@ void MainWindow::on_action_remove_sample() {
     }
 }
 
+void MainWindow::on_action_remove_unused_samples() {
+    if (!file) return;
+
+    // collect all samples that are not referenced by any instrument
+    std::list<gig::Sample*> lsamples;
+    for (int iSample = 0; file->GetSample(iSample); ++iSample) {
+        gig::Sample* sample = file->GetSample(iSample);
+        bool isUsed = false;
+        for (gig::Instrument* instrument = file->GetFirstInstrument(); instrument;
+                              instrument = file->GetNextInstrument())
+        {
+            for (gig::Region* rgn = instrument->GetFirstRegion(); rgn;
+                              rgn = instrument->GetNextRegion())
+            {
+                for (int i = 0; i < 256; ++i) {
+                    if (!rgn->pDimensionRegions[i]) continue;
+                    if (rgn->pDimensionRegions[i]->pSample != sample) continue;
+                    isUsed = true;
+                    goto endOfRefSearch;
+                }
+            }
+        }
+        endOfRefSearch:
+        if (!isUsed) lsamples.push_back(sample);
+    }
+
+    if (lsamples.empty()) return;
+
+    // notify everybody that we're going to remove these samples
+    samples_to_be_removed_signal.emit(lsamples);
+
+    // remove collected samples
+    try {
+        for (std::list<gig::Sample*>::iterator itSample = lsamples.begin();
+             itSample != lsamples.end(); ++itSample)
+        {
+            gig::Sample* sample = *itSample;
+            // remove sample from the .gig file
+            file->DeleteSample(sample);
+            // if sample was just previously added, remove it fro the import queue
+            for (std::list<SampleImportItem>::iterator iter = m_SampleImportQueue.begin();
+                 iter != m_SampleImportQueue.end(); ++iter)
+            {
+                if ((*iter).gig_sample == sample) {
+                    printf("Removing previously added sample '%s'\n",
+                           (*iter).sample_path.c_str());
+                    m_SampleImportQueue.erase(iter);
+                    break;
+                }
+            }
+        }
+    } catch (RIFF::Exception e) {
+        // show error message
+        Gtk::MessageDialog msg(*this, e.Message.c_str(), false, Gtk::MESSAGE_ERROR);
+        msg.run();
+    }
+
+    // notify everybody that we're done with removal
+    samples_removed_signal.emit();
+
+    dimreg_changed();
+    file_changed();
+    __refreshEntireGUI();
+}
+
 // see comment on on_sample_treeview_drag_begin()
 void MainWindow::on_scripts_treeview_drag_begin(const Glib::RefPtr<Gdk::DragContext>& context)
 {
@@ -3186,7 +3284,7 @@ void MainWindow::on_action_merge_files() {
         }
 
         // update GUI
-        __refreshEntireGUI();        
+        __refreshEntireGUI();
     }
 }
 
