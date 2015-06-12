@@ -16,4 +16,5 @@ Settings* Settings::singleton() {
 Settings::Settings() {
     warnUserOnExtensions = true;
     syncSamplerInstrumentSelection = true;
+    moveRootNoteWithRegionMoved = true;
 }

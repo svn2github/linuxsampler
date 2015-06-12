@@ -29,6 +29,7 @@
 #include <gtkmm/dialog.h>
 
 #include "global.h"
+#include "Settings.h"
 
 #define REGION_BLOCK_HEIGHT             30
 #define KEYBOARD_HEIGHT                 40
@@ -515,8 +516,16 @@ void RegionChooser::update_after_resize()
 void RegionChooser::update_after_move(int pos)
 {
     instrument_struct_to_be_changed_signal.emit(instrument);
-    region->SetKeyRange(pos, pos + region->KeyRange.high -
-                        region->KeyRange.low);
+    const int range = region->KeyRange.high - region->KeyRange.low;
+    const int diff  = pos - int(region->KeyRange.low);
+    region->SetKeyRange(pos, pos + range);
+    if (Settings::singleton()->moveRootNoteWithRegionMoved) {
+        for (int i = 0; i < 256; ++i) {
+            gig::DimensionRegion* dimrgn = region->pDimensionRegions[i];
+            if (!dimrgn || !dimrgn->pSample || !dimrgn->PitchTrack) continue;
+            dimrgn->UnityNote += diff;
+        }
+    }
     regions.update(instrument);
     instrument_changed.emit();
     instrument_struct_changed_signal.emit(instrument);

@@ -361,6 +361,7 @@ protected:
     void on_action_refresh_all();
     void on_action_warn_user_on_extensions();
     void on_action_sync_sampler_instrument_selection();
+    void on_action_move_root_note_with_region_moved();
     void on_action_help_about();
 
     // sample right-click popup actions

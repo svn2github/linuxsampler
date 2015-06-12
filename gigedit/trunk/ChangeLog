@@ -115,6 +115,9 @@ Version CVS HEAD (?)
   * Fixed file name disappearing from title bar on certain actions.
   * Added new menu item "View"->"Refresh All".
   * Added new menu item "Samples"->"Remove Unused Samples".
+  * Region Chooser: when moving a region around automatically move the
+    keyboard position dependent pitch accordingly (can be turned off with
+    "Settings"->"Move root key with region moved").
 
 Version 0.2.0 (2009-07-31)
 

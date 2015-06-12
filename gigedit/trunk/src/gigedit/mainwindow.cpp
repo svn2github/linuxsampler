@@ -229,6 +229,14 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_action_sync_sampler_instrument_selection)
     );
 
+    toggle_action =
+        Gtk::ToggleAction::create("MoveRootNoteWithRegionMoved", _("Move root note with region moved"));
+    toggle_action->set_active(Settings::singleton()->moveRootNoteWithRegionMoved);
+    actionGroup->add(
+        toggle_action,
+        sigc::mem_fun(*this, &MainWindow::on_action_move_root_note_with_region_moved)
+    );
+
 
     actionGroup->add(Gtk::Action::create("MenuTools", _("_Tools")));
 
@@ -362,6 +370,7 @@ MainWindow::MainWindow() :
         "    <menu action='MenuSettings'>"
         "      <menuitem action='WarnUserOnExtensions'/>"
         "      <menuitem action='SyncSamplerInstrumentSelection'/>"
+        "      <menuitem action='MoveRootNoteWithRegionMoved'/>"
         "    </menu>"
         "    <menu action='MenuHelp'>"
         "      <menuitem action='About'/>"
@@ -427,6 +436,11 @@ MainWindow::MainWindow() :
         Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
             uiManager->get_widget("/MenuBar/MenuSettings/SyncSamplerInstrumentSelection"));
         item->set_tooltip_text(_("If checked, the sampler's current instrument will automatically be switched whenever another instrument was selected in gigedit (only available in live-mode)."));
+    }
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuSettings/MoveRootNoteWithRegionMoved"));
+        item->set_tooltip_text(_("If checked, and when a region is moved by dragging it around on the virtual keyboard, the keybord position dependent pitch will move exactly with the amount of semi tones the region was moved around."));
     }
     {
         Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
@@ -591,6 +605,8 @@ MainWindow::MainWindow() :
         sigc::hide(sigc::mem_fun(*this, &MainWindow::file_changed)));
     m_RegionChooser.signal_instrument_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
+    m_RegionChooser.signal_instrument_changed().connect(
+        sigc::mem_fun(*this, &MainWindow::region_changed));
     m_DimRegionChooser.signal_region_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
     instrumentProps.signal_changed().connect(
@@ -1421,6 +1437,11 @@ void MainWindow::on_action_warn_user_on_extensions() {
 void MainWindow::on_action_sync_sampler_instrument_selection() {
     Settings::singleton()->syncSamplerInstrumentSelection =
         !Settings::singleton()->syncSamplerInstrumentSelection;
+}
+
+void MainWindow::on_action_move_root_note_with_region_moved() {
+    Settings::singleton()->moveRootNoteWithRegionMoved =
+        !Settings::singleton()->moveRootNoteWithRegionMoved;
 }
 
 void MainWindow::on_action_help_about()
