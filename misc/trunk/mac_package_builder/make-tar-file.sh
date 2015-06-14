@@ -3,7 +3,8 @@
 # This script is primarily made for the linuxsampler build server. It
 # copies the files created by the previous Max OS X build steps, and
 # creates universal binaries from the i686, x86_64 and powerpc
-# files. Finally, it packs everything in a tar.bz2 archive.
+# files. Then it packs all components as a .pkg Mac installer package and
+# finally it wraps everything in a tar.bz2 archive.
 
 LIPO=x86_64-apple-darwin9-lipo
 P=/home/persson/mac
@@ -151,6 +152,11 @@ dlib="components/$component.pkg/bin"
 mkdir -p $dlib
 for f in $gigtools_bins; do
     cp $D/LinuxSampler/$f $dlib
+done
+dlib="components/$component.pkg/share/man/man1"
+mkdir -p $dlib
+for f in $gigtools_bins; do
+    cp $P/i686/share/man/man1/$f.1 $dlib
 done
 
 component="libgigedit"
