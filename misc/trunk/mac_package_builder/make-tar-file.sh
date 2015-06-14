@@ -55,7 +55,7 @@ createuniv VST/LinuxSampler.vst/Contents/MacOS/LinuxSampler LinuxSampler.vst/Con
 
 # gigtools
 
-for x in "$gigtools_bins"
+for x in $gigtools_bins
 do
     createuniv "bin/$x" "LinuxSampler/$x"
 done
@@ -149,7 +149,7 @@ done
 component="gigtools"
 dlib="components/$component.pkg/bin"
 mkdir -p $dlib
-for f in "$gigtools_bins"; do
+for f in $gigtools_bins; do
     cp $D/LinuxSampler/$f $dlib
 done
 
