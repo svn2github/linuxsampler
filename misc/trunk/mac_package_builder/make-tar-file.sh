@@ -9,6 +9,9 @@ LIPO=x86_64-apple-darwin9-lipo
 P=/home/persson/mac
 D=linuxsampler_`date +%Y%m%d`
 
+# command line tools shipped with libgig
+gigtools_bins="akaidump akaiextract dlsdump gig2mono gig2stereo gigdump gigextract gigmerge korg2gig korgdump rifftree sf2dump"
+
 createuniv ()
 {
     $LIPO -create "$P/x86_64/$1" "$P/i686/$1" "$P/powerpc/$1" \
@@ -48,6 +51,14 @@ createuniv Components/LinuxSamplerAU.component/Contents/MacOS/LinuxSamplerAU Lin
 
 cp -r "$P/i686/VST/LinuxSampler.vst" "$D"
 createuniv VST/LinuxSampler.vst/Contents/MacOS/LinuxSampler LinuxSampler.vst/Contents/MacOS/LinuxSampler
+
+
+# gigtools
+
+for x in "$gigtools_bins"
+do
+    createuniv "bin/$x" "LinuxSampler/$x"
+done
 
 
 # Fantasia
@@ -133,6 +144,13 @@ dlib="components/$component.pkg/lib"
 mkdir -p $dlib
 for f in `ls $D/lib/libgig.*`; do
     cp $f $dlib
+done
+
+component="gigtools"
+dlib="components/$component.pkg/bin"
+mkdir -p $dlib
+for f in "$gigtools_bins"; do
+    cp $D/LinuxSampler/$f $dlib
 done
 
 component="libgigedit"

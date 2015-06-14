@@ -54,6 +54,7 @@
     </script>
 
     <pkg-ref auth='Admin' id='org.linuxsampler.libgig' version='3.3.0' installKBytes='1076' onConclusion='None'>#libgig.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.gigtools' version='3.3.0' installKBytes='1' onConclusion='None'>#gigtools.pkg</pkg-ref>
     <pkg-ref auth='Admin' id='org.linuxsampler.codecs' version='1.0.0' installKBytes='8580' onConclusion='None'>#codecs.pkg</pkg-ref>
     <pkg-ref auth='Admin' id='org.linuxsampler.libgtk' version='2.0.0' installKBytes='36412' onConclusion='None'>#libgtk.pkg</pkg-ref>
     <pkg-ref auth='Admin' id='org.linuxsampler.liblinuxsampler' version='1.0.0' installKBytes='11072' onConclusion='None'>#liblinuxsampler.pkg</pkg-ref>
@@ -67,6 +68,10 @@
 
     <choice start_selected='true' start_enabled='false' title='libgig 3.3.0' id='libgig' start_visible='true' description='LIBGIG_DESCR' selected='req_libgig();'>
         <pkg-ref id='org.linuxsampler.libgig'/>
+    </choice>
+
+    <choice start_selected='true' start_enabled='true' title='Command Line Tools' id='gigtools' start_visible='true' description='GIGTOOLS_DESCR'>
+        <pkg-ref id='org.linuxsampler.gigtools'/>
     </choice>
 
     <choice start_selected='true' start_enabled='false' title='Audio Codecs' id='codecs' start_visible='true' description='CODECS_DESCR' selected='req_codecs();'>
@@ -122,6 +127,7 @@
         <line choice='qsampler'/>
         <line choice='fantasia'/>
         <line choice='gigedit'/>
+        <line choice='gigtools'/>
         <line choice='libs_group'>
             <line choice='libgig'/>
             <line choice='libgigedit'/>
