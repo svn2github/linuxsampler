@@ -25,12 +25,16 @@ exist yet, then it will be created.
 .SH "SEE ALSO"
 .BR akaidump(1),
 .BR gigdump(1),
-.BR gigextract(1)
+.BR gigextract(1),
+.BR korgdump(1),
+.BR sf2dump(1)
 
 .SH "BUGS"
-None. Report bugs to http://bugs.linuxsampler.org
+Check and report bugs at http://bugs.linuxsampler.org
 
 .SH "Author"
 This program and its library are based on Sébastien Métrot's libakai. This is a
-fork of libakai and its tools which is providing LINUX support. Linux port and
-man page written by Christian Schoenebeck <cuse@users.sf.net>
+fork of libakai and its tools which is now also providing support for LINUX and
+other POSIX compliant operating system, and it does not have a dependency to
+libngl as the original libakai had. Linux port and man page written by
+Christian Schoenebeck <cuse@users.sf.net>

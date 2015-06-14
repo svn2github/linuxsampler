@@ -250,7 +250,7 @@ Credits
   Akai support files are a ported version of Sébastien Métrot's libakai. The
   original libakai only supported Mac and Windows. This forked version of
   libakai now also supports Linux and other POSIX compliant operating systems
-  as well.
+  as well and does not have a dependency to libngl as the original libakai had.
 
   Thanks to all of you for your great work!
 

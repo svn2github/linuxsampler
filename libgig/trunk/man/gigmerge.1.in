@@ -23,9 +23,12 @@ print version and exit
 .SH "SEE ALSO"
 .BR gigextract(1),
 .BR gigdump(1),
-.BR gig2mono(1)
+.BR gig2mono(1),
+.BR gig2stereo(1),
+.BR dlsdump(1),
+.BR rifftree(1)
 
 .SH "BUGS"
-None. Report bugs to http://bugs.linuxsampler.org
+Check and report bugs at http://bugs.linuxsampler.org
 .SH "Author"
-Written by Christian Schoenebeck <cuse@users.sf.net>
+Application and manual page written by Christian Schoenebeck <cuse@users.sf.net>
