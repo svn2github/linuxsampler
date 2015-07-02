@@ -516,6 +516,7 @@ Section "libgig 3.3.0" Seclibgig
   File bin\64\akaidump.exe
   File bin\64\akaiextract.exe
   File bin\64\sf2dump.exe
+  File bin\64\sf2extract.exe
   ; special dependencies for the 64 bit version
   File bin\64\libgcc_s_sjlj-1.dll
   File bin\64\libstdc++-6.dll
@@ -546,6 +547,7 @@ Section "libgig 3.3.0" Seclibgig
   File bin\686sse\akaidump.exe
   File bin\686sse\akaiextract.exe
   File bin\686sse\sf2dump.exe
+  File bin\686sse\sf2extract.exe
   Goto done
 
   libgig686:
@@ -564,6 +566,7 @@ Section "libgig 3.3.0" Seclibgig
   File bin\686\akaidump.exe
   File bin\686\akaiextract.exe
   File bin\686\sf2dump.exe
+  File bin\686\sf2extract.exe
   Goto done
 
   done:
