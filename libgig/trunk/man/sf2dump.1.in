@@ -15,6 +15,7 @@ filename of the Soundfont file
 print version and exit
 
 .SH "SEE ALSO"
+.BR sf2extract(1),
 .BR akaidump(1),
 .BR dlsdump(1),
 .BR gigdump(1),
