@@ -20,6 +20,7 @@ Version CVS HEAD (?)
     - added new command line tool "gig2stereo" (and a man page for it)
     - unit tests: fixed wrong return value when test suite app exits
       (patch by Ryan Schmidt)
+    - added new command line tool "sf2extract" (and a man page for it)
 
   * SoundFont file format:
     - initial implementation
@@ -88,6 +89,9 @@ Version CVS HEAD (?)
     - Bugfix: Adding a new region in between two existing regions caused the
       new one being dropped after save operation and the gig file being tainted
       (chunks at wrong location in the RIFF tree).
+
+  * src/SF.cpp, src/SF.h:
+    - added new method Sample::ReadNoClear()
 
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: avoid calling read() with count 0 when writing a file,

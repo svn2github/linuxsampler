@@ -313,6 +313,7 @@ namespace sf2 {
             unsigned long SetPos(unsigned long SampleCount);
             unsigned long GetPos();
             unsigned long Read(void* pBuffer, unsigned long SampleCount);
+            unsigned long ReadNoClear(void* pBuffer, unsigned long SampleCount, buffer_t& tempBuffer);
 
             unsigned long ReadAndLoop (
                 void*           pBuffer,

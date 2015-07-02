@@ -1404,6 +1404,85 @@ namespace sf2 {
         return (pCkSmpl->GetPos() - (Start * 2)) / 2;
     }
 
+    // Actual implementation of Sample::Read*() code. Wrapped into a template for a) runtime effeciency and b) code redundancy reasons.
+    template<bool CLEAR>
+    inline unsigned long ReadSample(Sample* pSample, void* pBuffer, unsigned long SampleCount, Sample::buffer_t* tempBuffer = NULL) {
+        // TODO: startAddrsCoarseOffset, endAddrsCoarseOffset
+        if (SampleCount == 0) return 0;
+        long pos = pSample->GetPos();
+        if (pos + SampleCount > pSample->GetTotalFrameCount())
+            SampleCount = pSample->GetTotalFrameCount() - pos;
+        if (!CLEAR) {
+            if (tempBuffer->Size < SampleCount * pSample->GetFrameSize()) {
+                std::cerr << "sf2::Sample error: tempBuffer too small. This is a BUG!" << std::endl;
+                return 0;
+            }
+        }
+
+        if (pSample->GetFrameSize() / pSample->GetChannelCount() == 3 /* 24 bit */) {
+            uint8_t* const pTmpBuf = (uint8_t*) ((CLEAR) ? pBuffer : tempBuffer->pStart);
+            uint8_t* const pBuf    = (uint8_t*)pBuffer;
+            if (pSample->SampleType == Sample::MONO_SAMPLE || pSample->SampleType == Sample::ROM_MONO_SAMPLE) {
+                pSample->pCkSmpl->Read(pTmpBuf, SampleCount, 2);
+                pSample->pCkSm24->Read(pTmpBuf + SampleCount * 2, SampleCount, 1);
+                for (int i = SampleCount - 1; i >= 0; i--) {
+                    pBuf[i*3]     = pTmpBuf[(SampleCount * 2) + i];
+                    pBuf[i*3 + 2] = pTmpBuf[i*2 + 1];
+                    pBuf[i*3 + 1] = pTmpBuf[i*2];
+                }
+            } else if (pSample->SampleType == Sample::LEFT_SAMPLE || pSample->SampleType == Sample::ROM_LEFT_SAMPLE) {
+                pSample->pCkSmpl->Read(pTmpBuf, SampleCount, 2);
+                pSample->pCkSm24->Read(pTmpBuf + SampleCount * 2, SampleCount, 1);
+                for (int i = SampleCount - 1; i >= 0; i--) {
+                    pBuf[i*6]     = pTmpBuf[(SampleCount * 2) + i];
+                    pBuf[i*6 + 2] = pTmpBuf[i*2 + 1];
+                    pBuf[i*6 + 1] = pTmpBuf[i*2];
+                    if (CLEAR)
+                        pBuf[i*6 + 3] = pBuf[i*6 + 4] = pBuf[i*6 + 5] = 0;
+                }
+            } else if (pSample->SampleType == Sample::RIGHT_SAMPLE || pSample->SampleType == Sample::ROM_RIGHT_SAMPLE) {
+                pSample->pCkSmpl->Read(pTmpBuf, SampleCount, 2);
+                pSample->pCkSm24->Read(pTmpBuf + SampleCount * 2, SampleCount, 1);
+                for (int i = SampleCount - 1; i >= 0; i--) {
+                    pBuf[i*6 + 3] = pTmpBuf[(SampleCount * 2) + i];
+                    pBuf[i*6 + 5] = pTmpBuf[i*2 + 1];
+                    pBuf[i*6 + 4] = pTmpBuf[i*2];
+                    if (CLEAR)
+                        pBuf[i*6] = pBuf[i*6 + 1] = pBuf[i*6 + 2] = 0;
+                }
+            }
+        } else {
+            if (pSample->SampleType == Sample::MONO_SAMPLE || pSample->SampleType == Sample::ROM_MONO_SAMPLE) {
+                return pSample->pCkSmpl->Read(pBuffer, SampleCount, 2);
+            }
+
+            int16_t* const pTmpBuf = (int16_t*) ((CLEAR) ? pBuffer : tempBuffer->pStart);
+            int16_t* const pBuf    = (int16_t*) pBuffer;
+            if (pSample->SampleType == Sample::LEFT_SAMPLE || pSample->SampleType == Sample::ROM_LEFT_SAMPLE) {
+                pSample->pCkSmpl->Read(pTmpBuf, SampleCount, 2);
+                for (int i = SampleCount - 1; i >= 0; i--) {
+                    pBuf[i*2] = pTmpBuf[i];
+                    if (CLEAR)
+                        pBuf[i*2 + 1] = 0;
+                }
+            } else if (pSample->SampleType == Sample::RIGHT_SAMPLE || pSample->SampleType == Sample::ROM_RIGHT_SAMPLE) {
+                pSample->pCkSmpl->Read(pTmpBuf, SampleCount, 2);
+                for (int i = SampleCount - 1; i >= 0; i--) {
+                    if (CLEAR)
+                        pBuf[i*2] = 0;
+                    pBuf[i*2 + 1] = pTmpBuf[i];
+                }
+            }
+        }
+
+        if (pSample->pCkSmpl->GetPos() > (pSample->End * 2)) {
+            std::cerr << "Read after the sample end. This is a BUG!" << std::endl;
+            std::cerr << "Current position: " << pSample->GetPos() << std::endl;
+            std::cerr << "Total number of frames: " << pSample->GetTotalFrameCount() << std::endl << std::endl;
+        }
+        return SampleCount;
+    }
+
     /**
      * Reads \a SampleCount number of sample points from the current
      * position into the buffer pointed by \a pBuffer and increments the
@@ -1415,73 +1494,54 @@ namespace sf2 {
      * (using native endianness). For 24 bit, the buffer will
      * contain three bytes per sample, little-endian.
      *
+     * Stereo Samples: stereo samples are stored as a pair of mono samples with
+     * SoundFont 2. Due to historical reasons, this Read() method expects
+     * @a pBuffer to be a stereo buffer, however only the audio channel covered
+     * by the sample data of this sample will be filled. The other audio channel
+     * of @a pBuffer will be set to zero. This is probably not what you want.
+     * So you might want to use ReadNoClear() instead.
+     *
      * @param pBuffer      destination buffer
      * @param SampleCount  number of sample points to read
      * @returns            number of successfully read sample points
-     * @see                SetPos()
+     * @see                SetPos(), ReadNoClear()
      */
     unsigned long Sample::Read(void* pBuffer, unsigned long SampleCount) {
-        // TODO: startAddrsCoarseOffset, endAddrsCoarseOffset
-        if (SampleCount == 0) return 0;
-        long pos = GetPos();
-        if (pos + SampleCount > GetTotalFrameCount()) SampleCount = GetTotalFrameCount() - pos;
+        return ReadSample<true>(this, pBuffer, SampleCount);
+    }
 
-        if (GetFrameSize() / GetChannelCount() == 3 /* 24 bit */) {
-            uint8_t* pBuf = (uint8_t*)pBuffer;
-            if (SampleType == MONO_SAMPLE || SampleType == ROM_MONO_SAMPLE) {
-                pCkSmpl->Read(pBuf, SampleCount, 2);
-                pCkSm24->Read(pBuf + SampleCount * 2, SampleCount, 1);
-                for (int i = SampleCount - 1; i >= 0; i--) {
-                    pBuf[i*3] = pBuf[(SampleCount * 2) + i];
-                    pBuf[i*3 + 2] = pBuf[i*2 + 1];
-                    pBuf[i*3 + 1] = pBuf[i*2];
-                }
-            } else if (SampleType == LEFT_SAMPLE || SampleType == ROM_LEFT_SAMPLE) {
-                pCkSmpl->Read(pBuf, SampleCount, 2);
-                pCkSm24->Read(pBuf + SampleCount * 2, SampleCount, 1);
-                for (int i = SampleCount - 1; i >= 0; i--) {
-                    pBuf[i*6] = pBuf[(SampleCount * 2) + i];
-                    pBuf[i*6 + 2] = pBuf[i*2 + 1];
-                    pBuf[i*6 + 1] = pBuf[i*2];
-                    pBuf[i*6 + 3] = pBuf[i*6 + 4] = pBuf[i*6 + 5] = 0;
-                }
-            } else if (SampleType == RIGHT_SAMPLE || SampleType == ROM_RIGHT_SAMPLE) {
-                pCkSmpl->Read(pBuf, SampleCount, 2);
-                pCkSm24->Read(pBuf + SampleCount * 2, SampleCount, 1);
-                for (int i = SampleCount - 1; i >= 0; i--) {
-                    pBuf[i*6 + 3] = pBuf[(SampleCount * 2) + i];
-                    pBuf[i*6 + 5] = pBuf[i*2 + 1];
-                    pBuf[i*6 + 4] = pBuf[i*2];
-                    pBuf[i*6] = pBuf[i*6 + 1] = pBuf[i*6 + 2] = 0;
-                }
-            }
-        } else {
-            if (SampleType == MONO_SAMPLE || SampleType == ROM_MONO_SAMPLE) {
-                return pCkSmpl->Read(pBuffer, SampleCount, 2);
-            }
-
-            int16_t* pBuf = (int16_t*)pBuffer;
-            if (SampleType == LEFT_SAMPLE || SampleType == ROM_LEFT_SAMPLE) {
-                pCkSmpl->Read(pBuf, SampleCount, 2);
-                for (int i = SampleCount - 1; i >= 0; i--) {
-                    pBuf[i*2] = pBuf[i];
-                    pBuf[i*2 + 1] = 0;
-                }
-            } else if (SampleType == RIGHT_SAMPLE || SampleType == ROM_RIGHT_SAMPLE) {
-                pCkSmpl->Read(pBuf, SampleCount, 2);
-                for (int i = SampleCount - 1; i >= 0; i--) {
-                    pBuf[i*2] = 0;
-                    pBuf[i*2 + 1] = pBuf[i];
-                }
-            }
-        }
-
-        if (pCkSmpl->GetPos() > (End * 2)) {
-            std::cerr << "Read after the sample end. This is a BUG!" << std::endl;
-            std::cerr << "Current position: " << GetPos() << std::endl;
-            std::cerr << "Total number of frames: " << GetTotalFrameCount() << std::endl << std::endl;
-        }
-        return SampleCount;
+    /**
+     * Reads \a SampleCount number of sample points from the current
+     * position into the buffer pointed by \a pBuffer and increments the
+     * position within the sample. Use this method
+     * and <i>SetPos()</i> if you don't want to load the sample into RAM,
+     * thus for disk streaming.
+     *
+     * For 16 bit samples, the data in the buffer will be int16_t
+     * (using native endianness). For 24 bit, the buffer will
+     * contain three bytes per sample, little-endian.
+     *
+     * Stereo Samples: stereo samples are stored as a pair of mono samples with
+     * SoundFont 2. This ReadNoClear() method expects @a pBuffer to be a stereo
+     * buffer, however only the audio channel covered by the sample data of this
+     * sample will be filled. The other audio channel
+     * of @a pBuffer will remain untouched. So you might pass the same
+     * @a pBuffer to the other, linked sample to actually get the interleaved
+     * stereo audio stream. To avoid destroying the other audio channel's data
+     * you must pass an external, tempoary working buffer @a tempBuffer, which
+     * should already be allocated to the size required to decode the requested
+     * length of sample data. That @a tempBuffer is only used by ReadNoClear()
+     * to fulfill its work, it does not contain any useful data after this
+     * method returned.
+     *
+     * @param pBuffer      destination buffer
+     * @param SampleCount  number of sample points to read
+     * @param tempBuffer   temporary work buffer (must be pre-allocated large enough)
+     * @returns            number of successfully read sample points
+     * @see                SetPos(), Read()
+     */
+    unsigned long Sample::ReadNoClear(void* pBuffer, unsigned long SampleCount, buffer_t& tempBuffer) {
+        return ReadSample<false>(this, pBuffer, SampleCount, &tempBuffer);
     }
 
 

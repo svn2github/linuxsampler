@@ -3,7 +3,7 @@
 
 m4_define(libgig_release_major, 3)
 m4_define(libgig_release_minor, 3)
-m4_define(libgig_release_build, 0.svn28)
+m4_define(libgig_release_build, 0.svn29)
 
 
 AC_INIT([libgig],[libgig_release_major.libgig_release_minor.libgig_release_build])
@@ -136,6 +136,7 @@ AC_CONFIG_FILES([\
     man/gig2stereo.1 \
     man/rifftree.1 \
     man/sf2dump.1 \
+    man/sf2extract.1 \
     man/korgdump.1 \
     man/korg2gig.1 \
     man/akaidump.1 \
