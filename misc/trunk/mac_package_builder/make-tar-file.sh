@@ -11,7 +11,7 @@ P=/home/persson/mac
 D=linuxsampler_`date +%Y%m%d`
 
 # command line tools shipped with libgig
-gigtools_bins="akaidump akaiextract dlsdump gig2mono gig2stereo gigdump gigextract gigmerge korg2gig korgdump rifftree sf2dump"
+gigtools_bins="akaidump akaiextract dlsdump gig2mono gig2stereo gigdump gigextract gigmerge korg2gig korgdump rifftree sf2dump sf2extract"
 
 createuniv ()
 {
