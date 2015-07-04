@@ -70,6 +70,10 @@ body h3 {
     font-weight:300;
 }
 
+body p {
+    clear:both;
+}
+
 body a {
     font-weight:400;
     color:#1ba1dd;
