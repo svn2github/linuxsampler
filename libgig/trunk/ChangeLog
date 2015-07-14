@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 4.0.0 (14 Jul 2015)
   * general changes:
     - minor Makefile fix for parallel make
     - Mac OS X: link with CoreFoundation (for the UUID function)

@@ -1,3 +1,13 @@
+libgig (4.0.0-1) unstable; urgency=low
+
+  * New release.
+  * libgig shared library (libgig.so) is now at version 7.0.0.
+  * Script for building from SVN is now Makefile.svn (Makefile.cvs still
+    exists but is deprecated).
+  * Updated to Debian compatibility level 7.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Tue, 14 Jul 2015 11:32:40 +0200
+
 libgig (3.3.0-6) unstable; urgency=low
 
   * Add postinst and postrm trigger scripts for adding and removing

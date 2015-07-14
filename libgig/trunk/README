@@ -17,8 +17,8 @@ Content
                                      provide the necessary extensions for
                                      the Gigasampler file format.
 
-  Despite its name, libgig also provides support for other sampler file
-  formats as well today:
+  Despite its name, libgig also provides (since version 4.0.0) support for
+  other sampler file formats as well:
 
   - SoundFont classes (SF.h, SF.cpp):  They provide support for the very popular
                                        SoundFont v1 and v2 format (.sf2).
@@ -35,9 +35,12 @@ Content
     gigextract:  Extracts samples from a .gig file.
     gigmerge:    Merges several .gig files to one .gig file.
     gig2mono:    Converts .gig files from stereo to mono.
+    gig2stereo:  Converts .gig files to true interleaved stereo sounds.
     dlsdump:     Demo app that prints out the content of a DLS file.
     korgdump:    Prints out the content of the various KORG file types.
     korg2gig:    Convert KORG sound file to Gigasampler/GigaStudio format.
+    sf2dump:     Prints out the content of a .sf2 file.
+    sf2extract:  Extracts audio samples from a .sf2 file.
     rifftree:    Tool that prints out the RIFF tree of an arbitrary RIFF
                  file.
     akaidump:    Dump an AKAI media i.e. from a CDROM drive as disk image file
@@ -251,6 +254,8 @@ Credits
   original libakai only supported Mac and Windows. This forked version of
   libakai now also supports Linux and other POSIX compliant operating systems
   as well and does not have a dependency to libngl as the original libakai had.
+
+  The SoundFont 2 file format C++ classes were written by Grigor Iliev.
 
   Thanks to all of you for your great work!
 

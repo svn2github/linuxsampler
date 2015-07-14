@@ -8,7 +8,7 @@ Standards-Version: 3.7.2
 Package: libgig-dev
 Section: libdevel
 Architecture: any
-Depends: libgig6 (= ${Source-Version})
+Depends: libgig7 (= ${Source-Version})
 Description: library for accessing Gigasampler, DLS, SoundFont, KORG, AKAI files
  libgig is a C++ library for reading, modifying and creating Gigasampler /
  GigaStudio (.gig) files, DLS (Downloadable Sounds) Level 1/2 files, SoundFont
@@ -30,12 +30,12 @@ Description: library for accessing Gigasampler, DLS, SoundFont, KORG, AKAI files
  You will need this only if you intend to compile programs that use this
  library.
 
-Package: libgig6
+Package: libgig7
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Conflicts: libgig3c2, libgig
-Replaces: libgig3c2, libgig
+Conflicts: libgig6, libgig3c2, libgig
+Replaces: libgig6, libgig3c2, libgig
 Description: library for accessing Gigasampler, DLS, SoundFont, KORG, AKAI files
  libgig is a C++ library for reading, modifying and creating Gigasampler /
  GigaStudio (.gig) files, DLS (Downloadable Sounds) Level 1/2 files, SoundFont
@@ -76,12 +76,16 @@ Description: command line tools for Gigasampler, SF2, DLS, KORG and AKAI files
    Combines multiple .gig files to one .gig file.
  gig2mono:
    Converts .gig files from stereo to mono.
+ gig2stereo:
+   Converts .gig files to true interleaved stereo sounds.
  dlsdump:
    Prints out the content of a DLS file.
  rifftree:
    Prints out the RIFF tree of an arbitrary RIFF container file.
  sf2dump:
    Prints out the content of a .sf2 file.
+ sf2extract:
+   Extracts audio samples from a .sf2 file.
  korgdump:
    Prints out the content of KORG sound files (.KSF, .KMP).
  korg2gig:

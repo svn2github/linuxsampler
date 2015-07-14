@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 13
+%define release 14
 %define prefix  @prefix@
 
 Summary:	C++ library for accessing Gigasampler, DLS, SF, KORG, AKAI files.
@@ -96,6 +96,8 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/libgig/*
 
 %changelog
+* Tue Jul 14 2015 Christian Schoenebeck <cuse@users.sourceforge.net>
+- prepared for release 4.0.0
 * Sun Jun 01 2014 Christian Schoenebeck <cuse@users.sourceforge.net>
 - Fixed installation directories of .so files and header files
   (fixes #218).
