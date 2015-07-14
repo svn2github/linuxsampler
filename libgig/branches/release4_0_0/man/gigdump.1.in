@@ -1,0 +1,31 @@
+.TH "gigdump" "1" "8 May 2005" "libgig @VERSION@" "libgig tools"
+.SH NAME
+gigdump \- List informations about a Gigasampler (.gig) file.
+.SH SYNOPSIS
+.B gigdump
+[ -v ] GIGFILE
+.SH DESCRIPTION
+Prints out a list of all available samples and instruments within a Gigasampler (.gig) file along with detailed informations about their properties and settings.
+.SH OPTIONS
+.TP
+.B \ GIGFILE
+filename of the Gigasampler file
+.TP
+.B \ -v
+print version and exit
+
+.SH "SEE ALSO"
+.BR gigextract(1),
+.BR gigmerge(1),
+.BR gig2mono(1),
+.BR gig2stereo(1),
+.BR dlsdump(1),
+.BR rifftree(1),
+.BR akaidump(1),
+.BR sf2dump(1),
+.BR korgdump(1)
+
+.SH "BUGS"
+Check and report bugs at http://bugs.linuxsampler.org
+.SH "Author"
+Application and manual page written by Christian Schoenebeck <cuse@users.sf.net>
