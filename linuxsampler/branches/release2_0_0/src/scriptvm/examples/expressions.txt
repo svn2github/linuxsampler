@@ -1,0 +1,33 @@
+on init
+  declare @s := "foo" & " bar"
+  message(@s)
+
+  message("4 + 3 is " & 4 + 3)
+  message("10 mod 8 -> " & 10 mod 8)
+
+  message("Relation 3 < 4 -> " & 3 < 4)
+  message("Relation 3 > 4 -> " & 3 > 4)
+  message("Relation 3 <= 4 -> " & 3 <= 4)
+  message("Relation 3 >= 4 -> " & 3 >= 4)
+  message("Relation 3 # 4 -> " & 3 # 4)
+  message("Relation 3 = 4 -> " & 3 = 4)
+  
+  message("Bit operation 1 and 2 = " & 1 and 2)
+  message("Bit operation 1 and 3 = " & 1 and 3)
+  message("Bit operation 1 and 0 = " & 1 and 0)
+  message("Bit operation 1 or 2 = " & 1 or 2)
+  message("Bit operation 1 or 1 = " & 1 or 1)
+  message("Bit operation 1 or 0 = " & 1 or 0)
+  message("Bit operation 0 or 0 = " & 0 or 0)
+
+  message("Bit operation not 1 = " & not 1)
+  message("Bit operation not 2 = " & not 2)
+  message("Bit operation not 0 = " & not 0)
+
+  message("abs(-3) = " & abs(-3))
+
+  message("random(-5,5) = " & random(-5,5))
+  message("random(-5,5) = " & random(-5,5))
+  message("random(-5,5) = " & random(-5,5))
+
+end on 
