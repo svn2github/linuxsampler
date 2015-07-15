@@ -16,7 +16,7 @@
      to an annoying "missing Normative/Informative References" error message -->
 <?rfc strict="no" ?>
 
-<rfc category="std" ipr="full3978" docName="LSCP 1.6">
+<rfc category="std" ipr="full3978" docName="LSCP 1.7">
     <front>
         <title>LinuxSampler Control Protocol</title>
         <author initials='C.S.' surname="Schoenebeck" fullname='C.
@@ -36,7 +36,7 @@ Schoenebeck'>
                 <email>cuse@users.sf.net</email>
             </address>
         </author>
-        <date month="January" year="2014"/>
+        <date month="July" year="2015"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
