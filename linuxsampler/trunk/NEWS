@@ -1,3 +1,41 @@
+Version 2.0.0 (15 July 2015)
+
+  The sampler's code base has seen substantial changes in the last six years,
+  since the last release of LinuxSampler. The sampler engine code base has
+  been unified to a set of abstract base classes which cleared the way for
+  two new sampler engines: The SFZ2 format engine (.sfz) and the SoundFont 2
+  engine (.sf2). So LinuxSampler is not limited to the GigaStudio/Gigasampler
+  format (.gig) anymore. Another major new feature is support for real-time
+  instrument scripts, which may be bundled with sound files to extend the
+  sampler with custom behavior for individual sounds. You may know such scripts
+  from commercial software samplers. Find out more about instrument scripts
+  on http://doc.linuxsampler.org/Instrument_Scripts/. At the moment this
+  scripting feature is yet limited to the Giga format engine. Also noteworthy
+  is the new command line application "lscp", which is a text based shell for
+  controlling the sampler from the command line, providing colored output,
+  type completion, help text while typing LSCP commands and other convenient
+  features. You may now also load external effects directly into the sampler
+  (only LADSPA plugins yet). The LSCP network protocol (v1.7) has been extended
+  to manage such effects respectively. Also new with latest LSCP version is the
+  ability to trigger MIDI CCs by LSCP commands. You may have heard that the
+  GigaStudio software has seen its last version with GigaStudio 4. Tascam
+  officially discontinued this product, its intellectual property has been sold
+  several times among companies and there is currently no way to buy a new copy
+  of GigaStudio anymore. However the GigaStudio format is still under active
+  development with LinuxSampler. We not only added support for the latest
+  features introduced with GigaStudio 4: iMIDI rules for example which allow to
+  trigger notes by MIDI CC and allow i.e. defining a set of legato samples; for
+  the first time ever we also added our own extensions to the Giga format: one
+  of it is the previously mentioned new instrument scripting feature and a more
+  minor extension is support for various other MIDI CCs which were never
+  supported by GigaStudio before. The sampler's host plugins have also seen
+  some enhancements: the LV2 plugin now stores and restores the sampler's
+  overall state with your DAW application's song, the LV2 and AudioUnit
+  plugin's outputs were increased from 2 audio channels to 16 upon request by
+  some users and the VST plugin now uses the sampler's MIDI instrument mapping
+  system to show a list of available sounds to allow the user to switch among
+  them. And last but not least the VST plugin may also be used on Mac now.
+
 Version 1.0.0 (31 July 2009)
 
   This is the first release which allows the sampler to be used as audio
