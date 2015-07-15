@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 13
+%define release 14
 %define prefix  @prefix@
 
 Summary:	LinuxSampler - modular, streaming capable, realtime audio sampler
@@ -14,15 +14,16 @@ Group:		Sound
 Source0:	%{name}-%{version}.tar.bz2
 URL:		http://www.linuxsampler.org/
 BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
-Requires:	libgig >= 3.3.0
+Requires:	libgig >= 4.0.0
 
 %description
-LinuxSampler is a work in progress. It's goal is to produce a free
-software audio sampler with professional grade features.
+LinuxSampler is a free software audio sampler with professional grade
+features. It offers disk streaming capability, real-time instrument
+scripts, and supports the following three sampler formats:
 
-It offers disk streaming capability and supports the Gigasampler
-format which is currently considered to be the best sampler format
-in regards of possibilities and sound quality.
+ - GigaStudio 4, previously known as Gigasampler (.gig)
+ - SoundFont 2 (.sf2)
+ - SFZ2 (.sfz)
 
 This package provides the backend of LinuxSampler, that is the
 sampler engine together with audio and MIDI drivers. LinuxSampler
@@ -70,8 +71,10 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %defattr(-,root,root)
 %doc AUTHORS COPYING ChangeLog README
 %{prefix}/bin/linuxsampler
+%{prefix}/bin/lscp
 %{prefix}/lib/linuxsampler/liblinuxsampler.so*
 %{prefix}/share/man/man1/linuxsampler.*
+%{prefix}/share/man/man1/lscp.*
 %{prefix}/lib/dssi/*
 %{prefix}/lib/lv2/linuxsampler*
 /var/lib/linuxsampler/instruments.db
@@ -85,6 +88,9 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/*
 
 %changelog
+* Wed Jul 15 2015 Christian Schoenebeck <cuse@users.sourceforge.net>
+- Going for linuxsampler 2.0.0 release.
+- Added "lscp" shell binary (and its man page) to package.
 * Fri Jul 31 2009 Christian Schoenebeck <cuse@users.sourceforge.net>
 - Going for linuxsampler 1.0.0 release.
 * Fri Mar 27 2009 Christian Schoenebeck <cuse@users.sourceforge.net>

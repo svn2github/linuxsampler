@@ -1,9 +1,9 @@
 #------------------------------------------------------------------------------------
 # LinuxSampler's / liblinuxsampler's "official" release version:
 
-m4_define(linuxsampler_release_major, 1)
+m4_define(linuxsampler_release_major, 2)
 m4_define(linuxsampler_release_minor, 0)
-m4_define(linuxsampler_release_build, 0.svn61)
+m4_define(linuxsampler_release_build, 0)
 
 
 AC_INIT([linuxsampler],[linuxsampler_release_major.linuxsampler_release_minor.linuxsampler_release_build])
@@ -26,7 +26,7 @@ AC_CONFIG_SRCDIR([configure.ac])
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-LIBLINUXSAMPLER_LT_CURRENT=3
+LIBLINUXSAMPLER_LT_CURRENT=4
 LIBLINUXSAMPLER_LT_REVISION=0
 LIBLINUXSAMPLER_LT_AGE=0
 SHARED_VERSION_INFO="$LIBLINUXSAMPLER_LT_CURRENT:$LIBLINUXSAMPLER_LT_REVISION:$LIBLINUXSAMPLER_LT_AGE"
@@ -35,7 +35,7 @@ SHARED_VERSION_INFO="$LIBLINUXSAMPLER_LT_CURRENT:$LIBLINUXSAMPLER_LT_REVISION:$L
 # the LSCP specification version this LinuSampler release complies with:
 
 LSCP_RELEASE_MAJOR=1
-LSCP_RELEASE_MINOR=6
+LSCP_RELEASE_MINOR=7
 
 AC_DEFINE_UNQUOTED(LSCP_RELEASE_MAJOR, ${LSCP_RELEASE_MAJOR}, [LSCP spec major version this release complies with.])
 AC_DEFINE_UNQUOTED(LSCP_RELEASE_MINOR, ${LSCP_RELEASE_MINOR}, [LSCP spec minor version this release complies with.])
@@ -533,6 +533,9 @@ AM_CONDITIONAL(HAVE_DSSI, test $config_have_dssi = "yes")
 
 # LV2
 PKG_CHECK_MODULES(LV2, lv2 >= 1.0.0, config_have_lv2="yes", config_have_lv2="no")
+if test "$config_have_lv2" != "yes"; then
+    PKG_CHECK_MODULES(LV2, lv2core >= 1.0.0, config_have_lv2="yes", config_have_lv2="no")
+fi
 AC_SUBST(LV2_CFLAGS)
 AC_SUBST(LV2_LIBS)
 AM_CONDITIONAL(HAVE_LV2, test $config_have_lv2 = "yes")
@@ -598,7 +601,7 @@ fi
 # Checks for various DLL libraries
 
 # Check presence of libgig
-libgig_version="3.3.0"
+libgig_version="4.0.0"
 PKG_CHECK_MODULES(GIG, gig >= $libgig_version, HAVE_GIG=true, HAVE_GIG=false)
 if test "$HAVE_GIG" = "false"; then
     echo "Required libgig version not found!"

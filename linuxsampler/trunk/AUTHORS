@@ -19,18 +19,25 @@ fixed couple of bugs.
 Rui Nuno Capela was also especially involved in the "LSCP" design and
 implementation.
 
-Andreas Persson made a lot of important fixes and improvents regarding the
-Gigasampler format handling. Especially the Gigasmpler v3 format support was
-developed by him. He also had his hands on a lot of quality improvements
-and bug fixes and developed the base host plugin system and implemented
-support for the sampler being used as VST, DSSI and LV2 plugin.
+Andreas Persson made a lot of important fixes and improvements regarding the
+Gigasampler format handling. Especially the Gigasmpler v3 and v4 format support
+was developed by him. He also had his hands on a lot of quality and efficiency
+improvements all over the place, numerous bug fixes, and also developed the base
+host plugin system and implemented support for the sampler being used as VST,
+DSSI and LV2 plugin. He also did a lot on implementing and extending the SFZ2
+format engine.
 
 Grigor Iliev <grishata@users.sourceforge.net> added and implemented LSCP
 commands for muting and solo-ing sampler channels, added sostenuto pedal
 support, implemented the instruments database system and the Audio Unit
-plugin version of the sampler for Mac and fixed a lot of bugs.
+plugin version of the sampler for Mac and fixed a lot of bugs. Later on Grigor
+was the major force behind unification of the sampler's complex engine code
+base to a set of abstract base classes, which finally cleared the way for
+providing multiple sampler formats with LinuxSampler. As a consequence of this
+work he subsequently added the initial implementations of the SoundFont2 and
+SFZ2 sampler engines to LinuxSampler.
 
-Toshi Nagata was responsible for the current OS X port and added autoconf
+Toshi Nagata was responsible for the initial OS X port and added autoconf
 support to the XCode project file.
 
 Smaller (but not necessarily minor) patches were received from the following
@@ -47,3 +54,4 @@ people:
     Devin Anderson
     Chris Cherrett
     David Robillard
+    Luis Garrido

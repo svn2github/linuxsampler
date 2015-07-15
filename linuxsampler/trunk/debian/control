@@ -11,12 +11,13 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: gigtools
 Description: realtime audio sampler
- LinuxSampler is a work in progress. It's goal is to produce a free
- software audio sampler with professional grade features.
+ LinuxSampler is a free software audio sampler with professional grade features.
+ It offers disk streaming capability, real-time instrument scripts, and
+ supports the following three sampler formats:
  .
- It offers disk streaming capability and supports the Gigasampler format
- which is currently considered to be the best sampler format in regards of
- possibilities and sound quality.
+ - GigaStudio 4, previously known as Gigasampler (.gig)
+ - SoundFont 2 (.sf2)
+ - SFZ2 (.sfz)
  .
  This package provides the backend application of LinuxSampler.
  LinuxSampler can be controlled via network interface which uses an ASCII
@@ -33,12 +34,13 @@ Section: libdevel
 Architecture: any
 Depends: liblinuxsampler (= ${Source-Version})
 Description: realtime audio sampler (development files)
- LinuxSampler is a work in progress. It's goal is to produce a free
- software audio sampler with professional grade features.
+ LinuxSampler is a free software audio sampler with professional grade features.
+ It offers disk streaming capability, real-time instrument scripts, and
+ supports the following three sampler formats:
  .
- It offers disk streaming capability and supports the Gigasampler format
- which is currently considered to be the best sampler format in regards of
- possibilities and sound quality.
+ - GigaStudio 4, previously known as Gigasampler (.gig)
+ - SoundFont 2 (.sf2)
+ - SFZ2 (.sfz)
  .
  This package provides the development files of the LinuxSampler library.
  You usually only need this package if you are compiling against
@@ -51,12 +53,13 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: realtime audio sampler (base library)
- LinuxSampler is a work in progress. It's goal is to produce a free
- software audio sampler with professional grade features.
+ LinuxSampler is a free software audio sampler with professional grade features.
+ It offers disk streaming capability, real-time instrument scripts, and
+ supports the following three sampler formats:
  .
- It offers disk streaming capability and supports the Gigasampler format
- which is currently considered to be the best sampler format in regards of
- possibilities and sound quality.
+ - GigaStudio 4, previously known as Gigasampler (.gig)
+ - SoundFont 2 (.sf2)
+ - SFZ2 (.sfz)
  .
  This package provides the LinuxSampler backend library (liblinuxsampler),
  that is the sampler engine together with audio and MIDI drivers. It also

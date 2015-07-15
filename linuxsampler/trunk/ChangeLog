@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 2.0.0 (15 July 2015)
 
   * packaging changes:
     - fixed building with newer MinGW-w64
