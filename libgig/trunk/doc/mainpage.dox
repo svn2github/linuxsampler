@@ -113,12 +113,16 @@ which demonstrate how to use the library:
     Combines multiple .gig files to one .gig file.
   - <a href="http://svn.linuxsampler.org/cgi-bin/viewvc.cgi/libgig/trunk/src/tools/gig2mono.cpp?view=markup">@b gig2mono: </a>
     Converts .gig files from stereo to mono.
+  - <a href="http://svn.linuxsampler.org/cgi-bin/viewvc.cgi/libgig/trunk/src/tools/gig2stereo.cpp?view=markup">@b gig2stereo: </a>
+    Converts .gig files from mono sample pairs to true interleaved stereo.
   - <a href="http://svn.linuxsampler.org/cgi-bin/viewvc.cgi/libgig/trunk/src/tools/dlsdump.cpp?view=markup">@b dlsdump: </a>
     Prints out the content of a DLS file.
   - <a href="http://svn.linuxsampler.org/cgi-bin/viewvc.cgi/libgig/trunk/src/tools/rifftree.cpp?view=markup">@b rifftree: </a>
     Prints out the RIFF tree of an arbitrary RIFF container file.
   - <a href="http://svn.linuxsampler.org/cgi-bin/viewvc.cgi/libgig/trunk/src/tools/sf2dump.cpp?view=markup">@b sf2dump: </a>
     Prints out the content of a .sf2 file.
+  - <a href="http://svn.linuxsampler.org/cgi-bin/viewvc.cgi/libgig/trunk/src/tools/sf2extract.cpp?view=markup">@b sf2extract: </a>
+    Extracts audio samples from a .sf2 file as .wav files.
   - <a href="http://svn.linuxsampler.org/cgi-bin/viewvc.cgi/libgig/trunk/src/tools/korgdump.cpp?view=markup">@b korgdump: </a>
     Prints out the content of KORG sound files (.KSF, .KMP).
   - <a href="http://svn.linuxsampler.org/cgi-bin/viewvc.cgi/libgig/trunk/src/tools/korg2gig.cpp?view=markup">@b korg2gig: </a>
