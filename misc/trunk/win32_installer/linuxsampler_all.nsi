@@ -528,7 +528,7 @@ Section "libgig ${LIBGIG_VERSION}" Seclibgig
   ; QSampler needs the 32 bit libgig dll
   libgigForQsampler:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
-  File bin\686sse\libgig-6.dll
+  File bin\686sse\libgig-7.dll
   Goto done
 
   libgig686sse:
