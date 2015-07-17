@@ -36,7 +36,7 @@ cp libatk-1.0-0.dll libatkmm-1.6-1.dll libcairo-2.dll \
     libtiff3.dll zlib1.dll \
     $DIST
 cd $WIN/lib/bin
-cp libgig-6.dll libakai-0.dll libgigedit-2.dll liblinuxsampler-3.dll $DIST
+cp libgig-7.dll libakai-0.dll libgigedit-3.dll liblinuxsampler-4.dll $DIST
 cp $WIN/lib/vst/LinuxSampler.dll $DIST
 mkdir -p $DIST/plugins
 cp $WIN/lib/linuxsampler/plugins/libgigeditlinuxsamplerplugin.dll \
@@ -78,7 +78,7 @@ cp rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
     sf2dump.exe sf2extract.exe linuxsampler.exe \
     $DIST
 cd $WIN/lib/bin
-cp libgig-6.dll libakai-0.dll liblinuxsampler-3.dll $DIST
+cp libgig-7.dll libakai-0.dll liblinuxsampler-4.dll $DIST
 cp $WIN/lib/vst/LinuxSampler.dll $DIST
 
 
@@ -118,7 +118,7 @@ echo "gtk-theme-name = \"MS-Windows\"" > $DIST/etc/gtk-2.0/gtkrc
 cd mingw64/x86_64-w64-mingw32/lib
 cp libgcc_s_sjlj-1.dll libstdc++-6.dll $DIST
 cd $WIN/lib/bin
-cp libgig-6.dll libakai-0.dll libgigedit-2.dll liblinuxsampler-3.dll $DIST
+cp libgig-7.dll libakai-0.dll libgigedit-3.dll liblinuxsampler-4.dll $DIST
 cp $WIN/lib/vst/LinuxSampler.dll $DIST
 mkdir -p $DIST/plugins
 cp $WIN/lib/linuxsampler/plugins/libgigeditlinuxsamplerplugin.dll \

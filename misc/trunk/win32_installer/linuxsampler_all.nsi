@@ -93,7 +93,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "all-in-one installer"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "http://linuxsampler.org"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "The LinuxSampler Project"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" ""
-VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© 2003-2014 The LinuxSampler Project"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© 2003-2015 The LinuxSampler Project"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "LinuxSampler Installer (${RELEASE_DATE})"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "0.0.0"
 
@@ -291,7 +291,7 @@ Section "LinuxSampler ${LINUXSAMPLER_VERSION}" SecLinuxSampler
   linuxsampler64:
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\linuxsampler.exe
-  File bin\64\liblinuxsampler-3.dll
+  File bin\64\liblinuxsampler-4.dll
   File bin\64\libsqlite3-0.dll
   SetOutPath $vstPluginPath64
   File /oname=LinuxSampler64.dll bin\64\LinuxSampler.dll
@@ -305,7 +305,7 @@ Section "LinuxSampler ${LINUXSAMPLER_VERSION}" SecLinuxSampler
   linuxsampler686sse:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686sse\linuxsampler.exe
-  File bin\686sse\liblinuxsampler-3.dll
+  File bin\686sse\liblinuxsampler-4.dll
   File bin\686\libsqlite3-0.dll
   SetOutPath $vstPluginPath
   File /oname=LinuxSampler32.dll bin\686sse\LinuxSampler.dll
@@ -314,7 +314,7 @@ Section "LinuxSampler ${LINUXSAMPLER_VERSION}" SecLinuxSampler
   linuxsampler686:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\linuxsampler.exe
-  File bin\686\liblinuxsampler-3.dll
+  File bin\686\liblinuxsampler-4.dll
   File bin\686\libsqlite3-0.dll
   SetOutPath $vstPluginPath
   File /oname=LinuxSampler32.dll bin\686\LinuxSampler.dll
@@ -374,7 +374,7 @@ Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   gigedit64:
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\gigedit.exe
-  File bin\64\libgigedit-2.dll
+  File bin\64\libgigedit-3.dll
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}\plugins"
   File bin\64\plugins\libgigeditlinuxsamplerplugin.dll
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
@@ -425,7 +425,7 @@ Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   gigedit686:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\gigedit.exe
-  File bin\686\libgigedit-2.dll
+  File bin\686\libgigedit-3.dll
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}\plugins"
   File bin\686\plugins\libgigeditlinuxsamplerplugin.dll
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
@@ -489,7 +489,7 @@ Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   done:
 SectionEnd
 
-Section "libgig 3.3.0" Seclibgig
+Section "libgig ${LIBGIG_VERSION}" Seclibgig
   DetailPrint "Installing libgig binaries ..."
   ; We make this a mandatory component
   SectionIn RO
@@ -502,7 +502,7 @@ Section "libgig 3.3.0" Seclibgig
 
   libgig64:
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
-  File bin\64\libgig-6.dll
+  File bin\64\libgig-7.dll
   File bin\64\libakai-0.dll
   File bin\64\rifftree.exe
   File bin\64\dlsdump.exe
@@ -533,7 +533,7 @@ Section "libgig 3.3.0" Seclibgig
 
   libgig686sse:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
-  File bin\686sse\libgig-6.dll
+  File bin\686sse\libgig-7.dll
   File bin\686sse\libakai-0.dll
   File bin\686sse\rifftree.exe
   File bin\686sse\dlsdump.exe
@@ -552,7 +552,7 @@ Section "libgig 3.3.0" Seclibgig
 
   libgig686:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
-  File bin\686\libgig-6.dll
+  File bin\686\libgig-7.dll
   File bin\686\libakai-0.dll
   File bin\686\rifftree.exe
   File bin\686\dlsdump.exe
@@ -744,7 +744,7 @@ LangString DESC_SecLinuxSampler ${LANG_ENGLISH} "Sampler backend (stand-alone an
 LangString DESC_SecJSampler ${LANG_ENGLISH} "Graphical frontend (user interface) for LinuxSampler written in Java, supporting all current features of LinuxSampler. This is the 'Fantasia' distribution of JSampler, offering a modern skin based look."
 LangString DESC_SecQSampler ${LANG_ENGLISH} "Graphical light-weight frontend (user interface) for LinuxSampler written in C++, offering a fast native user interface. NOTE: QSampler doesn't support all LinuxSampler features yet!"
 LangString DESC_Secgigedit ${LANG_ENGLISH} "Graphical instrument editor for Gigasampler format v2 and v3 files. Can be used stand-alone or in conjunction with LinuxSampler."
-LangString DESC_Seclibgig ${LANG_ENGLISH} "C++ program library for accessing DLS (Level 1 and Level 2) and Gigasampler format (v2 and v3) files. This library is required by LinuxSampler, gigedit and QSampler."
+LangString DESC_Seclibgig ${LANG_ENGLISH} "C++ program library for accessing DLS (Level 1 and Level 2) and GigaStudio/Gigasampler format (up to v4), SoundFont, AKAI and KORG files. This library is required by LinuxSampler, gigedit and QSampler."
 LangString DESC_Seclibsndfile ${LANG_ENGLISH} "C program library for reading and writing files containing sampled sound (such as MS Windows WAV and the Apple/SGI AIFF format), used by gigedit to import samples."
 LangString DESC_SecShortcuts ${LANG_ENGLISH} "Installs start menu shortcuts for all applications."
 
