@@ -1,4 +1,5 @@
-Version CVS HEAD (?)
+Version 1.0.0 (2015-07-17)
+
   * minor fix in configure for cross-compiling
   * minor Makefile fix for parallel make
   * use Cairo instead of deprecated gdk drawing primitives

@@ -1,9 +1,9 @@
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 2
+%define release 3
 %define prefix  @prefix@
 
-Summary:	instrument editor for Gigasampler files
+Summary:	instrument editor for GigaStudio/Gigasampler files
 Name:		%{name}
 Version:	%{version}
 Release:	%{release}
@@ -15,7 +15,7 @@ URL:		http://www.linuxsampler.org
 BuildRoot:	/var/tmp/%{name}-%{version}-%{release}-buildroot
 
 %description
-instrument editor for Gigasampler files
+instrument editor for GigaStudio/Gigasampler (.gig) files
 
 %prep
 
@@ -51,6 +51,8 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/share/locale/*
 
 %changelog
+* Fri Jul 17 2015 Christian Schoenebeck <cuse@users.sourceforge.net>
+- Going for release 1.0.0
 * Fri Jul 31 2009 Christian Schoenebeck <cuse@users.sourceforge.net>
 - Going for release 0.2.0
 * Sat Jan 10 2009 Christian Schoenebeck <cuse@users.sourceforge.net>

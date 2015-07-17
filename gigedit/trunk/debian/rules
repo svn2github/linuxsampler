@@ -6,6 +6,8 @@
 # dh-make output file, you may use that output file without restriction.
 # This special exception was added by Craig Small in version 0.37 of dh-make.
 
+APPNAME := gigedit
+
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
 
@@ -25,8 +27,8 @@ endif
 config.status:
 	dh_testdir
 	# Add here commands to configure the package.
-	if [ -e Makefile.cvs ] ; then \
-		$(MAKE) -f Makefile.cvs; \
+	if [ -e Makefile.svn ] ; then \
+		$(MAKE) -f Makefile.svn; \
 	fi
 	chmod a+x configure
 	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
@@ -48,8 +50,8 @@ clean:
 	rm -f build-stamp
 
 	# Add here commands to clean up after the build process.
-	if [ -e Makefile.cvs ] ; then \
-		$(MAKE) -f Makefile.cvs; \
+	if [ -e Makefile.svn ] ; then \
+		$(MAKE) -f Makefile.svn; \
 	fi
 	chmod a+x configure
 	-$(MAKE) distclean
@@ -69,8 +71,8 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-	# Add here commands to install the package into debian/tmp.
-	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
+	# Add here commands to install the package temporarily below debian/.
+	$(MAKE) DESTDIR=$(CURDIR)/debian/$(APPNAME) install
 
 
 # Build architecture-independent files here.

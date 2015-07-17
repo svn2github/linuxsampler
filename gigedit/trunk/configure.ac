@@ -3,8 +3,8 @@ dnl Process this file with autoconf to produce a configure script.
 #------------------------------------------------------------------------------------
 # The following is the current, official release version of gigedit:
 
-m4_define(gigedit_ver_major, 0)
-m4_define(gigedit_ver_minor, 2)
+m4_define(gigedit_ver_major, 1)
+m4_define(gigedit_ver_minor, 0)
 m4_define(gigedit_ver_release, 0)
 
 AC_INIT([gigedit], [gigedit_ver_major.gigedit_ver_minor.gigedit_ver_release])
@@ -28,7 +28,7 @@ AC_CONFIG_AUX_DIR([.])
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-LIBGIGEDIT_LT_CURRENT=2
+LIBGIGEDIT_LT_CURRENT=3
 LIBGIGEDIT_LT_REVISION=0
 LIBGIGEDIT_LT_AGE=0
 
@@ -85,7 +85,7 @@ PKG_CHECK_MODULES(SIGC, sigc++-2.0)
 AC_SUBST(SIGC_CFLAGS)
 AC_SUBST(SIGC_LIBS)
 
-PKG_CHECK_MODULES(GIG, gig >= 3.3.0)
+PKG_CHECK_MODULES(GIG, gig >= 4.0.0)
 AC_SUBST(GIG_CFLAGS)
 AC_SUBST(GIG_LIBS)
 
@@ -95,7 +95,7 @@ AC_SUBST(SNDFILE_CFLAGS)
 AC_SUBST(SNDFILE_LIBS)
 
 # check for (optional) presence of liblinuxsampler
-liblinuxsampler_version="1.0.0"
+liblinuxsampler_version="2.0.0"
 PKG_CHECK_MODULES(
     LINUXSAMPLER, linuxsampler >= $liblinuxsampler_version,
     have_linuxsampler=1, have_linuxsampler=0

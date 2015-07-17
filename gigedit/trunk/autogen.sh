@@ -1,3 +1,3 @@
 #!/bin/sh
 
-make -f Makefile.cvs
+make -f Makefile.svn
