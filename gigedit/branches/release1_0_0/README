@@ -1,0 +1,110 @@
+Gigedit
+=======
+
+Gigedit is an instrument editor for gig files. Gig files are
+used by software samplers such as LinuxSampler and GigaStudio.
+
+With gigedit it is possible to modify existing gig files and also to
+create completely new instruments from scratch. Gigedit can be run as
+a stand-alone application, or as a plugin to LinuxSampler.
+
+Please note that this is an early version that only includes the most
+basic features needed to create and edit gig files. There is still a
+lot to do, fix and improve.
+
+Be sure to backup your original gig files before editing them in
+gigedit.
+
+The latest version of gigedit can be found at:
+
+http://www.linuxsampler.org
+
+Questions, bug reports and suggestions can be sent to LinuxSampler
+developer's mailing list:
+
+linuxsampler-devel@lists.sourceforge.net
+
+
+License
+=======
+
+Gigedit is licensed under the GNU General Public License. See the file
+COPYING for details.
+
+
+Requirements
+============
+
+Gigedit requires gtkmm, libgig and libsndfile libraries. There is an
+optional dependency to LinuxSampler, for being able to play
+instruments while editing. Also optional is the dependency to gettext
+for internationalization support.
+
+
+Installation
+============
+
+On a POSIX system like Linux or OSX you should only have to call the
+following on the console:
+
+./configure
+make
+su -c "make install"
+
+See the file INSTALL for details about these steps and options.
+
+Windows users shall read the respective README file in the "win32"
+directory for compilation instructions.
+
+
+Building from CVS
+=================
+
+./autogen.sh
+./configure
+make
+su -c "make install"
+
+
+Internationalization: Help on Translations !
+============================================
+
+You want to help us translating gigedit into a language you speak? Good!
+This is how it works:
+
+    Updating an existing translation (at the moment only Swedish and German):
+    -------------------------------------------------------------------------
+
+    First collect all text from gigedit's current C++ source code, by typing
+    the following:
+
+    cd po
+    make update-po
+
+    The language source files (de.po, sv.po, ...) are now updated and you may
+    open one of it now either with a text editor of your choice or better: by
+    using the graphical translation tool "poedit":
+
+    poedit de.po
+
+
+    Add a new translation (for another language not yet supported):
+    ---------------------------------------------------------------
+
+    First collect all text from gigedit's current C++ source code, by typing
+    the following:
+
+    cd po
+    make update-po
+
+    There should now be a yet untranslated file "gigedit.pot". Rename it to
+    to the language you want to translate, i.e.:
+
+    mv gigedit.pot ru.po
+
+    Now either open the file ("ru.po") with a text editor of your choice or
+    better: by using the graphical translation tool "poedit":
+
+    poedit ru.po
+
+After you are done with translating the language file, please send it to us!

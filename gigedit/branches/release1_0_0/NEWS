@@ -1,0 +1,125 @@
+Version 1.0.0 (2015-07-17)
+
+  With this release we added support for new GigaStudio 4 features, for
+  example there are now dialogs for editing some of the new so called
+  "iMIDI rules". These can be used i.e. to trigger notes by MIDI CC and to
+  define a set of legato samples. You may have heard that the GigaStudio
+  software has seen its last version with GigaStudio 4. Tascam officially
+  discontinued this product, its intellectual property has been sold several
+  times among companies and there is currently no way to buy a new copy of
+  GigaStudio anymore. However the GigaStudio format is still under active
+  development with gigedit and LinuxSampler. For the first time ever we added
+  our own extensions to the Giga format: one of it is major new feature
+  called "real-time instrument scripts", which allows to bundle small programs
+  with your .gig sounds, which extend the sampler with custom behavior for
+  specific sounds. You may know such kind of instrument scripts from
+  commercial software samplers. Find out more about this new feature on
+  http://doc.linuxsampler.org/Instrument_Scripts/. Another rather minor
+  extension to the Giga format is support for various other MIDI CCs which
+  were never supported by GigaStudio before. So you can now use any MIDI CC
+  for EG1 controller, EG2 controller and attenuation controller. Obviously all
+  those extensions will not work with any GigaStudio version, they only work
+  with a recent version of Gigedit and LinuxSampler. Gigedit will inform you
+  whenever you are using such kind of custom Giga format extension, so that you
+  are always aware in case your changes are not cross/backward compatible with
+  the GigaStudio software. A load of enhancements have been added to Gigedit
+  in the last six years: Until now you were only able to edit either exactly
+  one dimension region or all dimension regions simultaneously. With this
+  release you may now hold the Ctrl button and select a specific set of
+  dimension region zones in the dimension region selector area (on the very
+  bottom of the Gigedit window) with your mouse. All synthesis parameters you
+  then change, will all be applied to that precise set of dimension region
+  zones. Also managing dimensions have been improved: previously to change the
+  amount of zones of a dimension you had to delete and recreate the dimension.
+  Which was not just inconvenient, but you also had to redefine your synthesis
+  parameters from scratch. Now you can just open the dimension manager dialog
+  and increase or decrease the amount of zones of a dimension with few clicks.
+  Same applies to the dimension type: you may now simply open the dimension
+  manager dialog and alter the type of a dimension with few clicks.
+  When working on complex Giga sounds you certainly noticed that one could
+  easily get confused about which samples are exactly used by which instrument
+  or even whether a sample is actually used at all by any instrument or just
+  left orphaned and wasting disk space. This was also due to the fact that the
+  Giga format does not require unique names for samples. We have worked on
+  resolving this usability issue. In the sample list view you can now read the
+  amount of times a sample is referenced by instruments of your .gig file. If a
+  sample is not used at all, then it will be shown in striking red color in
+  the sample list view. You may also right click on a sample and select
+  "Show references...", a new window appears on your screen which will show you
+  where exactly that particular sample is used by, that is which by which
+  instruments and by which regions of those instruments. Also the other way
+  around has been addressed: when you now edit the synthesis parameters of a
+  particular dimension region, you may now click on the new "<- Select Sample"
+  button and Gigedit automatically selects and displays the respective sample
+  in the samples list view, which you may then might rename to some more
+  appropriate sample name, or you might check by which other instrument(s) that
+  sample is used by, etc. You may now also remove the current sample reference
+  from individual dimension regions (assigning a so called "NULL" sample) by
+  clicking on the new "X" button next the sample reference field on the
+  "Sample" tab of a dimension region; this allows you to define "silent cases",
+  that is a case where no sample should be played at all, for example this is
+  often used for very low velocity ranges of i.e. between 0 and 6. If you are
+  working on .gig files with a large amount of Instruments, then you might also
+  be glad to know that you can finally also re-order the instruments of a file
+  by simply dragging the instruments around in the instruments list view.
+  Another handy new feature for sound designers is the new "Combine" tool,
+  which you can reach from the main menu. It allows you to select two ore more
+  instruments (by holding down the Ctrl key while selecting with mouse click)
+  from your currently open Giga file and combine those selected instruments to
+  a new instrument. This way you may for example create stunning layered
+  sounds, or you may create velocity splits, crossfade sounds by MIDI
+  controller and much more, all with just a few clicks. This may sound like a
+  trivial task, but if you have worked on this before, you certainly noticed
+  that this was often a very time consuming and error prone task before,
+  especially with complex individual sounds which had custom region ranges,
+  custom velocity splits and much more exotic stuff to take care of. The
+  combine tool handles all such cases for you automatically.
+  Last but not least, the interaction of Gigedit with LinuxSampler (in so
+  called "live mode") had been improved: When you click on the "Edit" button of
+  a channel strip in QSampler or Fantasia, Gigedit will be launched with the
+  respective instrument automatically being selected. Vice versa you may now
+  also just select another instrument with Gigedit's instrument list view and
+  LinuxSampler will automatically load and play that instrument on the
+  respective sampler part for you. So no more need to switch between the
+  Gigedit window and QSampler/Fantasia window all the time while working on
+  your sounds.
+
+Version 0.2.0 (2009-07-31)
+
+  When gigedit is running as a plugin in LinuxSampler the gigedit
+  keyboard may now be used to trigger notes. The settings in the file
+  properties window are now editable. A new function for replacing all
+  samples is added. Otherwise this is mostly a bug fix release, and
+  upgrading gigedit and libgig is strongly recommended, as previous
+  versions had bugs that may cause edited gig files to be corrupted.
+
+Version 0.1.1 (2007-12-06)
+
+  Parameter edits can now be applied to multiple regions and dimension
+  regions simultaneously - three checkboxes were added that select if
+  changes apply to all regions and/or all dimension regions.
+
+Version 0.1.0 (2007-10-15)
+
+  Many fixes have been made to make sure that the gig files created by
+  gigedit are working properly in LinuxSampler and GigaStudio. Gigedit
+  can now be run as a LinuxSampler plugin, allowing live editing of
+  loaded instruments. Sample loop parameters and instrument global
+  properties can now be edited. 24 bit samples can be imported. A
+  quick-start document has been added. Lots of other minor fixes and
+  improvements have been done.
+
+Version 0.0.3 (2007-03-24)
+
+  First version of gigedit. The program is renamed from gigview to
+  gigedit as it is now an editor, not just a viewer. Basic support for
+  both editing existing gig files and creating new ones from scratch
+  is provided.
+
+Version 0.0.2 (2006-11-05)
+
+  Quick fix for a thread initialization problem.
+
+Version 0.0.1 (2006-11-05)
+
+  First version of gigview.

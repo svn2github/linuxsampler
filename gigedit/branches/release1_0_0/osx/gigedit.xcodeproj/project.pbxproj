@@ -1,0 +1,242 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXFileReference section */
+		E4019E270BED928D0094EB0E /* autoconf_builder.sh */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = text.script.sh; path = autoconf_builder.sh; sourceTree = "<group>"; };
+		E4019E280BED928D0094EB0E /* wrapper.sh */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = text.script.sh; path = wrapper.sh; sourceTree = "<group>"; };
+		E4B6614C0D304CBD009B26E4 /* dimensionmanager.cpp */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.cpp.cpp; path = dimensionmanager.cpp; sourceTree = "<group>"; };
+		E4B6614D0D304CBD009B26E4 /* dimensionmanager.h */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.c.h; path = dimensionmanager.h; sourceTree = "<group>"; };
+		E4B6614E0D304CBD009B26E4 /* dimregionchooser.cpp */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.cpp.cpp; path = dimregionchooser.cpp; sourceTree = "<group>"; };
+		E4B6614F0D304CBD009B26E4 /* dimregionchooser.h */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.c.h; path = dimregionchooser.h; sourceTree = "<group>"; };
+		E4B661500D304CBD009B26E4 /* dimregionedit.cpp */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.cpp.cpp; path = dimregionedit.cpp; sourceTree = "<group>"; };
+		E4B661510D304CBD009B26E4 /* dimregionedit.h */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.c.h; path = dimregionedit.h; sourceTree = "<group>"; };
+		E4B661520D304CBD009B26E4 /* gigedit.cpp */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.cpp.cpp; path = gigedit.cpp; sourceTree = "<group>"; };
+		E4B661530D304CBD009B26E4 /* gigedit.h */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.c.h; path = gigedit.h; sourceTree = "<group>"; };
+		E4B661540D304CBD009B26E4 /* global.h */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.c.h; path = global.h; sourceTree = "<group>"; };
+		E4B661550D304CBD009B26E4 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		E4B661560D304CBD009B26E4 /* mainwindow.cpp */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.cpp.cpp; path = mainwindow.cpp; sourceTree = "<group>"; };
+		E4B661570D304CBD009B26E4 /* mainwindow.h */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.c.h; path = mainwindow.h; sourceTree = "<group>"; };
+		E4B661580D304CBD009B26E4 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		E4B661590D304CBD009B26E4 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
+		E4B6615A0D304CBD009B26E4 /* paramedit.cpp */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.cpp.cpp; path = paramedit.cpp; sourceTree = "<group>"; };
+		E4B6615B0D304CBD009B26E4 /* paramedit.h */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.c.h; path = paramedit.h; sourceTree = "<group>"; };
+		E4B6615C0D304CBD009B26E4 /* regionchooser.cpp */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.cpp.cpp; path = regionchooser.cpp; sourceTree = "<group>"; };
+		E4B6615D0D304CBD009B26E4 /* regionchooser.h */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.c.h; path = regionchooser.h; sourceTree = "<group>"; };
+		E4B6615E0D304CBD009B26E4 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		E4B6615F0D304CBD009B26E4 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
+		E4B661610D304CBD009B26E4 /* linuxsamplerplugin.cpp */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.cpp.cpp; path = linuxsamplerplugin.cpp; sourceTree = "<group>"; };
+		E4B661620D304CBD009B26E4 /* linuxsamplerplugin.h */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = sourcecode.c.h; path = linuxsamplerplugin.h; sourceTree = "<group>"; };
+		E4B661630D304CBD009B26E4 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		E4B661640D304CBD009B26E4 /* Makefile.in */ = {isa = PBXFileReference; fileEncoding = "-2147483647"; lastKnownFileType = text; path = Makefile.in; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* LinuxSampler */ = {
+			isa = PBXGroup;
+			children = (
+				E4019E270BED928D0094EB0E /* autoconf_builder.sh */,
+				E4019E280BED928D0094EB0E /* wrapper.sh */,
+				E4B6614A0D304CBD009B26E4 /* src */,
+			);
+			name = LinuxSampler;
+			sourceTree = "<group>";
+		};
+		E4B6614A0D304CBD009B26E4 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				E4B6614B0D304CBD009B26E4 /* gigedit */,
+				E4B6615E0D304CBD009B26E4 /* Makefile.am */,
+				E4B6615F0D304CBD009B26E4 /* Makefile.in */,
+				E4B661600D304CBD009B26E4 /* plugin */,
+			);
+			name = src;
+			path = ../src;
+			sourceTree = SOURCE_ROOT;
+		};
+		E4B6614B0D304CBD009B26E4 /* gigedit */ = {
+			isa = PBXGroup;
+			children = (
+				E4B6614C0D304CBD009B26E4 /* dimensionmanager.cpp */,
+				E4B6614D0D304CBD009B26E4 /* dimensionmanager.h */,
+				E4B6614E0D304CBD009B26E4 /* dimregionchooser.cpp */,
+				E4B6614F0D304CBD009B26E4 /* dimregionchooser.h */,
+				E4B661500D304CBD009B26E4 /* dimregionedit.cpp */,
+				E4B661510D304CBD009B26E4 /* dimregionedit.h */,
+				E4B661520D304CBD009B26E4 /* gigedit.cpp */,
+				E4B661530D304CBD009B26E4 /* gigedit.h */,
+				E4B661540D304CBD009B26E4 /* global.h */,
+				E4B661550D304CBD009B26E4 /* main.cpp */,
+				E4B661560D304CBD009B26E4 /* mainwindow.cpp */,
+				E4B661570D304CBD009B26E4 /* mainwindow.h */,
+				E4B661580D304CBD009B26E4 /* Makefile.am */,
+				E4B661590D304CBD009B26E4 /* Makefile.in */,
+				E4B6615A0D304CBD009B26E4 /* paramedit.cpp */,
+				E4B6615B0D304CBD009B26E4 /* paramedit.h */,
+				E4B6615C0D304CBD009B26E4 /* regionchooser.cpp */,
+				E4B6615D0D304CBD009B26E4 /* regionchooser.h */,
+			);
+			path = gigedit;
+			sourceTree = "<group>";
+		};
+		E4B661600D304CBD009B26E4 /* plugin */ = {
+			isa = PBXGroup;
+			children = (
+				E4B661610D304CBD009B26E4 /* linuxsamplerplugin.cpp */,
+				E4B661620D304CBD009B26E4 /* linuxsamplerplugin.h */,
+				E4B661630D304CBD009B26E4 /* Makefile.am */,
+				E4B661640D304CBD009B26E4 /* Makefile.in */,
+			);
+			path = plugin;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		E4102B730BCBD832006B57FE /* gigedit */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(PROJECT_DIR)/wrapper.sh";
+			buildConfigurationList = E4102B740BCBD85E006B57FE /* Build configuration list for PBXLegacyTarget "gigedit" */;
+			buildPhases = (
+			);
+			buildToolPath = /bin/sh;
+			buildWorkingDirectory = ..;
+			dependencies = (
+			);
+			name = gigedit;
+			passBuildSettingsInEnvironment = 1;
+			productName = libgig;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 1DEB919308733D9F0010E9CD /* Build configuration list for PBXProject "gigedit" */;
+			hasScannedForEncodings = 1;
+			mainGroup = 08FB7794FE84155DC02AAC07 /* LinuxSampler */;
+			projectDirPath = "";
+			targets = (
+				E4102B730BCBD832006B57FE /* gigedit */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB919408733D9F0010E9CD /* Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Development;
+		};
+		E4102B750BCBD85E006B57FE /* Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = linuxsampler;
+			};
+			name = Development;
+		};
+		E4102B770BCBD8A9006B57FE /* Deployment_ppc */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = linuxsampler;
+			};
+			name = Deployment_ppc;
+		};
+		E4102B780BCBD8A9006B57FE /* Deployment_i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = linuxsampler;
+			};
+			name = Deployment_i386;
+		};
+		E4102B7B0BCBD8A9006B57FE /* Deployment_ppc */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Deployment_ppc;
+		};
+		E4102B7C0BCBD8A9006B57FE /* Deployment_i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Deployment_i386;
+		};
+		E49D6A780BEE280600432768 /* Deployment_UB */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = linuxsampler;
+			};
+			name = Deployment_UB;
+		};
+		E49D6A790BEE280600432768 /* Deployment_UB */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Deployment_UB;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB919308733D9F0010E9CD /* Build configuration list for PBXProject "gigedit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB919408733D9F0010E9CD /* Development */,
+				E4102B7B0BCBD8A9006B57FE /* Deployment_ppc */,
+				E4102B7C0BCBD8A9006B57FE /* Deployment_i386 */,
+				E49D6A790BEE280600432768 /* Deployment_UB */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Development;
+		};
+		E4102B740BCBD85E006B57FE /* Build configuration list for PBXLegacyTarget "gigedit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E4102B750BCBD85E006B57FE /* Development */,
+				E4102B770BCBD8A9006B57FE /* Deployment_ppc */,
+				E4102B780BCBD8A9006B57FE /* Deployment_i386 */,
+				E49D6A780BEE280600432768 /* Deployment_UB */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Development;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}

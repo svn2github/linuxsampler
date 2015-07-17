@@ -1,0 +1,12 @@
+src/gigedit/CombineInstrumentsDialog.cpp
+src/gigedit/mainwindow.cpp
+src/gigedit/dimregionedit.cpp
+src/gigedit/regionchooser.cpp
+src/gigedit/dimensionmanager.cpp
+src/gigedit/dimregionchooser.cpp
+src/gigedit/gigedit.cpp
+src/gigedit/paramedit.cpp
+src/gigedit/midirules.cpp
+src/gigedit/scripteditor.cpp
+src/gigedit/scriptslots.cpp
+src/gigedit/ReferencesView.cpp
