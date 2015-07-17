@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<pkg-info relocatable="false" auth="root" postinstall-action="none" version="3.3.0" install-location="/usr/local/" identifier='org.linuxsampler.libgig' overwrite-permissions="true" format-version="2">
+<pkg-info relocatable="false" auth="root" postinstall-action="none" version="4.0.0" install-location="/usr/local/" identifier='org.linuxsampler.libgig' overwrite-permissions="true" format-version="2">
 
     <payload numberOfFiles='3' installKBytes='1076'/>
 

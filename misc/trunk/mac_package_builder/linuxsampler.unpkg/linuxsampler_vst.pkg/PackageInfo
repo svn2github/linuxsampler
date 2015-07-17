@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<pkg-info relocatable="false" auth="root" postinstall-action="none" version="1.0.0" install-location="/Library/Audio/Plug-Ins/VST/" identifier='org.linuxsampler.vst' overwrite-permissions="true" format-version="2">
+<pkg-info relocatable="false" auth="root" postinstall-action="none" version="2.0.0" install-location="/Library/Audio/Plug-Ins/VST/" identifier='org.linuxsampler.vst' overwrite-permissions="true" format-version="2">
 
     <payload numberOfFiles='7' installKBytes='224'/>
 

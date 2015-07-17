@@ -35,8 +35,8 @@ createuniv lib/libvorbisenc.2.dylib
 createuniv lib/libFLAC.8.2.0.dylib
 ln -s libFLAC.8.2.0.dylib "$D/lib/libFLAC.8.dylib"
 createuniv lib/libsndfile.1.dylib
-createuniv lib/libgig/libgig.6.dylib lib/libgig.6.dylib
-createuniv lib/linuxsampler/liblinuxsampler.3.dylib lib/liblinuxsampler.3.dylib
+createuniv lib/libgig/libgig.7.dylib lib/libgig.7.dylib
+createuniv lib/linuxsampler/liblinuxsampler.4.dylib lib/liblinuxsampler.4.dylib
 createuniv bin/linuxsampler LinuxSampler/linuxsampler
 createuniv bin/lscp LinuxSampler/lscp
 cp README "$D"
@@ -90,7 +90,7 @@ mkdir -p "$D/LinuxSampler/gigedit.app/Contents/MacOS" \
     "$D/lib/locale/de/LC_MESSAGES" \
     "$D/lib/linuxsampler/plugins"
 
-createuniv lib/gigedit/libgigedit.2.dylib lib/libgigedit.2.dylib
+createuniv lib/gigedit/libgigedit.3.dylib lib/libgigedit.3.dylib
 createuniv bin/gigedit LinuxSampler/gigedit.app/Contents/MacOS/gigedit
 createuniv lib/linuxsampler/plugins/libgigeditlinuxsamplerplugin.so
 

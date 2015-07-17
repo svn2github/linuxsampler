@@ -53,20 +53,20 @@
         }
     </script>
 
-    <pkg-ref auth='Admin' id='org.linuxsampler.libgig' version='3.3.0' installKBytes='1076' onConclusion='None'>#libgig.pkg</pkg-ref>
-    <pkg-ref auth='Admin' id='org.linuxsampler.gigtools' version='3.3.0' installKBytes='1' onConclusion='None'>#gigtools.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.libgig' version='4.0.0' installKBytes='1076' onConclusion='None'>#libgig.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.gigtools' version='4.0.0' installKBytes='1' onConclusion='None'>#gigtools.pkg</pkg-ref>
     <pkg-ref auth='Admin' id='org.linuxsampler.codecs' version='1.0.0' installKBytes='8580' onConclusion='None'>#codecs.pkg</pkg-ref>
     <pkg-ref auth='Admin' id='org.linuxsampler.libgtk' version='2.0.0' installKBytes='36412' onConclusion='None'>#libgtk.pkg</pkg-ref>
-    <pkg-ref auth='Admin' id='org.linuxsampler.liblinuxsampler' version='1.0.0' installKBytes='11072' onConclusion='None'>#liblinuxsampler.pkg</pkg-ref>
-    <pkg-ref auth='Admin' id='org.linuxsampler.libgigedit' version='0.2.0' installKBytes='4368' onConclusion='None'>#libgigedit.pkg</pkg-ref>
-    <pkg-ref auth='Admin' id='org.linuxsampler.au' version='1.0.0' installKBytes='396' onConclusion='None'>#linuxsampler_au.pkg</pkg-ref>
-    <pkg-ref auth='Admin' id='org.linuxsampler.vst' version='1.0.0' installKBytes='224' onConclusion='None'>#linuxsampler_vst.pkg</pkg-ref>
-    <pkg-ref auth='Admin' id='org.linuxsampler.qsampler' version='0.2.3' installKBytes='33116' onConclusion='None'>#qsampler.pkg</pkg-ref>
-    <pkg-ref auth='Admin' id='org.linuxsampler' version='1.0.0' installKBytes='352' onConclusion='None'>#linuxsampler.pkg</pkg-ref>
-    <pkg-ref auth='Admin' id='org.linuxsampler.gigedit' version='0.2.0' installKBytes='56' onConclusion='None'>#gigedit.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.liblinuxsampler' version='2.0.0' installKBytes='11072' onConclusion='None'>#liblinuxsampler.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.libgigedit' version='1.0.0' installKBytes='4368' onConclusion='None'>#libgigedit.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.au' version='2.0.0' installKBytes='396' onConclusion='None'>#linuxsampler_au.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.vst' version='2.0.0' installKBytes='224' onConclusion='None'>#linuxsampler_vst.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.qsampler' version='0.3.0' installKBytes='33116' onConclusion='None'>#qsampler.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler' version='2.0.0' installKBytes='352' onConclusion='None'>#linuxsampler.pkg</pkg-ref>
+    <pkg-ref auth='Admin' id='org.linuxsampler.gigedit' version='1.0.0' installKBytes='56' onConclusion='None'>#gigedit.pkg</pkg-ref>
     <pkg-ref auth='Admin' id='org.linuxsampler.fantasia' version='0.9.0' installKBytes='4324' onConclusion='None'>#fantasia.pkg</pkg-ref>
 
-    <choice start_selected='true' start_enabled='false' title='libgig 3.3.0' id='libgig' start_visible='true' description='LIBGIG_DESCR' selected='req_libgig();'>
+    <choice start_selected='true' start_enabled='false' title='libgig 4.0.0' id='libgig' start_visible='true' description='LIBGIG_DESCR' selected='req_libgig();'>
         <pkg-ref id='org.linuxsampler.libgig'/>
     </choice>
 
@@ -82,11 +82,11 @@
         <pkg-ref id='org.linuxsampler.libgtk'/>
     </choice>
 
-    <choice start_selected='false' start_enabled='false' title='LinuxSampler 1.0.0 (DLL)' id='libsampler' start_visible='true' description='LINUXSAMPLER_DLL_DESCR' selected='req_libsampler();'>
+    <choice start_selected='false' start_enabled='false' title='LinuxSampler 2.0.0 (DLL)' id='libsampler' start_visible='true' description='LINUXSAMPLER_DLL_DESCR' selected='req_libsampler();'>
         <pkg-ref id='org.linuxsampler.liblinuxsampler'/>
     </choice>
 
-    <choice start_selected='true' start_enabled='false' title='libgigedit 0.2.0' id='libgigedit' start_visible='true' description='LIBGIGEDIT_DESCR' selected='req_libgigedit();'>
+    <choice start_selected='true' start_enabled='false' title='libgigedit 1.0.0' id='libgigedit' start_visible='true' description='LIBGIGEDIT_DESCR' selected='req_libgigedit();'>
         <pkg-ref id='org.linuxsampler.libgigedit'/>
     </choice>
 
@@ -98,7 +98,7 @@
         <pkg-ref id='org.linuxsampler.vst'/>
     </choice>
 
-    <choice start_selected='true' start_enabled='true' title='QSampler 0.2.3' id='qsampler' start_visible='true' description='QSAMPLER_DESCR'>
+    <choice start_selected='true' start_enabled='true' title='QSampler 0.3.0' id='qsampler' start_visible='true' description='QSAMPLER_DESCR'>
         <pkg-ref id='org.linuxsampler.qsampler'/>
     </choice>
 
@@ -106,7 +106,7 @@
         <pkg-ref id='org.linuxsampler'/>
     </choice>
 
-    <choice start_selected='true' start_enabled='true' title='GigEdit 0.2.0' id='gigedit' start_visible='true' description='GIGEDIT_DESCR'>
+    <choice start_selected='true' start_enabled='true' title='GigEdit 1.0.0' id='gigedit' start_visible='true' description='GIGEDIT_DESCR'>
         <pkg-ref id='org.linuxsampler.gigedit'/>
     </choice>
 
@@ -114,7 +114,7 @@
         <pkg-ref id='org.linuxsampler.fantasia'/>
     </choice>
 
-    <choice start_selected='true' start_enabled='true' title='LinuxSampler 1.0.0' id='linuxsampler_group' start_visible='true' description='LINUXSAMPLER_GROUP_DESCR' />
+    <choice start_selected='true' start_enabled='true' title='LinuxSampler 2.0.0' id='linuxsampler_group' start_visible='true' description='LINUXSAMPLER_GROUP_DESCR' />
     <choice start_selected='true' start_enabled='false' title='3rd-party DLLs' id='3rd_libs_group' start_visible='true' description='3RD_PARTY_DLLS_DESCR' />
     <choice start_selected='true' start_enabled='false' title='Program Libraries (DLLs)' id='libs_group' start_visible='true' description='DLL_GROUP_DESCR' />
 
