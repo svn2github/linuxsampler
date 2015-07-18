@@ -65,7 +65,7 @@
 
     <h3>New GigaStudio format features</h3>
     <p>
-      <img src="gigedit_imidi_rules.png" caption="MIDI rules editing with Gigedit">
+      <img src="gigedit_imidi_rules.png">
       You may have heard that the GigaStudio software has seen its last version
       with GigaStudio 4. Tascam officially discontinued this product, its
       intellectual property has been sold several times among companies and
@@ -87,14 +87,15 @@
       plugin now stores and restores the sampler's overall state with the song
       of your DAW application, the LV2 and AudioUnit plugin's outputs
       were increased from 2 audio channels to 16 upon request by some users and
-      the VST plugin now uses the sampler's MIDI instrument mapping system to
-      show a list of available sounds to allow the user to switch among them.
+      the VST plugin now uses the sampler's
+      <a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#MIDI%20Instrument%20Mapping">MIDI instrument mapping system</a>
+      to show a list of available sounds to allow the user to switch among them.
       And last but not least the VST plugin may also be used on Mac now.
     </p>
 
     <h2>Gigedit 1.0.0</h2>
     <p>
-     <img src="gigedit_format_extension_warnings.png" caption="Suppress warnings about custom Giga format extensions">
+     <img src="gigedit_format_extension_warnings.png">
       Also <i>Gigedit</i>, our instrument editor for the GigaStudio/Gigasampler
       format, had been enhanced quite a lot during the last six years. As
       mentioned above, we introduced our own extensions to the Giga format.
@@ -120,7 +121,7 @@
 
     <h3>Improvements to Dimension Management</h3>
     <p>
-      Also managing dimensions have been improved: previously to change the
+      Also managing dimensions has been improved: previously to change the
       amount of zones of a dimension you had to delete and recreate the
       dimension. Which was not just inconvenient, but you also had to redefine
       your synthesis parameters from scratch. Now you can just open the
@@ -132,7 +133,7 @@
 
     <h3>Monitoring Sample References</h3>
     <p>
-      <img src="gigedit_sample_references.png" caption="Show all references of selected sample">
+      <img src="gigedit_sample_references.png">
       When working on complex Giga sounds you certainly noticed that one could
       easily get lost about which samples are exactly used by which
       instrument or even whether a sample is actually used at all by any
@@ -149,18 +150,21 @@
       addressed: when you now edit the synthesis parameters of a particular
       dimension region, you may now click on the new "&lt;- Select Sample"
       button and Gigedit automatically selects and displays the respective sample
-      in the samples list view, which you may then might rename to some more
+      in the samples list view, which you then might rename to some more
       appropriate sample name, or you might check by which other instrument(s)
-      that sample is used by, etc.
+      that sample is used by, etc. You want to get rid of all unused samples?
+      Simply right click on the samples list view and select
+      "Remove unused samples", then select "Save" from the menu and all orphaned
+      samples are gone.
     </p>
     <img src="gigedit_go_to_sample.png" caption="Find and select used sample">
 
     <h3>Silent Cases</h3>
     <p>
-      <img src="gigedit_null_sample.png" caption="Create a silent case">
+      <img src="gigedit_null_sample.png">
       You may now also remove the current sample reference from individual
       dimension regions (assigning a so called "NULL" sample instead) by clicking on
-      the new "X" button next the sample reference field on the "Sample" tab
+      the new "X" button next to the sample reference field on the "Sample" tab
       of a dimension region; this allows you to define "silent cases", that
       is a case where no sample should be played at all, for example this is
       often used for very low velocity ranges of i.e. between 0 and 6.
@@ -168,7 +172,7 @@
 
     <h3>Reordering Instruments</h3>
     <p>
-      <img src="gigedit_reorder_instruments.png" caption="Re-order instruments with drag &amp; drop">
+      <img src="gigedit_reorder_instruments.png">
       If you are working on .gig files with a large amount of Instruments, then
       you might also be glad to know that you can finally also re-order the
       instruments of a file by simply dragging the instruments around in the
@@ -177,11 +181,11 @@
 
     <h3>Combine Tool</h3>
     <p>
-      <img src="gigedit_combine_tool.png" caption="Combine Tool">
+      <img src="gigedit_combine_tool.png">
       Another handy new feature for sound designers is the new "Combine" tool,
       which you can reach from the main menu. It allows you to select two ore
       more instruments (by holding down the Ctrl key while selecting with mouse
-      click) from your currently open Giga file and combine those selected
+      left click) from your currently open Giga file and combine those selected
       instruments to a new instrument. This way you may for example create
       stunning layered sounds, or you may create velocity splits, crossfade
       sounds by MIDI controller and much more, all with just a few clicks. This
@@ -203,7 +207,7 @@
       instrument list view and LinuxSampler will automatically load and play
       that instrument on the respective sampler part for you. So no more need
       to switch between the Gigedit window and QSampler/Fantasia window all the
-      time while working on your sounds.
+      time while working on your sounds with Gigedit.
     </p>
 
     <h2>QSampler 0.3.0</h2>
