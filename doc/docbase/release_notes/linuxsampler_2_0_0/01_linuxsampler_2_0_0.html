@@ -2,6 +2,7 @@
   <head>
     <meta name="author" content="Christian Schoenebeck">
     <title>Release Notes LinuxSampler 2.0.0</title>
+    <navpath>LinuxSampler 2.0.0</navpath>
     <meta name="description" content="Release notes for LinuxSampler 2.0.0.">
     <link rel="stylesheet" href="http://doc.linuxsampler.org/css/preview.css">
     <script type="text/javascript" src="http://doc.linuxsampler.org/js/preview.js"></script>
@@ -36,7 +37,7 @@
       software samplers. At the moment this scripting feature is yet limited to
       the Giga format engine. <a href="instrument_scripts.html">Find out more ...</a>
     </p>
-    <img src="../../gigedit/scripts/gigedit_script_editor.png" caption="NKSP Instrument Script Editor">
+    <img src="../../gigedit/scripts/gigedit_script_editor.png" caption="NKSP Instrument Script Editor of Gigedit">
 
     <h3>LSCP Shell</h3>
     <p>
@@ -45,7 +46,7 @@
       providing colored output, type completion, help text while typing LSCP
       commands and other convenient features for terminal enthusiasts who want
       to use the sampler without GUI frontend applications.
-      <a href="instrument_scripts.html">Find out more ...</a>
+      <a href="lscp_shell.html">Find out more ...</a>
     </p>
     <img src="../../lscp_shell/lscp_shell.png" caption="LSCP Shell">
 
@@ -64,6 +65,7 @@
 
     <h3>New GigaStudio format features</h3>
     <p>
+      <img src="gigedit_imidi_rules.png" caption="MIDI rules editing with Gigedit">
       You may have heard that the GigaStudio software has seen its last version
       with GigaStudio 4. Tascam officially discontinued this product, its
       intellectual property has been sold several times among companies and
@@ -92,6 +94,7 @@
 
     <h2>Gigedit 1.0.0</h2>
     <p>
+     <img src="gigedit_format_extension_warnings.png" caption="Suppress warnings about custom Giga format extensions">
       Also <i>Gigedit</i>, our instrument editor for the GigaStudio/Gigasampler
       format, had been enhanced quite a lot during the last six years. As
       mentioned above, we introduced our own extensions to the Giga format.
@@ -105,15 +108,15 @@
 
     <h3>Multi-Selection of Dimension Zones</h3>
     <p>
-      A load of enhancements have been added to Gigedit
-      in the last six years: Until now you were only able to edit either exactly
-      one dimension region or all dimension regions simultaneously. With this
+      Until now you were only able to edit either exactly
+      one dimension region or all dimension regions simultaneously with gigedit. With this
       release you may now hold the Ctrl button and select a specific set of
       dimension region zones in the dimension region selector area (on the very
       bottom of the Gigedit window) with your mouse. All synthesis parameters you
       then change, will all be applied to that precise set of dimension region
       zones.
     </p>
+    <img src="gigedit_multi_zone_selection.png" caption="Multi-zone selection with Ctrl key">
 
     <h3>Improvements to Dimension Management</h3>
     <p>
@@ -129,6 +132,7 @@
 
     <h3>Monitoring Sample References</h3>
     <p>
+      <img src="gigedit_sample_references.png" caption="Show all references of selected sample">
       When working on complex Giga sounds you certainly noticed that one could
       easily get lost about which samples are exactly used by which
       instrument or even whether a sample is actually used at all by any
@@ -149,9 +153,11 @@
       appropriate sample name, or you might check by which other instrument(s)
       that sample is used by, etc.
     </p>
+    <img src="gigedit_go_to_sample.png" caption="Find and select used sample">
 
     <h3>Silent Cases</h3>
     <p>
+      <img src="gigedit_null_sample.png" caption="Create a silent case">
       You may now also remove the current sample reference from individual
       dimension regions (assigning a so called "NULL" sample instead) by clicking on
       the new "X" button next the sample reference field on the "Sample" tab
@@ -162,6 +168,7 @@
 
     <h3>Reordering Instruments</h3>
     <p>
+      <img src="gigedit_reorder_instruments.png" caption="Re-order instruments with drag &amp; drop">
       If you are working on .gig files with a large amount of Instruments, then
       you might also be glad to know that you can finally also re-order the
       instruments of a file by simply dragging the instruments around in the
@@ -170,6 +177,7 @@
 
     <h3>Combine Tool</h3>
     <p>
+      <img src="gigedit_combine_tool.png" caption="Combine Tool">
       Another handy new feature for sound designers is the new "Combine" tool,
       which you can reach from the main menu. It allows you to select two ore
       more instruments (by holding down the Ctrl key while selecting with mouse
