@@ -1,0 +1,107 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>LSCP Shell</title>
+    <meta name="description" content="The LinuxSampler Control Protocol Shell allows you to control the sampler from the command line.">
+    <link rel="stylesheet" href="http://doc.linuxsampler.org/css/preview.css">
+    <script type="text/javascript" src="http://doc.linuxsampler.org/js/preview.js"></script>
+  </head>
+  <body>
+    <p>
+      The command line application <i caption="LinuxSampler Control Protocol">lscp</i>
+      is a text based shell for controlling the sampler entirely from the
+      command line, providing colored output, type completion, help text while
+      typing LSCP commands and other convenient features for terminal
+      enthusiasts who want to use the sampler without any
+      <i caption="Graphical User Interface">GUI</i> frontend application.
+    </p>
+    <img src="lscp_shell.png" caption="LSCP Shell">
+
+    <h3>Visual Feedback</h3>
+    <p>
+      As you can see on the screen shot above, the LSCP shell displays all
+      possibilities to complete the current command in real-time while you are
+      typing (in yellow color). In contrast to other shells you don't need to
+      hit a special key over and over for that. These hints are always
+      automatically displayed right next to your text cursor.
+      Also the color of your current command line changes while you are typing:
+      <ol>
+        <li><b>White:</b>
+          As long as the current command line is incomplete, it will be
+          displayed in white color.
+        </li>
+        <li><span style="color:red;"><b>Red:</b></span>
+          You accidently hit the wrong key? The shell will automatically mark
+          mistyped characters in red color, that is only the part of your
+          command line which is wrong. So you immediately see that your command
+          line is wrong before even hitting the return key and you also see
+          which characters you have to delete with backspace to correct the
+          current command line.
+        </li>
+        <li><span style="color:green;"><b>Green:</b></span>
+          As soon as your current command line is complete and correct, the
+          line will change to green color, so you immediately see that you may
+          now trigger the return key.
+        </li>
+      </ol>
+      There is even more: as soon as the shell detects which LSCP command you
+      are going to fire, which may be long before you actually complete the
+      current command line, the shell will automatically display a detailed
+      description for that LSCP command, taken from the LSCP specification
+      document. These text sections are automatically grabbed from the LSCP
+      specification document at compile time and built into the shell. So there
+      is no special document directory structure or even an Internet connection
+      required for that feature.
+    </p>
+    <p>
+      So these visual feedback features reduce the amount of times you have to
+      grab for the LSCP specification documents, and provide a huge speed up of
+      your LSCP typing tasks.
+    </p>
+
+    <h3>Type Completion</h3>
+    <p>
+      As with other shells, you may hit the tab key to auto complete your current
+      command line. However in contrast to other shells this feature is not
+      limited to a small set of keywords, this feature is directly combined with
+      the real LSCP parser module, and thus it completes your command line as
+      much as possible, which may include a sequence of several keywords, and
+      may also stop at a certain character within a keyword. In other words: it
+      auto completes as much characters until a position is reached where a
+      human decision is required.
+    </p>
+
+    <h3>Automatic Correction of trivial Errors</h3>
+    <p>
+      There are days when things must go fast, when you may even not have the
+      time to care about the visual feedback features described above. On such
+      days it happens that you fire commands with the shell that may have typos
+      and other mistakes. The LSCP shell will help you and automatically
+      corrects trivial mistakes for you. So after you fired a command with the
+      return key, the command line will be checked, and if it is incorrect, the
+      shell will check for your command line for trivial mistakes, automatically
+      correct those errors for you, display the updated, corrected command line
+      in the shell and execute it with the sampler. Or do you want to get
+      bothered for things like upper/lower case or space/underscore confusions?
+    </p>
+
+    <h3>Always up to date</h3>
+    <p>
+      You may think that those mentioned automation features may only work for
+      a certain part of the LSCP protocol, or that they may lag behind new LSCP
+      extensions or changes. Fortunately this never the case! As with modern
+      development environments, the LSCP shell is directly connected with the
+      sampler's real LSCP parser module. That means whenever there are any
+      changes to either the LSCP protocol (i.e. keywords and grammar rules) or
+      to the LSCP specification document, they will automatically also be
+      available to the LSCP shell. So it does not require any further
+      development effort to maintain the shell and keep track of the latest
+      LSCP features. And since the LSCP shell is designed as thin client, you
+      may even use an old version of the LSCP shell on your local machine and
+      use it to control a remote computer with a more recent LinuxSampler (and
+      LSCP) version, without missing any of the latest LSCP changes with the
+      shell's automation features.
+    </p>
+
+  </body>
+</html>
