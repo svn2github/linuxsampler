@@ -121,14 +121,37 @@
 
     <h3>Improvements to Dimension Management</h3>
     <p>
+      <img src="gigedit_change_dim_type.png">
       Also managing dimensions has been improved: previously to change the
-      amount of zones of a dimension you had to delete and recreate the
+      type of a dimension you had to delete and recreate the
       dimension. Which was not just inconvenient, but you also had to redefine
       your synthesis parameters from scratch. Now you can just open the
-      dimension manager dialog and increase or decrease the amount of zones of
-      a dimension with few clicks. Same applies to the dimension type: you may
-      now simply open the dimension manager dialog and alter the type of a
-      dimension with few clicks.
+      dimension manager dialog, double click on the displayed dimension type
+      and select another type for the respective dimension.
+    </p>
+    <p>
+      <img src="gigedit_manage_dims_all_regions.png">
+      Another great enhancement of the dimension manager is the ability to alter
+      the dimensions of all regions of an instrument at once. Previously you had
+      to do that for each region on the keyboard separately. For example to
+      delete a velocity split dimension, you had to double click on a region,
+      delete the velocity dimension with the dimension manager dialog, then
+      double click on the next region, delete the velocity dimension there as
+      well, and so on. Now you can just click on the "All Regions" check box of
+      the dimension manager, select the velocity dimension, click on "Remove"
+      and that's it. Also notice the different display style in this
+      "All Regions" mode, like shown on the screen shot left: Since you are
+      viewing the dimension properties of not just one region, but of all
+      regions of your instrument, we thought we also need to show you in case
+      individual regions differ regarding their precise dimension properties.
+      For example on the screen shot on the left you see that some regions have
+      a velocity dimension with 2 zones, whereas other regions have a velocity
+      dimension with 4 zones instead. Also there seem to be some regions which
+      have a modulation wheel dimension and other regions which do not have a
+      modulation wheel dimension at all. Same applies to the Layer dimension:
+      in this particular example not all regions do have a Layer dimension.
+      However all regions seem to have a Sample Channel (Stereo) dimension,
+      and all regions even have the same amount of zones for that particular dimension.
     </p>
 
     <h3>Monitoring Sample References</h3>
@@ -212,6 +235,7 @@
 
     <h2>QSampler 0.3.0</h2>
     <p>
+      <img src="qsampler_sf2_selection.png">
       As new sampler formats made it into LinuxSampler, this was also addressed
       with QSampler. The sound selection dialog now also enumerates the sounds
       of a selected SoundFont file. And to ease switching between sounds, you
