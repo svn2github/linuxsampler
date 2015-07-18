@@ -10,6 +10,7 @@
   <body>
     <h1>LinuxSampler 2.0.0</h1>
     <p>
+      LinuxSampler 2.0.0 and friends were released on July 17th 2015.
       Unbelievable six years have passed since the last release of LinuxSampler.
       A load of things have changed in silence, which I want to summarize for
       you in this article.
@@ -299,6 +300,20 @@
           </a>
         </li>
       </ol>
+      Please note that there is currently no support for KORG's .PCG file format
+      yet. That's because this file format changes a lot and is not only
+      dependent to the precise KORG keyboard model, but also to the precise OS
+      version on the same model. And since basic conversion can also be done by
+      just accessing the .KSF and .KMP files (sample data, loop informations),
+      the current C++ classes should be sufficient for many tasks. Adding
+      support for KORG's .PCG files is not planned at the moment.
+    </p>
+    <p>
+      Besides those major changes, a load of convenient methods have been added to
+      the existing libgig classes to reduce the overall effort working with all
+      those file formats with software applications based on libgig.
+    </p>
+    <p>
       Various command line tools have been added to libgig, which allow to
       dump, correct, extract and convert sounds between those various file formats.
       Refer to the individual <i>man pages</i> for details about how to use
