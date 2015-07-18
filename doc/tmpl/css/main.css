@@ -809,7 +809,7 @@ article > img, example > img {
 article p img {
     display:inline-block;
     float:left;
-    margin:4px 20px 0px 0px;
+    margin:4px 20px 19px 0px;
     padding:0 0 0 0;
     /*border:solid 1px #8e8e8e;*/
     border:none;
