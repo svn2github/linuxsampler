@@ -1,5 +1,11 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2015-07-18">
+    LinuxSampler 2.0.0 had been released after six years of development!
+    Check the
+    <link ref="http://doc.linuxsampler.org/Release_Notes/LinuxSampler_2_0_0/">release notes</link>
+    for a detailed review of what's new with LinuxSampler and friends.
+  </entry>
   <entry date="2015-06-11">
     <link ref="http://download.linuxsampler.org/packages/osx/snapshots/" img="gfx/logos/apple.png"></link>
     The Mac installer was broken on latest OS X 10.10 Yosemite. This had been
