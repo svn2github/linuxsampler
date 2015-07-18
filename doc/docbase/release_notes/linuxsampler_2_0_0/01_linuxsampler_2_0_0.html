@@ -1,0 +1,270 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>Release Notes LinuxSampler 2.0.0</title>
+    <meta name="description" content="Release notes for LinuxSampler 2.0.0.">
+    <link rel="stylesheet" href="http://doc.linuxsampler.org/css/preview.css">
+    <script type="text/javascript" src="http://doc.linuxsampler.org/js/preview.js"></script>
+  </head>
+  <body>
+    <h1>LinuxSampler 2.0.0</h1>
+    <p>
+      Unbelievable six years have passed since the last release of LinuxSampler.
+      A load of things have changed in silence, which I want to summarize for
+      you in this article.
+    </p>
+
+    <h3>New Sampler Engines</h3>
+    <p>
+      The sampler's code base has seen substantial changes during that long
+      period. The sampler engine code base has been unified to a set of common,
+      abstract base classes which cleared the way for two new sampler engines:
+      <ol>
+        <li>The <b>SFZ2</b> format engine (.sfz).</li>
+        <li>The <b>SoundFont 2</b> format engine (.sf2).</li>
+      </ol>
+      So LinuxSampler is not limited to just the GigaStudio/Gigasampler format
+      (.gig) anymore.
+    </p>
+
+    <h3>Real-Time Instrument Scripts</h3>
+    <p>
+      Another major new feature is the brand new support for so called
+      <i>Real-Time Instrument Scripts</i>, which are small programs that may be
+      bundled with sound files to extend the sampler with custom behavior for
+      individual sounds. You may know such instrument scripts from commercial
+      software samplers. At the moment this scripting feature is yet limited to
+      the Giga format engine. <a href="instrument_scripts.html">Find out more ...</a>
+    </p>
+    <img src="../../gigedit/scripts/gigedit_script_editor.png" caption="NKSP Instrument Script Editor">
+
+    <h3>LSCP Shell</h3>
+    <p>
+      Also noteworthy is the new command line application <i>lscp</i>, which is
+      a text based shell for controlling the sampler from the command line,
+      providing colored output, type completion, help text while typing LSCP
+      commands and other convenient features for terminal enthusiasts who want
+      to use the sampler without GUI frontend applications.
+      <a href="instrument_scripts.html">Find out more ...</a>
+    </p>
+    <img src="../../lscp_shell/lscp_shell.png" caption="LSCP Shell">
+
+    <h3>Internal Effects &amp; Extensions to LSCP</h3>
+    <p>
+      You may now also load external effects directly into the sampler. The
+      <a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html">LSCP network protocol</a>
+      (<a href="http://www.linuxsampler.org/api/lscp-1.7.html">v1.7</a>) has
+      been extended to manage such effects respectively. Effect chains may be
+      built, and the individual sampler parts may be routed to an individual
+      position of effect chains. At this point only LADSPA plugins are supported
+      yet. However the sampler's effect subsystem uses an abstract interface,
+      which allows easy integration of other effect systems. Also new with
+      latest LSCP version is the ability to trigger MIDI CCs by LSCP command.
+    </p>
+
+    <h3>New GigaStudio format features</h3>
+    <p>
+      You may have heard that the GigaStudio software has seen its last version
+      with GigaStudio 4. Tascam officially discontinued this product, its
+      intellectual property has been sold several times among companies and
+      there is currently no way to buy a new copy of GigaStudio anymore. However
+      the GigaStudio format is still under active development with LinuxSampler.
+      We not only added support for the latest features introduced with
+      GigaStudio 4: iMIDI rules for example which allow to trigger notes by
+      MIDI CC and allow i.e. defining a set of legato samples; for the first
+      time ever we also added our own extensions to the Giga format: one of it
+      is the previously mentioned new instrument scripting feature and a more
+      minor extension is support for various other MIDI CCs which were never
+      supported by GigaStudio before. So you can now use any MIDI CC for EG1
+      controller, EG2 controller and attenuation controller.
+    </p>
+
+    <h3>DAW Plugin Enhancements</h3>
+    <p>
+      The sampler's host plugins have also seen some enhancements: the LV2
+      plugin now stores and restores the sampler's overall state with the song
+      of your DAW application, the LV2 and AudioUnit plugin's outputs
+      were increased from 2 audio channels to 16 upon request by some users and
+      the VST plugin now uses the sampler's MIDI instrument mapping system to
+      show a list of available sounds to allow the user to switch among them.
+      And last but not least the VST plugin may also be used on Mac now.
+    </p>
+
+    <h2>Gigedit 1.0.0</h2>
+    <p>
+      Also <i>Gigedit</i>, our instrument editor for the GigaStudio/Gigasampler
+      format, had been enhanced quite a lot during the last six years. As
+      mentioned above, we introduced our own extensions to the Giga format.
+      Obviously all those extensions will not work with any GigaStudio version,
+      they only work with a recent version of Gigedit and LinuxSampler. Gigedit
+      will inform you whenever you are using such kind of custom Giga format
+      extension, so that you are always aware in case your changes to sounds are
+      not cross/backward compatible with the GigaStudio software. You may also
+      disable those warnings on the settings menu.
+    </p>
+
+    <h3>Multi-Selection of Dimension Zones</h3>
+    <p>
+      A load of enhancements have been added to Gigedit
+      in the last six years: Until now you were only able to edit either exactly
+      one dimension region or all dimension regions simultaneously. With this
+      release you may now hold the Ctrl button and select a specific set of
+      dimension region zones in the dimension region selector area (on the very
+      bottom of the Gigedit window) with your mouse. All synthesis parameters you
+      then change, will all be applied to that precise set of dimension region
+      zones.
+    </p>
+
+    <h3>Improvements to Dimension Management</h3>
+    <p>
+      Also managing dimensions have been improved: previously to change the
+      amount of zones of a dimension you had to delete and recreate the
+      dimension. Which was not just inconvenient, but you also had to redefine
+      your synthesis parameters from scratch. Now you can just open the
+      dimension manager dialog and increase or decrease the amount of zones of
+      a dimension with few clicks. Same applies to the dimension type: you may
+      now simply open the dimension manager dialog and alter the type of a
+      dimension with few clicks.
+    </p>
+
+    <h3>Monitoring Sample References</h3>
+    <p>
+      When working on complex Giga sounds you certainly noticed that one could
+      easily get lost about which samples are exactly used by which
+      instrument or even whether a sample is actually used at all by any
+      instrument or just left orphaned and wasting disk space. This was also due
+      to the fact that the Giga format does not require unique names for
+      samples. We have worked on resolving this usability issue. In the samples
+      list view you can now read the amount of times a sample is referenced by
+      instruments of your .gig file. If a sample is not used at all, then it
+      will be shown in striking red color in the sample list view. You may also
+      right click on a sample and select "Show references...", a new
+      window appears on your screen which will show you where exactly that
+      particular sample is used by, that is by which instruments and by which
+      regions of those instruments. Also the other way around has been
+      addressed: when you now edit the synthesis parameters of a particular
+      dimension region, you may now click on the new "&lt;- Select Sample"
+      button and Gigedit automatically selects and displays the respective sample
+      in the samples list view, which you may then might rename to some more
+      appropriate sample name, or you might check by which other instrument(s)
+      that sample is used by, etc.
+    </p>
+
+    <h3>Silent Cases</h3>
+    <p>
+      You may now also remove the current sample reference from individual
+      dimension regions (assigning a so called "NULL" sample instead) by clicking on
+      the new "X" button next the sample reference field on the "Sample" tab
+      of a dimension region; this allows you to define "silent cases", that
+      is a case where no sample should be played at all, for example this is
+      often used for very low velocity ranges of i.e. between 0 and 6.
+    </p>
+
+    <h3>Reordering Instruments</h3>
+    <p>
+      If you are working on .gig files with a large amount of Instruments, then
+      you might also be glad to know that you can finally also re-order the
+      instruments of a file by simply dragging the instruments around in the
+      instruments list view.
+    </p>
+
+    <h3>Combine Tool</h3>
+    <p>
+      Another handy new feature for sound designers is the new "Combine" tool,
+      which you can reach from the main menu. It allows you to select two ore
+      more instruments (by holding down the Ctrl key while selecting with mouse
+      click) from your currently open Giga file and combine those selected
+      instruments to a new instrument. This way you may for example create
+      stunning layered sounds, or you may create velocity splits, crossfade
+      sounds by MIDI controller and much more, all with just a few clicks. This
+      may sound like a trivial task, but if you have worked on this before, you
+      certainly noticed that this was often a very time consuming and error
+      prone task before, especially with complex individual sounds which had
+      custom region ranges, custom velocity splits and much more exotic stuff
+      to take care of. The combine tool handles all such cases for you
+      automatically.
+    </p>
+
+    <h3>Improved Interaction with LinuxSampler</h3>
+    <p>
+      Last but not least, the interaction of Gigedit with LinuxSampler (in so
+      called "live mode") had been improved: When you click on the "Edit"
+      button of a channel strip in QSampler or Fantasia, Gigedit will be
+      launched with the respective instrument automatically being selected.
+      Vice versa you may now also just select another instrument with Gigedit's
+      instrument list view and LinuxSampler will automatically load and play
+      that instrument on the respective sampler part for you. So no more need
+      to switch between the Gigedit window and QSampler/Fantasia window all the
+      time while working on your sounds.
+    </p>
+
+    <h2>QSampler 0.3.0</h2>
+    <p>
+      As new sampler formats made it into LinuxSampler, this was also addressed
+      with QSampler. The sound selection dialog now also enumerates the sounds
+      of a selected SoundFont file. And to ease switching between sounds, you
+      may now click on the name of the current instrument of a channel strip,
+      a list will popup that alows you to quickly switch to another sound,
+      without having to open the channel strip's detailed part dialog.
+    </p>
+
+    <h3>Suppressing Error Popups</h3>
+    <p>
+      In the past, error message dialogs frequently popped up on the screen.
+      Most of them were just telling unuseful messages, even if the overall
+      operation with the sampler was working correctly. There is now an "ignore"
+      check box attached to those error message dialogs, which allow you to
+      suppress most of the annoying error messages.
+    </p>
+
+    <h3>Improved Mac Support</h3>
+    <p>
+      Recently we created a convenient installer for Mac OS X, which
+      conveniently installs all our software components on your Mac. So that
+      includes the stand-alone version of the LinuxSampler backend, VST and
+      AudioUnit plugin version of the sampler, "Fantasia" and "QSampler" frontends,
+      our instrument editor "Gigedit", the LSCP shell and various other command
+      line tools. You may also choose only some of them to be installed.
+    </p>
+    <p>
+      Using the sampler has also been improved on Mac. Before you first had to
+      launch the LinuxSampler backend separately and then launch QSampler.
+      Sometimes the sampler backend even had to be killed explicitly. Now
+      you can just click on the QSampler icon and it will automatically spawn
+      the sampler backend for you and shows its output on QSampler's integrated
+      terminal section. When you quit QSampler, it will also stop the sampler backend
+      for you automatically (you may tell QSampler to keep the sampler running in the background).
+    </p>
+
+    <h2>libgig 4.0.0</h2>
+    <p>
+      Our fundamental file access C++ library
+      <a href="http://download.linuxsampler.org/doc/libgig/api/">libgig</a>
+      is now more than just a supporter of the GigaStudio/Gigasampler file
+      format. New file formats have been added and are now bundled with libgig:
+      <ol>
+        <li>
+          <a href="http://download.linuxsampler.org/doc/libgig/api/namespaceKorg.html">
+            Classes for KORG's sample based instrument files
+          </a> (.KSF, .KMP).
+        </li>
+        <li>
+          <a href="http://download.linuxsampler.org/doc/libgig/api/namespacesf2.html">
+            Classes for SoundFont v2 files
+          </a> (.sf2).
+        </li>
+        <li>
+          <a href="http://download.linuxsampler.org/doc/libgig/api/classResource.html">
+            Classes for AKAI sampler data.
+          </a>
+        </li>
+      </ol>
+      Various command line tools have been added to libgig, which allow to
+      dump, correct, extract and convert sounds between those various file formats.
+      Refer to the individual <i>man pages</i> for details about how to use
+      those new command line tools. As you can see, the ground had been prepared
+      for further new sampler engines with LinuxSampler to come.
+    </p>
+
+  </body>
+</html>
