@@ -9,10 +9,13 @@
     <center><h1>libgig</h1></center>
     <p>
 	libgig is a C++ library for loading, modifying existing and creating new
-	Gigasampler files and DLS (Downloadable Sounds) Level 1/2 files. The
-	source code package includes a couple of command line tools based on the
+	Gigasampler (.gig) files and DLS (Downloadable Sounds) Level 1/2 files, KORG sample
+    based instruments (.KSF and .KMP files), SoundFont v2 (.sf2) files and AKAI sampler data.
+	The source code package includes a couple of command line tools based on the
 	library. The library and tools are released in source code format under the
-	<a href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a>.
+	<a href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a>,
+    except the AKAI classes which are released under the 
+    <a href="http://www.gnu.org/copyleft/lgpl.html">GNU Lesser General Public License</a>.
     </p>
     <p>
       This library is developed and optimized for POSIX compliant operating
@@ -36,6 +39,12 @@
   		</TR>
 	</TH>
 	<tbody>
+        <tr>
+            <td>4.0.0</td>
+            <td><a href="http://download.linuxsampler.org/packages/libgig-4.0.0.tar.bz2">libgig-4.0.0.tar.bz2</a></td>
+            <td>684k</td>
+            <td>14-Jul-2015 18:36</td>
+        </tr>
 		<tr>
 			<td>3.3.0</td>
 			<td><a href="http://download.linuxsampler.org/packages/libgig-3.3.0.tar.bz2">libgig-3.3.0.tar.bz2</a></td>
@@ -136,6 +145,17 @@
     <ul>
       <li><b>gigextract</b> (Extracts samples from a .gig file)</li>
       <li><b>gigdump</b> (Prints out the content of a .gig file)</li>
+      <li><b>gigmerge</b> (Merges several .gig files to one .gig file)</li>
+      <li><b>gig2mono</b> (Converts .gig files from stereo to mono)</li>
+      <li><b>gig2stereo</b> (Converts .gig files to true interleaved stereo sounds)</li>
+      <li><b>korgdump</b> (Prints out the content of the various KORG file types)</li>
+      <li><b>korg2gig</b> (Convert KORG sound file to Gigasampler/GigaStudio format)</li>
+      <li><b>sf2dump</b> (Prints out the content of a .sf2 file)</li>
+      <li><b>sf2extract</b> (Extracts audio samples from a .sf2 file)</li>
+      <li><b>akaidump</b> (Dump an AKAI media i.e. from a CDROM drive as disk image file
+                 to your hard disk drive)</li>
+      <li><b>akaiextract</b> (Extracts samples from an Akai disk image, either from a media
+                 i.e. CDROM or Zip drive, from a AKAI disk image file)</li>
       <li><b>dlsdump</b> (Prints out the content of a DLS file)</li>
       <li><b>rifftree</b> (Prints out the RIFF tree structure of an arbitrary RIFF file)</li>
     </ul>
@@ -143,11 +163,11 @@
     <a name="doc"></a>
     <h1>Documentation</h1>
     <p>
-      Online API Documentation for the latest libgig version
+      Online API Documentation for the latest libgig version (automatically updated to latest version from SVN)
       (<a href="http://download.linuxsampler.org/doc/libgig/api/">HTML</a>)
     </p>
     <p>
-      Kick start documentation for libgig (<a href="http://download.linuxsampler.org/doc/libgig/Introduction.sxw">OpenOffice</a>, <a href="http://download.linuxsampler.org/doc/libgig/Introduction.pdf">PDF</a>)
+      Old kick start documentation for libgig (<a href="http://download.linuxsampler.org/doc/libgig/Introduction.sxw">OpenOffice</a>, <a href="http://download.linuxsampler.org/doc/libgig/Introduction.pdf">PDF</a>)
     </p>
 
     <a name="examples"></a>
@@ -247,7 +267,9 @@
     <h1>Licensing</h1>
     <p>
       libgig and its tools are released under the
-	<a href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a>.
+	<a href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a>,
+     except the AKAI classes which are released under the 
+     <a href="http://www.gnu.org/copyleft/lgpl.html">GNU Lesser General Public License</a>
     </p>
 
     <a name="contact"></a>
