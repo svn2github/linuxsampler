@@ -564,6 +564,10 @@ article a img {
     text-decoration:none;
 }
 
+article li img {
+    float:left;
+}
+
 article a:hover {
     text-decoration:underline;
 }
