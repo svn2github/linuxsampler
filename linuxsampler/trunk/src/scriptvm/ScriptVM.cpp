@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck
+ * Copyright (c) 2014 - 2015 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -111,7 +111,7 @@ namespace LinuxSampler {
         context->createScanner(is);
 
         InstrScript_parse(context);
-        dmsg(2,("Allocating %d bytes of global int VM memory.\n", context->globalIntVarCount * sizeof(int)));
+        dmsg(2,("Allocating %ld bytes of global int VM memory.\n", long(context->globalIntVarCount * sizeof(int))));
         dmsg(2,("Allocating %d of global VM string variables.\n", context->globalStrVarCount));
         if (!context->globalIntMemory)
             context->globalIntMemory = new ArrayList<int>();
@@ -153,14 +153,14 @@ namespace LinuxSampler {
                 _requiredMaxStackSizeFor(&*parserCtx->handlers);
         }
         execCtx->stack.resize(parserCtx->requiredMaxStackSize);
-        dmsg(2,("Created VM exec context with %d bytes VM stack size.\n",
-                parserCtx->requiredMaxStackSize * sizeof(ExecContext::StackFrame)));
+        dmsg(2,("Created VM exec context with %ld bytes VM stack size.\n",
+                long(parserCtx->requiredMaxStackSize * sizeof(ExecContext::StackFrame))));
         //printf("execCtx=0x%lx\n", (uint64_t)execCtx);
         const int polySize = parserCtx->polyphonicIntVarCount;
         execCtx->polyphonicIntMemory.resize(polySize);
         memset(&execCtx->polyphonicIntMemory[0], 0, polySize * sizeof(int));
 
-        dmsg(2,("Allocated %d bytes polyphonic memory.\n", polySize * sizeof(int)));
+        dmsg(2,("Allocated %ld bytes polyphonic memory.\n", long(polySize * sizeof(int))));
         return execCtx;
     }
 

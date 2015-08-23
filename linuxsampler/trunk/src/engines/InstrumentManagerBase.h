@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2013 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2015 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -212,9 +212,9 @@ namespace LinuxSampler {
                     const uint neededSilenceSamples = (maxSamplesPerCycle << CONFIG_MAX_PITCH) + 3;
                     const uint currentlyCachedSilenceSamples = pSample->GetCache().NullExtensionSize / pSample->GetFrameSize();
                     if (currentlyCachedSilenceSamples < neededSilenceSamples) {
-                        dmsg(3,("Caching whole sample (sample name: \"%s\", sample size: %d)\n", pSample->GetName().c_str(), pSample->GetTotalFrameCount()));
+                        dmsg(3,("Caching whole sample (sample name: \"%s\", sample size: %ld)\n", pSample->GetName().c_str(), pSample->GetTotalFrameCount()));
                         typename S::buffer_t buf = pSample->LoadSampleDataWithNullSamplesExtension(neededSilenceSamples);
-                        dmsg(4,("Cached %d Bytes, %d silence bytes.\n", buf.Size, buf.NullExtensionSize));
+                        dmsg(4,("Cached %lu Bytes, %lu silence bytes.\n", buf.Size, buf.NullExtensionSize));
                     }
                 }
                 else { // we only cache CONFIG_PRELOAD_SAMPLES and stream the other sample points from disk

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2015 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -69,7 +69,7 @@ namespace LinuxSampler { namespace gig {
      *                    instrument ID
      */
     void InstrumentResourceManager::OnInstrumentLoadingProgress(::gig::progress_t* pProgress) {
-        dmsg(7,("gig::InstrumentResourceManager: progress %f%", pProgress->factor));
+        dmsg(7,("gig::InstrumentResourceManager: progress %f%%", pProgress->factor));
         progress_callback_arg_t* pArg = static_cast<progress_callback_arg_t*>(pProgress->custom);
         // we randomly schedule 90% for the .gig file loading and the remaining 10% later for sample caching
         const float localProgress = 0.9f * pProgress->factor;
@@ -676,9 +676,9 @@ namespace LinuxSampler { namespace gig {
             const uint neededSilenceSamples = (maxSamplesPerCycle << CONFIG_MAX_PITCH) + 3;
             const uint currentlyCachedSilenceSamples = pSample->GetCache().NullExtensionSize / pSample->FrameSize;
             if (currentlyCachedSilenceSamples < neededSilenceSamples) {
-                dmsg(3,("Caching whole sample (sample name: \"%s\", sample size: %d)\n", pSample->pInfo->Name.c_str(), pSample->SamplesTotal));
+                dmsg(3,("Caching whole sample (sample name: \"%s\", sample size: %lu)\n", pSample->pInfo->Name.c_str(), pSample->SamplesTotal));
                 ::gig::buffer_t buf = pSample->LoadSampleDataWithNullSamplesExtension(neededSilenceSamples);
-                dmsg(4,("Cached %d Bytes, %d silence bytes.\n", buf.Size, buf.NullExtensionSize));
+                dmsg(4,("Cached %lu Bytes, %lu silence bytes.\n", buf.Size, buf.NullExtensionSize));
             }
         }
         else { // we only cache CONFIG_PRELOAD_SAMPLES and stream the other sample points from disk
@@ -689,7 +689,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     void InstrumentResourceManager::UncacheInitialSamples(::gig::Sample* pSample) {
-        dmsg(1,("Uncaching sample %x\n",pSample));
+        dmsg(1,("Uncaching sample %p\n",(void*)pSample));
         if (pSample->GetCache().Size) pSample->ReleaseSampleData();
     }
 

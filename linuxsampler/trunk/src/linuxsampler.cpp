@@ -453,7 +453,7 @@ void parse_options(int argc, char **argv) {
                 }
                 case 8: {// --lscp-port
                     long unsigned int port = 0;
-                    if ((sscanf(optarg, "%u", &port) != 1) || (port == 0) || (port > 65535))
+                    if ((sscanf(optarg, "%lu", &port) != 1) || (port == 0) || (port > 65535))
                         printf("WARNING: Failed to parse lscp-port argument, ignoring!\n");
                     else
                         lscp_port = htons(port);

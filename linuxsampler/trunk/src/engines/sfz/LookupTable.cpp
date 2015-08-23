@@ -2,7 +2,7 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2010 - 2012 Andreas Persson                             *
+ *   Copyright (C) 2010 - 2015 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -184,7 +184,7 @@ namespace sfz {
         }
 
         dmsg(2,("\nregions before filter: %d, after: %d\n",
-                instrument->regions.size(), regions.size()));
+                int(instrument->regions.size()), int(regions.size())));
 
         // find dimensions used by the instrument
         for (int dim = 0 ; dimDefs[dim].lo ; dim++) {
@@ -204,7 +204,7 @@ namespace sfz {
         // members
         qargs = new const uint8_t Query::*[dims.size() + 1];
         for (std::vector<int>::size_type i = 0 ; i < dims.size() ; i++) {
-            dmsg(2,("qargs %d: %s\n", i, dimDefs[dims[i]].str));
+            dmsg(2,("qargs %d: %s\n", int(i), dimDefs[dims[i]].str));
             qargs[i] = dimDefs[dims[i]].qarg;
         }
         qargs[dims.size()] = 0;
@@ -229,7 +229,7 @@ namespace sfz {
         // copy ccs vector to ccargs array
         ccargs = new int[ccs.size() + 1];
         for (std::vector<int>::size_type i = 0 ; i < ccs.size() ; ++i) {
-            dmsg(2,("ccargs %d: %d\n", i, ccs[i]));
+            dmsg(2,("ccargs %d: %d\n", int(i), ccs[i]));
             ccargs[i] = ccs[i];
         }
         ccargs[ccs.size()] = -1;

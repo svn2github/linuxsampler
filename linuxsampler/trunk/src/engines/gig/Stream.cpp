@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009-2015 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -52,7 +52,7 @@ namespace LinuxSampler { namespace gig {
             PlaybackState.reverse = pbs.reverse;
             PlaybackState.loop_cycles_left = pbs.loop_cycles_left;
             endofsamplereached = (this->PlaybackState.position >= pSample->SamplesTotal);
-            dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, total_readsamples, this->PlaybackState.position));
+            dmsg(5,("Refilled stream %d with %ld (SamplePos: %lu)", this->hThis, total_readsamples, this->PlaybackState.position));
         }
         else { // normal forward playback
 
@@ -68,7 +68,7 @@ namespace LinuxSampler { namespace gig {
             this->SampleOffset = pSample->GetPos();
 
             endofsamplereached = (SampleOffset >= pSample->SamplesTotal);
-            dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, total_readsamples, this->SampleOffset));
+            dmsg(5,("Refilled stream %d with %ld (SamplePos: %lu)", this->hThis, total_readsamples, this->SampleOffset));
         }
 
         // update stream state

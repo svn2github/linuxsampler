@@ -1449,7 +1449,7 @@ String LSCPServer::GetAudioOutputDriverInfo(String Driver) {
 }
 
 String LSCPServer::GetMidiInputDriverParameterInfo(String Driver, String Parameter, std::map<String,String> DependencyList) {
-    dmsg(2,("LSCPServer: GetMidiInputDriverParameterInfo(Driver=%s,Parameter=%s,DependencyListSize=%d)\n",Driver.c_str(),Parameter.c_str(),DependencyList.size()));
+    dmsg(2,("LSCPServer: GetMidiInputDriverParameterInfo(Driver=%s,Parameter=%s,DependencyListSize=%d)\n",Driver.c_str(),Parameter.c_str(),int(DependencyList.size())));
     LSCPResultSet result;
     try {
         DeviceCreationParameter* pParameter = MidiInputDeviceFactory::GetDriverParameter(Driver, Parameter);
@@ -1477,7 +1477,7 @@ String LSCPServer::GetMidiInputDriverParameterInfo(String Driver, String Paramet
 }
 
 String LSCPServer::GetAudioOutputDriverParameterInfo(String Driver, String Parameter, std::map<String,String> DependencyList) {
-    dmsg(2,("LSCPServer: GetAudioOutputDriverParameterInfo(Driver=%s,Parameter=%s,DependencyListSize=%d)\n",Driver.c_str(),Parameter.c_str(),DependencyList.size()));
+    dmsg(2,("LSCPServer: GetAudioOutputDriverParameterInfo(Driver=%s,Parameter=%s,DependencyListSize=%d)\n",Driver.c_str(),Parameter.c_str(),int(DependencyList.size())));
     LSCPResultSet result;
     try {
         DeviceCreationParameter* pParameter = AudioOutputDeviceFactory::GetDriverParameter(Driver, Parameter);
@@ -1634,7 +1634,7 @@ String LSCPServer::GetMidiInputPortInfo(uint DeviceIndex, uint PortIndex) {
 }
 
 String LSCPServer::GetAudioOutputChannelInfo(uint DeviceId, uint ChannelId) {
-    dmsg(2,("LSCPServer: GetAudioOutputChannelInfo(DeviceId=%d,ChannelId)\n",DeviceId,ChannelId));
+    dmsg(2,("LSCPServer: GetAudioOutputChannelInfo(DeviceId=%u,ChannelId=%u)\n",DeviceId,ChannelId));
     LSCPResultSet result;
     try {
         // get audio output device

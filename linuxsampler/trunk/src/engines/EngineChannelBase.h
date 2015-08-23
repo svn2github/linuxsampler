@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2013 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2015 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -271,7 +271,7 @@ namespace LinuxSampler {
              */
             virtual void OnResourceProgress(float fProgress) OVERRIDE {
                 this->InstrumentStat = int(fProgress * 100.0f);
-                dmsg(7,("EngineChannelBase: progress %d%", InstrumentStat));
+                dmsg(7,("EngineChannelBase: progress %d%%", InstrumentStat));
                 bStatusChanged = true; // status of engine has changed, so set notify flag
             }
 

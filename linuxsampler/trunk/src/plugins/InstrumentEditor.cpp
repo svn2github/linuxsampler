@@ -37,7 +37,7 @@ namespace LinuxSampler {
     }
 
     void InstrumentEditor::Launch(EngineChannel* pEngineChannel, void* pInstrument, String sTypeName, String sTypeVersion, void* pUserData) {
-        dmsg(1,("InstrumentEditor::Launch(instr=%x,type=%s,version=%s)\n", pInstrument, sTypeName.c_str(), sTypeVersion.c_str()));
+        dmsg(1,("InstrumentEditor::Launch(instr=%p,type=%s,version=%s)\n", pInstrument, sTypeName.c_str(), sTypeVersion.c_str()));
         // prepare the editor's mandatory parameters
         this->pInstrument  = pInstrument;
         this->sTypeName    = sTypeName;

@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2013 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2015 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -432,14 +432,14 @@ namespace LinuxSampler {
              * @param pRegion - region the engine shall stop using
              */
             virtual void Suspend(RR* pRegion) {
-                dmsg(2,("EngineBase: Suspending Region %x ...\n",pRegion));
+                dmsg(2,("EngineBase: Suspending Region %p ...\n",(void*)pRegion));
                 {
                     LockGuard lock(SuspendedRegionsMutex);
                     SuspensionChangeOngoing.Set(true);
                     pPendingRegionSuspension = pRegion;
                     SuspensionChangeOngoing.WaitAndUnlockIf(true);
                 }
-                dmsg(2,("EngineBase: Region %x suspended.",pRegion));
+                dmsg(2,("EngineBase: Region %p suspended.",(void*)pRegion));
             }
 
             /**
@@ -449,14 +449,14 @@ namespace LinuxSampler {
              * @param pRegion - region the engine shall be allowed to use again
              */
             virtual void Resume(RR* pRegion) {
-                dmsg(2,("EngineBase: Resuming Region %x ...\n",pRegion));
+                dmsg(2,("EngineBase: Resuming Region %p ...\n",(void*)pRegion));
                 {
                     LockGuard lock(SuspendedRegionsMutex);
                     SuspensionChangeOngoing.Set(true);
                     pPendingRegionResumption = pRegion;
                     SuspensionChangeOngoing.WaitAndUnlockIf(true);
                 }
-                dmsg(2,("EngineBase: Region %x resumed.\n",pRegion));
+                dmsg(2,("EngineBase: Region %p resumed.\n",(void*)pRegion));
             }
 
             virtual void ResetSuspendedRegions() {
@@ -1155,7 +1155,7 @@ namespace LinuxSampler {
                                 case 0x1d: { // reverb send of note (Roland GS NRPN)
                                     const uint note = NrpnCtrlLSB;
                                     const float reverb = float(itControlChangeEvent->Param.CC.Value) / 127.0f;
-                                    dmsg(4,("Note Reverb Send NRPN received (note=%d,send=%d).\n", note, reverb));
+                                    dmsg(4,("Note Reverb Send NRPN received (note=%d,send=%f).\n", note, reverb));
                                     if (note < 128)
                                         pChannel->pMIDIKeyInfo[note].ReverbSend = reverb;
                                     break;
@@ -1163,7 +1163,7 @@ namespace LinuxSampler {
                                 case 0x1e: { // chorus send of note (Roland GS NRPN)
                                     const uint note = NrpnCtrlLSB;
                                     const float chorus = float(itControlChangeEvent->Param.CC.Value) / 127.0f;
-                                    dmsg(4,("Note Chorus Send NRPN received (note=%d,send=%d).\n", note, chorus));
+                                    dmsg(4,("Note Chorus Send NRPN received (note=%d,send=%f).\n", note, chorus));
                                     if (note < 128)
                                         pChannel->pMIDIKeyInfo[note].ChorusSend = chorus;
                                     break;

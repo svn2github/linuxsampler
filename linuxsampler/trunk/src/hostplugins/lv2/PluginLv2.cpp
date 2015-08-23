@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2012 Andreas Persson                             *
+ *   Copyright (C) 2008 - 2015 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,6 +18,7 @@
  *   MA  02110-1301  USA                                                   *
  ***************************************************************************/
 
+#define _DEFAULT_SOURCE 1
 #define _BSD_SOURCE 1  /* for realpath() */
 
 #include <algorithm>

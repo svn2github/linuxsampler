@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2015 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -170,7 +170,7 @@ namespace LinuxSampler {
             RAMLoop = (SmplInfo.HasLoops && (SmplInfo.LoopStart + SmplInfo.LoopLength) <= MaxRAMPos);
 
             if (OrderNewStream()) return -1;
-            dmsg(4,("Disk voice launched (cached samples: %d, total Samples: %d, MaxRAMPos: %d, RAMLooping: %s)\n", cachedsamples, SmplInfo.TotalFrameCount, MaxRAMPos, (RAMLoop) ? "yes" : "no"));
+            dmsg(4,("Disk voice launched (cached samples: %ld, total Samples: %d, MaxRAMPos: %lu, RAMLooping: %s)\n", cachedsamples, SmplInfo.TotalFrameCount, MaxRAMPos, (RAMLoop) ? "yes" : "no"));
         }
         else { // RAM only voice
             MaxRAMPos = cachedsamples;

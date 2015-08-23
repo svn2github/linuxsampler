@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck
+ * Copyright (c) 2014-2015 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -84,11 +84,11 @@ int main(int argc, char *argv[]) {
     } else if (!errors.empty()) {
         CFmt fmt; fmt.red();
         printf("EOF. Script parse completed with issues (%d errors, %d warnings):\n",
-               errors.size(), warnings.size());
+               int(errors.size()), int(warnings.size()));
     } else {
         CFmt fmt; fmt.yellow();
         printf("EOF. Script parse completed with issues (%d errors, %d warnings):\n",
-               errors.size(), warnings.size());
+               int(errors.size()), int(warnings.size()));
     }
     for (int i = 0; i < issues.size(); ++i) {
         CFmt fmt;

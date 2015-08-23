@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2013 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2015 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -487,7 +487,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     void Voice::ProcessGroupEvent(RTList<Event>::Iterator& itEvent) {
-        dmsg(4,("Voice %x processGroupEvents event type=%d", this, itEvent->Type));
+        dmsg(4,("Voice %p processGroupEvents event type=%d", (void*)this, itEvent->Type));
 
         // TODO: The SustainPedal condition could be wrong, maybe the
         // check should be if this Voice is in release stage or is a
@@ -500,7 +500,7 @@ namespace LinuxSampler { namespace gig {
         // -- Christian, 2013-01-08
         if (itEvent->Param.Note.Key != MIDIKey /*||
             !GetGigEngineChannel()->SustainPedal*/) {
-            dmsg(4,("Voice %x - kill", this));
+            dmsg(4,("Voice %p - kill", (void*)this));
 
             // kill the voice fast
             pEG1->enterFadeOutStage();
