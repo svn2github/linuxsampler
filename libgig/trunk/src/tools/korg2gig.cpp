@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2014 Christian Schoenebeck                              *
+ *   Copyright (C) 2014-2015 Christian Schoenebeck                         *
  *                      <cuse@users.sourceforge.net>                       *
  *                                                                         *
  *   This program is part of libgig.                                       *
@@ -310,7 +310,7 @@ static set<DLS::range_t> collectVelocitySplits(const InstrGroup& group, DLS::ran
     set<DLS::range_t> velocityRanges;
     for (int i = 0; i < group.size(); ++i) {
         Korg::KMPInstrument* instr = group[i];
-        int iLowerKey = 0;
+        uint16_t iLowerKey = 0;
         for (int k = 0; k < instr->GetRegionCount(); ++k) {
             Korg::KMPRegion* rgn = instr->GetRegion(k);
             DLS::range_t keyRange2 = { iLowerKey, rgn->TopKey };
@@ -319,7 +319,7 @@ static set<DLS::range_t> collectVelocitySplits(const InstrGroup& group, DLS::ran
                 int from, to;
                 string baseName = parseNumberRange(instr->Name(), from, to);
                 if (baseName != instr->Name()) { // number range like "003-120" found in instrument name ...
-                    DLS::range_t velRange = { from, to };
+                    DLS::range_t velRange = { uint16_t(from), uint16_t(to) };
                     velocityRanges.insert(velRange);
                 }
             }
@@ -623,7 +623,7 @@ int main(int argc, char *argv[]) {
                 Korg::KMPInstrument* kmpInstr = *itInstr;
                 cout << "    |---> KMP multi sample '" << kmpInstr->Name() << "'" << endl;
 
-                int iLowKey = 0;
+                uint16_t iLowKey = 0;
                 for (int k = 0; k < kmpInstr->GetRegionCount(); ++k) {
                     Korg::KMPRegion* kmpRegion = kmpInstr->GetRegion(k);
                     DLS::range_t keyRange = { iLowKey, kmpRegion->TopKey };

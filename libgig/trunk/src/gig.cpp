@@ -4181,7 +4181,7 @@ namespace {
      * @param pGroup - script's new group
      */
     void Script::SetGroup(ScriptGroup* pGroup) {
-        if (this->pGroup = pGroup) return;
+        if (this->pGroup == pGroup) return;
         if (pChunk)
             pChunk->GetParent()->MoveSubChunk(pChunk, pGroup->pList);
         this->pGroup = pGroup;
@@ -4673,12 +4673,12 @@ namespace {
 
         // move this instrument within the instrument list
         {
-            DLS::File::InstrumentList& list = *pFile->pInstruments;
+            File::InstrumentList& list = *pFile->pInstruments;
 
-            DLS::File::InstrumentList::iterator itFrom =
+            File::InstrumentList::iterator itFrom =
                 std::find(list.begin(), list.end(), static_cast<DLS::Instrument*>(this));
 
-            DLS::File::InstrumentList::iterator itTo =
+            File::InstrumentList::iterator itTo =
                 std::find(list.begin(), list.end(), static_cast<DLS::Instrument*>(dst));
 
             list.splice(itTo, list, itFrom);

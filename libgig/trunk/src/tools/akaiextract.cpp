@@ -2,7 +2,7 @@
   libakai - C++ cross-platform akai sample disk reader
   Copyright (C) 2002-2003 Sébastien Métrot
 
-  Linux port by Christian Schoenebeck <cuse@users.sourceforge.net> 2003-2014
+  Linux port by Christian Schoenebeck <cuse@users.sourceforge.net> 2003-2015
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -124,14 +124,15 @@ void PrintLastError(char* file, int line)
 
 static void printUsage() {
 #ifdef WIN32
-    printf(
-        "akaiextract <source-drive-letter>: <destination-dir>\n"
-        "by Sebastien Métrot (meeloo@meeloo.net)\n\n"
+    const wchar_t* msg =
+        L"akaiextract <source-drive-letter>: <destination-dir>\n"
+        "by S\351bastien M\351trot (meeloo@meeloo.net)\n\n"
         "Reads an AKAI media (i.e. CDROM, ZIP disk) and extracts all its audio\n"
         "samples as .wav files to the given output directory. If the given output\n"
         "directory does not exist yet, then it will be created.\n\n"
-        "Available types of your drives:\n"
-    );
+        "Available types of your drives:\n";
+    DWORD n = wcslen(msg);
+    WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), msg, n, &n, NULL);
     char rootpath[4]="a:\\";
     for (char drive ='a'; drive <= 'z'; drive++) {
         rootpath[0] = drive;
@@ -151,9 +152,10 @@ static void printUsage() {
     }
     printf("\n");
 #elif defined _CARBON_
-    printf(
-        "akaiextract [<source-path>] <destination-dir>\n"
-        "by Sebastien Métrot (meeloo@meeloo.net)\n\n"
+    setlocale(LC_CTYPE, "");
+    printf("%ls",
+        L"akaiextract [<source-path>] <destination-dir>\n"
+        "by S\351bastien M\351trot (meeloo@meeloo.net)\n\n"
         "Reads an AKAI media (i.e. CDROM, ZIP disk) and extracts all its audio\n"
         "samples as .wav files to the given output directory. If the given output\n"
         "directory does not exist yet, then it will be created.\n\n"
@@ -162,9 +164,10 @@ static void printUsage() {
         "<destination-dir> - target directory where samples will be written to\n\n"
     );
 #else
-    printf(
-        "akaiextract <source-path> <destination-dir>\n"
-        "by Sebastien Métrot (meeloo@meeloo.net)\n"
+    setlocale(LC_CTYPE, "");
+    printf("%ls",
+        L"akaiextract <source-path> <destination-dir>\n"
+        "by S\351bastien M\351trot (meeloo@meeloo.net)\n"
         "Linux port by Christian Schoenebeck\n\n"
         "Reads an AKAI media (i.e. CDROM, ZIP disk) and extracts all its audio\n"
         "samples as .wav files to the given output directory. If the given output\n"
@@ -296,7 +299,7 @@ int main(int argc, char** argv) {
 #endif // !HAVE_SNDFILE
 
   totalSamplesSize *= 2; // due to 16 bit samples
-  printf("There are %d samples on this disk with a total size of %d Bytes. ",
+  printf("There are %ld samples on this disk with a total size of %ld Bytes. ",
          totalSamples, totalSamplesSize);
   printf("Do you want to extract them (.wav files will be written to '%s')? [y/n]\n", outPath);
   char c = getchar();
@@ -365,7 +368,7 @@ int main(int argc, char** argv) {
                           for (it = Samples.begin(); it != end && !errorOccured; it++) {
                               AkaiDirEntry DirEntry = *it;
                               AkaiSample* pSample = pVolume->GetSample(samp);
-                              printf("Extracting Sample (%d/%d) %s...",
+                              printf("Extracting Sample (%ld/%ld) %s...",
                                      currentsample++,
                                      totalSamples,
                                      DirEntry.mName.c_str());

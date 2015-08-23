@@ -2,7 +2,7 @@
   libakai - C++ cross-platform akai sample disk reader
   Copyright (C) 2002-2003 Sébastien Métrot
 
-  Linux port by Christian Schoenebeck <cuse@users.sourceforge.net> 2003-2014
+  Linux port by Christian Schoenebeck <cuse@users.sourceforge.net> 2003-2015
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -65,14 +65,15 @@ static void PrintLastError(char* file, int line)
 
 static void printUsage() {
 #ifdef WIN32
-    printf(
-        "akaidump <source-drive-letter>: <destination-filename>\n"
-        "by Sebastien Métrot (meeloo@meeloo.net)\n\n"
+    const wchar_t* msg =
+        L"akaidump <source-drive-letter>: <destination-filename>\n"
+        "by S\351bastien M\351trot (meeloo@meeloo.net)\n\n"
         "Reads an AKAI media (i.e. CDROM, ZIP disk) and writes it as AKAI\n"
         "disk image file to your hard disk drive for more convenient and\n"
         "faster further usage.\n\n"
-        "Available types of your drives:\n"
-    );
+        "Available types of your drives:\n";
+    DWORD n = wcslen(msg);
+    WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), msg, n, &n, NULL);
     char rootpath[4]="a:\\";
     for (char drive ='a'; drive <= 'z'; drive++) {
         rootpath[0] = drive;
@@ -92,9 +93,10 @@ static void printUsage() {
     }
     printf("\n");
 #elif defined _CARBON_
-    printf(
-        "akaidump [<source-path>] <destination-filename>\n"
-        "by Sebastien Métrot (meeloo@meeloo.net)\n\n"
+    setlocale(LC_CTYPE, "");
+    printf("%ls",
+        L"akaidump [<source-path>] <destination-filename>\n"
+        "by S\351bastien M\351trot (meeloo@meeloo.net)\n\n"
         "Reads an AKAI media (i.e. CDROM, ZIP disk) and writes it as AKAI\n"
         "disk image file to your hard disk drive for more convenient and\n"
         "faster further usage.\n\n"
@@ -103,9 +105,10 @@ static void printUsage() {
         "<destination-filename> - target filename to write the AKAI disk image to\n\n"
     );
 #else
-    printf(
-        "akaidump <source-path> <destination-filename>\n"
-        "by Sebastien Métrot (meeloo@meeloo.net)\n"
+    setlocale(LC_CTYPE, "");
+    printf("%ls",
+        L"akaidump <source-path> <destination-filename>\n"
+        "by S\351bastien M\351trot (meeloo@meeloo.net)\n"
         "Linux port by Christian Schoenebeck\n\n"
         "Reads an AKAI media (i.e. CDROM, ZIP disk) and writes it as AKAI\n"
         "disk image file to your hard disk drive for more convenient and\n"
