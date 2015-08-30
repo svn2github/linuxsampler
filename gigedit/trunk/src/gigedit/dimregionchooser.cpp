@@ -348,7 +348,6 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                             Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
                             layout->set_text(Glib::Ascii::dtostr(prevUpperLimit+1));
                             Gdk::Cairo::set_source_rgba(cr, black);
-                            Pango::Rectangle rect = layout->get_logical_extents();
                             // get the text dimensions
                             int text_width, text_height;
                             layout->get_pixel_size(text_width, text_height);
@@ -366,7 +365,6 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                             Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
                             layout->set_text(Glib::Ascii::dtostr(upperLimit));
                             Gdk::Cairo::set_source_rgba(cr, black);
-                            Pango::Rectangle rect = layout->get_logical_extents();
                             // get the text dimensions
                             int text_width, text_height;
                             layout->get_pixel_size(text_width, text_height);
@@ -408,7 +406,6 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                                 Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
                                 layout->set_text(Glib::Ascii::dtostr((j-1) * 128/nbZones));
                                 Gdk::Cairo::set_source_rgba(cr, black);
-                                Pango::Rectangle rect = layout->get_logical_extents();
                                 // get the text dimensions
                                 int text_width, text_height;
                                 layout->get_pixel_size(text_width, text_height);
@@ -426,7 +423,6 @@ bool DimRegionChooser::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                                 Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
                                 layout->set_text(Glib::Ascii::dtostr(j * 128/nbZones - 1));
                                 Gdk::Cairo::set_source_rgba(cr, black);
-                                Pango::Rectangle rect = layout->get_logical_extents();
                                 // get the text dimensions
                                 int text_width, text_height;
                                 layout->get_pixel_size(text_width, text_height);
@@ -850,8 +846,8 @@ sigc::signal<void>& DimRegionChooser::signal_region_changed()
 
 bool DimRegionChooser::on_focus(Gtk::DirectionType direction)
 {
-    // TODO: kolla att region finns osv, dvs att det går att sätta
-    // fokus.
+    // TODO: check that region exists etc, that is, that it's possible
+    // to set focus
     if (direction == Gtk::DIR_TAB_FORWARD ||
         direction == Gtk::DIR_DOWN) {
         if (!has_focus()) {
@@ -883,12 +879,13 @@ bool DimRegionChooser::on_focus(Gtk::DirectionType direction)
             }
         }
     } else if (!has_focus()) {
-        // TODO: kolla att focus_line finns!
+        // TODO: check that focus_line exists
         grab_focus();
         return true;
     } else {
-        // TODO: öka eller minska värde!
+        // TODO: increase or decrease value
     }
+    return false;
 }
 
 void DimRegionChooser::split_dimension_zone() {    
@@ -925,12 +922,14 @@ bool DimRegionChooser::onKeyPressed(GdkEventKey* key) {
     //printf("key down\n");
     if (key->keyval == GDK_KEY_Control_L || key->keyval == GDK_KEY_Control_R)
         multiSelectKeyDown = true;
+    return false;
 }
 
 bool DimRegionChooser::onKeyReleased(GdkEventKey* key) {
     //printf("key up\n");
     if (key->keyval == GDK_KEY_Control_L || key->keyval == GDK_KEY_Control_R)
         multiSelectKeyDown = false;
+    return false;
 }
 
 void DimRegionChooser::resetSelectedZones() {

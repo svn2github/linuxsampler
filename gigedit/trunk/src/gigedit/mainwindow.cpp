@@ -20,6 +20,14 @@
 #include <iostream>
 #include <cstring>
 
+#include <glibmmconfig.h>
+// threads.h must be included first to be able to build with
+// G_DISABLE_DEPRECATED
+#if (GLIBMM_MAJOR_VERSION == 2 && GLIBMM_MINOR_VERSION == 31 && GLIBMM_MICRO_VERSION >= 2) || \
+    (GLIBMM_MAJOR_VERSION == 2 && GLIBMM_MINOR_VERSION > 31) || GLIBMM_MAJOR_VERSION > 2
+#include <glibmm/threads.h>
+#endif
+
 #include <glibmm/convert.h>
 #include <glibmm/dispatcher.h>
 #include <glibmm/miscutils.h>
@@ -796,7 +804,8 @@ void Loader::progress_callback(float fraction)
 
 void Loader::thread_function()
 {
-    printf("thread_function self=%x\n", Glib::Threads::Thread::self());
+    printf("thread_function self=%p\n",
+           static_cast<void*>(Glib::Threads::Thread::self()));
     printf("Start %s\n", filename.c_str());
     try {
         RIFF::File* riff = new RIFF::File(filename);
@@ -818,7 +827,7 @@ void Loader::thread_function()
 }
 
 Loader::Loader(const char* filename)
-    : filename(filename), thread(0), progress(0.f)
+    : filename(filename), gig(0), thread(0), progress(0.f)
 {
 }
 
@@ -829,7 +838,7 @@ void Loader::launch()
 #else
     thread = Glib::Threads::Thread::create(sigc::mem_fun(*this, &Loader::thread_function));
 #endif
-    printf("launch thread=%x\n", thread);
+    printf("launch thread=%p\n", static_cast<void*>(thread));
 }
 
 float Loader::get_progress()
@@ -874,7 +883,8 @@ void Saver::progress_callback(float fraction)
 
 void Saver::thread_function()
 {
-    printf("thread_function self=%x\n", Glib::Threads::Thread::self());
+    printf("thread_function self=%p\n",
+           static_cast<void*>(Glib::Threads::Thread::self()));
     printf("Start %s\n", filename.c_str());
     try {
         gig::progress_t progress;
@@ -911,7 +921,7 @@ void Saver::launch()
 #else
     thread = Glib::Threads::Thread::create(sigc::mem_fun(*this, &Saver::thread_function));
 #endif
-    printf("launch thread=%x\n", thread);
+    printf("launch thread=%p\n", static_cast<void*>(thread));
 }
 
 float Saver::get_progress()
@@ -1071,7 +1081,8 @@ void MainWindow::on_action_file_open()
     if (dialog.run() == Gtk::RESPONSE_OK) {
         std::string filename = dialog.get_filename();
         printf("filename=%s\n", filename.c_str());
-        printf("on_action_file_open self=%x\n", Glib::Threads::Thread::self());
+        printf("on_action_file_open self=%p\n",
+               static_cast<void*>(Glib::Threads::Thread::self()));
         load_file(filename.c_str());
         current_gig_dir = Glib::path_get_dirname(filename);
     }
@@ -1141,7 +1152,8 @@ void MainWindow::on_loader_progress()
 void MainWindow::on_loader_finished()
 {
     printf("Loader finished!\n");
-    printf("on_loader_finished self=%x\n", Glib::Threads::Thread::self());
+    printf("on_loader_finished self=%p\n",
+           static_cast<void*>(Glib::Threads::Thread::self()));
     load_gig(loader->gig, loader->filename.c_str());
     progress_dialog->hide();
 }
@@ -1333,7 +1345,7 @@ bool MainWindow::file_save_as()
 void MainWindow::__import_queued_samples() {
     std::cout << "Starting sample import\n" << std::flush;
     Glib::ustring error_files;
-    printf("Samples to import: %d\n", m_SampleImportQueue.size());
+    printf("Samples to import: %d\n", int(m_SampleImportQueue.size()));
     for (std::list<SampleImportItem>::iterator iter = m_SampleImportQueue.begin();
          iter != m_SampleImportQueue.end(); ) {
         printf("Importing sample %s\n",(*iter).sample_path.c_str());
@@ -2651,18 +2663,14 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
             try
             {
                 if (!hFile) throw std::string(_("could not open file"));
-                int bitdepth;
                 switch (info.format & 0xff) {
                     case SF_FORMAT_PCM_S8:
                     case SF_FORMAT_PCM_16:
                     case SF_FORMAT_PCM_U8:
-                        bitdepth = 16;
-                        break;
                     case SF_FORMAT_PCM_24:
                     case SF_FORMAT_PCM_32:
                     case SF_FORMAT_FLOAT:
                     case SF_FORMAT_DOUBLE:
-                        bitdepth = 24;
                         break;
                     default:
                         sf_close(hFile);
@@ -3293,7 +3301,8 @@ void MainWindow::on_action_merge_files() {
     descriptionArea.show_all();
 
     if (dialog.run() == Gtk::RESPONSE_OK) {
-        printf("on_action_merge_files self=%x\n", Glib::Threads::Thread::self());
+        printf("on_action_merge_files self=%p\n",
+               static_cast<void*>(Glib::Threads::Thread::self()));
         std::vector<std::string> filenames = dialog.get_filenames();
 
         // merge the selected files to the currently open .gig file

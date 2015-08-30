@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014 Christian Schoenebeck
+    Copyright (c) 2014-2015 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -97,7 +97,7 @@ inline int smallestOverlapPoint(const DLS::range_t& r1, const DLS::range_t& r2) 
  *          found with a range member point >= iStart
  */
 static int findLowestRegionPoint(std::vector<gig::Instrument*>& instruments, int iStart) {
-    DLS::range_t searchRange = { iStart, 127 };
+    DLS::range_t searchRange = { uint16_t(iStart), 127 };
     int result = -1;
     for (uint i = 0; i < instruments.size(); ++i) {
         gig::Instrument* instr = instruments[i];
@@ -119,7 +119,7 @@ static int findLowestRegionPoint(std::vector<gig::Instrument*>& instruments, int
  *          with a range end >= iStart
  */
 static int findFirstRegionEnd(std::vector<gig::Instrument*>& instruments, int iStart) {
-    DLS::range_t searchRange = { iStart, 127 };
+    DLS::range_t searchRange = { uint16_t(iStart), 127 };
     int result = -1;
     for (uint i = 0; i < instruments.size(); ++i) {
         gig::Instrument* instr = instruments[i];
@@ -195,7 +195,7 @@ static RegionGroups groupByRegionIntersections(std::vector<gig::Instrument*>& in
         iStart = findLowestRegionPoint(instruments, iStart);
         if (iStart < 0) break;
         const int iEnd = findFirstRegionEnd(instruments, iStart);
-        DLS::range_t range = { iStart, iEnd };
+        DLS::range_t range = { uint16_t(iStart), uint16_t(iEnd) };
         intersections.push_back(range);
         iStart = iEnd + 1;
     }
@@ -266,7 +266,7 @@ static Dimensions getDimensionsForRegionGroup(RegionGroup& regionGroup) {
              itNums != it->second.end(); ++itNums)
         {
             const int iUpperLimit = *itNums;
-            DLS::range_t range = { iLow, iUpperLimit };
+            DLS::range_t range = { uint16_t(iLow), uint16_t(iUpperLimit) };
             dims[type].push_back(range);
             iLow = iUpperLimit + 1;
         }
@@ -383,7 +383,7 @@ static DimensionZones preciseDimensionZonesFor(gig::dimension_t type, gig::Dimen
         gig::DimensionRegion* dimRgn2 =
             rgn->pDimensionRegions[ (iDimRgn & mask) | ( z << iBaseBits) ];
         int iHigh = dimRgn2->DimensionUpperLimits[iDimension];
-        DLS::range_t range = { iLow, iHigh};
+        DLS::range_t range = { uint16_t(iLow), uint16_t(iHigh) };
         #if DEBUG_COMBINE_INSTRUMENTS
         printf("%d..%d, ", iLow, iHigh);
         fflush(stdout);

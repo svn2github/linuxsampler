@@ -47,7 +47,7 @@ public:
     void update(gig::Instrument* instrument);
     gig::Region* first();
     gig::Region* next();
-    bool operator() (gig::Region* x, gig::Region* y) {
+    bool operator() (gig::Region* x, gig::Region* y) const {
         return x->KeyRange.low < y->KeyRange.low;
     }
 };

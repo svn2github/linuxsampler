@@ -55,7 +55,7 @@ gig::Region* SortedRegions::first() {
 }
 
 gig::Region* SortedRegions::next() {
-    region_iterator++;
+    ++region_iterator;
     return region_iterator == regions.end() ? 0 : *region_iterator;
 }
 
@@ -344,7 +344,6 @@ void RegionChooser::draw_regions(const Cairo::RefPtr<Cairo::Context>& cr,
         layout->set_spacing(10);
         Gdk::Cairo::set_source_rgba(cr, red);        
         // get the text dimensions
-        Pango::Rectangle rect = layout->get_logical_extents();
         int text_width, text_height;
         layout->get_pixel_size(text_width, text_height);
         cr->move_to(0, (REGION_BLOCK_HEIGHT - text_height) / 2);

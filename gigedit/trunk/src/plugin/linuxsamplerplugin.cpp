@@ -36,7 +36,7 @@ LinuxSamplerPlugin::LinuxSamplerPlugin() {
 }
 
 LinuxSamplerPlugin::~LinuxSamplerPlugin() {
-    if (pApp) delete (GigEdit*) pApp;
+    if (pApp) delete static_cast<GigEdit*>(pApp);
 }
 
 int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVersion, void* /*pUserData*/) {
@@ -46,7 +46,7 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
 int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVersion) {
     std::cout << "Entered Gigedit Main() loop :)\n" << std::flush;
     gig::Instrument* pGigInstr = static_cast<gig::Instrument*>(pInstrument);
-    GigEdit* app = (GigEdit*) pApp;
+    GigEdit* app = static_cast<GigEdit*>(pApp);
 
     // connect notification signals
     app->signal_file_structure_to_be_changed().connect(
@@ -142,7 +142,7 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
 
 bool LinuxSamplerPlugin::__onPollPeriod() {
     #if HAVE_LINUXSAMPLER_VIRTUAL_MIDI_DEVICE
-    GigEdit* app = (GigEdit*) pApp;
+    GigEdit* app = static_cast<GigEdit*>(pApp);
     if (!NotesChanged()) return true;
     for (int iKey = 0; iKey < 128; iKey++)
         if (NoteChanged(iKey))
@@ -160,7 +160,7 @@ void LinuxSamplerPlugin::__onSamplesToBeRemoved(std::list<gig::Sample*> lSamples
     std::set<void*> samples;
     for (
         std::list<gig::Sample*>::iterator iter = lSamples.begin();
-        iter != lSamples.end(); iter++
+        iter != lSamples.end(); ++iter
     ) samples.insert((void*)*iter);
     // finally send notification to sampler
     NotifySamplesToBeRemoved(samples);

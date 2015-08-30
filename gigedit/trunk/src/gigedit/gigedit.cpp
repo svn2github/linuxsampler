@@ -17,6 +17,14 @@
  * 02110-1301 USA.
  */
 
+#include <glibmmconfig.h>
+// threads.h must be included first to be able to build with
+// G_DISABLE_DEPRECATED
+#if (GLIBMM_MAJOR_VERSION == 2 && GLIBMM_MINOR_VERSION == 31 && GLIBMM_MICRO_VERSION >= 2) || \
+    (GLIBMM_MAJOR_VERSION == 2 && GLIBMM_MINOR_VERSION > 31) || GLIBMM_MAJOR_VERSION > 2
+#include <glibmm/threads.h>
+#endif
+
 #include "gigedit.h"
 
 #include <glibmm/dispatcher.h>
@@ -39,7 +47,7 @@
 #endif
 
 //TODO: (hopefully) just a temporary nasty hack for launching gigedit on the main thread on Mac (see comments below in this file for details)
-#if defined(__APPLE__) // the following global external variables are defined in LinuxSampler's global_private.cpp ...
+#if defined(__APPLE__) && HAVE_LINUXSAMPLER // the following global external variables are defined in LinuxSampler's global_private.cpp ...
 extern bool g_mainThreadCallbackSupported;
 extern void (*g_mainThreadCallback)(void* info);
 extern void* g_mainThreadCallbackInfo;
@@ -58,7 +66,8 @@ namespace {
 //
 class GigEditState : public sigc::trackable {
 public:
-    GigEditState(GigEdit* parent) : parent(parent), instrument(NULL) { }
+    GigEditState(GigEdit* parent) :
+        window(0), parent(parent), instrument(0) { }
     void run(gig::Instrument* pInstrument);
 
     MainWindow* window;
@@ -280,13 +289,13 @@ int GigEdit::run(gig::Instrument* pInstrument) {
 
 void GigEdit::on_note_on_event(int key, int velocity) {
     if (!this->state) return;
-    GigEditState* state = (GigEditState*) this->state;
+    GigEditState* state = static_cast<GigEditState*>(this->state);
     state->window->signal_note_on().emit(key, velocity);
 }
 
 void GigEdit::on_note_off_event(int key, int velocity) {
     if (!this->state) return;
-    GigEditState* state = (GigEditState*) this->state;
+    GigEditState* state = static_cast<GigEditState*>(this->state);
     state->window->signal_note_off().emit(key, velocity);
 }
 
@@ -410,7 +419,7 @@ void GigEditState::run(gig::Instrument* pInstrument) {
     static bool main_loop_started = false;
     instrument = pInstrument;
     if (!main_loop_started) {
-#if defined(__APPLE__)
+#if defined(__APPLE__) && HAVE_LINUXSAMPLER
         // spawn GUI on main thread :
         //     On OS X the Gtk GUI can only be launched on a process's "main"
         //     thread. When trying to launch the Gtk GUI on any other thread,

@@ -1,3 +1,9 @@
+Version SVN HEAD (?)
+
+  * allow building with G_DISABLE_DEPRECATED
+  * fixed building without linuxsampler on Mac
+  * fixed some compiler and cppcheck warnings
+
 Version 1.0.0 (2015-07-17)
 
   * minor fix in configure for cross-compiling

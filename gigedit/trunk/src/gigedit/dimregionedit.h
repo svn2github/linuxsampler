@@ -280,7 +280,7 @@ protected:
                   sigc::slot<void, DimRegionEdit*, gig::DimensionRegion*, T> setter) {
         if (update_model == 0) {
             for (std::set<gig::DimensionRegion*>::iterator i = dimregs.begin() ;
-                 i != dimregs.end() ; i++)
+                 i != dimregs.end() ; ++i)
             {
                 dimreg_changed_signal(*i);
                 setter(this, *i, value);

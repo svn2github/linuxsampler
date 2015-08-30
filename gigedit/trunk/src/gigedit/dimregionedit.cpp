@@ -1508,8 +1508,8 @@ void DimRegionEdit::nullOutSampleReference() {
     gig::DimensionRegion* d[2] = { dimregion, NULL };
     if (oldref->Channels == 2) {
         gig::Region* region = dimregion->GetParent();
-        int stereo_bit = 0;
         {
+            int stereo_bit = 0;
             int bitcount = 0;
             for (int dim = 0 ; dim < region->Dimensions ; dim++) {
                 if (region->pDimensionDefinitions[dim].dimension == gig::dimension_samplechannel) {

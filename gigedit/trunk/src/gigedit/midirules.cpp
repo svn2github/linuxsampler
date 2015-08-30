@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2013-2014 Andreas Persson
+ * Copyright (C) 2013-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -25,8 +25,8 @@
 
 MidiRules::MidiRules() :
     label(_("Midi rule:")),
-    unknown(_("unknown")),
-    quit_button(Gtk::Stock::CLOSE)
+    quit_button(Gtk::Stock::CLOSE),
+    unknown(_("unknown"))
 {
     set_title(_("Midi Rules"));
     set_border_width(6);
@@ -470,7 +470,6 @@ void MidiRuleCtrlTrigger::row_changed(const Gtk::TreeModel::Path& path,
 void MidiRuleCtrlTrigger::row_inserted(const Gtk::TreeModel::Path& path,
                                        const Gtk::TreeModel::iterator& iter) {
     if (update_model) return;
-    Gtk::TreeModel::Row row = *iter;
     int i = m->Triggers++;
     m->pTriggers[i].TriggerPoint = 64;
     m->pTriggers[i].Descending = false;

@@ -87,7 +87,7 @@ protected:
     Gtk::SpinButton spinbutton;
     Gtk::HBox box;
 
-    int round_to_int(double x) {
+    static int round_to_int(double x) {
         return int(x < 0.0 ? x - 0.5 : x + 0.5);
     }
 public:
@@ -449,7 +449,7 @@ private:
 
     void get_key_range(NoteEntry* eKeyRangeLow,
                        NoteEntry* eKeyRangeHigh,
-                       gig::range_t M::* range) {
+                       gig::range_t M::* range) const {
         eKeyRangeLow->set_value((m->*range).low);
         eKeyRangeHigh->set_value((m->*range).high);
     }
