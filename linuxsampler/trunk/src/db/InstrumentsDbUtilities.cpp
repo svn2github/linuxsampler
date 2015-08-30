@@ -251,7 +251,11 @@ namespace LinuxSampler {
     }
 
     StringListPtr DirectoryFinder::GetDirectories() {
+#if __cplusplus >= 201103L
+        return std::move(pDirectories);
+#else
         return pDirectories;
+#endif
     }
     
     void DirectoryFinder::ProcessDirectory(String Path, int DirId) {
@@ -364,7 +368,11 @@ namespace LinuxSampler {
     }
 
     StringListPtr InstrumentFinder::GetInstruments() {
+#if __cplusplus >= 201103L
+        return std::move(pInstruments);
+#else
         return pInstruments;
+#endif
     }
 
     void DirectoryCounter::ProcessDirectory(String Path, int DirId) {

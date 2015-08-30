@@ -104,8 +104,13 @@ namespace LinuxSampler {
         FLAT = 2
     };
 
+#if __cplusplus >= 201103L
+    typedef std::unique_ptr<std::vector<int>> IntListPtr;
+    typedef std::unique_ptr<std::vector<String>> StringListPtr;
+#else
     typedef std::auto_ptr<std::vector<int> > IntListPtr;
     typedef std::auto_ptr<std::vector<String> > StringListPtr;
+#endif
 
     class ScanJob {
         public:
