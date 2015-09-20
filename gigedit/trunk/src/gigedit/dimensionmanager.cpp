@@ -27,7 +27,6 @@
 
 #include "dimensionmanager.h"
 
-#include <gtkmm/stock.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/dialog.h>
 #include <gtkmm/comboboxtext.h>
@@ -244,8 +243,9 @@ void IntSetCellRenderer::valueChanged() {
 }
 
 DimensionManager::DimensionManager() :
-addButton(Gtk::Stock::ADD), removeButton(Gtk::Stock::REMOVE),
-allRegionsCheckBox(_("All Regions"))
+    addButton(_("_Add"), true),
+    removeButton(_("_Remove"), true),
+    allRegionsCheckBox(_("All Regions"))
 {
     ignoreColumnClicked = true;
 
@@ -431,8 +431,8 @@ void DimensionManager::onColumnClicked() {
         table.attach(comboDimType, 1, 2, 0, 1);
         dialog.get_vbox()->pack_start(table);
 
-        dialog.add_button(Gtk::Stock::OK, 0);
-        dialog.add_button(Gtk::Stock::CANCEL, 1);
+        dialog.add_button(_("_OK"), 0);
+        dialog.add_button(_("_Cancel"), 1);
         dialog.show_all_children();
         
         comboDimType.set_active(oldTypeIndex);
@@ -561,8 +561,8 @@ void DimensionManager::addDimension() {
         table.attach(spinZones, 1, 2, 1, 2);
     }
 
-    dialog.add_button(Gtk::Stock::OK, 0);
-    dialog.add_button(Gtk::Stock::CANCEL, 1);
+    dialog.add_button(_("_OK"), 0);
+    dialog.add_button(_("_Cancel"), 1);
     dialog.show_all_children();
 
     if (!dialog.run()) { // OK selected ...

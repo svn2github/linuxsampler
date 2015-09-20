@@ -32,7 +32,8 @@ static bool isEvent(const Glib::ustring& s) {
 }
 
 ScriptEditor::ScriptEditor() :
-    m_applyButton(Gtk::Stock::APPLY), m_cancelButton(Gtk::Stock::CANCEL)
+    m_applyButton(_("_Apply"), true),
+    m_cancelButton(_("_Cancel"), true)
 {
     m_script = NULL;
 

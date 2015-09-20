@@ -23,7 +23,6 @@
 #include <gdkmm/cursor.h>
 #include <gdkmm/general.h>
 #include <glibmm/stringutils.h>
-#include <gtkmm/stock.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/messagedialog.h>
 

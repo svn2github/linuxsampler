@@ -1,4 +1,4 @@
-/*                                                         -*- c++ -*-
+/*
  * Copyright (C) 2013-2015 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
@@ -19,13 +19,15 @@
 
 #include "midirules.h"
 
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
 #include <gtkmm/stock.h>
+#endif
 
 #include "global.h"
 
 MidiRules::MidiRules() :
     label(_("Midi rule:")),
-    quit_button(Gtk::Stock::CLOSE),
+    quit_button(_("_Close"), true),
     unknown(_("unknown"))
 {
     set_title(_("Midi Rules"));

@@ -9,7 +9,7 @@
 #include "global.h"
 
 ScriptSlots::ScriptSlots() :
-    m_closeButton(Gtk::Stock::CLOSE)
+    m_closeButton(_("_Close"), true)
 {
     m_instrument = NULL;
 
@@ -124,9 +124,9 @@ void ScriptSlots::appendNewSlot(gig::Script* script) {
     row.id = slotID++;
     row.hbox = new Gtk::HBox;
     row.label = new Gtk::Label;
-    row.downButton = new Gtk::Button(Gtk::Stock::GO_DOWN);
-    row.upButton = new Gtk::Button(Gtk::Stock::GO_UP);
-    row.deleteButton = new Gtk::Button(Gtk::Stock::DELETE);
+    row.downButton = new Gtk::Button(_("_Down"), true);
+    row.upButton = new Gtk::Button(_("_Up"), true);
+    row.deleteButton = new Gtk::Button(_("_Delete"), true);
     row.script = script;
 
     row.hbox->pack_start(*row.label);

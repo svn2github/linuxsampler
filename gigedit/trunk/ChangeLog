@@ -3,6 +3,7 @@ Version SVN HEAD (?)
   * allow building with G/GDK/GTK_DISABLE_DEPRECATED
   * fixed building without linuxsampler on Mac
   * fixed some compiler and cppcheck warnings
+  * avoid using gtk stock items, as they are deprecated in gtk 3.10
 
 Version 1.0.0 (2015-07-17)
 
