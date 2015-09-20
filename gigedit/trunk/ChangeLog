@@ -1,6 +1,6 @@
 Version SVN HEAD (?)
 
-  * allow building with G_DISABLE_DEPRECATED
+  * allow building with G/GDK/GTK_DISABLE_DEPRECATED
   * fixed building without linuxsampler on Mac
   * fixed some compiler and cppcheck warnings
 

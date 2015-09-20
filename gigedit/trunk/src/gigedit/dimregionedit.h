@@ -23,6 +23,7 @@
 #include <gig.h>
 
 #include <cairomm/context.h>
+#include <gtkmm/box.h>
 #include <gtkmm/drawingarea.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/label.h>

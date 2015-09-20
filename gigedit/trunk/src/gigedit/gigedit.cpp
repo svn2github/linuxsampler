@@ -27,6 +27,10 @@
 
 #include "gigedit.h"
 
+#include <gtkmmconfig.h>
+#if GTKMM_MAJOR_VERSION < 3
+#include <gdkmm/region.h>
+#endif
 #include <glibmm/dispatcher.h>
 #include <glibmm/main.h>
 #include <gtkmm/main.h>

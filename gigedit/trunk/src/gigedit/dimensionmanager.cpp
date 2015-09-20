@@ -17,6 +17,14 @@
  * 02110-1301 USA.
  */
 
+#include <glibmmconfig.h>
+// threads.h must be included first to be able to build with
+// G_DISABLE_DEPRECATED
+#if (GLIBMM_MAJOR_VERSION == 2 && GLIBMM_MINOR_VERSION == 31 && GLIBMM_MICRO_VERSION >= 2) || \
+    (GLIBMM_MAJOR_VERSION == 2 && GLIBMM_MINOR_VERSION > 31) || GLIBMM_MAJOR_VERSION > 2
+#include <glibmm/threads.h>
+#endif
+
 #include "dimensionmanager.h"
 
 #include <gtkmm/stock.h>

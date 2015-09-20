@@ -22,6 +22,7 @@
 
 #include <vector>
 
+#include <gtkmm/box.h>
 #include <gtkmm/drawingarea.h>
 #include <gtkmm/uimanager.h>
 #include <gdkmm/window.h>

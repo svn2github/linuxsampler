@@ -17,6 +17,7 @@
  * 02110-1301 USA.
  */
 
+#include <gtkmm/box.h>
 #include "dimregionchooser.h"
 #include <cairomm/context.h>
 #include <gdkmm/cursor.h>

@@ -21,6 +21,7 @@
 #define GIGEDIT_DIMENSIONMANAGER_H
 
 #include <glibmm/property.h>
+#include <gtkmm/box.h>
 #include <gtkmm/window.h>
 #include <gtkmm/layout.h>
 #include <gtkmm/button.h>

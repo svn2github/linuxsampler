@@ -22,6 +22,7 @@
 
 #include <gig.h>
 
+#include <gtkmm/box.h>
 #include <gtkmm/actiongroup.h>
 #include <gtkmm/buttonbox.h>
 #include <gtkmm/dialog.h>

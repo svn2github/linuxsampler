@@ -25,9 +25,9 @@
 #include <cmath>
 
 #include <glibmm/convert.h>
+#include <gtkmm/box.h>
 #include <gtkmm/adjustment.h>
 #include <gtkmm/alignment.h>
-#include <gtkmm/box.h>
 #include <gtkmm/checkbutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/frame.h>
