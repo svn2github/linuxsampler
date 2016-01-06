@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2008 Anders Dahnielson <anders@dahnielson.com>          *
- *   Copyright (C) 2009 - 2013 Anders Dahnielson and Grigor Iliev          *
+ *   Copyright (C) 2009 - 2016 Anders Dahnielson and Grigor Iliev          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,6 +27,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <stack>
 #include <string>
 #include <stdexcept>
 
@@ -727,25 +728,25 @@ namespace sfz
     };
 
     /////////////////////////////////////////////////////////////
-    // class Group
-
-    /// A Group act just as a template containing Region default values
-    class Group :
+    // class ContainerDefinition
+    
+    ///A ContainerDefinition is any section of the SFZ files that contains other Definitions (global, master, and group).
+    class ContainerDefinition :
         public Definition
     {
     public:
-        Group();
-        virtual ~Group();
-
-        /// Reset Group to default values
+        enum section_type {GROUP = 0, MASTER, GLOBAL};
+        
+        ContainerDefinition(section_type type);
+        virtual ~ContainerDefinition();
+        
+        /// Reset all properties to default values
         void Reset();
-
-        /// Create a new Region
-        Region* RegionFactory();
-
-        // id counter
-        int id;
-
+        
+        /// Copy all properties of this object to another Definition
+        void CopyValuesToDefinition(Definition* definition);
+        
+        section_type level;
     };
 
     /////////////////////////////////////////////////////////////
@@ -784,12 +785,18 @@ namespace sfz
         Instrument* _instrument;
 
         // state variables
-        enum section_t { UNKNOWN, GROUP, REGION, CONTROL, CURVE };
+        enum section_t { UNKNOWN, REGION, GROUP, MASTER, GLOBAL, CONTROL, CURVE };
         section_t _current_section;
         Region* _current_region;
-        Group* _current_group;
+        std::stack<ContainerDefinition*> _current_containers;
+        
+        static const std::string MACRO_NAME_CHARS;
+        static const std::string MACRO_VALUE_CHARS;
+        std::map<std::string, std::string> _defined_macros;
+        
         Curve* _current_curve;
         Definition* pCurDef;
+        int id;
 
         // control header directives
         std::string default_path;

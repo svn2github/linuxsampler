@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003-2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2015 Christian Schoenebeck                         *
+ *   Copyright (C) 2005-2016 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
 
     dmsg(1,("LinuxSampler %s\n", VERSION));
     dmsg(1,("Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck\n"));
-    dmsg(1,("Copyright (C) 2005-2015 Christian Schoenebeck\n"));
+    dmsg(1,("Copyright (C) 2005-2016 Christian Schoenebeck\n"));
 
     #if defined(WIN32)
     #if 0

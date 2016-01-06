@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2008 Anders Dahnielson <anders@dahnielson.com>          *
- *   Copyright (C) 2009 - 2013 Anders Dahnielson and Grigor Iliev          *
+ *   Copyright (C) 2009 - 2016 Anders Dahnielson and Grigor Iliev          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -256,20 +256,20 @@ namespace sfz
     }
 
     /////////////////////////////////////////////////////////////
-    // class Group
+    // class ContainerDefinition
 
-    Group::Group() :
-        id(0)
+    ContainerDefinition::ContainerDefinition(section_type type)
     {
         Reset();
+        level = type;
     }
 
-    Group::~Group()
+    ContainerDefinition::~ContainerDefinition()
     {
     }
 
     void
-    Group::Reset()
+    ContainerDefinition::Reset()
     {
         // This is where all the default values are set.
 
@@ -558,322 +558,320 @@ namespace sfz
         pitchlfo_freqcc.clear();
     }
 
-    Region*
-    Group::RegionFactory()
+    void ContainerDefinition::CopyValuesToDefinition(Definition* definition)
     {
-        // This is where the current group setting are copied to the new region.
-
-        Region* region = new Region();
-
-        region->id = id++;
+        // This is where the current settings are copied to the new definition.
 
         // sample definition
-        region->sample = sample;
+        definition->sample = sample;
 
         // input control
-        region->lochan = lochan;
-        region->hichan = hichan;
-        region->lokey = lokey;
-        region->hikey = hikey;
-        region->lovel = lovel;
-        region->hivel = hivel;
-        region->locc = locc;
-        region->hicc = hicc;
-        region->lobend = lobend;
-        region->hibend = hibend;
-        region->lobpm = lobpm;
-        region->hibpm = hibpm;
-        region->lochanaft = lochanaft;
-        region->hichanaft = hichanaft;
-        region->lopolyaft = lopolyaft;
-        region->hipolyaft = hipolyaft;
-        region->loprog = loprog;
-        region->hiprog = hiprog;
-        region->lorand = lorand;
-        region->hirand = hirand;
-        region->lotimer = lotimer;
-        region->hitimer = hitimer;
-        region->seq_length = seq_length;
-        region->seq_position = seq_position;
-        region->start_locc = start_locc;
-        region->start_hicc = start_hicc;
-        region->stop_locc = stop_locc;
-        region->stop_hicc = stop_hicc;
-        region->sw_lokey = sw_lokey;
-        region->sw_hikey = sw_hikey;
-        region->sw_last = sw_last;
-        region->sw_down = sw_down;
-        region->sw_up = sw_up;
-        region->sw_previous = sw_previous;
-        region->sw_vel = sw_vel;
-        region->trigger = trigger;
-        region->group = group;
-        region->off_by = off_by;
-        region->off_mode = off_mode;
-        region->on_locc = on_locc;
-        region->on_hicc = on_hicc;
+        definition->lochan = lochan;
+        definition->hichan = hichan;
+        definition->lokey = lokey;
+        definition->hikey = hikey;
+        definition->lovel = lovel;
+        definition->hivel = hivel;
+        definition->locc = locc;
+        definition->hicc = hicc;
+        definition->lobend = lobend;
+        definition->hibend = hibend;
+        definition->lobpm = lobpm;
+        definition->hibpm = hibpm;
+        definition->lochanaft = lochanaft;
+        definition->hichanaft = hichanaft;
+        definition->lopolyaft = lopolyaft;
+        definition->hipolyaft = hipolyaft;
+        definition->loprog = loprog;
+        definition->hiprog = hiprog;
+        definition->lorand = lorand;
+        definition->hirand = hirand;
+        definition->lotimer = lotimer;
+        definition->hitimer = hitimer;
+        definition->seq_length = seq_length;
+        definition->seq_position = seq_position;
+        definition->start_locc = start_locc;
+        definition->start_hicc = start_hicc;
+        definition->stop_locc = stop_locc;
+        definition->stop_hicc = stop_hicc;
+        definition->sw_lokey = sw_lokey;
+        definition->sw_hikey = sw_hikey;
+        definition->sw_last = sw_last;
+        definition->sw_down = sw_down;
+        definition->sw_up = sw_up;
+        definition->sw_previous = sw_previous;
+        definition->sw_vel = sw_vel;
+        definition->trigger = trigger;
+        definition->group = group;
+        definition->off_by = off_by;
+        definition->off_mode = off_mode;
+        definition->on_locc = on_locc;
+        definition->on_hicc = on_hicc;
 
         // sample player
-        region->count = count;
-        region->delay = delay;
-        region->delay_random = delay_random;
-        region->delay_oncc = delay_oncc;
-        region->delay_beats = delay_beats;
-        region->stop_beats = stop_beats;
-        region->delay_samples = delay_samples;
-        region->delay_samples_oncc = delay_samples_oncc;
-        region->end = end;
-        region->loop_crossfade = loop_crossfade;
-        region->offset = offset;
-        region->offset_random = offset_random;
-        region->offset_oncc = offset_oncc;
-        region->loop_mode = loop_mode;
-        region->loop_start = loop_start;
-        region->loop_end = loop_end;
-        region->sync_beats = sync_beats;
-        region->sync_offset = sync_offset;
+        definition->count = count;
+        definition->delay = delay;
+        definition->delay_random = delay_random;
+        definition->delay_oncc = delay_oncc;
+        definition->delay_beats = delay_beats;
+        definition->stop_beats = stop_beats;
+        definition->delay_samples = delay_samples;
+        definition->delay_samples_oncc = delay_samples_oncc;
+        definition->end = end;
+        definition->loop_crossfade = loop_crossfade;
+        definition->offset = offset;
+        definition->offset_random = offset_random;
+        definition->offset_oncc = offset_oncc;
+        definition->loop_mode = loop_mode;
+        definition->loop_start = loop_start;
+        definition->loop_end = loop_end;
+        definition->sync_beats = sync_beats;
+        definition->sync_offset = sync_offset;
 
         // amplifier
-        region->volume = volume;
-        region->volume_oncc = volume_oncc;
-        region->volume_curvecc = volume_curvecc;
-        region->volume_smoothcc = volume_smoothcc;
-        region->volume_stepcc = volume_stepcc;
-        region->amplitude = amplitude;
-        region->pan = pan;
-        region->pan_oncc = pan_oncc;
-        region->pan_curvecc = pan_curvecc;
-        region->pan_smoothcc = pan_smoothcc;
-        region->pan_stepcc = pan_stepcc;
-        region->width = width;
-        region->position = position;
-        region->amp_keytrack = amp_keytrack;
-        region->amp_keycenter = amp_keycenter;
-        region->amp_veltrack = amp_veltrack;
-        region->amp_velcurve = amp_velcurve;
-        region->amp_random = amp_random;
-        region->rt_decay = rt_decay;
-        region->gain_oncc = gain_oncc;
-        region->xfin_lokey = xfin_lokey;
-        region->xfin_hikey = xfin_hikey;
-        region->xfout_lokey = xfout_lokey;
-        region->xfout_hikey = xfout_hikey;
-        region->xf_keycurve = xf_keycurve;
-        region->xfin_lovel = xfin_lovel;
-        region->xfin_hivel = xfin_lovel;
-        region->xfout_lovel = xfout_lovel;
-        region->xfout_hivel = xfout_hivel;
-        region->xf_velcurve = xf_velcurve;
-        region->xfin_locc = xfin_locc;
-        region->xfin_hicc = xfin_hicc;
-        region->xfout_locc = xfout_locc;
-        region->xfout_hicc = xfout_hicc;
-        region->xf_cccurve = xf_cccurve;
+        definition->volume = volume;
+        definition->volume_oncc = volume_oncc;
+        definition->volume_curvecc = volume_curvecc;
+        definition->volume_smoothcc = volume_smoothcc;
+        definition->volume_stepcc = volume_stepcc;
+        definition->amplitude = amplitude;
+        definition->pan = pan;
+        definition->pan_oncc = pan_oncc;
+        definition->pan_curvecc = pan_curvecc;
+        definition->pan_smoothcc = pan_smoothcc;
+        definition->pan_stepcc = pan_stepcc;
+        definition->width = width;
+        definition->position = position;
+        definition->amp_keytrack = amp_keytrack;
+        definition->amp_keycenter = amp_keycenter;
+        definition->amp_veltrack = amp_veltrack;
+        definition->amp_velcurve = amp_velcurve;
+        definition->amp_random = amp_random;
+        definition->rt_decay = rt_decay;
+        definition->gain_oncc = gain_oncc;
+        definition->xfin_lokey = xfin_lokey;
+        definition->xfin_hikey = xfin_hikey;
+        definition->xfout_lokey = xfout_lokey;
+        definition->xfout_hikey = xfout_hikey;
+        definition->xf_keycurve = xf_keycurve;
+        definition->xfin_lovel = xfin_lovel;
+        definition->xfin_hivel = xfin_lovel;
+        definition->xfout_lovel = xfout_lovel;
+        definition->xfout_hivel = xfout_hivel;
+        definition->xf_velcurve = xf_velcurve;
+        definition->xfin_locc = xfin_locc;
+        definition->xfin_hicc = xfin_hicc;
+        definition->xfout_locc = xfout_locc;
+        definition->xfout_hicc = xfout_hicc;
+        definition->xf_cccurve = xf_cccurve;
 
         // pitch
-        region->transpose = transpose;
-        region->tune = tune;
-        region->pitch_keycenter = pitch_keycenter;
-        region->pitch_keytrack = pitch_keytrack;
-        region->pitch_veltrack = pitch_veltrack;
-        region->pitch_random = pitch_random;
-        region->bend_up = bend_up;
-        region->bend_down = bend_down;
-        region->bend_step = bend_step;
+        definition->transpose = transpose;
+        definition->tune = tune;
+        definition->pitch_keycenter = pitch_keycenter;
+        definition->pitch_keytrack = pitch_keytrack;
+        definition->pitch_veltrack = pitch_veltrack;
+        definition->pitch_random = pitch_random;
+        definition->bend_up = bend_up;
+        definition->bend_down = bend_down;
+        definition->bend_step = bend_step;
         
-        region->pitch_oncc     = pitch_oncc;
-        region->pitch_smoothcc = pitch_smoothcc;
-        region->pitch_curvecc  = pitch_curvecc;
-        region->pitch_stepcc   = pitch_stepcc;
+        definition->pitch_oncc     = pitch_oncc;
+        definition->pitch_smoothcc = pitch_smoothcc;
+        definition->pitch_curvecc  = pitch_curvecc;
+        definition->pitch_stepcc   = pitch_stepcc;
 
         // filter
-        region->fil_type = fil_type;
-        region->cutoff = cutoff;
-        region->cutoff_oncc = cutoff_oncc;
-        region->cutoff_smoothcc = cutoff_smoothcc;
-        region->cutoff_stepcc = cutoff_stepcc;
-        region->cutoff_curvecc = cutoff_curvecc;
-        region->cutoff_chanaft = cutoff_chanaft;
-        region->cutoff_polyaft = cutoff_polyaft;
-        region->resonance = resonance;
-        region->resonance_oncc = resonance_oncc;
-        region->resonance_smoothcc = resonance_smoothcc;
-        region->resonance_stepcc = resonance_stepcc;
-        region->resonance_curvecc = resonance_curvecc;
-        region->fil_keytrack = fil_keytrack;
-        region->fil_keycenter = fil_keycenter;
-        region->fil_veltrack = fil_veltrack;
-        region->fil_random = fil_random;
+        definition->fil_type = fil_type;
+        definition->cutoff = cutoff;
+        definition->cutoff_oncc = cutoff_oncc;
+        definition->cutoff_smoothcc = cutoff_smoothcc;
+        definition->cutoff_stepcc = cutoff_stepcc;
+        definition->cutoff_curvecc = cutoff_curvecc;
+        definition->cutoff_chanaft = cutoff_chanaft;
+        definition->cutoff_polyaft = cutoff_polyaft;
+        definition->resonance = resonance;
+        definition->resonance_oncc = resonance_oncc;
+        definition->resonance_smoothcc = resonance_smoothcc;
+        definition->resonance_stepcc = resonance_stepcc;
+        definition->resonance_curvecc = resonance_curvecc;
+        definition->fil_keytrack = fil_keytrack;
+        definition->fil_keycenter = fil_keycenter;
+        definition->fil_veltrack = fil_veltrack;
+        definition->fil_random = fil_random;
 
-        region->fil2_type = fil2_type;
-        region->cutoff2 = cutoff2;
-        region->cutoff2_oncc = cutoff2_oncc;
-        region->cutoff2_smoothcc = cutoff2_smoothcc;
-        region->cutoff2_stepcc = cutoff2_stepcc;
-        region->cutoff2_curvecc = cutoff2_curvecc;
-        region->cutoff2_chanaft = cutoff2_chanaft;
-        region->cutoff2_polyaft = cutoff2_polyaft;
-        region->resonance2 = resonance2;
-        region->resonance2_oncc = resonance2_oncc;
-        region->resonance2_smoothcc = resonance2_smoothcc;
-        region->resonance2_stepcc = resonance2_stepcc;
-        region->resonance2_curvecc = resonance2_curvecc;
-        region->fil2_keytrack = fil2_keytrack;
-        region->fil2_keycenter = fil2_keycenter;
-        region->fil2_veltrack = fil2_veltrack;
-        region->fil2_random = fil2_random;
+        definition->fil2_type = fil2_type;
+        definition->cutoff2 = cutoff2;
+        definition->cutoff2_oncc = cutoff2_oncc;
+        definition->cutoff2_smoothcc = cutoff2_smoothcc;
+        definition->cutoff2_stepcc = cutoff2_stepcc;
+        definition->cutoff2_curvecc = cutoff2_curvecc;
+        definition->cutoff2_chanaft = cutoff2_chanaft;
+        definition->cutoff2_polyaft = cutoff2_polyaft;
+        definition->resonance2 = resonance2;
+        definition->resonance2_oncc = resonance2_oncc;
+        definition->resonance2_smoothcc = resonance2_smoothcc;
+        definition->resonance2_stepcc = resonance2_stepcc;
+        definition->resonance2_curvecc = resonance2_curvecc;
+        definition->fil2_keytrack = fil2_keytrack;
+        definition->fil2_keycenter = fil2_keycenter;
+        definition->fil2_veltrack = fil2_veltrack;
+        definition->fil2_random = fil2_random;
 
         // per voice equalizer
-        region->eq1_freq = eq1_freq;
-        region->eq2_freq = eq2_freq;
-        region->eq3_freq = eq3_freq;
-        region->eq1_freq_oncc = eq1_freq_oncc;
-        region->eq2_freq_oncc = eq2_freq_oncc;
-        region->eq3_freq_oncc = eq3_freq_oncc;
-        region->eq1_vel2freq = eq1_vel2freq;
-        region->eq2_vel2freq = eq2_vel2freq;
-        region->eq3_vel2freq = eq3_vel2freq;
-        region->eq1_bw = eq1_bw;
-        region->eq2_bw = eq2_bw;
-        region->eq3_bw = eq3_bw;
-        region->eq1_bw_oncc = eq1_bw_oncc;
-        region->eq2_bw_oncc = eq2_bw_oncc;
-        region->eq3_bw_oncc = eq3_bw_oncc;
-        region->eq1_gain = eq1_gain;
-        region->eq2_gain = eq2_gain;
-        region->eq3_gain = eq3_gain;
-        region->eq1_gain_oncc = eq1_gain_oncc;
-        region->eq2_gain_oncc = eq2_gain_oncc;
-        region->eq3_gain_oncc = eq3_gain_oncc;
-        region->eq1_vel2gain = eq1_vel2gain;
-        region->eq2_vel2gain = eq2_vel2gain;
-        region->eq3_vel2gain = eq3_vel2gain;
+        definition->eq1_freq = eq1_freq;
+        definition->eq2_freq = eq2_freq;
+        definition->eq3_freq = eq3_freq;
+        definition->eq1_freq_oncc = eq1_freq_oncc;
+        definition->eq2_freq_oncc = eq2_freq_oncc;
+        definition->eq3_freq_oncc = eq3_freq_oncc;
+        definition->eq1_vel2freq = eq1_vel2freq;
+        definition->eq2_vel2freq = eq2_vel2freq;
+        definition->eq3_vel2freq = eq3_vel2freq;
+        definition->eq1_bw = eq1_bw;
+        definition->eq2_bw = eq2_bw;
+        definition->eq3_bw = eq3_bw;
+        definition->eq1_bw_oncc = eq1_bw_oncc;
+        definition->eq2_bw_oncc = eq2_bw_oncc;
+        definition->eq3_bw_oncc = eq3_bw_oncc;
+        definition->eq1_gain = eq1_gain;
+        definition->eq2_gain = eq2_gain;
+        definition->eq3_gain = eq3_gain;
+        definition->eq1_gain_oncc = eq1_gain_oncc;
+        definition->eq2_gain_oncc = eq2_gain_oncc;
+        definition->eq3_gain_oncc = eq3_gain_oncc;
+        definition->eq1_vel2gain = eq1_vel2gain;
+        definition->eq2_vel2gain = eq2_vel2gain;
+        definition->eq3_vel2gain = eq3_vel2gain;
 
         // envelope generator
-        region->eg = eg;
+        definition->eg = eg;
 
         // deprecated
-        region->ampeg_delay    = ampeg_delay;
-        region->ampeg_start    = ampeg_start;
-        region->ampeg_attack   = ampeg_attack;
-        region->ampeg_hold     = ampeg_hold;
-        region->ampeg_decay    = ampeg_decay;
-        region->ampeg_sustain  = ampeg_sustain;
-        region->ampeg_release  = ampeg_release;
+        definition->ampeg_delay    = ampeg_delay;
+        definition->ampeg_start    = ampeg_start;
+        definition->ampeg_attack   = ampeg_attack;
+        definition->ampeg_hold     = ampeg_hold;
+        definition->ampeg_decay    = ampeg_decay;
+        definition->ampeg_sustain  = ampeg_sustain;
+        definition->ampeg_release  = ampeg_release;
 
-        region->ampeg_vel2delay   = ampeg_vel2delay;
-        region->ampeg_vel2attack  = ampeg_vel2attack;
-        region->ampeg_vel2hold    = ampeg_vel2hold;
-        region->ampeg_vel2decay   = ampeg_vel2decay;
-        region->ampeg_vel2sustain = ampeg_vel2sustain;
-        region->ampeg_vel2release = ampeg_vel2release;
+        definition->ampeg_vel2delay   = ampeg_vel2delay;
+        definition->ampeg_vel2attack  = ampeg_vel2attack;
+        definition->ampeg_vel2hold    = ampeg_vel2hold;
+        definition->ampeg_vel2decay   = ampeg_vel2decay;
+        definition->ampeg_vel2sustain = ampeg_vel2sustain;
+        definition->ampeg_vel2release = ampeg_vel2release;
         
-        region->ampeg_delaycc   = ampeg_delaycc;
-        region->ampeg_startcc   = ampeg_startcc;
-        region->ampeg_attackcc  = ampeg_attackcc;
-        region->ampeg_holdcc    = ampeg_holdcc;
-        region->ampeg_decaycc   = ampeg_decaycc;
-        region->ampeg_sustaincc = ampeg_sustaincc;
-        region->ampeg_releasecc = ampeg_releasecc;
+        definition->ampeg_delaycc   = ampeg_delaycc;
+        definition->ampeg_startcc   = ampeg_startcc;
+        definition->ampeg_attackcc  = ampeg_attackcc;
+        definition->ampeg_holdcc    = ampeg_holdcc;
+        definition->ampeg_decaycc   = ampeg_decaycc;
+        definition->ampeg_sustaincc = ampeg_sustaincc;
+        definition->ampeg_releasecc = ampeg_releasecc;
 
-        region->fileg_delay    = fileg_delay;
-        region->fileg_start    = fileg_start;
-        region->fileg_attack   = fileg_attack;
-        region->fileg_hold     = fileg_hold;
-        region->fileg_decay    = fileg_decay;
-        region->fileg_sustain  = fileg_sustain;
-        region->fileg_release  = fileg_release;
-        region->fileg_depth    = fileg_depth;
+        definition->fileg_delay    = fileg_delay;
+        definition->fileg_start    = fileg_start;
+        definition->fileg_attack   = fileg_attack;
+        definition->fileg_hold     = fileg_hold;
+        definition->fileg_decay    = fileg_decay;
+        definition->fileg_sustain  = fileg_sustain;
+        definition->fileg_release  = fileg_release;
+        definition->fileg_depth    = fileg_depth;
 
-        region->fileg_vel2delay   = fileg_vel2delay;
-        region->fileg_vel2attack  = fileg_vel2attack;
-        region->fileg_vel2hold    = fileg_vel2hold;
-        region->fileg_vel2decay   = fileg_vel2decay;
-        region->fileg_vel2sustain = fileg_vel2sustain;
-        region->fileg_vel2release = fileg_vel2release;
+        definition->fileg_vel2delay   = fileg_vel2delay;
+        definition->fileg_vel2attack  = fileg_vel2attack;
+        definition->fileg_vel2hold    = fileg_vel2hold;
+        definition->fileg_vel2decay   = fileg_vel2decay;
+        definition->fileg_vel2sustain = fileg_vel2sustain;
+        definition->fileg_vel2release = fileg_vel2release;
         
-        region->fileg_delay_oncc   = fileg_delay_oncc;
-        region->fileg_start_oncc   = fileg_start_oncc;
-        region->fileg_attack_oncc  = fileg_attack_oncc;
-        region->fileg_hold_oncc    = fileg_hold_oncc;
-        region->fileg_decay_oncc   = fileg_decay_oncc;
-        region->fileg_sustain_oncc = fileg_sustain_oncc;
-        region->fileg_release_oncc = fileg_release_oncc;
-        region->fileg_depth_oncc   = fileg_depth_oncc;
+        definition->fileg_delay_oncc   = fileg_delay_oncc;
+        definition->fileg_start_oncc   = fileg_start_oncc;
+        definition->fileg_attack_oncc  = fileg_attack_oncc;
+        definition->fileg_hold_oncc    = fileg_hold_oncc;
+        definition->fileg_decay_oncc   = fileg_decay_oncc;
+        definition->fileg_sustain_oncc = fileg_sustain_oncc;
+        definition->fileg_release_oncc = fileg_release_oncc;
+        definition->fileg_depth_oncc   = fileg_depth_oncc;
 
-        region->pitcheg_delay    = pitcheg_delay;
-        region->pitcheg_start    = pitcheg_start;
-        region->pitcheg_attack   = pitcheg_attack;
-        region->pitcheg_hold     = pitcheg_hold;
-        region->pitcheg_decay    = pitcheg_decay;
-        region->pitcheg_sustain  = pitcheg_sustain;
-        region->pitcheg_release  = pitcheg_release;
-        region->pitcheg_depth    = pitcheg_depth;
+        definition->pitcheg_delay    = pitcheg_delay;
+        definition->pitcheg_start    = pitcheg_start;
+        definition->pitcheg_attack   = pitcheg_attack;
+        definition->pitcheg_hold     = pitcheg_hold;
+        definition->pitcheg_decay    = pitcheg_decay;
+        definition->pitcheg_sustain  = pitcheg_sustain;
+        definition->pitcheg_release  = pitcheg_release;
+        definition->pitcheg_depth    = pitcheg_depth;
 
-        region->pitcheg_vel2delay   = pitcheg_vel2delay;
-        region->pitcheg_vel2attack  = pitcheg_vel2attack;
-        region->pitcheg_vel2hold    = pitcheg_vel2hold;
-        region->pitcheg_vel2decay   = pitcheg_vel2decay;
-        region->pitcheg_vel2sustain = pitcheg_vel2sustain;
-        region->pitcheg_vel2release = pitcheg_vel2release;
+        definition->pitcheg_vel2delay   = pitcheg_vel2delay;
+        definition->pitcheg_vel2attack  = pitcheg_vel2attack;
+        definition->pitcheg_vel2hold    = pitcheg_vel2hold;
+        definition->pitcheg_vel2decay   = pitcheg_vel2decay;
+        definition->pitcheg_vel2sustain = pitcheg_vel2sustain;
+        definition->pitcheg_vel2release = pitcheg_vel2release;
         
-        region->pitcheg_delay_oncc   = pitcheg_delay_oncc;
-        region->pitcheg_start_oncc   = pitcheg_start_oncc;
-        region->pitcheg_attack_oncc  = pitcheg_attack_oncc;
-        region->pitcheg_hold_oncc    = pitcheg_hold_oncc;
-        region->pitcheg_decay_oncc   = pitcheg_decay_oncc;
-        region->pitcheg_sustain_oncc = pitcheg_sustain_oncc;
-        region->pitcheg_release_oncc = pitcheg_release_oncc;
-        region->pitcheg_depth_oncc   = pitcheg_depth_oncc;
+        definition->pitcheg_delay_oncc   = pitcheg_delay_oncc;
+        definition->pitcheg_start_oncc   = pitcheg_start_oncc;
+        definition->pitcheg_attack_oncc  = pitcheg_attack_oncc;
+        definition->pitcheg_hold_oncc    = pitcheg_hold_oncc;
+        definition->pitcheg_decay_oncc   = pitcheg_decay_oncc;
+        definition->pitcheg_sustain_oncc = pitcheg_sustain_oncc;
+        definition->pitcheg_release_oncc = pitcheg_release_oncc;
+        definition->pitcheg_depth_oncc   = pitcheg_depth_oncc;
 
-        region->amplfo_delay     = amplfo_delay;
-        region->amplfo_fade      = amplfo_fade;
-        region->amplfo_freq      = amplfo_freq;
-        region->amplfo_depth     = amplfo_depth;
+        definition->amplfo_delay     = amplfo_delay;
+        definition->amplfo_fade      = amplfo_fade;
+        definition->amplfo_freq      = amplfo_freq;
+        definition->amplfo_depth     = amplfo_depth;
         
-        region->amplfo_delay_oncc = amplfo_delay_oncc;
-        region->amplfo_fade_oncc  = amplfo_fade_oncc;
-        region->amplfo_depthcc   = amplfo_depthcc;
-        region->amplfo_freqcc    = amplfo_freqcc;
+        definition->amplfo_delay_oncc = amplfo_delay_oncc;
+        definition->amplfo_fade_oncc  = amplfo_fade_oncc;
+        definition->amplfo_depthcc   = amplfo_depthcc;
+        definition->amplfo_freqcc    = amplfo_freqcc;
 
-        region->fillfo_delay     = fillfo_delay;
-        region->fillfo_fade      = fillfo_fade;
-        region->fillfo_freq      = fillfo_freq;
-        region->fillfo_depth     = fillfo_depth;
+        definition->fillfo_delay     = fillfo_delay;
+        definition->fillfo_fade      = fillfo_fade;
+        definition->fillfo_freq      = fillfo_freq;
+        definition->fillfo_depth     = fillfo_depth;
         
-        region->fillfo_delay_oncc = fillfo_delay_oncc;
-        region->fillfo_fade_oncc  = fillfo_fade_oncc;
-        region->fillfo_depthcc   = fillfo_depthcc;
-        region->fillfo_freqcc    = fillfo_freqcc;
+        definition->fillfo_delay_oncc = fillfo_delay_oncc;
+        definition->fillfo_fade_oncc  = fillfo_fade_oncc;
+        definition->fillfo_depthcc   = fillfo_depthcc;
+        definition->fillfo_freqcc    = fillfo_freqcc;
 
-        region->pitchlfo_delay   = pitchlfo_delay;
-        region->pitchlfo_fade    = pitchlfo_fade;
-        region->pitchlfo_freq    = pitchlfo_freq;
-        region->pitchlfo_depth   = pitchlfo_depth;
+        definition->pitchlfo_delay   = pitchlfo_delay;
+        definition->pitchlfo_fade    = pitchlfo_fade;
+        definition->pitchlfo_freq    = pitchlfo_freq;
+        definition->pitchlfo_depth   = pitchlfo_depth;
         
-        region->pitchlfo_delay_oncc = pitchlfo_delay_oncc;
-        region->pitchlfo_fade_oncc  = pitchlfo_fade_oncc;
-        region->pitchlfo_depthcc = pitchlfo_depthcc;
-        region->pitchlfo_freqcc  = pitchlfo_freqcc;
+        definition->pitchlfo_delay_oncc = pitchlfo_delay_oncc;
+        definition->pitchlfo_fade_oncc  = pitchlfo_fade_oncc;
+        definition->pitchlfo_depthcc = pitchlfo_depthcc;
+        definition->pitchlfo_freqcc  = pitchlfo_freqcc;
         
-        region->eg = eg;
-        region->lfos = lfos;
-
-        return region;
+        definition->eg = eg;
+        definition->lfos = lfos;
     }
 
     /////////////////////////////////////////////////////////////
     // class File
 
+    const std::string File::MACRO_NAME_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+    const std::string File::MACRO_VALUE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_. /\\";
+
     File::File(std::string file, SampleManager* pSampleManager) :
-        _current_section(GROUP),
+        _current_section(GLOBAL),
         default_path(""),
         octave_offset(0),
-        note_offset(0)
+        note_offset(0),
+        id(0)
     {
         _instrument = new Instrument(LinuxSampler::Path::getBaseName(file), pSampleManager);
-        _current_group = new Group();
-        pCurDef = _current_group;
+        ContainerDefinition* defaultGlobalContainer = new ContainerDefinition(ContainerDefinition::GLOBAL);
+        _current_containers.push(defaultGlobalContainer);
+        pCurDef = defaultGlobalContainer;
 
         parseFile(file,pSampleManager);
 
@@ -1098,6 +1096,56 @@ namespace sfz
                 currentLine = cl;
                 continue;
             }
+            // #define
+            else if (line.find("#define") == 0)
+            {
+                
+                size_t varname_start = line.find_first_not_of("\t ", std::strlen("#define"));
+                size_t varname_end = line.find_first_of("\t ", varname_start + 1);
+                size_t value_start = line.find_first_not_of("\t ", varname_end + 1);
+                
+                std::string varname = line.substr(varname_start, varname_end - varname_start);
+                std::string value = line.substr(value_start, std::string::npos);
+                
+                if (varname.size() == 0 || value.size() == 0)
+                {
+                    std::cerr << "sfz error: Malformed #define statement on line " << currentLine << std::endl;
+                    continue;
+                }
+                
+                // Deal with DOS EOLs
+                if (value[value.size() - 1] == '\r')
+                {
+                    value.erase(value.size() - 1);
+                }
+                
+                // Check varname
+                if (varname[0] != '$')
+                {
+                    std::cerr << "sfz error: Macro name '" << varname;
+                    std::cerr << "' doesn't start with '$'." << std::endl;
+                    continue;
+                }
+                // Invalid chars
+                if (varname.find_first_not_of(MACRO_NAME_CHARS, 1) != std::string::npos)
+                {
+                    std::cerr << "sfz error: Macro name '" << varname;
+                    std::cerr << "' contains invalid characters." << std::endl;
+                }
+                
+                // Check value
+                // Match alphanumeric, underscore, and decimal point.
+                if (value.find_first_not_of(MACRO_VALUE_CHARS) != std::string::npos)
+                {
+                    std::cerr << "sfz error: Macro value '" << value;
+                    std::cerr << "' contains invalid characters." << std::endl;
+                    continue;
+                }
+                
+                _defined_macros[varname] = value;
+                
+                continue;
+            }
 
             // DEFINITION
             std::stringstream linestream(line);
@@ -1175,7 +1223,11 @@ namespace sfz
 
     File::~File()
     {
-        delete _current_group;
+        for (int i = 0; i < _current_containers.size(); i++)
+        {
+            delete _current_containers.top();
+            _current_containers.pop();
+        }
         delete _instrument;
     }
 
@@ -1240,16 +1292,51 @@ namespace sfz
     void
     File::push_header(std::string token)
     {
-        if (token == "<group>")
+        if (token == "<global>" ||
+            token == "<master>" ||
+            token == "<group>")
         {
-            _current_section = GROUP;
-            _current_group->Reset();
-            pCurDef = _current_group;
+            ContainerDefinition::section_type level;
+            
+            if (token == "<global>")
+            {
+                _current_section = GLOBAL;
+                level = ContainerDefinition::GLOBAL;
+            }
+            else if (token == "<master>")
+            {
+                _current_section = MASTER;
+                level = ContainerDefinition::MASTER;
+            }
+            else if (token == "<group>")
+            {
+                _current_section = GROUP;
+                level = ContainerDefinition::GROUP;
+            }
+            
+            ContainerDefinition* newContainer = new ContainerDefinition(level);
+            
+            while (_current_containers.size() > 0 && _current_containers.top()->level <= level)
+            {
+                delete _current_containers.top();
+                _current_containers.pop();
+            }
+            
+            //If the new header is a <global>, there won't be anything left in _current_containers
+            //to copy from.
+            if (_current_containers.size() > 0)
+            {
+                _current_containers.top()->CopyValuesToDefinition(newContainer);
+            }
+            _current_containers.push(newContainer);
+            pCurDef = newContainer;
         }
         else if (token == "<region>")
         {
             _current_section = REGION;
-            _current_region = _current_group->RegionFactory();
+            _current_region = new Region();
+            _current_region->id = id++;
+            _current_containers.top()->CopyValuesToDefinition(_current_region);
             pCurDef = _current_region;
             _instrument->regions.push_back(_current_region);
             _current_region->SetInstrument(_instrument);
@@ -1284,6 +1371,28 @@ namespace sfz
         std::string key = token.substr(0, delimiter_index);
         std::string value = token.substr(delimiter_index + 1);
         int x, y, z;
+        
+        // Apply macros
+        size_t macro_start = 0;
+        size_t macro_end = 0;
+        std::string macro_value;
+        while ((macro_start = value.find("$", macro_start + macro_value.size())) != std::string::npos)
+        {
+            macro_end = value.find_first_not_of(MACRO_NAME_CHARS, macro_start + 1);
+            size_t macro_len = macro_end - macro_start;
+            std::string macro_name = value.substr(macro_start, macro_len);
+            if (_defined_macros.count(macro_name) != 0)
+            {
+                macro_value = _defined_macros[macro_name];
+                value.replace(macro_start, macro_len, macro_value);
+            }
+            else
+            {
+                std::cerr << "Macro '" << macro_name << "' referenced on line ";
+                std::cerr << currentLine << " is undefined." << std::endl;
+                return;
+            }
+        }
         
         if (_current_section == CURVE) {
             if (sscanf(key.c_str(), "v%d", &x)) {
@@ -1740,7 +1849,23 @@ namespace sfz
             if (key_cc.size() > 3 && !strcmp(key_cc.c_str() + (key_cc.size() - 3), "_on")) {
                 key_cc = key_cc.substr(0, key_cc.size() - 3);
             }
-            int num_cc = ToInt(key.substr(delimiter_index + 2));
+            
+            // Apply macros
+            std::string num_cc_str = key.substr(delimiter_index + 2);
+            
+            if (num_cc_str[0] == '$')
+            {
+                if (_defined_macros.count(num_cc_str) == 0)
+                {
+                    std::cerr << "Macro '" << value << "' referenced on line ";
+                    std::cerr << currentLine << " is undefined." << std::endl;
+                    return;
+                }
+                
+                num_cc_str = _defined_macros[num_cc_str]; 
+            }
+            
+            int num_cc = ToInt(num_cc_str);
 
             // input controls
             if ("lo" == key_cc) pCurDef->locc.set(num_cc, ToInt(value));
