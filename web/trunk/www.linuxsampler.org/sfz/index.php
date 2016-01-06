@@ -292,7 +292,7 @@ include '../tmpl/header.php';
 <tbody>
 
 <tr><td class="decocomp_header" colspan="3"><b>Instrument Structure</b></td></tr>
-<tr><td class="decocomp">&lt;global><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">&lt;global><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">&lt;control><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">&lt;curve><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">&lt;effects><td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
@@ -306,7 +306,7 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">octave_offset<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">note_offset<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">set_ccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">#define<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">#define<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 
 <tr><td class="decocomp_header" colspan="3"><b>Loading</b></td></tr>
 <tr><td class="decocomp">load_mode<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
@@ -592,7 +592,7 @@ include '../tmpl/header.php';
 <br>
 
 <h2>ARIA custom opcodes</h2>
-<p>The ARIA Engine from Plogue / Garritan implements some <a href="http://ariaengine.com/forums/index.php?p=/discussion/4389/aria039s-custom-opcodes">custom sfz opcodes</a>. Only some of them are listed here.</p>
+<p>The ARIA Engine from Plogue / Garritan implements some <a href="http://plogue.com/phpBB3/viewtopic.php?f=14&t=4389">custom sfz opcodes</a>. Only some of them are listed here.</p>
 
 <table class="decocomp">
 <thead>
@@ -604,6 +604,7 @@ include '../tmpl/header.php';
 </thead>
 <tbody>
 
+<tr><td class="decocomp">&lt;master><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">amplitude<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">amplitude_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">amplitude_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
