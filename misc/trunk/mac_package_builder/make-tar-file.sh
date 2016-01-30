@@ -225,7 +225,7 @@ rsync -r --exclude='.svn' linuxsampler.unpkg/Resources linuxsampler.prepkg
         size_kb=`du -sk $d | cut -f 1`
         entries_count=`find . | wc -l`
         cp ../linuxsampler.unpkg/$d/PackageInfo ../linuxsampler.prepkg/$d
-        xmltxt=`xmlstarlet ed -u '/pkg-info/payload/@numberOfFiles' -v $entries_count ../linuxsampler.prepkg/$d/PackageInfo | xmlstarlet ed -u '/pkg-info/payload/@installKBytes' -v $size_kb -`
+        xmltxt=`xmlstarlet ed -u '/pkg-info/payload/@numberOfFiles' -v $entries_count ../linuxsampler.prepkg/$d/PackageInfo | xmlstarlet ed -u '/pkg-info/payload/@installKBytes' -v $size_kb`
         echo $xmltxt > ../linuxsampler.prepkg/$d/PackageInfo
         identifier=`xmlstarlet sel -t -v '/pkg-info/@identifier' ../linuxsampler.prepkg/$d/PackageInfo`
         xmltxt=`xmlstarlet ed -u "/installer-gui-script/pkg-ref[@id='$identifier']/@installKBytes" -v $size_kb ../linuxsampler.prepkg/Distribution`
