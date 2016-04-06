@@ -1,28 +1,37 @@
-gigedit (1.0.0-1) unreleased; urgency=low
+gigedit (1.0.0-1+svn1) unreleased; urgency=low
+
+  * Adjusted build dependency requiring now either libgtkmm-2.4-dev or
+    libgtkmm-3.0-dev.
+  * Assigned linuxsampler-devel@lists.sourceforge.net as maintainer of
+    this package.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 06 Apr 2016 20:28:07 +0200
+
+gigedit (1.0.0-1) unstable; urgency=low
 
   * New release.
 
  -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 17 Jul 2015 10:52:46 +0200
 
-gigedit (0.2.0-1) unreleased; urgency=low
+gigedit (0.2.0-1) unstable; urgency=low
 
   * New release.
 
  -- Andreas Persson <andreas56@users.sourceforge.net>  Fri, 31 Jul 2009 11:34:05 +0200
 
-gigedit (0.1.1-1) unreleased; urgency=low
+gigedit (0.1.1-1) unstable; urgency=low
 
   * New release.
 
  -- Christian Schoenebeck <cuse@users.sourceforge.net>  Thu, 06 Dec 2007 20:33:12 +0100
 
-gigedit (0.1.0-2) unreleased; urgency=low
+gigedit (0.1.0-2) unstable; urgency=low
 
   * Ignore missing Makefile.cvs (which doesn't exist in release tarballs).
 
  -- Christian Schoenebeck <cuse@users.sourceforge.net>  Thu, 18 Oct 2007 15:25:16 +0200
 
-gigedit (0.1.0-1) unreleased; urgency=low
+gigedit (0.1.0-1) unstable; urgency=low
 
   * Added build-dependency to xsltproc and docbook-xsl as the current CVS
     version needs it to generate the quick start document (not necessary
@@ -31,7 +40,7 @@ gigedit (0.1.0-1) unreleased; urgency=low
 
  -- Christian Schoenebeck <cuse@users.sourceforge.net>  Mon, 15 Oct 2007 22:36:36 +0200
 
-gigedit (0.0.3-1) unreleased; urgency=low
+gigedit (0.0.3-1) unstable; urgency=low
 
   * Initial Release.
   * compile with debug info (-g) and don't strip binary

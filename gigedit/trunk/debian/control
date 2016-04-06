@@ -1,8 +1,9 @@
 Source: gigedit
 Section: sound
 Priority: optional
-Maintainer: Christian Schoenebeck <cuse@users.sf.net>
-Build-Depends: debhelper (>= 4.0.0), pkg-config, intltool, libgtkmm-2.4-dev,
+Maintainer: LinuxSampler Developers <linuxsampler-devel@lists.sourceforge.net>
+Build-Depends: debhelper (>= 4.0.0), pkg-config, intltool,
+  libgtkmm-2.4-dev | libgtkmm-3.0-dev,
   libsndfile1-dev, xsltproc, docbook-xsl, libgig-dev (>= 4.0.0)
 Standards-Version: 3.6.1
 
