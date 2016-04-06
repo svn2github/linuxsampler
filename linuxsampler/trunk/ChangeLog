@@ -7,6 +7,10 @@ Version SVN trunk (?)
     - fixed printf type errors (mostly in debug messages)
     - use unique_ptr instead of auto_ptr when building with C++11
 
+  * packaging changes:
+    - removed unnecessary dependency to libuuid
+      (originated by libgig's usage of it)
+
 Version 2.0.0 (15 July 2015)
 
   * packaging changes:

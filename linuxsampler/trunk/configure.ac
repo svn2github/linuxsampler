@@ -3,7 +3,7 @@
 
 m4_define(linuxsampler_release_major, 2)
 m4_define(linuxsampler_release_minor, 0)
-m4_define(linuxsampler_release_build, 0)
+m4_define(linuxsampler_release_build, 0.svn1)
 
 
 AC_INIT([linuxsampler],[linuxsampler_release_major.linuxsampler_release_minor.linuxsampler_release_build])
@@ -181,10 +181,6 @@ else
     echo "NPTL glibc bug check disabled"
 fi
 
-# FIXME: this is actually a dependency of libgig, not of LS directly, why
-# isn't it hidden by libgig?
-AC_CHECK_HEADERS(uuid/uuid.h)
-AC_SEARCH_LIBS(uuid_generate, uuid)
 
 # In case Bison is available, determine the exact version, since we need to
 # use different custom parser code for Bison 2.x vs. Bison 3.x generated

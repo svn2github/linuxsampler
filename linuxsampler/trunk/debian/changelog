@@ -1,3 +1,19 @@
+linuxsampler (2.0.0-1+svn1) unreleased; urgency=low
+
+  * Require libgig version >= 4.0.0 as build dependency.
+  * Require libasound2-dev or libjack-dev as build dependency.
+  * Require dssi-dev as build dependency.
+  * Require lv2-dev as build dependency.
+  * Suggest qsampler as optional installation.
+  * Suggest gigedit as optional installation.
+  * Mention QSampler and JSampler/Fantasia in package description.
+  * Removed unnecessary dependency to libuuid (originated by libgig's usage
+    of it).
+  * Assigned linuxsampler-devel@lists.sourceforge.net as maintainer of
+    this package.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 06 Apr 2016 19:55:03 +0200
+
 linuxsampler (2.0.0-1) unstable; urgency=low
 
   * New release.
