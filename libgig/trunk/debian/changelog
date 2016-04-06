@@ -1,3 +1,9 @@
+libgig (4.0.0-1+svn1) unreleased; urgency=low
+
+  * Minor changes.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 06 Apr 2016 13:31:35 +0200
+
 libgig (4.0.0-1) unstable; urgency=low
 
   * New release.
