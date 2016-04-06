@@ -39,6 +39,19 @@ build-stamp:  config.status
 	# the build should fail if the tests are not successful
 	#$(MAKE) check
 
+	# Wiping 'dependency_libs' fields from all .la files
+	# (see https://wiki.debian.org/ReleaseGoals/LAFileRemoval for details).
+	# This is a workaround to avoid unnecessary lib dependencies of
+	# apps/libs that link against libgig. Note that this might require
+	# manual adjustments to projects linking statically against libgig.
+	sed -i "/dependency_libs/ s/'.*'/''/" `find . -name '*.la'` `find . -name '*.lai'`
+	# rebuild of gigtools is required to get rid of their unnecessary lib dependencies as well
+	( cd src/tools && $(MAKE) clean )
+	# explicitly remove "-luuid" occurrences from src/tools/Makefile
+	sed -i "s/-luuid//" src/tools/Makefile
+	# now rebuild gigtools
+	$(MAKE)
+
 	# generate Doxygen API documentation
 	$(MAKE) docs
 

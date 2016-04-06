@@ -1,8 +1,14 @@
 libgig (4.0.0-1+svn1) unreleased; urgency=low
 
-  * Minor changes.
+  * Fixed unnecessary lib dependencies of projects linked against libgig
+    by wiping the 'dependency_libs' fields from all .la files. Note that
+    this might require manual adjustments to projects linking statically
+    against libgig (see https://wiki.debian.org/ReleaseGoals/LAFileRemoval
+    for details).
+  * Assigned linuxsampler-devel@lists.sourceforge.net as maintainer of this
+    package.
 
- -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 06 Apr 2016 13:31:35 +0200
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 06 Apr 2016 19:09:13 +0200
 
 libgig (4.0.0-1) unstable; urgency=low
 

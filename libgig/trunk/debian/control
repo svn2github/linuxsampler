@@ -1,7 +1,7 @@
 Source: libgig
 Section: devel
 Priority: optional
-Maintainer: Matt Flax <flatmax@pgb.unsw.edu.au>
+Maintainer: LinuxSampler Developers <linuxsampler-devel@lists.sourceforge.net>
 Build-Depends: debhelper (>= 4.0.0), pkg-config, libsndfile1-dev, doxygen, uuid-dev
 Standards-Version: 3.7.2
 
