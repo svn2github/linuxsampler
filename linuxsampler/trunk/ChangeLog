@@ -6,10 +6,34 @@ Version SVN trunk (?)
   * general changes:
     - fixed printf type errors (mostly in debug messages)
     - use unique_ptr instead of auto_ptr when building with C++11
+    - Added RTAVLTree class which is a real-time safe ordered multi-map, thus
+      allowing to sort data efficiently in real-time safe manner.
+    - RTList class: added methods for moving/inserting elements to arbitrary
+      position within a list.
+    - RTList class: added method fromPtr() for creating an Iterator object from
+      a raw element pointer.
+    - Attempt to partly fix resetting engine channels vs. resetting engine, an
+      overall cleanup of the Reset*(), ConnectAudioDevice(),
+      DisconnectAudioDevice() API methods would still be desirable though,
+      because the current situation is still inconsistent and error prone.
 
   * packaging changes:
     - removed unnecessary dependency to libuuid
       (originated by libgig's usage of it)
+
+  * Real-time instrument scripts:
+    - Implemented scheduler for delayed MIDI events and for suspended scripts.
+    - Built-in script function "wait()": implemented support for function's
+      "duration-us" argument, thus scripts using this function are now
+      correctly resumed after the requested amount of microseconds.
+    - Built-in script function "play_note()": implemented support for
+      function's "duration-us" argument, thus notes triggered with this
+      argument are now correctly released after the requested amount of
+      microseconds.
+    - Fix: script events were not cleared when engine channel was reset,
+      potentially causing undefined behavior.
+    - Fixed crash which happened when trying to reference an undeclared
+      variable.
 
 Version 2.0.0 (15 July 2015)
 

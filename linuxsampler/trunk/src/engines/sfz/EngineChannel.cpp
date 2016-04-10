@@ -4,7 +4,8 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2011 Grigor Iliev                                  *
+ *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2012 - 2016 Christian Schoenebeck and Andreas Persson   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -47,9 +48,9 @@ namespace LinuxSampler { namespace sfz {
     AbstractEngine::Format EngineChannel::GetEngineFormat() { return AbstractEngine::SFZ; }
 
     /** This method is not thread safe! */
-    void EngineChannel::ResetInternal() {
+    void EngineChannel::ResetInternal(bool bResetEngine) {
         CurrentKeyDimension = 0;
-        EngineChannelBase<Voice, ::sfz::Region, ::sfz::Instrument>::ResetInternal();
+        EngineChannelBase<Voice, ::sfz::Region, ::sfz::Instrument>::ResetInternal(bResetEngine);
         for(int i = 0; i < 128; i++) PressedKeys[i] = false;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck
+ * Copyright (c) 2014-2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -46,8 +46,6 @@ namespace LinuxSampler {
             return errorResult(-1);
         } else if (duration == -1) {
             wrnMsg("play_note(): argument 4 does not support special value -1 as duration yet");
-        } else if (duration != 0) {
-            wrnMsg("play_note(): argument 4 does not support any other value as 0 as duration yet");
         }
 
         AbstractEngineChannel* pEngineChannel =
@@ -57,9 +55,16 @@ namespace LinuxSampler {
         e.Type = Event::type_note_on;
         e.Param.Note.Key = note;
         e.Param.Note.Velocity = velocity;
-        memset(&e.Format, 0, sizeof(e.Format)); // init format speific stuff with zero
+        memset(&e.Format, 0, sizeof(e.Format)); // init format specific stuff with zero
 
-        int id = pEngineChannel->ScheduleEvent(&e, duration);
+        int id = pEngineChannel->ScheduleEventMicroSec(&e, 0);
+
+        // if a duration is supplied, then schedule a subsequent note-ff event
+        if (duration > 0) {
+            e.Type = Event::type_note_off;
+            e.Param.Note.Velocity = 127;
+            pEngineChannel->ScheduleEventMicroSec(&e, duration);
+        }
 
         return successResult(id);
     }
@@ -93,7 +98,7 @@ namespace LinuxSampler {
             return errorResult();
         }
 
-        int id = pEngineChannel->ScheduleEvent(&e, 0);
+        int id = pEngineChannel->ScheduleEventMicroSec(&e, 0);
 
         return successResult(id);
     }    
@@ -183,7 +188,7 @@ namespace LinuxSampler {
             e.Param.Note.Velocity = velocity;
             memset(&e.Format, 0, sizeof(e.Format)); // init format speific stuff with zero
 
-            int releaseEventID = pEngineChannel->ScheduleEvent(&e, 0);
+            int releaseEventID = pEngineChannel->ScheduleEventMicroSec(&e, 0);
         } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
             VMIntArrayExpr* ids = args->arg(0)->asIntArray();
             for (int i = 0; i < ids->arraySize(); ++i) {
@@ -197,7 +202,7 @@ namespace LinuxSampler {
                 e.Param.Note.Velocity = velocity;
                 memset(&e.Format, 0, sizeof(e.Format)); // init format speific stuff with zero
 
-                int releaseEventID = pEngineChannel->ScheduleEvent(&e, 0);
+                int releaseEventID = pEngineChannel->ScheduleEventMicroSec(&e, 0);
             }
         }
 

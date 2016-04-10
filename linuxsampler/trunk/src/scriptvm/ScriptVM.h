@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Christian Schoenebeck
+ * Copyright (c) 2014-2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -114,7 +114,7 @@ namespace LinuxSampler {
          * This method usually blocks until the entire script event handler
          * block has been executed completely. It may however also return before
          * completion if either a) a script runtime error occurred or b) the
-         * script was suspened by the VM (either because script execution
+         * script was suspended by the VM (either because script execution
          * exceeded a certain limit of time or the script called the built-in
          * wait() function). You must check the return value of this method to
          * find out which case applies.

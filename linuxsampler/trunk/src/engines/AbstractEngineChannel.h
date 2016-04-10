@@ -5,7 +5,7 @@
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
  *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
- *   Copyright (C) 2013-2014 Christian Schoenebeck and Andreas Persson     *
+ *   Copyright (C) 2012-2016 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -123,6 +123,19 @@ namespace LinuxSampler {
             midi_chan_t               midiChannel;              ///< MIDI channel(s) on which this engine channel listens to (on all MIDI input ports).
             RingBuffer<Event,false>*  pEventQueue;              ///< Input event queue.
             RTList<Event>*            pEvents;                  ///< All engine channel specific events for the current audio fragment.
+            struct _DelayedEvents {
+                RTList<Event>*            pList; ///< Unsorted list where all delayed events are moved to and remain here until they're finally processed.
+                Pool<ScheduledEvent>      schedulerNodes; ///< Nodes used to sort the delayed events (stored on pList) with time sorted queue.
+                RTAVLTree<ScheduledEvent> queue; ///< Used to access the delayed events (from pList) in time sorted manner.
+
+                _DelayedEvents() : pList(NULL), schedulerNodes(CONFIG_MAX_EVENTS_PER_FRAGMENT) {}
+
+                inline void clear() {
+                    if (pList) pList->clear();
+                    schedulerNodes.clear();
+                    queue.clear();
+                }
+            } delayedEvents;
             uint8_t                   ControllerTable[130];     ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel. Number 128 is for channel pressure (mono aftertouch), 129 for pitch bend.
             String                    InstrumentFile;
             int                       InstrumentIdx;
@@ -166,11 +179,11 @@ namespace LinuxSampler {
             ActiveKeyGroupMap ActiveKeyGroups;      ///< Contains event queues for key groups, ordered by key group ID.
 
             virtual void ResetControllers();
-            virtual void ResetInternal();
+            virtual void ResetInternal(bool bResetEngine);
             virtual void RemoveAllFxSends();
 
             void ImportEvents(uint Samples);
-            int  ScheduleEvent(const Event* pEvent, int delay); //TODO: delay not implemented yet
+            int  ScheduleEventMicroSec(const Event* pEvent, int delay);
             void IgnoreEvent(int id);
 
             void AddGroup(uint group);

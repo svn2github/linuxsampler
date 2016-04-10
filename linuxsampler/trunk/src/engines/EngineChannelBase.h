@@ -4,7 +4,8 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2015 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2012-2016 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -133,8 +134,9 @@ namespace LinuxSampler {
                     LockGuard lock(EngineMutex);
                     pEngine = newEngine;
                 }
-                ResetInternal();
+                ResetInternal(false/*don't reset engine*/); // 'false' is error prone here, but the danger of recursion with 'true' would be worse, there could be a better solution though
                 pEvents = new RTList<Event>(pEngine->pEventPool);
+                delayedEvents.pList = new RTList<Event>(pEngine->pEventPool);
 
                 RegionPools<R>* pRegionPool = dynamic_cast<RegionPools<R>*>(pEngine);
                 // reset the instrument change command struct (need to be done
@@ -184,7 +186,7 @@ namespace LinuxSampler {
             virtual void DisconnectAudioOutputDevice() {
                 if (pEngine) { // if clause to prevent disconnect loops
 
-                    ResetInternal();
+                    ResetInternal(false/*don't reset engine*/); // 'false' is error prone here, but the danger of recursion with 'true' would be worse, there could be a better solution though
 
                     DeleteRegionsInUse();
                     UnloadScriptInUse();
@@ -198,6 +200,10 @@ namespace LinuxSampler {
                     if (pEvents) {
                         delete pEvents;
                         pEvents = NULL;
+                    }
+                    if (delayedEvents.pList) {
+                        delete delayedEvents.pList;
+                        delayedEvents.pList = NULL;
                     }
 
                     MidiKeyboardManager<V>::DeleteActiveVoices();
@@ -226,7 +232,12 @@ namespace LinuxSampler {
                     virtual bool Process(MidiKey* pMidiKey) { pMidiKey->pEvents->clear(); return false; }
             };
 
-            void ClearEventLists() {
+            /**
+             * Free all events of the current audio fragment cycle. Calling
+             * this method will @b NOT free events scheduled past the current
+             * fragment's boundary! (@see AbstractEngineChannel::delayedEvents).
+             */
+            void ClearEventListsOfCurrentFragment() {
                 pEvents->clear();
                 // empty MIDI key specific event lists
                 ClearEventListsHandler handler;
@@ -249,7 +260,7 @@ namespace LinuxSampler {
             virtual void ResourceToBeUpdated(I* pResource, void*& pUpdateArg) OVERRIDE {
                 dmsg(3,("EngineChannelBase: Received instrument update message.\n"));
                 if (pEngine) pEngine->DisableAndLock();
-                ResetInternal();
+                ResetInternal(false/*don't reset engine*/);
                 this->pInstrument = NULL;
             }
 
@@ -370,8 +381,8 @@ namespace LinuxSampler {
             SyncConfInstrChangeCmdReader InstrumentChangeCommandReader;
 
             /** This method is not thread safe! */
-            virtual void ResetInternal() {
-                AbstractEngineChannel::ResetInternal();
+            virtual void ResetInternal(bool bResetEngine) OVERRIDE {
+                AbstractEngineChannel::ResetInternal(bResetEngine);
 
                 MidiKeyboardManager<V>::Reset();
             }

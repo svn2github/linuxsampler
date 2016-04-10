@@ -5,7 +5,7 @@
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
  *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
- *   Copyright (C) 2013-2014 Christian Schoenebeck and Andreas Persson     *
+ *   Copyright (C) 2012-2016 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -35,6 +35,7 @@ namespace LinuxSampler {
     {
         pEngine      = NULL;
         pEvents      = NULL; // we allocate when we retrieve the right Engine object
+        delayedEvents.pList = NULL;
         pEventQueue  = new RingBuffer<Event,false>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
         InstrumentIdx  = -1;
         InstrumentStat = -1;
@@ -101,7 +102,7 @@ namespace LinuxSampler {
 
     void AbstractEngineChannel::Reset() {
         if (pEngine) pEngine->DisableAndLock();
-        ResetInternal();
+        ResetInternal(false/*don't reset engine*/);
         ResetControllers();
         if (pEngine) {
             pEngine->Enable();
@@ -129,14 +130,20 @@ namespace LinuxSampler {
     /**
      * This method is not thread safe!
      */
-    void AbstractEngineChannel::ResetInternal() {
+    void AbstractEngineChannel::ResetInternal(bool bResetEngine) {
         CurrentKeyDimension = 0;
         PortamentoPos = -1.0f; // no portamento active yet
+
+        // delete all active instrument script events
+        if (pScript) pScript->resetEvents();
+
+        // free all delayed MIDI events
+        delayedEvents.clear();
 
         // delete all input events
         pEventQueue->init();
 
-        if (pEngine) pEngine->ResetInternal();
+        if (bResetEngine && pEngine) pEngine->ResetInternal();
 
         // status of engine channel has changed, so set notify flag
         bStatusChanged = true;
@@ -810,15 +817,45 @@ namespace LinuxSampler {
 
     /**
      * Called by real-time instrument script functions to schedule a new event
-     * somewhere in future.
+     * @a delay microseconds in future.
+     * 
+     * @b IMPORTANT: for the supplied @a delay to be scheduled correctly, the
+     * passed @a pEvent must be assigned a valid fragment time within the
+     * current audio fragment boundaries. That fragment time will be used by
+     * this method as basis for interpreting what "now" acutally is, and thus
+     * it will be used as basis for calculating the precise scheduling time
+     * for @a delay. The easiest way to achieve this is by copying a recent
+     * event which happened within the current audio fragment cycle: i.e. the
+     * original event which caused calling this method here.
      *
-     * @returns unique event ID of scheduled new event
+     * @param pEvent - event to be scheduled in future (event data will be copied)
+     * @param delay - amount of microseconds in future (from now) when event shall be processed
+     * @returns unique event ID of scheduled new event, or a negative number on error
      */
-    int AbstractEngineChannel::ScheduleEvent(const Event* pEvent, int delay) { //TODO: delay not implemented yet
-        // since delay is not implemented yet, we simply add the new event
-        // to the event list of the current audio fragmet cycle for now
+    int AbstractEngineChannel::ScheduleEventMicroSec(const Event* pEvent, int delay) {
+        dmsg(3,("AbstractEngineChannel::ScheduleEventMicroSec(Event.Type=%d,delay=%d)\n", pEvent->Type, delay));
         RTList<Event>::Iterator itEvent = pEvents->allocAppend();
-        if (itEvent) *itEvent = *pEvent; // copy event
+        if (!itEvent) {
+            dmsg(1,("AbstractEngineChannel::ScheduleEventMicroSec(): Event pool emtpy!\n"));
+            return -1;
+        }
+        RTList<ScheduledEvent>::Iterator itNode = delayedEvents.schedulerNodes.allocAppend();
+        if (!itNode) { // scheduler node pool empty ...
+            dmsg(1,("AbstractEngineChannel::ScheduleEventMicroSec(): ScheduledEvent pool empty!\n"));
+            pEvents->free(itEvent);
+            return -1;
+        }
+        // copy passed event
+        *itEvent = *pEvent;
+        // move copied event to list of delayed events
+        itEvent = itEvent.moveToEndOf(delayedEvents.pList);
+        // connect scheduler node with the copied event
+        itNode->itEvent = itEvent;
+        // add entry to time sorted scheduler queue for copied event
+        pEngine->pEventGenerator->scheduleAheadMicroSec(
+            delayedEvents.queue, *itNode, itEvent->FragmentPos(), delay
+        );
+        //dmsg(5,("ScheduledEvent queue size: %d\n", delayedEvents.queue.size()));
         return pEvents->getID(itEvent);
     }
 

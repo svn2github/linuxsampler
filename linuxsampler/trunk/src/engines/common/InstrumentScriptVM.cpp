@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck
+ * Copyright (c) 2014 - 2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -157,6 +157,8 @@ namespace LinuxSampler {
         if (parserContext)
             dmsg(1,("Unloading current instrument script.\n"));
 
+        resetEvents();
+
         // free allocated VM execution contexts
         if (pEvents) {
             pEvents->clear();
@@ -194,6 +196,23 @@ namespace LinuxSampler {
     void InstrumentScript::resetAll() {
         unload();
         code.clear();
+    }
+    
+    /**
+     * Clears all currently active script events. This should be called
+     * whenever the engine or engine channel was reset for some reason.
+     */
+    void InstrumentScript::resetEvents() {
+        for (int i = 0; i < INSTR_SCRIPT_EVENT_GROUPS; ++i)
+            eventGroups[i].clear();
+
+        for (int i = 0; i < 128; ++i)
+            if (pKeyEvents[i])
+                pKeyEvents[i]->clear();
+
+        suspendedEvents.clear();
+
+        if (pEvents) pEvents->clear();
     }
 
     ///////////////////////////////////////////////////////////////////////

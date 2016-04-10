@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -207,6 +207,29 @@ class RTListBase {
                     return !(current && current->data);
                 }
 
+                /**
+                 * Moves the element pointed by this Iterator from its current
+                 * list to the beginning of the destination list @a pDstList.
+                 *
+                 * @b CAUTION: When this method returns, this Iterator does
+                 * @b NOT point to the element on the new list anymore, instead it
+                 * points at a completely different element! In case of a
+                 * forward Iterator this Iterator object will point to the
+                 * previous element on the source list, in case of a backward
+                 * Iterator it will point to the subsequent element on the
+                 * source list. This behavior is enforced to avoid breaking an
+                 * active loop code working with this Iterator object.
+                 *
+                 * Thus if you intend to continue working with the same element,
+                 * you should do like this:
+                 * @code
+                 * it = it.moveToEndOf(anotherList);
+                 * @endcode
+                 *
+                 * @param pDstList - destination list
+                 * @returns Iterator object pointing at the moved element on
+                 *          the destination list
+                 */
                 inline _Iterator moveToEndOf(RTListBase<T1>* pDstList) {
                     detach();
                     pDstList->append(*this);
@@ -215,9 +238,98 @@ class RTListBase {
                     return iterOnDstList;
                 }
 
+                /**
+                 * Moves the element pointed by this Iterator from its current
+                 * list to the end of destination list @a pDstList.
+                 *
+                 * @b CAUTION: When this method returns, this Iterator does
+                 * @b NOT point to the element on the new list anymore, instead it
+                 * points at a completely different element! In case of a
+                 * forward Iterator this Iterator object will point to the
+                 * previous element on the source list, in case of a backward
+                 * Iterator it will point to the subsequent element on the
+                 * source list. This behavior is enforced to avoid breaking an
+                 * active loop code working with this Iterator object.
+                 *
+                 * Thus if you intend to continue working with the same element,
+                 * you should do like this:
+                 * @code
+                 * it = it.moveToBeginOf(anotherList);
+                 * @endcode
+                 *
+                 * @param pDstList - destination list
+                 * @returns Iterator object pointing at the moved element on
+                 *          the destination list
+                 */
                 inline _Iterator moveToBeginOf(RTListBase<T1>* pDstList) {
                     detach();
                     pDstList->prepend(*this);
+                    _Iterator iterOnDstList = _Iterator(current);
+                    current = fallback;
+                    return iterOnDstList;
+                }
+
+                /**
+                 * Moves the element pointed by this Iterator from its current
+                 * position to the position right before @a itDst. That move
+                 * may either be from and to the same list, or to a another
+                 * list.
+                 *
+                 * @b CAUTION: When this method returns, this Iterator does
+                 * @b NOT point to the element on the new list anymore, instead it
+                 * points at a completely different element! In case of a
+                 * forward Iterator this Iterator object will point to the
+                 * previous element on the source list, in case of a backward
+                 * Iterator it will point to the subsequent element on the
+                 * source list. This behavior is enforced to avoid breaking an
+                 * active loop code working with this Iterator object.
+                 *
+                 * Thus if you intend to continue working with the same element,
+                 * you should do like this:
+                 * @code
+                 * itSourceElement = itSourceElement.moveBefore(itDestinationElement);
+                 * @endcode
+                 *
+                 * @param itDst - destination element to be inserted before
+                 * @returns Iterator object pointing at the moved element on
+                 *          the destination list
+                 */
+                inline _Iterator moveBefore(_Iterator<T1> itDst) {
+                    detach();
+                    RTList<T1>::prependBefore(*this, itDst);
+                    _Iterator iterOnDstList = _Iterator(current);
+                    current = fallback;
+                    return iterOnDstList;
+                }
+
+                /**
+                 * Moves the element pointed by this Iterator from its current
+                 * position to the position right after @a itDst. That move
+                 * may either be from and to the same list, or to a another
+                 * list.
+                 *
+                 * @b CAUTION: When this method returns, this Iterator does
+                 * @b NOT point to the element on the new list anymore, instead it
+                 * points at a completely different element! In case of a
+                 * forward Iterator this Iterator object will point to the
+                 * previous element on the source list, in case of a backward
+                 * Iterator it will point to the subsequent element on the
+                 * source list. This behavior is enforced to avoid breaking an
+                 * active loop code working with this Iterator object.
+                 *
+                 * Thus if you intend to continue working with the same element,
+                 * you should do like this:
+                 * @code
+                 * itSourceElement = itSourceElement.moveAfter(itDestinationElement);
+                 * @endcode
+                 *
+                 * @param itDst - destination element to be inserted after
+                 * @returns Iterator object pointing at the moved element on
+                 *          the destination list
+                 */
+                inline _Iterator moveAfter(_Iterator<T1> itDst) {
+                    detach();
+                    RTList<T1>::appendAfter(*this, itDst);
                     _Iterator iterOnDstList = _Iterator(current);
                     current = fallback;
                     return iterOnDstList;
@@ -388,6 +500,32 @@ class RTListBase {
             #endif // CONFIG_DEVMODE
         }
 
+        static inline void prependBefore(Iterator itSrc, Iterator itDst) {
+            Node* src = itSrc.current;
+            Node* dst = itDst.current;
+            Node* prev = dst->prev;
+            prev->next = src;
+            dst->prev  = src;
+            src->prev  = prev;
+            src->next  = dst;
+            #if CONFIG_DEVMODE
+            src->list = this;
+            #endif // CONFIG_DEVMODE
+        }
+
+        static inline void appendAfter(Iterator itSrc, Iterator itDst) {
+            Node* src = itSrc.current;
+            Node* dst = itDst.current;
+            Node* next = dst->next;
+            next->prev = src;
+            dst->next  = src;
+            src->prev  = dst;
+            src->next  = next;
+            #if CONFIG_DEVMODE
+            src->list = this;
+            #endif // CONFIG_DEVMODE
+        }
+
         static inline void detach(Iterator itElement) {
             Node* pNode = itElement.node();
             Node* prev = pNode->prev; // if a segfault happens here, then because 'itElement' Iterator became invalidated
@@ -490,6 +628,10 @@ class RTList : public RTListBase<T> {
 
         inline Iterator fromID(int id) const {
             return pPool->fromID(id);
+        }
+
+        inline Iterator fromPtr(const T* obj) const {
+            return pPool->fromPtr(obj);
         }
 
     protected:
@@ -627,6 +769,23 @@ class Pool : public RTList<T> {
             int reincarnation = uint(id) >> bits;
             if (reincarnation != node->reincarnation) return Iterator(); // invalid iterator 
             return Iterator(node);
+        }
+
+        /**
+         * Returns an Iterator object for the object pointed by @a obj. This
+         * method will check whether the supplied object is actually part of
+         * this pool, and if it is not part of this pool an invalid Iterator is
+         * returned instead.
+         * 
+         * @param obj - raw pointer to an object managed by this pool
+         * @returns Iterator object pointing to the supplied object, invalid
+         *          Iterator in case object is not part of this pool
+         */
+        Iterator fromPtr(const T* obj) const {
+            if (!poolsize) return Iterator(); // invalid iterator
+            int index = obj - &data[0];
+            if (index < 0 || index >= poolsize) return Iterator(); // invalid iterator
+            return Iterator(&nodes[index]);
         }
 
     protected:

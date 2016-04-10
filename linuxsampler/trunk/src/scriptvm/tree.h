@@ -1,6 +1,6 @@
 /*                                                              -*- c++ -*-
  *
- * Copyright (c) 2014 Christian Schoenebeck and Andreas Persson
+ * Copyright (c) 2014 - 2016 Christian Schoenebeck and Andreas Persson
  *
  * http://www.linuxsampler.org
  *
@@ -403,7 +403,7 @@ public:
     Assignment(VariableRef variable, ExpressionRef value);
     void dump(int level = 0);
     StmtFlags_t exec();
-    bool isPolyphonic() const { return variable->isPolyphonic() || value->isPolyphonic(); }
+    bool isPolyphonic() const { return (variable && variable->isPolyphonic()) || (value && value->isPolyphonic()); }
 };
 typedef Ref<Assignment,Node> AssignmentRef;
 

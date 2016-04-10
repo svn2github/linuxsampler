@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Christian Schoenebeck
+ * Copyright (c) 2014-2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -341,7 +341,7 @@ namespace LinuxSampler {
          * Script data type of the function's @c iArg 'th function argument.
          * The information provided here is less strong than acceptsArgType().
          * The parser will compare argument data types provided in scripts by
-         * calling cceptsArgType(). The return value of argType() is used by the
+         * calling acceptsArgType(). The return value of argType() is used by the
          * parser instead to show an appropriate parser error which data type
          * this function usually expects as "default" data type. Reason: a
          * function may accept multiple data types for a certain function
@@ -604,7 +604,7 @@ namespace LinuxSampler {
          * engine) which is using the virtual machine classes here, must take
          * care by itself about taking time stamps, determining the script
          * handlers that shall be put aside for the requested amount of
-         * microseconds indicated by this method by comparing the time stamps in
+         * microseconds, indicated by this method by comparing the time stamps in
          * real-time, and to continue passing the respective handler to
          * ScriptVM::exec() as soon as its suspension exceeded, etc. Or in other
          * words: all classes in this directory never have an idea what time it

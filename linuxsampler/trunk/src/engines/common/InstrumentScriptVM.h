@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck
+ * Copyright (c) 2014-2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -36,6 +36,7 @@ namespace LinuxSampler {
         void erase(int eventID);
         void setScript(InstrumentScript* pScript) { m_script = pScript; }
         inline int size() const { return ConstCapacityArray<int>::size(); }
+        inline void clear() { ConstCapacityArray<int>::clear(); }
         inline int& operator[](uint index) { return ConstCapacityArray<int>::operator[](index); }
         inline const int& operator[](uint index) const { return ConstCapacityArray<int>::operator[](index); }
     protected:
@@ -63,6 +64,7 @@ namespace LinuxSampler {
         VMEventHandler*       handlerController; ///< VM representation of script's MIDI controller callback or NULL if current script did not define such an event handler.
         Pool<ScriptEvent>*    pEvents; ///< Pool of all available script execution instances. ScriptEvents available to be allocated from the Pool are currently unused / not executiong, whereas the ScriptEvents allocated on the list are currently suspended / have not finished execution yet (@see pKeyEvents).
         RTList<ScriptEvent>*  pKeyEvents[128]; ///< Stores previously finished executed "note on" script events for the respective active note/key as long as the key/note is active. This is however only done if there is a "note" script event handler and a "release" script event handler defined in the script and both handlers use (reference) polyphonic variables. If that is not the case, then this list is not used at all. So the purpose of pKeyEvents is only to implement preserving/passing polyphonic variable data from "on note .. end on" script block to the respective "on release .. end on" script block.
+        RTAVLTree<ScriptEvent> suspendedEvents; ///< Contains pointers to all suspended events, sorted by time when those script events are to be resumed next.
         AbstractEngineChannel* pEngineChannel;
         String                code; ///< Source code of the instrument script. Used in case the sampler engine is changed, in that case a new ScriptVM object is created for the engine and VMParserContext object for this script needs to be recreated as well. Thus the script is then parsed again by passing the source code to recreate the parser context.
         EventGroup            eventGroups[INSTR_SCRIPT_EVENT_GROUPS]; ///< Used for built-in script functions: by_event_marks(), set_event_mark(), delete_event_mark().
@@ -73,6 +75,7 @@ namespace LinuxSampler {
         void load(const String& text);
         void unload();
         void resetAll();
+        void resetEvents();
     };
 
     /** @brief Real-time instrument script virtual machine.

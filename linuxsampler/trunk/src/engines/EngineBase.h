@@ -4,7 +4,8 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2015 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2012-2016 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -635,16 +636,17 @@ namespace LinuxSampler {
                 // the event list by running the script now, since the script
                 // might filter events or add new ones for this cycle
                 if (pChannel->pScript) {
-                    // resume any suspended script executions still hanging
-                    // around of previous audio fragment cycles
-                    for (RTList<ScriptEvent>::Iterator itEvent = pChannel->pScript->pEvents->first(),
-                        end = pChannel->pScript->pEvents->end(); itEvent != end; ++itEvent)
-                    {
-                        ResumeScriptEvent(pChannel, itEvent); //TODO: implement support for actual suspension time (i.e. passed to a script's wait() function call)
-                    }
+                    const sched_time_t fragmentEndTime = pEventGenerator->schedTimeAtCurrentFragmentEnd();
+
+                    // resume suspended script executions been scheduled for
+                    // this audio fragment cycle (which were suspended in a
+                    // previous audio fragment cycle)
+                    ProcessSuspendedScriptEvents(pChannel, fragmentEndTime);
 
                     // spawn new script executions for the new MIDI events of
                     // this audio fragment cycle
+                    //
+                    // FIXME: it would probably be better to just schedule newly spawned script executions here and then execute them altogether with already suspended ones all at once in order of all their scheduled timing
                     for (RTList<Event>::Iterator itEvent = pChannel->pEvents->first(),
                         end = pChannel->pEvents->end(); itEvent != end; ++itEvent)
                     {
@@ -668,6 +670,47 @@ namespace LinuxSampler {
                                 break;
                         }
                     }
+
+                    // this has to be run again, since the newly spawned scripts
+                    // above may have cause suspended scripts that must be
+                    // resumed within this same audio fragment cycle
+                    //
+                    // FIXME: see FIXME comment above
+                    ProcessSuspendedScriptEvents(pChannel, fragmentEndTime);
+                }
+
+                // if there are any delayed events scheduled for the current
+                // audio fragment cycle, then move and sort them into the main
+                // event list
+                if (!pChannel->delayedEvents.queue.isEmpty()) {
+                    dmsg(5,("Engine: There are delayed MIDI events (total queue size: %d) ...\n", pChannel->delayedEvents.queue.size()));
+                    const sched_time_t fragmentEndTime = pEventGenerator->schedTimeAtCurrentFragmentEnd();
+                    RTList<Event>::Iterator itEvent = pChannel->pEvents->first();
+                    while (true) {
+                        RTList<ScheduledEvent>::Iterator itDelayedEventNode =
+                            pEventGenerator->popNextScheduledEvent(
+                                pChannel->delayedEvents.queue,
+                                pChannel->delayedEvents.schedulerNodes,
+                                fragmentEndTime
+                            );
+                        if (!itDelayedEventNode) break;
+                        // get the actual delayed event object and free the used scheduler node
+                        RTList<Event>::Iterator itDelayedEvent = itDelayedEventNode->itEvent;
+                        pChannel->delayedEvents.schedulerNodes.free(itDelayedEventNode);
+                        if (!itDelayedEvent) { // should never happen, but just to be sure ...
+                            dmsg(1,("Engine: Oops, invalid delayed event!\n"));
+                            continue;
+                        }
+                        // skip all events on main event list which have a time
+                        // before (or equal to) the delayed event to be inserted
+                        for (; itEvent && itEvent->FragmentPos() <= itDelayedEvent->FragmentPos();
+                             ++itEvent);
+                        // now move delayed event from delayedEvents.pList to
+                        // the current position on the main event list
+                        itEvent = itDelayedEvent.moveBefore(itEvent);
+                        dmsg(5,("Engine: Inserted event of type %d into main event list (queue size: %d).\n", itEvent->Type, pChannel->delayedEvents.queue.size()));
+                    }
+                    dmsg(5,("Engine: End of delayed events (total queue size: %d).\n", pChannel->delayedEvents.queue.size()));
                 }
 
                 // now process all events regularly
@@ -712,13 +755,31 @@ namespace LinuxSampler {
                 pLastStolenChannel        = NULL;
             }
 
+            /**
+             * Run all suspended script execution instances which are scheduled
+             * to be resumed for the current audio fragment cycle.
+             * 
+             * @param pChannel - engine channel on which suspended events occurred
+             */
+            void ProcessSuspendedScriptEvents(AbstractEngineChannel* pChannel, const sched_time_t fragmentEndTime) {
+                while (true) {
+                    RTList<ScriptEvent>::Iterator itEvent =
+                        pEventGenerator->popNextScheduledScriptEvent(
+                            pChannel->pScript->suspendedEvents,
+                            *pChannel->pScript->pEvents, fragmentEndTime
+                        );
+                    if (!itEvent) break;
+                    ResumeScriptEvent(pChannel, itEvent);
+                }
+            }
+
             /** @brief Call instrument script's event handler for this event.
              *
              * Causes a new execution instance of the currently loaded real-time
              * instrument script's event handler (callback) to be spawned for
              * the given MIDI event.
              *
-             * @param pChannel - engine channel on which the MIDI event occured
+             * @param pChannel - engine channel on which the MIDI event occurred
              * @param itEvent - MIDI event that causes this new script execution
              * @param pEventHandler - script's event handler to be executed
              */
@@ -754,6 +815,22 @@ namespace LinuxSampler {
                 }
             }
 
+            /** @brief Spawn new execution instance of an instrument script handler.
+             * 
+             * Will be called to initiate a new execution of a real-time
+             * instrument script event right from the start of the script's
+             * respective handler. If script execution did not complete after
+             * calling this method, the respective script exeuction is then
+             * suspended and a call to ResumeScriptEvent() will be used next
+             * time to continue its execution.
+             * 
+             * @param pChannel - engine channel this script is running for
+             * @param itEvent - event which caused execution of this script
+             *                  event handler
+             * @param pEventHandler - VM representation of event handler to be
+             *                        executed
+             * @param itScriptEvent - script event that shall be processed
+             */
             void ProcessScriptEvent(AbstractEngineChannel* pChannel, RTList<Event>::Iterator& itEvent, VMEventHandler* pEventHandler, RTList<ScriptEvent>::Iterator& itScriptEvent) {
                 if (!itScriptEvent) return; // not a valid script event (i.e. because no free script event was left in the script event pool)
 
@@ -773,9 +850,18 @@ namespace LinuxSampler {
                     pChannel->pScript->parserContext, &*itScriptEvent
                 );
 
-                // in case the script was suspended, keep it on the allocated
-                // ScriptEvent list to be continued on the next audio cycle
-                if (!(res & VM_EXEC_SUSPENDED)) { // script execution has finished without 'suspended' status ...
+                // was the script suspended?
+                if (res & VM_EXEC_SUSPENDED) { // script was suspended ...
+                    // in case the script was suspended, keep it on the allocated
+                    // ScriptEvent list to be resume at the scheduled time in future,
+                    // additionally insert it into a sorted time queue
+                    pEventGenerator->scheduleAheadMicroSec(
+                        pChannel->pScript->suspendedEvents, // scheduler queue
+                        *itScriptEvent, // script event
+                        itScriptEvent->cause.FragmentPos(), // current time of script event (basis for its next execution)
+                        itScriptEvent->execCtx->suspensionTimeMicroseconds() // how long shall it be suspended
+                    );
+                } else { // script execution has finished without 'suspended' status ...
                     // if "polyphonic" variable data is passed from script's
                     // "note" event handler to its "release" event handler, then
                     // the script event must be kept and recycled for the later
@@ -822,9 +908,18 @@ namespace LinuxSampler {
                     pChannel->pScript->parserContext, &*itScriptEvent
                 );
 
-                // in case the script was suspended, keep it on the allocated
-                // ScriptEvent list to be continued on the next audio cycle
-                if (!(res & VM_EXEC_SUSPENDED)) { // script execution has finished without 'suspended' status ...
+                // was the script suspended?
+                if (res & VM_EXEC_SUSPENDED) {
+                    // in case the script was suspended, keep it on the allocated
+                    // ScriptEvent list to be resume at the scheduled time in future,
+                    // additionally insert it into a sorted time queue
+                    pEventGenerator->scheduleAheadMicroSec(
+                        pChannel->pScript->suspendedEvents, // scheduler queue
+                        *itScriptEvent, // script event
+                        itScriptEvent->cause.FragmentPos(), // current time of script event (basis for its next execution)
+                        itScriptEvent->execCtx->suspensionTimeMicroseconds() // how long shall it be suspended
+                    );
+                } else { // script execution has finished without 'suspended' status ...
                     // if "polyphonic" variable data is passed from script's
                     // "note" event handler to its "release" event handler, then
                     // the script event must be kept and recycled for the later
@@ -852,7 +947,7 @@ namespace LinuxSampler {
              *  voice stealing and postpone the note-on event until the selected
              *  voice actually died.
              *
-             *  @param pEngineChannel - engine channel on which this event occured on
+             *  @param pEngineChannel - engine channel on which this event occurred on
              *  @param itNoteOnEvent - key, velocity and time stamp of the event
              *  @returns 0 on success, a value < 0 if no active voice could be picked for voice stealing
              */
@@ -1090,7 +1185,8 @@ namespace LinuxSampler {
                  pChannel->FreeAllInactiveKyes();
 
                 // empty the engine channel's own event lists
-                pChannel->ClearEventLists();
+                // (only events of the current audio fragment cycle)
+                pChannel->ClearEventListsOfCurrentFragment();
             }
 
             /**
@@ -1316,7 +1412,7 @@ namespace LinuxSampler {
             /**
              *  Assigns and triggers a new voice for the respective MIDI key.
              *
-             *  @param pEngineChannel - engine channel on which this event occured on
+             *  @param pEngineChannel - engine channel on which this event occurred on
              *  @param itNoteOnEvent - key, velocity and time stamp of the event
              */
             virtual void ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
@@ -1428,7 +1524,7 @@ namespace LinuxSampler {
              *  sustain pedal will be released or voice turned inactive by itself (e.g.
              *  due to completion of sample playback).
              *
-             *  @param pEngineChannel - engine channel on which this event occured on
+             *  @param pEngineChannel - engine channel on which this event occurred on
              *  @param itNoteOffEvent - key, velocity and time stamp of the event
              */
             virtual void ProcessNoteOff(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOffEvent) {
@@ -1556,6 +1652,13 @@ namespace LinuxSampler {
                 }
                 pVoicePool->clear();
 
+                // reset all engine channels
+                for (int i = 0; i < engineChannels.size(); i++) {
+                    AbstractEngineChannel* pEngineChannel =
+                        static_cast<AbstractEngineChannel*>(engineChannels[i]);
+                    pEngineChannel->ResetInternal(false/*don't reset engine*/);
+                }
+
                 // reset disk thread
                 if (pDiskThread) pDiskThread->Reset();
 
@@ -1584,7 +1687,7 @@ namespace LinuxSampler {
              *  called by the ProcessNoteOn() method and by the voices itself
              *  (e.g. to spawn further voices on the same key for layered sounds).
              *
-             *  @param pEngineChannel      - engine channel on which this event occured on
+             *  @param pEngineChannel      - engine channel on which this event occurred on
              *  @param itNoteOnEvent       - key, velocity and time stamp of the event
              *  @param iLayer              - layer index for the new voice (optional - only
              *                               in case of layered sounds of course)
