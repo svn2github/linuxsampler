@@ -68,22 +68,22 @@ on note
 end on
     </code>
     
-    <note class="important">
+    <note>
       Using the <code>wait()</code> function can lead to concurrency issues with
       regular variables, which are global variables by default. You might need
       to use <a href="nksp.html#polyphonic_variables">polyphonic variables</a>
       in such cases.
     </note>
     
-    <note class="important">
-      The <code>wait()</code> function is not fully implemented in LinuxSampler
-      yet. Currently a <code>wait()</code> function call suspends execution,
-      but since the respective scheduler code is yet missing in LinuxSampler,
-      the script will automatically be resumed with the next audio fragment
-      cycle. So effectively a <code>wait()</code> call will pause your script
-      for a few miliseconds with LinuxSampler right now, no matter which
-      function argument you provided. Hopefully this will be implemented soon
-      though.
+    <note>
+      You need at least LinuxSampler 2.0.0.svn2 or higher for the
+      <code>wait()</code> function to fully work as expected. Versions
+      of LinuxSampler older than that will not resume the script at the
+      requested amount of time, instead those older version will resume
+      the script always at the beginning of the next audio fragment
+      cycle. So effectively a <code>wait()</code> call with a LinuxSampler
+      version older than 2.0.0.svn2 will pause your script for a few
+      miliseconds, no matter which function argument you provided.
     </note>
 
   </body>

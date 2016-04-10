@@ -51,11 +51,16 @@ play_note(??note??, [??velocity??], [??offset-us??], [??duration-us??])
       </tr>
     </table>
 
-    <note class="important">
-    Passing any other value than <code>0</code> for <code>??duration-us??</code>
-    is not supported by LinuxSampler yet.
+    <note>
+    You need at least LinuxSampler 2.0.0.svn2 or higher for passing a value
+    higher than <code>0</code> for <code>??duration-us??</code>.
     </note>
-    
+
+    <note class="important">
+    Passing <code>-1</code> for <code>??duration-us??</code> is not
+    supported by LinuxSampler yet.
+    </note>
+
     <h3>Return Value</h3>
     <table>
       <tr>

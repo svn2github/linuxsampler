@@ -414,15 +414,11 @@ end on
       triggered on a MIDI keyboard. The following example demonstrates how that
       could be achieved.
     </p>
-    <note class="important">
-      The following example does not fully work with LinuxSampler yet. That's
-      because the used <code>wait()</code> function is not fully implemented
-      yet. Currently a <code>wait()</code> function call suspends execution,
-      but since the respective scheduler code is yet missing, the script
-      will automatically be resumed with the next audio fragment cycle. So
-      effectively a <code>wait()</code> call will pause your script for a few
-      miliseconds with LinuxSampler right now, no matter which function argument
-      you provided. Hopefully this will be implemented soon though.
+    <note>
+      You need at least LinuxSampler 2.0.0.svn2 or higher for the following
+      example to work as described and as expected. Refer to the notes of the
+      <code>wait()</code> function reference documentation for more
+      informations about this issue.
     </note>
     <code>
 on init
