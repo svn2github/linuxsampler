@@ -4,6 +4,9 @@ Version SVN HEAD (?)
   * fixed building without linuxsampler on Mac
   * fixed some compiler and cppcheck warnings
   * avoid using gtk stock items, as they are deprecated in gtk 3.10
+  * synthesis paremeter page tabs are now scrollable (fixes an issue with
+    GTK 3: default theme uses huge tabs which breaks the overall layout on
+    average window sizes)
 
 Version 1.0.0 (2015-07-17)
 

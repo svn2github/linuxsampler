@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2015 Andreas Persson
+ * Copyright (C) 2006-2016 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -244,6 +244,10 @@ DimRegionEdit::DimRegionEdit() :
     buttonSelectSample(UNICODE_LEFT_ARROW + "  " + _("Select Sample")),
     update_model(0)
 {
+    // make synthesis parameter page tabs scrollable
+    // (workaround for GTK3: default theme uses huge tabs which breaks layout)
+    set_scrollable();
+
     connect(eEG1PreAttack, &gig::DimensionRegion::EG1PreAttack);
     connect(eEG1Attack, &gig::DimensionRegion::EG1Attack);
     connect(eEG1Decay1, &gig::DimensionRegion::EG1Decay1);
