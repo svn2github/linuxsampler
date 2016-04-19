@@ -38,7 +38,7 @@ namespace LinuxSampler {
         } Format;
     protected:
         NoteBase() : hostKey(0), parentNoteID(0), pChildNotes(NULL) {
-            Format = (_Format) {};
+            Format = _Format();
         }
     };
 
@@ -72,7 +72,7 @@ namespace LinuxSampler {
                 pChildNotes->clear();
             cause = Event();
             eventID = 0;
-            Format = (_Format) {};
+            Format = _Format();
             if (pActiveVoices) {
                 typename RTList<V>::Iterator itVoice = pActiveVoices->first();
                 typename RTList<V>::Iterator itVoicesEnd = pActiveVoices->end();
