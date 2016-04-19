@@ -183,8 +183,11 @@ namespace LinuxSampler {
             virtual void RemoveAllFxSends();
 
             void ImportEvents(uint Samples);
-            int  ScheduleEventMicroSec(const Event* pEvent, int delay);
-            void IgnoreEvent(int id);
+            virtual note_id_t ScheduleNoteMicroSec(const Event* pEvent, int delay) = 0;
+            event_id_t ScheduleEventMicroSec(const Event* pEvent, int delay);
+            void IgnoreEvent(event_id_t id);
+            void IgnoreNote(note_id_t id);
+            void IgnoreEventByScriptID(const ScriptID& id);
 
             void AddGroup(uint group);
             void HandleKeyGroupConflicts(uint KeyGroup, Pool<Event>::Iterator& itNoteOnEvent);
@@ -204,6 +207,8 @@ namespace LinuxSampler {
                 //FIXME: leaves tiny time frames open (shortly after 1->2 devices connected or 2->1 disconnected) which could lead to concurrency issue for the purpose described above, however in practice it "should" be acceptable
                 return midiInputs.unsafeBack().size() > 1;
             }
+
+            inline bool applyTranspose(Event* event);
     };
 
 } // namespace LinuxSampler

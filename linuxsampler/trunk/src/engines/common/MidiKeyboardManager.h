@@ -30,6 +30,7 @@
 #include "../../EventListeners.h"
 #include "../../common/Pool.h"
 #include "../../common/global_private.h"
+#include "Note.h"
 
 namespace LinuxSampler {
 
@@ -163,10 +164,10 @@ namespace LinuxSampler {
              */
             class MidiKey : public MidiKeyBase {
             public:
-                RTList<V>* pActiveVoices;  ///< Contains the active voices associated with the MIDI key.
+                RTList< Note<V> >* pActiveNotes; ///< Contains the active notes associated with the MIDI key.
 
                 MidiKey() {
-                    pActiveVoices  = NULL;
+                    pActiveNotes   = NULL;
                     KeyPressed     = false;
                     Active         = false;
                     ReleaseTrigger = false;
@@ -178,13 +179,13 @@ namespace LinuxSampler {
                 }
 
                 void Reset() {
-                    if (pActiveVoices) {
-                        RTListVoiceIterator itVoice = pActiveVoices->first();
-                        RTListVoiceIterator itVoicesEnd = pActiveVoices->end();
-                        for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
-                            itVoice->VoiceFreed();
+                    if (pActiveNotes) {
+                        RTListNoteIterator itNote = pActiveNotes->first();
+                        RTListNoteIterator itNotesEnd = pActiveNotes->end();
+                        for (; itNote != itNotesEnd; ++itNote) { // iterate through all active notes on this key
+                            itNote->reset();
                         }
-                        pActiveVoices->clear();
+                        pActiveNotes->clear();
                     }
                     if (pEvents) pEvents->clear();
                     KeyPressed        = false;
@@ -200,6 +201,7 @@ namespace LinuxSampler {
                 }
             };
 
+            typedef typename RTList< Note<V> >::Iterator RTListNoteIterator;
             typedef typename RTList<V>::Iterator RTListVoiceIterator;
             typedef typename Pool<V>::Iterator PoolVoiceIterator;
 
@@ -243,6 +245,7 @@ namespace LinuxSampler {
                     pMIDIKeyInfo[i].pRoundRobinIndex = &RoundRobinIndexes[i];
                 }
                 m_engineChannel = pEngineChannel;
+                m_voicePool = NULL;
             }
 
             virtual ~MidiKeyboardManager() {
@@ -266,32 +269,35 @@ namespace LinuxSampler {
                 pActiveKeys->clear();
             }
 
-            void AllocateActiveVoices(Pool<V>* pVoicePool) {
-                DeleteActiveVoices();
+            void AllocateActiveNotesLists(Pool< Note<V> >* pNotePool, Pool<V>* pVoicePool) {
+                DeleteActiveNotesLists();
+
+                m_voicePool = pVoicePool;
 
                 for (uint i = 0; i < 128; i++) {
-                    pMIDIKeyInfo[i].pActiveVoices = new RTList<V>(pVoicePool);
+                    pMIDIKeyInfo[i].pActiveNotes = new RTList< Note<V> >(pNotePool);
                 }
             }
 
-            void DeleteActiveVoices() {
+            void DeleteActiveNotesLists() {
                 for (uint i = 0; i < 128; i++) {
-                    if (pMIDIKeyInfo[i].pActiveVoices) {
-                        delete pMIDIKeyInfo[i].pActiveVoices;
-                        pMIDIKeyInfo[i].pActiveVoices = NULL;
+                    if (pMIDIKeyInfo[i].pActiveNotes) {
+                        delete pMIDIKeyInfo[i].pActiveNotes;
+                        pMIDIKeyInfo[i].pActiveNotes = NULL;
                     }
                 }
+                m_voicePool = NULL;
             }
 
-            void AllocateEvents(Pool<Event>* pEventPool) {
-                DeleteEvents();
+            void AllocateEventsLists(Pool<Event>* pEventPool) {
+                DeleteEventsLists();
 
                 for (uint i = 0; i < 128; i++) {
                     pMIDIKeyInfo[i].pEvents = new RTList<Event>(pEventPool);
                 }
             }
 
-            void DeleteEvents() {
+            void DeleteEventsLists() {
                 for (uint i = 0; i < 128; i++) {
                     if (pMIDIKeyInfo[i].pEvents) {
                         delete pMIDIKeyInfo[i].pEvents;
@@ -318,7 +324,7 @@ namespace LinuxSampler {
              */
             void FreeVoice(PoolVoiceIterator& itVoice) {
                 if (itVoice) {
-                    MidiKey* pKey = &pMIDIKeyInfo[itVoice->MIDIKey];
+                    //MidiKey* pKey = &pMIDIKeyInfo[itVoice->MIDIKey];
 
                     // if the sample and dimension region belong to an
                     // instrument that is unloaded, tell the disk thread to
@@ -330,7 +336,7 @@ namespace LinuxSampler {
                     }
 
                     // free the voice object
-                    pKey->pActiveVoices->free(itVoice);
+                    m_voicePool->free(itVoice);
                 }
                 else std::cerr << "Couldn't release voice! (!itVoice)\n" << std::flush;
             }
@@ -343,7 +349,7 @@ namespace LinuxSampler {
              *  @param pKey - key which is now inactive
              */
             void FreeKey(MidiKey* pKey) {
-                if (pKey->pActiveVoices->isEmpty()) {
+                if (pKey->pActiveNotes->isEmpty()) {
                     if (m_engineChannel->pScript)
                         m_engineChannel->pScript->pKeyEvents[pKey->itSelf]->clear();
                     pKey->Active = false;
@@ -365,24 +371,34 @@ namespace LinuxSampler {
                 while (iuiKey != end) { // iterate through all active keys
                     MidiKey* pKey = &pMIDIKeyInfo[*iuiKey];
                     ++iuiKey;
-                    if (pKey->pActiveVoices->isEmpty()) FreeKey(pKey);
-                    #if CONFIG_DEVMODE
-                    else { // just a sanity check for debugging
-                        RTListVoiceIterator itVoice = pKey->pActiveVoices->first();
-                        RTListVoiceIterator = pKey->pActiveVoices->end();
-                        for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
-                            if (itVoice->itKillEvent) {
-                                dmsg(1,("gig::Engine: ERROR, killed voice survived !!!\n"));
+                    for (RTListNoteIterator itNote = pKey->pActiveNotes->first(),
+                         itNotesEnd = pKey->pActiveNotes->end();
+                         itNote != itNotesEnd; ++itNote)
+                    { // iterate over all active notes on that key ...
+                        if (itNote->pActiveVoices->isEmpty()) { // free note ...
+                            itNote->reset();
+                            pKey->pActiveNotes->free(itNote);
+                        }
+                        #if CONFIG_DEVMODE
+                        else { // just a sanity check for debugging
+                            RTListVoiceIterator itVoice = itNote->pActiveVoices->first();
+                            RTListVoiceIterator itVoicesEnd = itNote->pActiveVoices->end();
+                            for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                                if (itVoice->itKillEvent) {
+                                    dmsg(1,("gig::Engine: ERROR, killed voice survived !!!\n"));
+                                }
                             }
                         }
+                        #endif // CONFIG_DEVMODE
                     }
-                    #endif // CONFIG_DEVMODE
+                    if (pKey->pActiveNotes->isEmpty()) FreeKey(pKey);
                 }
             }
 
             int StealVoice (
                 Pool<Event>::Iterator&   itNoteOnEvent,
                 RTListVoiceIterator*     LastStolenVoice,
+                RTListNoteIterator*      LastStolenNote,
                 RTList<uint>::Iterator*  LastStolenKey
             ) {
                 RTListVoiceIterator itSelectedVoice;
@@ -396,18 +412,22 @@ namespace LinuxSampler {
                     // 'oldestkey' algorithm
                     case voice_steal_algo_oldestvoiceonkey: {
                         MidiKey* pSelectedKey = &pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
-                        itSelectedVoice = pSelectedKey->pActiveVoices->first();
-                        // proceed iterating if voice was created in this fragment cycle
-                        while (itSelectedVoice && !itSelectedVoice->IsStealable()) ++itSelectedVoice;
-                        // if we haven't found a voice then proceed with algorithm 'oldestkey'
-                        if (itSelectedVoice && itSelectedVoice->IsStealable()) break;
+                        for (RTListNoteIterator itNote = pSelectedKey->pActiveNotes->first(),
+                             itNotesEnd = pSelectedKey->pActiveNotes->end();
+                             itNote != itNotesEnd; ++itNote)
+                        {
+                            for (itSelectedVoice = itNote->pActiveVoices->first(); itSelectedVoice; ++itSelectedVoice)
+                                if (itSelectedVoice->IsStealable()) // proceed iterating if voice was created in this audio fragment cycle
+                                    goto voiceFound; // selection succeeded
+                        }
+                        // if we haven't found a voice then proceed with algorithm 'oldestkey' ...
                     } // no break - intentional !
 
                     // try to pick the oldest voice on the oldest active key
                     // from the same engine channel
                     // (caution: must stay after 'oldestvoiceonkey' algorithm !)
                     case voice_steal_algo_oldestkey: {
-                        // if we already stole in this fragment, try to proceed on same key
+                        // if we already stole in this fragment, try to proceed to steal on same note
                         if (*LastStolenVoice) {
                             itSelectedVoice = *LastStolenVoice;
                             do {
@@ -420,21 +440,44 @@ namespace LinuxSampler {
                                 break; // selection succeeded
                             }
                         }
+
+                        // get (next) oldest note
+                        if (*LastStolenNote) {
+                            for (RTListNoteIterator itNote = ++(*LastStolenNote);
+                                 itNote; ++itNote)
+                            {
+                                for (itSelectedVoice = itNote->pActiveVoices->first(); itSelectedVoice; ++itSelectedVoice) {
+                                    // proceed iterating if voice was created in this audio fragment cycle
+                                    if (itSelectedVoice->IsStealable()) {
+                                        // remember which voice on which note we stole, so we can simply proceed on next voice stealing
+                                        *LastStolenNote  = itNote;
+                                        *LastStolenVoice = itSelectedVoice;
+                                        goto voiceFound; // selection succeeded
+                                    }
+                                }
+                            }
+                        }
+
                         // get (next) oldest key
                         RTList<uint>::Iterator iuiSelectedKey = (*LastStolenKey) ? ++(*LastStolenKey) : pActiveKeys->first();
-                        while (iuiSelectedKey) {
+                        for (; iuiSelectedKey; ++iuiSelectedKey) {
                             MidiKey* pSelectedKey = &pMIDIKeyInfo[*iuiSelectedKey];
-                            itSelectedVoice = pSelectedKey->pActiveVoices->first();
-                            // proceed iterating if voice was created in this fragment cycle
-                            while (itSelectedVoice && !itSelectedVoice->IsStealable()) ++itSelectedVoice;
-                            // found a "stealable" voice ?
-                            if (itSelectedVoice && itSelectedVoice->IsStealable()) {
-                                // remember which voice on which key we stole, so we can simply proceed on next voice stealing
-                                *LastStolenKey  = iuiSelectedKey;
-                                *LastStolenVoice = itSelectedVoice;
-                                break; // selection succeeded
+
+                            for (RTListNoteIterator itNote = pSelectedKey->pActiveNotes->first(),
+                                 itNotesEnd = pSelectedKey->pActiveNotes->end();
+                                 itNote != itNotesEnd; ++itNote)
+                            {
+                                for (itSelectedVoice = itNote->pActiveVoices->first(); itSelectedVoice; ++itSelectedVoice) {
+                                    // proceed iterating if voice was created in this audio fragment cycle
+                                    if (itSelectedVoice->IsStealable()) {
+                                        // remember which voice on which key we stole, so we can simply proceed on next voice stealing
+                                        *LastStolenKey  = iuiSelectedKey;
+                                        *LastStolenNote = itNote;
+                                        *LastStolenVoice = itSelectedVoice;
+                                        goto voiceFound; // selection succeeded
+                                    }
+                                }
                             }
-                            ++iuiSelectedKey; // get next oldest key
                         }
                         break;
                     }
@@ -446,6 +489,8 @@ namespace LinuxSampler {
                         return -1;
                     }
                 }
+                
+                voiceFound:
 
                 if (!itSelectedVoice || !itSelectedVoice->IsStealable()) return -1;
 
@@ -483,6 +528,7 @@ namespace LinuxSampler {
                     else dmsg(1,("Event pool emtpy!\n"));
                 }
             }
+
             /**
              * Kill all active voices.
              * @returns The number of voices.
@@ -490,15 +536,21 @@ namespace LinuxSampler {
             int KillAllVoices(Pool<Event>::Iterator& itKillEvent) {
                 int count = 0;
 
-                RTList<uint>::Iterator iuiKey  = pActiveKeys->first();
+                RTList<uint>::Iterator iuiKey = pActiveKeys->first();
                 RTList<uint>::Iterator end = pActiveKeys->end();
                 for (; iuiKey != end; ++iuiKey) { // iterate through all active keys
                     MidiKey* pKey = &pMIDIKeyInfo[*iuiKey];
-                    RTListVoiceIterator itVoice = pKey->pActiveVoices->first();
-                    RTListVoiceIterator itVoicesEnd = pKey->pActiveVoices->end();
-                    for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
-                        itVoice->Kill(itKillEvent);
-                        count++;
+
+                    for (RTListNoteIterator itNote = pKey->pActiveNotes->first(),
+                         itNotesEnd = pKey->pActiveNotes->end();
+                         itNote != itNotesEnd; ++itNote)
+                    {
+                        RTListVoiceIterator itVoice = itNote->pActiveVoices->first();
+                        RTListVoiceIterator itVoicesEnd = itNote->pActiveVoices->end();
+                        for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                            itVoice->Kill(itKillEvent);
+                            count++;
+                        }
                     }
                 }
 
@@ -512,21 +564,27 @@ namespace LinuxSampler {
             int KillAllVoicesImmediately() {
                 int iPendingStreamDeletions = 0;
 
-                RTList<uint>::Iterator iuiKey  = pActiveKeys->first();
+                RTList<uint>::Iterator iuiKey = pActiveKeys->first();
                 RTList<uint>::Iterator end = pActiveKeys->end();
                 for (; iuiKey != end; ++iuiKey) { // iterate through all active keys
                     MidiKey* pKey = &pMIDIKeyInfo[*iuiKey];
-                    RTListVoiceIterator itVoice = pKey->pActiveVoices->first();
-                    RTListVoiceIterator itVoicesEnd = pKey->pActiveVoices->end();
-                    for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
-                        // request a notification from disk thread side for stream deletion
-                        const Stream::Handle hStream = itVoice->KillImmediately(true);
-                        if (hStream != Stream::INVALID_HANDLE) { // voice actually used a stream
-                            iPendingStreamDeletions++;
+
+                    for (RTListNoteIterator itNote = pKey->pActiveNotes->first(),
+                         itNotesEnd = pKey->pActiveNotes->end();
+                         itNote != itNotesEnd; ++itNote)
+                    {
+                        RTListVoiceIterator itVoice = itNote->pActiveVoices->first();
+                        RTListVoiceIterator itVoicesEnd = itNote->pActiveVoices->end();
+                        for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                            // request a notification from disk thread side for stream deletion
+                            const Stream::Handle hStream = itVoice->KillImmediately(true);
+                            if (hStream != Stream::INVALID_HANDLE) { // voice actually used a stream
+                                iPendingStreamDeletions++;
+                            }
+                            // free the voice to the voice pool and update key info
+                            itVoice->VoiceFreed();
+                            FreeVoice(itVoice);
                         }
-                        // free the voice to the voice pool and update key info
-                        itVoice->VoiceFreed();
-                        FreeVoice(itVoice);
                     }
                 }
 
@@ -538,14 +596,20 @@ namespace LinuxSampler {
              * samples they use should be released to the instrument manager when the voices die.
              */
             void MarkAllActiveVoicesAsOrphans() {
-                RTList<uint>::Iterator iuiKey  = pActiveKeys->first();
+                RTList<uint>::Iterator iuiKey = pActiveKeys->first();
                 RTList<uint>::Iterator end = pActiveKeys->end();
                 for (; iuiKey != end; ++iuiKey) { // iterate through all active keys
                     MidiKey* pKey = &pMIDIKeyInfo[*iuiKey];
-                    RTListVoiceIterator itVoice = pKey->pActiveVoices->first();
-                    RTListVoiceIterator itVoicesEnd = pKey->pActiveVoices->end();
-                    for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
-                        itVoice->Orphan = true;
+
+                    for (RTListNoteIterator itNote = pKey->pActiveNotes->first(),
+                         itNotesEnd = pKey->pActiveNotes->end();
+                         itNote != itNotesEnd; ++itNote)
+                    {
+                        RTListVoiceIterator itVoice = itNote->pActiveVoices->first();
+                        RTListVoiceIterator itVoicesEnd = itNote->pActiveVoices->end();
+                        for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                            itVoice->Orphan = true;
+                        }
                     }
                 }
             }
@@ -553,16 +617,21 @@ namespace LinuxSampler {
             void ProcessActiveVoices(VoiceHandler* pVoiceHandler) {
                 if (pVoiceHandler == NULL) return;
 
-                RTList<uint>::Iterator iuiKey  = pActiveKeys->first();
+                RTList<uint>::Iterator iuiKey = pActiveKeys->first();
                 RTList<uint>::Iterator end = pActiveKeys->end();
                 for (; iuiKey != end; ++iuiKey) { // iterate through all active keys
                     MidiKey* pKey = &pMIDIKeyInfo[*iuiKey];
                     if (!pVoiceHandler->Process(pKey)) continue;
 
-                    RTListVoiceIterator itVoice = pKey->pActiveVoices->first();
-                    RTListVoiceIterator itVoicesEnd = pKey->pActiveVoices->end();
-                    for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
-                        pVoiceHandler->Process(itVoice);
+                    for (RTListNoteIterator itNote = pKey->pActiveNotes->first(),
+                         itNotesEnd = pKey->pActiveNotes->end();
+                         itNote != itNotesEnd; ++itNote)
+                    {
+                        RTListVoiceIterator itVoice = itNote->pActiveVoices->first();
+                        RTListVoiceIterator itVoicesEnd = itNote->pActiveVoices->end();
+                        for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                            pVoiceHandler->Process(itVoice);
+                        }
                     }
                 }
             }
@@ -574,9 +643,15 @@ namespace LinuxSampler {
                 RTList<uint>::Iterator iuiKey = pActiveKeys->first();
                 for (; iuiKey; ++iuiKey) {
                     MidiKey* pKey = &pMIDIKeyInfo[*iuiKey];
-                    RTListVoiceIterator itVoice = pKey->pActiveVoices->first();
-                    for (; itVoice; ++itVoice) {
-                        itVoice->onScaleTuningChanged();
+
+                    for (RTListNoteIterator itNote = pKey->pActiveNotes->first(),
+                         itNotesEnd = pKey->pActiveNotes->end();
+                         itNote != itNotesEnd; ++itNote)
+                    {
+                        RTListVoiceIterator itVoice = itNote->pActiveVoices->first();
+                        for (; itVoice; ++itVoice) {
+                            itVoice->onScaleTuningChanged();
+                        }
                     }
                 }
             }
@@ -662,6 +737,7 @@ namespace LinuxSampler {
 
         protected:
             AbstractEngineChannel* m_engineChannel;
+            Pool<V>* m_voicePool;
 
             class Listeners : public MidiKeyboardListener, public ListenerList<MidiKeyboardListener*> {
             public:

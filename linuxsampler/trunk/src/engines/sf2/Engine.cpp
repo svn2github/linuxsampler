@@ -88,6 +88,12 @@ namespace LinuxSampler { namespace sf2 {
         uint8_t  chanaft  = pChannel->ControllerTable[128];
         uint8_t* cc       = pChannel->ControllerTable;
 
+        NoteIterator itNote = GetNotePool()->fromID(itNoteOnEvent->Param.Note.ID);
+        if (!itNote) {
+            dmsg(1,("sf2::Engine: No Note object for triggering new voices!\n"));
+            return;
+        }
+
         int layer = 0;
         ::sf2::Query query(*pChannel->pInstrument);
         query.key = key;
@@ -103,7 +109,10 @@ namespace LinuxSampler { namespace sf2 {
                 //std::cout << " loKey: " << r->loKey << " hiKey: " << r->hiKey << " minVel: " << r->minVel << " maxVel: " << r->maxVel << " Vel: " << ((int)vel) << std::endl << std::endl;
                 if (!RegionSuspended(r)) {
                     itNoteOnEvent->Param.Note.pRegion = r;
-                    LaunchVoice(pChannel, itNoteOnEvent, layer, false, true, HandleKeyGroupConflicts);
+                    VoiceIterator itNewVoice =
+                        LaunchVoice(pChannel, itNoteOnEvent, layer, false, true, HandleKeyGroupConflicts);
+                    if (itNewVoice)
+                        itNewVoice.moveToEndOf(itNote->pActiveVoices);
                 }
                 layer++;
             }
@@ -127,7 +136,7 @@ namespace LinuxSampler { namespace sf2 {
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
         int key = itNoteOnEvent->Param.Note.Key;
-        EngineChannel::MidiKey* pKey = &pChannel->pMIDIKeyInfo[key];
+        //EngineChannel::MidiKey* pKey = &pChannel->pMIDIKeyInfo[key];
 
         Voice::type_t VoiceType = Voice::type_normal;
 
@@ -141,7 +150,7 @@ namespace LinuxSampler { namespace sf2 {
         if (HandleKeyGroupConflicts) pChannel->HandleKeyGroupConflicts(iKeyGroup, itNoteOnEvent);
 
         // allocate a new voice for the key
-        itNewVoice = pKey->pActiveVoices->allocAppend();
+        itNewVoice = GetVoicePool()->allocAppend();
         int res = InitNewVoice (
                 pChannel, pRgn, itNoteOnEvent, VoiceType, iLayer,
                 iKeyGroup, ReleaseTriggerVoice, VoiceStealing, itNewVoice

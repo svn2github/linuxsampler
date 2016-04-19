@@ -35,6 +35,7 @@
 #include "../common/ResourceManager.h"
 #include "../drivers/audio/AudioOutputDevice.h"
 #include "common/Event.h"
+#include "common/Note.h"
 #include "common/SignalUnitRack.h"
 #include "common/InstrumentScriptVM.h"
 
@@ -74,9 +75,11 @@ namespace LinuxSampler {
             /**
              * Returns event with the given event ID.
              */
-            RTList<Event>::Iterator EventByID(int id) {
+            RTList<Event>::Iterator EventByID(event_id_t id) {
                 return pEventPool->fromID(id);
             }
+
+            virtual NoteBase* NoteByID(note_id_t id) = 0;
 
             float Random() {
                 RandomSeed = RandomSeed * 1103515245 + 12345; // classic pseudo random number generator
@@ -149,6 +152,7 @@ namespace LinuxSampler {
             virtual void ProcessChannelPressure(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itChannelPressureEvent) = 0;
             virtual void ProcessPolyphonicKeyPressure(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNotePressureEvent) = 0;
             virtual int  GetMinFadeOutSamples() = 0;
+            virtual note_id_t LaunchNewNote(LinuxSampler::EngineChannel* pEngineChannel, Event* pNoteOnEvent) = 0;
             virtual void CreateInstrumentScriptVM();
 
         private:

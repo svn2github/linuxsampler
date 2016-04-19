@@ -82,10 +82,9 @@ namespace LinuxSampler {
     class AbstractVoice : public Voice {
         public:
             type_t       Type;         ///< Voice Type (bit field, a voice may have several types)
-            int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
-            uint8_t      MIDIVelocity; ///< MIDI velocity of the key that triggered the voice
+            NoteBase*    pNote;        ///< Note this voice belongs to and was caused by.
             int          MIDIPan;      ///< the current MIDI pan value plus the value from RegionInfo
-            
+
             SignalUnitRack* const pSignalUnitRack;
 
             AbstractVoice(SignalUnitRack* pRack);
@@ -114,6 +113,13 @@ namespace LinuxSampler {
             uint8_t GetControllerValue(uint8_t Controller) {
                 return (Controller > 128) ? 0 : pEngineChannel->ControllerTable[Controller];
             }
+
+            /// Keyboard key on which this voice should listen to transitional events (i.e. note-off events to release the voice).
+            inline uint8_t HostKey() const { return pNote->hostKey; }
+            /// Keyboard key which the voice should use for calculating any synthesis relevant parameters (i.e. pitch).
+            inline uint8_t MIDIKey() const { return pNote->cause.Param.Note.Key; }
+            /// MIDI note-on velocity value which the voice should use for calculating any synthesis relevant parameters (i.e. amplitude).
+            inline uint8_t MIDIVelocity() const { return pNote->cause.Param.Note.Velocity; }
 
             void processCCEvents(RTList<Event>::Iterator& itEvent, uint End);
             void processPitchEvent(RTList<Event>::Iterator& itEvent);

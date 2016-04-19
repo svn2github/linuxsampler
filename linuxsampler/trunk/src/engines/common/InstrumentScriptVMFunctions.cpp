@@ -22,51 +22,61 @@ namespace LinuxSampler {
         int note = args->arg(0)->asInt()->evalInt();
         int velocity = (args->argsCount() >= 2) ? args->arg(1)->asInt()->evalInt() : 127;
         int sampleoffset = (args->argsCount() >= 3) ? args->arg(2)->asInt()->evalInt() : 0;
-        int duration = (args->argsCount() >= 4) ? args->arg(3)->asInt()->evalInt() : 0; //TODO: once -1 is implemented, it might be a better default value instead of 0
+        int duration = (args->argsCount() >= 4) ? args->arg(3)->asInt()->evalInt() : 0; //TODO: -1 might be a better default value instead of 0
 
         if (note < 0 || note > 127) {
             errMsg("play_note(): argument 1 is an invalid note number");
-            return errorResult(-1);
+            return errorResult(0);
         }
 
         if (velocity < 0 || velocity > 127) {
             errMsg("play_note(): argument 2 is an invalid velocity value");
-            return errorResult(-1);
+            return errorResult(0);
         }
 
         if (sampleoffset < 0) {
             errMsg("play_note(): argument 3 may not be a negative sample offset");
-            return errorResult(-1);
+            return errorResult(0);
         } else if (sampleoffset != 0) {
             wrnMsg("play_note(): argument 3 does not support a sample offset other than 0 yet");
         }
 
         if (duration < -1) {
             errMsg("play_note(): argument 4 must be a duration value of at least -1 or higher");
-            return errorResult(-1);
-        } else if (duration == -1) {
-            wrnMsg("play_note(): argument 4 does not support special value -1 as duration yet");
+            return errorResult(0);
         }
 
         AbstractEngineChannel* pEngineChannel =
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
 
-        Event e = m_vm->m_event->cause;
+        Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+        e.Init(); // clear IDs
         e.Type = Event::type_note_on;
         e.Param.Note.Key = note;
         e.Param.Note.Velocity = velocity;
-        memset(&e.Format, 0, sizeof(e.Format)); // init format specific stuff with zero
+        // make this new note dependent to the life time of the original note
+        if (duration == -1) {
+            if (m_vm->currentVMEventHandler()->eventHandlerType() != VM_EVENT_HANDLER_NOTE) {
+                errMsg("play_note(): -1 for argument 4 may only be used for note event handlers");
+                return errorResult(0);
+            }
+            e.Param.Note.ParentNoteID = m_vm->m_event->cause.Param.Note.ID;
+        }
 
-        int id = pEngineChannel->ScheduleEventMicroSec(&e, 0);
+        const note_id_t id = pEngineChannel->ScheduleNoteMicroSec(&e, 0);
 
-        // if a duration is supplied, then schedule a subsequent note-ff event
-        if (duration > 0) {
+        // if a duration is supplied (and note-on event was scheduled
+        // successfully above), then schedule a subsequent note-off event
+        if (id && duration > 0) {
             e.Type = Event::type_note_off;
             e.Param.Note.Velocity = 127;
             pEngineChannel->ScheduleEventMicroSec(&e, duration);
         }
 
-        return successResult(id);
+        // even if id is null, don't return an errorResult() here, because that
+        // would abort the script, and under heavy load it may be considerable
+        // that ScheduleNoteMicroSec() fails above, so simply ignore that
+        return successResult( ScriptID::fromNoteID(id) );
     }
 
     InstrumentScriptVMFunction_set_controller::InstrumentScriptVMFunction_set_controller(InstrumentScriptVM* parent)
@@ -81,8 +91,8 @@ namespace LinuxSampler {
         AbstractEngineChannel* pEngineChannel =
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
 
-        Event e = m_vm->m_event->cause;
-        memset(&e.Format, 0, sizeof(e.Format)); // init format speific stuff with zero
+        Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+        e.Init(); // clear IDs
         if (controller == CTRL_TABLE_IDX_AFTERTOUCH) {
             e.Type = Event::type_channel_pressure;
             e.Param.ChannelPressure.Value = value & 127;
@@ -98,9 +108,12 @@ namespace LinuxSampler {
             return errorResult();
         }
 
-        int id = pEngineChannel->ScheduleEventMicroSec(&e, 0);
+        const event_id_t id = pEngineChannel->ScheduleEventMicroSec(&e, 0);
 
-        return successResult(id);
+        // even if id is null, don't return an errorResult() here, because that
+        // would abort the script, and under heavy load it may be considerable
+        // that ScheduleEventMicroSec() fails above, so simply ignore that
+        return successResult( ScriptID::fromEventID(id) );
     }    
 
     InstrumentScriptVMFunction_ignore_event::InstrumentScriptVMFunction_ignore_event(InstrumentScriptVM* parent)
@@ -117,17 +130,18 @@ namespace LinuxSampler {
                 static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
 
         if (args->arg(0)->exprType() == INT_EXPR) {
-            int id = args->arg(0)->asInt()->evalInt();
-            if (id < 0) {
-                wrnMsg("ignore_event(): argument may not be a negative event ID");
+            const ScriptID id = args->arg(0)->asInt()->evalInt();
+            if (!id) {
+                wrnMsg("ignore_event(): event ID argument may not be zero");
+                // not errorResult(), because that would abort the script, not intentional in this case
                 return successResult();
             }
-            pEngineChannel->IgnoreEvent(id);
+            pEngineChannel->IgnoreEventByScriptID(id);
         } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
             VMIntArrayExpr* ids = args->arg(0)->asIntArray();
             for (int i = 0; i < ids->arraySize(); ++i) {
-                int id = ids->evalIntElement(i);
-                pEngineChannel->IgnoreEvent(id);
+                const ScriptID id = ids->evalIntElement(i);     
+                pEngineChannel->IgnoreEventByScriptID(id);
             }
         }
 
@@ -140,16 +154,16 @@ namespace LinuxSampler {
     }
 
     VMFnResult* InstrumentScriptVMFunction_ignore_controller::exec(VMFnArgs* args) {
-        int id = (args->argsCount() >= 1) ? args->arg(0)->asInt()->evalInt() : m_vm->m_event->id;
-        if (id < 0) {
-            wrnMsg("ignore_controller(): argument may not be a negative event ID");
+        const ScriptID id = (args->argsCount() >= 1) ? args->arg(0)->asInt()->evalInt() : m_vm->m_event->id;
+        if (!id && args->argsCount() >= 1) {
+            wrnMsg("ignore_controller(): event ID argument may not be zero");
             return successResult();
         }
 
         AbstractEngineChannel* pEngineChannel =
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
 
-        pEngineChannel->IgnoreEvent(id);
+        pEngineChannel->IgnoreEventByScriptID(id);
 
         return successResult();
     }
@@ -174,35 +188,42 @@ namespace LinuxSampler {
         }
 
         if (args->arg(0)->exprType() == INT_EXPR) {
-            int id = args->arg(0)->asInt()->evalInt();   
-            if (id < 0) {
-                wrnMsg("note_off(): argument 1 may not be a negative event ID");
+            const ScriptID id = args->arg(0)->asInt()->evalInt();   
+            if (!id) {
+                wrnMsg("note_off(): note ID for argument 1 may not be zero");
+                return successResult();
+            }
+            if (!id.isNoteID()) {
+                wrnMsg("note_off(): argument 1 is not a note ID");
                 return successResult();
             }
 
-            RTList<Event>::Iterator itEvent = pEngineChannel->pEngine->EventByID(id);
-            if (!itEvent) return successResult();
+            NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+            if (!pNote) return successResult();
 
-            Event e = *itEvent;
+            Event e = pNote->cause;
+            e.Init(); // clear IDs
+            e.CopyTimeFrom(m_vm->m_event->cause); // set fragment time for "now"
             e.Type = Event::type_note_off;
             e.Param.Note.Velocity = velocity;
-            memset(&e.Format, 0, sizeof(e.Format)); // init format speific stuff with zero
 
-            int releaseEventID = pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            pEngineChannel->ScheduleEventMicroSec(&e, 0);
         } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
             VMIntArrayExpr* ids = args->arg(0)->asIntArray();
             for (int i = 0; i < ids->arraySize(); ++i) {
-                int id = ids->evalIntElement(i);
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
 
-                RTList<Event>::Iterator itEvent = pEngineChannel->pEngine->EventByID(id);
-                if (!itEvent) continue;
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
 
-                Event e = *itEvent;
+                Event e = pNote->cause;
+                e.Init(); // clear IDs
+                e.CopyTimeFrom(m_vm->m_event->cause); // set fragment time for "now"
                 e.Type = Event::type_note_off;
                 e.Param.Note.Velocity = velocity;
-                memset(&e.Format, 0, sizeof(e.Format)); // init format speific stuff with zero
 
-                int releaseEventID = pEngineChannel->ScheduleEventMicroSec(&e, 0);
+                pEngineChannel->ScheduleEventMicroSec(&e, 0);
             }
         }
 
@@ -215,8 +236,8 @@ namespace LinuxSampler {
     }
 
     VMFnResult* InstrumentScriptVMFunction_set_event_mark::exec(VMFnArgs* args) {
-        int eventID = args->arg(0)->asInt()->evalInt();
-        int groupID = args->arg(1)->asInt()->evalInt();
+        const ScriptID id = args->arg(0)->asInt()->evalInt();
+        const int groupID = args->arg(1)->asInt()->evalInt();
 
         if (groupID < 0 || groupID >= INSTR_SCRIPT_EVENT_GROUPS) {
             errMsg("set_event_mark(): argument 2 is an invalid group id");
@@ -226,10 +247,21 @@ namespace LinuxSampler {
         AbstractEngineChannel* pEngineChannel =
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
 
-        RTList<Event>::Iterator itEvent = pEngineChannel->pEngine->EventByID(eventID);
-        if (!itEvent) return successResult();
+        // check if the event/note still exists
+        switch (id.type()) {
+            case ScriptID::EVENT: {
+                RTList<Event>::Iterator itEvent = pEngineChannel->pEngine->EventByID( id.eventID() );
+                if (!itEvent) return successResult();
+                break;
+            }
+            case ScriptID::NOTE: {
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) return successResult();
+                break;
+            }
+        }
 
-        pEngineChannel->pScript->eventGroups[groupID].insert(eventID);
+        pEngineChannel->pScript->eventGroups[groupID].insert(id);
 
         return successResult();
     }
@@ -240,8 +272,8 @@ namespace LinuxSampler {
     }
 
     VMFnResult* InstrumentScriptVMFunction_delete_event_mark::exec(VMFnArgs* args) {
-        int eventID = args->arg(0)->asInt()->evalInt();
-        int groupID = args->arg(1)->asInt()->evalInt();
+        const ScriptID id = args->arg(0)->asInt()->evalInt();
+        const int groupID = args->arg(1)->asInt()->evalInt();
 
         if (groupID < 0 || groupID >= INSTR_SCRIPT_EVENT_GROUPS) {
             errMsg("delete_event_mark(): argument 2 is an invalid group id");
@@ -251,7 +283,7 @@ namespace LinuxSampler {
         AbstractEngineChannel* pEngineChannel =
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
 
-        pEngineChannel->pScript->eventGroups[groupID].erase(eventID);
+        pEngineChannel->pScript->eventGroups[groupID].erase(id);
 
         return successResult();
     }

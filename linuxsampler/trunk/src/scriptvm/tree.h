@@ -355,6 +355,7 @@ typedef Ref<EventHandler,Node> EventHandlerRef;
 class OnNote : public EventHandler {
 public:
     OnNote(StatementsRef statements) : EventHandler(statements) {}
+    VMEventHandlerType_t eventHandlerType() const { return VM_EVENT_HANDLER_NOTE; }
     String eventHandlerName() const { return "note"; }
 };
 typedef Ref<OnNote,Node> OnNoteRef;
@@ -362,6 +363,7 @@ typedef Ref<OnNote,Node> OnNoteRef;
 class OnInit : public EventHandler {
 public:
     OnInit(StatementsRef statements) : EventHandler(statements) {}
+    VMEventHandlerType_t eventHandlerType() const { return VM_EVENT_HANDLER_INIT; }
     String eventHandlerName() const { return "init"; }
 };
 typedef Ref<OnInit,Node> OnInitRef;
@@ -369,6 +371,7 @@ typedef Ref<OnInit,Node> OnInitRef;
 class OnRelease : public EventHandler {
 public:
     OnRelease(StatementsRef statements) : EventHandler(statements) {}
+    VMEventHandlerType_t eventHandlerType() const { return VM_EVENT_HANDLER_RELEASE; }
     String eventHandlerName() const { return "release"; }
 };
 typedef Ref<OnRelease,Node> OnReleaseRef;
@@ -376,6 +379,7 @@ typedef Ref<OnRelease,Node> OnReleaseRef;
 class OnController : public EventHandler {
 public:
     OnController(StatementsRef statements) : EventHandler(statements) {}
+    VMEventHandlerType_t eventHandlerType() const { return VM_EVENT_HANDLER_CONTROLLER; }
     String eventHandlerName() const { return "controller"; }
 };
 typedef Ref<OnController,Node> OnControllerRef;

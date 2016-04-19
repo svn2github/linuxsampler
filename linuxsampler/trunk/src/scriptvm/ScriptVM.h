@@ -181,10 +181,12 @@ namespace LinuxSampler {
          */
         std::map<String,int> builtInConstIntVariables() OVERRIDE;
 
+        VMEventHandler* currentVMEventHandler(); //TODO: should be protected (only usable during exec() calls, intended only for VMFunctions)
         VMParserContext* currentVMParserContext(); //TODO: should be protected (only usable during exec() calls, intended only for VMFunctions)
         VMExecContext* currentVMExecContext(); //TODO: should be protected (only usable during exec() calls, intended only for VMFunctions)
 
     protected:
+        VMEventHandler* m_eventHandler;
         ParserContext* m_parserContext;
         CoreVMFunction_message fnMessage;
         CoreVMFunction_exit fnExit;

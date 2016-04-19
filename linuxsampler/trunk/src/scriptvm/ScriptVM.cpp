@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 - 2015 Christian Schoenebeck
+ * Copyright (c) 2014 - 2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -89,7 +89,7 @@ namespace LinuxSampler {
         return max;
     }
 
-    ScriptVM::ScriptVM() : m_parserContext(NULL), fnWait(this) {
+    ScriptVM::ScriptVM() : m_eventHandler(NULL), m_parserContext(NULL), fnWait(this) {
     }
 
     ScriptVM::~ScriptVM() {
@@ -186,6 +186,10 @@ namespace LinuxSampler {
         return std::map<String,int>();
     }
 
+    VMEventHandler* ScriptVM::currentVMEventHandler() {
+        return m_eventHandler;
+    }
+
     VMParserContext* ScriptVM::currentVMParserContext() {
         return m_parserContext;
     }
@@ -212,6 +216,7 @@ namespace LinuxSampler {
         }
         EventHandler* h = dynamic_cast<EventHandler*>(handler);
         if (!h) return VM_EXEC_NOT_RUNNING;
+        m_eventHandler = handler;
 
         m_parserContext->execContext = ctx;
 
@@ -307,6 +312,7 @@ namespace LinuxSampler {
             ctx->reset();
         }
 
+        m_eventHandler = NULL;
         m_parserContext->execContext = NULL;
         m_parserContext = NULL;
         return ctx->status;

@@ -106,13 +106,26 @@ namespace LinuxSampler { namespace sfz {
 
             q.search(pChannel->pInstrument, cc);
 
+            NoteIterator itNewNote;
+
             int i = 0;
             while (::sfz::Region* region = q.next()) {
                 if (!RegionSuspended(region)) {
                     itControlChangeEvent->Param.Note.Key = 60;
                     itControlChangeEvent->Param.Note.Velocity = 127;
                     itControlChangeEvent->Param.Note.pRegion = region;
-                    LaunchVoice(pChannel, itControlChangeEvent, i, false, false, true);
+                    if (!itNewNote) {
+                        const note_id_t noteID = LaunchNewNote(pEngineChannel, &*itControlChangeEvent);
+                        itNewNote = GetNotePool()->fromID(noteID);
+                        if (!itNewNote) {
+                            dmsg(1,("sfz::Engine: Note pool empty!\n"));
+                            return;
+                        }
+                    }
+                    VoiceIterator itNewVoice =
+                        LaunchVoice(pChannel, itControlChangeEvent, i, false, false, true);
+                    if (itNewVoice)
+                        itNewVoice.moveToEndOf(itNewNote->pActiveVoices);
                 }
                 i++;
             }
@@ -141,6 +154,7 @@ namespace LinuxSampler { namespace sfz {
         bool                         HandleKeyGroupConflicts
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
+        MidiKey* pKey = &pChannel->pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
         ::sfz::Query q;
         q.chan        = itNoteOnEvent->Param.Note.Channel + 1;
         q.key         = itNoteOnEvent->Param.Note.Key;
@@ -164,11 +178,20 @@ namespace LinuxSampler { namespace sfz {
 
         q.search(pChannel->pInstrument);
 
+        NoteIterator itNote = GetNotePool()->fromID(itNoteOnEvent->Param.Note.ID);
+        if (!itNote) {
+            dmsg(1,("sfz::Engine: No Note object for triggering new voices!\n"));
+            return;
+        }
+
         int i = 0;
         while (::sfz::Region* region = q.next()) {
             if (!RegionSuspended(region)) {
                 itNoteOnEvent->Param.Note.pRegion = region;
-                LaunchVoice(pChannel, itNoteOnEvent, i, false, true, HandleKeyGroupConflicts);
+                VoiceIterator itNewVoice =
+                    LaunchVoice(pChannel, itNoteOnEvent, i, false, true, HandleKeyGroupConflicts);
+                if (itNewVoice)
+                    itNewVoice.moveToEndOf(itNote->pActiveVoices);
             }
             i++;
         }
@@ -202,11 +225,20 @@ namespace LinuxSampler { namespace sfz {
 
         q.search(pChannel->pInstrument);
 
+        NoteIterator itNote = GetNotePool()->fromID(itNoteOffEvent->Param.Note.ID);
+        if (!itNote) {
+            dmsg(1,("sfz::Engine: No Note object for triggering new release voices!\n"));
+            return;
+        }
+
         // now launch the required amount of voices
         int i = 0;
         while (::sfz::Region* region = q.next()) {
             itNoteOffEvent->Param.Note.pRegion = region;
-            LaunchVoice(pChannel, itNoteOffEvent, i, true, false, true); //FIXME: for the moment we don't perform voice stealing for release triggered samples
+            VoiceIterator itNewVoice =
+                LaunchVoice(pChannel, itNoteOffEvent, i, true, false, true); //FIXME: for the moment we don't perform voice stealing for release triggered samples
+            if (itNewVoice)
+                itNewVoice.moveToEndOf(itNote->pActiveVoices);
             i++;
         }
     }
@@ -221,7 +253,7 @@ namespace LinuxSampler { namespace sfz {
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
         int key = itNoteOnEvent->Param.Note.Key;
-        EngineChannel::MidiKey* pKey  = &pChannel->pMIDIKeyInfo[key];
+        //EngineChannel::MidiKey* pKey  = &pChannel->pMIDIKeyInfo[key];
         ::sfz::Region* pRgn = static_cast< ::sfz::Region*>(itNoteOnEvent->Param.Note.pRegion);
 
         Voice::type_t VoiceType =
@@ -239,7 +271,7 @@ namespace LinuxSampler { namespace sfz {
         if (!pRgn->GetSample(false) || !pRgn->GetSample()->GetTotalFrameCount()) return Pool<Voice>::Iterator();
 
         // allocate a new voice for the key
-        itNewVoice = pKey->pActiveVoices->allocAppend();
+        itNewVoice = GetVoicePool()->allocAppend();
         int res = InitNewVoice (
                 pChannel, pRgn, itNoteOnEvent, VoiceType, iLayer,
                 pRgn->off_by, ReleaseTriggerVoice, VoiceStealing, itNewVoice

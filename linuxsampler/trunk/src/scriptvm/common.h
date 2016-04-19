@@ -76,6 +76,18 @@ namespace LinuxSampler {
         VM_EXEC_ERROR = (1<<2), ///< A runtime error occurred while executing the script (i.e. a call to some built-in script function failed).
     };
 
+    /** @brief Script event handler type.
+     *
+     * Identifies one of the possible event handler callback types defined by
+     * the NKSP script language.
+     */
+    enum VMEventHandlerType_t {
+        VM_EVENT_HANDLER_INIT, ///< Initilization event handler, that is script's "on init ... end on" code block.
+        VM_EVENT_HANDLER_NOTE, ///< Note event handler, that is script's "on note ... end on" code block.
+        VM_EVENT_HANDLER_RELEASE, ///< Release event handler, that is script's "on release ... end on" code block.
+        VM_EVENT_HANDLER_CONTROLLER, ///< Controller event handler, that is script's "on controller ... end on" code block.
+    };
+
     // just symbol prototyping
     class VMIntExpr;
     class VMStringExpr;
@@ -626,6 +638,13 @@ namespace LinuxSampler {
      */
     class VMEventHandler {
     public:
+        /**
+         * Type of this event handler, which identifies its purpose. For example
+         * for a "on note ... end on" script callback block,
+         * @c VM_EVENT_HANDLER_NOTE would be returned here.
+         */
+        virtual VMEventHandlerType_t eventHandlerType() const = 0;
+
         /**
          * Name of the event handler which identifies its purpose. For example
          * for a "on note ... end on" script callback block, the name "note"

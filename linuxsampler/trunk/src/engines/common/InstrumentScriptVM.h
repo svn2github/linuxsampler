@@ -17,12 +17,127 @@
 #include "../../common/Pool.h"
 #include "InstrumentScriptVMFunctions.h"
 
+/**
+ * Amount of bits on the left hand side of all pool_element_id_t numbers (i.e.
+ * event_id_t, note_id_t) being reserved for script VM implementation internal
+ * purposes.
+ *
+ * Right now there is only one bit reserved, which allows the VM (and its
+ * built-in functions) to distinguish user supplied @c Event IDs (event_id_t)
+ * from @c Note IDs (note_id_t).
+ */
+#define INSTR_SCRIPT_EVENT_ID_RESERVED_BITS 1
+
+/**
+ * Used to mark IDs (in script scope) to actually be a note ID.
+ */
+#define INSTR_SCRIPT_NOTE_ID_FLAG   (1 << (sizeof(pool_element_id_t) * 8 - 1))
+
 #define INSTR_SCRIPT_EVENT_GROUPS 28
 
 namespace LinuxSampler {
 
     class AbstractEngineChannel;
     class InstrumentScript;
+
+    /** @brief Convert IDs between script scope and engine internal scope.
+     *
+     * This class is used to translate unique IDs of events between script
+     * scope and sampler engine internal scope, that is:
+     * @code
+     * int (script scope) -> event_id_t (engine internal scope)
+     * int (script scope) -> note_id_t (engine internal scope)
+     * @endcode
+     * and vice versa:
+     * @code
+     * event_id_t (engine internal scope) -> int (script scope)
+     * note_id_t (engine internal scope)  -> int (script scope)
+     * @endcode
+     * This is required because engine internally notes and regular events are
+     * using their own, separate ID generating pool, and their ID number set
+     * may thu soverlap.
+     *
+     * @see INSTR_SCRIPT_EVENT_ID_RESERVED_BITS
+     */
+    class ScriptID {
+    public:
+        enum type_t {
+            EVENT, ///< ID is actually an event ID
+            NOTE, ///< ID is actually a note ID
+        };
+
+        /**
+         * Construct a ScriptID object with an ID from script scope.
+         */
+        ScriptID(uint id) : m_id(id) {}
+
+        /**
+         * Returns a ScriptID object constructed with an event ID from engine
+         * internal scope.
+         */
+        inline static ScriptID fromEventID(event_id_t id) {
+            return ScriptID(id);
+        }
+
+        /**
+         * Returns a ScriptID object constructed with a note ID from engine
+         * internal scope.
+         */
+        inline static ScriptID fromNoteID(note_id_t id) {
+            return ScriptID(INSTR_SCRIPT_NOTE_ID_FLAG | id);
+        }
+
+        /**
+         * Whether the ID reflected by this ScriptID object is actually a note
+         * ID or rather an event ID.
+         */
+        inline type_t type() const {
+            return (m_id & INSTR_SCRIPT_NOTE_ID_FLAG) ? NOTE : EVENT;
+        }
+
+        inline bool isNoteID() const {
+            return type() == NOTE;
+        }
+
+        inline bool isEventID() const {
+            return type() == EVENT;
+        }
+
+        /**
+         * Returns event ID (for engine internal scope) of the ID reflected by
+         * this ScriptID object, it returns 0 (being an invalid ID) if the ID
+         * reflected by this ScriptID object is not an event ID.
+         */
+        inline event_id_t eventID() const {
+            switch (type()) {
+                case EVENT: return m_id;
+                default:    return 0; // not an event id, return invalid ID
+            }
+        }
+
+        /**
+         * Returns note ID (for engine internal scope) of the ID reflected by
+         * this ScriptID object, it returns 0 (being an invalid ID) if the ID
+         * reflected by this ScriptID object is not a note ID.
+         */
+        inline note_id_t noteID() const {
+            switch (type()) {
+                case NOTE: return ~INSTR_SCRIPT_NOTE_ID_FLAG & m_id;
+                default:   return 0; // not a note id, return invalid ID
+            }
+        }
+
+        /**
+         * Integer cast operator, which returns an ID number of this ScripID
+         * object intended for script scope.
+         */
+        inline operator uint() const {
+            return m_id;
+        }
+
+    private:
+        uint m_id;
+    };
 
     /** @brief List of Event IDs.
      *

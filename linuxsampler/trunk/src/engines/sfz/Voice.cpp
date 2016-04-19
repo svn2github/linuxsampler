@@ -264,7 +264,7 @@ namespace LinuxSampler { namespace sfz {
         float cutoff = *pRegion->cutoff;
         cutoff *= RTMath::CentsToFreqRatioUnlimited(
             MIDIKeyVelocity / 127.0f * pRegion->fil_veltrack +
-            (MIDIKey - pRegion->fil_keycenter) * pRegion->fil_keytrack);
+            (MIDIKey() - pRegion->fil_keycenter) * pRegion->fil_keytrack);
         return cutoff;
     }
 
@@ -283,7 +283,7 @@ namespace LinuxSampler { namespace sfz {
         dmsg(4,("Voice %p processGroupEvents event type=%d", (void*)this, itEvent->Type));
         if (itEvent->Type == Event::type_control_change ||
             (Type & Voice::type_controller_triggered) ||
-            itEvent->Param.Note.Key != MIDIKey) {
+            itEvent->Param.Note.Key != HostKey()) {
             dmsg(4,("Voice %p - kill", (void*)this));
             if (pRegion->off_mode == ::sfz::OFF_NORMAL) {
                 // turn off the voice by entering release envelope stage

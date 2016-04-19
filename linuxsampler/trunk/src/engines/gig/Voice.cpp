@@ -373,7 +373,7 @@ namespace LinuxSampler { namespace gig {
     float Voice::CalculateCutoffBase(uint8_t MIDIKeyVelocity) {
         float cutoff = pRegion->GetVelocityCutoff(MIDIKeyVelocity);
         if (pRegion->VCFKeyboardTracking) {
-            cutoff *= RTMath::CentsToFreqRatioUnlimited((MIDIKey - pRegion->VCFKeyboardTrackingBreakpoint) * 100);
+            cutoff *= RTMath::CentsToFreqRatioUnlimited((MIDIKey() - pRegion->VCFKeyboardTrackingBreakpoint) * 100);
         }
         return cutoff;
     }
@@ -498,7 +498,7 @@ namespace LinuxSampler { namespace gig {
         // note should be stopped at all, because it doesn't sound naturally
         // with a drumkit.
         // -- Christian, 2013-01-08
-        if (itEvent->Param.Note.Key != MIDIKey /*||
+        if (itEvent->Param.Note.Key != HostKey() /*||
             !GetGigEngineChannel()->SustainPedal*/) {
             dmsg(4,("Voice %p - kill", (void*)this));
 

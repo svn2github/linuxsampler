@@ -50,9 +50,11 @@ namespace LinuxSampler {
     };
 
     template<class V>
-    class VoicePool {
+    class NotePool {
         public:
             virtual Pool<V>* GetVoicePool() = 0;
+            virtual Pool< Note<V> >* GetNotePool() = 0;
+            virtual Pool<note_id_t>* GetNodeIDPool() = 0;
     };
 
     template <class V /* Voice */, class R /* Region */, class I /* Instrument */>
@@ -163,9 +165,12 @@ namespace LinuxSampler {
                     bStatusChanged = true;
                 }
 
-                VoicePool<V>* pVoicePool = dynamic_cast<VoicePool<V>*>(pEngine);
-                MidiKeyboardManager<V>::AllocateActiveVoices(pVoicePool->GetVoicePool());
-                MidiKeyboardManager<V>::AllocateEvents(pEngine->pEventPool);
+                NotePool<V>* pNotePool = dynamic_cast<NotePool<V>*>(pEngine);
+                MidiKeyboardManager<V>::AllocateActiveNotesLists(
+                    pNotePool->GetNotePool(),
+                    pNotePool->GetVoicePool()
+                );
+                MidiKeyboardManager<V>::AllocateEventsLists(pEngine->pEventPool);
 
                 AudioDeviceChannelLeft  = 0;
                 AudioDeviceChannelRight = 1;
@@ -206,8 +211,8 @@ namespace LinuxSampler {
                         delayedEvents.pList = NULL;
                     }
 
-                    MidiKeyboardManager<V>::DeleteActiveVoices();
-                    MidiKeyboardManager<V>::DeleteEvents();
+                    MidiKeyboardManager<V>::DeleteActiveNotesLists();
+                    MidiKeyboardManager<V>::DeleteEventsLists();
                     DeleteGroupEventLists();
 
                     AudioOutputDevice* oldAudioDevice = pEngine->pAudioOutputDevice;
@@ -292,6 +297,40 @@ namespace LinuxSampler {
 
                 SetVoiceCount(handler.VoiceCount);
                 SetDiskStreamCount(handler.StreamCount);
+            }
+
+            /**
+             * Called by real-time instrument script functions to schedule a
+             * new note (new note-on event and a new @c Note object linked to it)
+             * @a delay microseconds in future.
+             * 
+             * @b IMPORTANT: for the supplied @a delay to be scheduled
+             * correctly, the passed @a pEvent must be assigned a valid
+             * fragment time within the current audio fragment boundaries. That
+             * fragment time will be used by this method as basis for
+             * interpreting what "now" acutally is, and thus it will be used as
+             * basis for calculating the precise scheduling time for @a delay.
+             * The easiest way to achieve this is by copying a recent event
+             * which happened within the current audio fragment cycle: i.e. the
+             * original event which caused calling this method here, or by using
+             * Event::copyTimefrom() method to only copy the time, without any
+             * other event data.
+             *
+             * @param pEvent - note-on event to be scheduled in future (event
+             *                 data will be copied)
+             * @param delay - amount of microseconds in future (from now) when
+             *                event shall be processed
+             * @returns unique note ID of scheduled new note, or NULL on error
+             */
+            note_id_t ScheduleNoteMicroSec(const Event* pEvent, int delay) OVERRIDE {
+                // add (copied) note-on event into scheduler queue
+                const event_id_t noteOnEventID = ScheduleEventMicroSec(pEvent, delay);
+                if (!noteOnEventID) return 0; // error
+                // get access to (copied) event on the scheduler queue
+                RTList<Event>::Iterator itEvent = pEvents->fromID(noteOnEventID);
+                // stick a new note to the (copied) event on the queue
+                const note_id_t noteID = pEngine->LaunchNewNote(this, &*itEvent);
+                return noteID;
             }
 
             RTList<R*>* pRegionsInUse;     ///< temporary pointer into the instrument change command, used by the audio thread

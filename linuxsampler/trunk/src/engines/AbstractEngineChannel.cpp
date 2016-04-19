@@ -383,7 +383,6 @@ namespace LinuxSampler {
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
             event.Param.Note.Channel  = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -425,7 +424,6 @@ namespace LinuxSampler {
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
             event.Param.Note.Channel  = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -462,7 +460,6 @@ namespace LinuxSampler {
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
             event.Param.Note.Channel  = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -504,7 +501,6 @@ namespace LinuxSampler {
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
             event.Param.Note.Channel  = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -539,7 +535,6 @@ namespace LinuxSampler {
             event.Type              = Event::type_pitchbend;
             event.Param.Pitch.Pitch = Pitch;
             event.Param.Pitch.Channel = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel    = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
@@ -569,7 +564,6 @@ namespace LinuxSampler {
             event.Type              = Event::type_pitchbend;
             event.Param.Pitch.Pitch = Pitch;
             event.Param.Pitch.Channel = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel    = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -596,7 +590,6 @@ namespace LinuxSampler {
             event.Param.CC.Controller = Controller;
             event.Param.CC.Value      = Value;
             event.Param.CC.Channel    = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -628,7 +621,6 @@ namespace LinuxSampler {
             event.Param.CC.Controller = Controller;
             event.Param.CC.Value      = Value;
             event.Param.CC.Channel    = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -646,7 +638,6 @@ namespace LinuxSampler {
             event.Param.ChannelPressure.Controller = CTRL_TABLE_IDX_AFTERTOUCH; // required for instrument scripts
             event.Param.ChannelPressure.Value   = Value;
             event.Param.ChannelPressure.Channel = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel                = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -664,7 +655,6 @@ namespace LinuxSampler {
             event.Param.ChannelPressure.Controller = CTRL_TABLE_IDX_AFTERTOUCH; // required for instrument scripts
             event.Param.ChannelPressure.Value   = Value;
             event.Param.ChannelPressure.Channel = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel                = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -682,7 +672,6 @@ namespace LinuxSampler {
             event.Param.NotePressure.Key     = Key;
             event.Param.NotePressure.Value   = Value;
             event.Param.NotePressure.Channel = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel             = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
@@ -700,11 +689,24 @@ namespace LinuxSampler {
             event.Param.NotePressure.Key     = Key;
             event.Param.NotePressure.Value   = Value;
             event.Param.NotePressure.Channel = MidiChannel;
-            memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
             event.pEngineChannel             = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("AbstractEngineChannel: Input event queue full!"));
         }
+    }
+
+    bool AbstractEngineChannel::applyTranspose(Event* event) {
+        if (event->Type != Event::type_note_on && event->Type != Event::type_note_off)
+            return true; // event OK (not a note event, nothing to do with it here)
+
+        //HACK: we should better add the transpose value only to the most mandatory places (like for retrieving the region and calculating the tuning), because otherwise voices will unintendedly survive when changing transpose while playing
+        const int k = event->Param.Note.Key + GlobalTranspose;
+        if (k < 0 || k > 127)
+            return false; // bad event, drop it
+
+        event->Param.Note.Key = k;
+
+        return true; // event OK
     }
 
     /**
@@ -743,12 +745,20 @@ namespace LinuxSampler {
                             event.Param.Note.Key      = devEvent.Arg1;
                             event.Param.Note.Velocity = devEvent.Arg2;
                             event.Param.Note.Channel  = channel;
+                            // apply transpose setting to (note on/off) event
+                            if (!applyTranspose(&event))
+                                continue; // note value is out of range, so drop this event
+                            // assign a new note to this note-on event
+                            if (!pEngine->LaunchNewNote(this, &event))
+                                continue; // failed launching new note, so drop this event
                             break;
                         case VirtualMidiDevice::EVENT_TYPE_NOTEOFF:
                             event.Type = Event::type_note_off;
                             event.Param.Note.Key      = devEvent.Arg1;
                             event.Param.Note.Velocity = devEvent.Arg2;
                             event.Param.Note.Channel  = channel;
+                            if (!applyTranspose(&event))
+                                continue; // note value is out of range, so drop this event
                             break;
                         case VirtualMidiDevice::EVENT_TYPE_CC:
                             switch (devEvent.Arg1) {
@@ -778,7 +788,6 @@ namespace LinuxSampler {
                                       << devEvent.Type << "). This is a bug!";
                             continue;
                     }
-                    memset(&event.Format, 0, sizeof(event.Format)); // init format specific stuff with zeroes
                     event.pEngineChannel = this;
                     // copy event to internal event list
                     if (pEvents->poolIsEmpty()) {
@@ -805,11 +814,18 @@ namespace LinuxSampler {
                 pEvent->ResetFragmentPos();
                 break;
             }
-            // copy event to internal event list
             if (pEvents->poolIsEmpty()) {
                 dmsg(1,("Event pool emtpy!\n"));
                 break;
             }
+            // apply transpose setting to (note on/off) event
+            if (!applyTranspose(pEvent))
+                continue; // it's a note event which has a note value out of range, so drop this event
+            // assign a new note to this event (if its a note-on event)
+            if (pEvent->Type == Event::type_note_on)
+                if (!pEngine->LaunchNewNote(this, pEvent))
+                    continue; // failed launching new note, so drop this event
+            // copy event to internal event list
             *pEvents->allocAppend() = *pEvent;
         }
         eventQueueReader.free(); // free all copied events from input queue
@@ -830,20 +846,20 @@ namespace LinuxSampler {
      *
      * @param pEvent - event to be scheduled in future (event data will be copied)
      * @param delay - amount of microseconds in future (from now) when event shall be processed
-     * @returns unique event ID of scheduled new event, or a negative number on error
+     * @returns unique event ID of scheduled new event, or NULL on error
      */
-    int AbstractEngineChannel::ScheduleEventMicroSec(const Event* pEvent, int delay) {
+    event_id_t AbstractEngineChannel::ScheduleEventMicroSec(const Event* pEvent, int delay) {
         dmsg(3,("AbstractEngineChannel::ScheduleEventMicroSec(Event.Type=%d,delay=%d)\n", pEvent->Type, delay));
         RTList<Event>::Iterator itEvent = pEvents->allocAppend();
         if (!itEvent) {
             dmsg(1,("AbstractEngineChannel::ScheduleEventMicroSec(): Event pool emtpy!\n"));
-            return -1;
+            return 0;
         }
         RTList<ScheduledEvent>::Iterator itNode = delayedEvents.schedulerNodes.allocAppend();
         if (!itNode) { // scheduler node pool empty ...
             dmsg(1,("AbstractEngineChannel::ScheduleEventMicroSec(): ScheduledEvent pool empty!\n"));
             pEvents->free(itEvent);
-            return -1;
+            return 0;
         }
         // copy passed event
         *itEvent = *pEvent;
@@ -864,10 +880,50 @@ namespace LinuxSampler {
      * reflected by given event ID. The event will be freed immediately to its
      * pool and cannot be dereferenced by its old ID anymore. Even if its
      * allocated back from the Pool later on, it will have a different ID.
+     *
+     * @param id - unique ID of event to be dropped
      */
-    void AbstractEngineChannel::IgnoreEvent(int id) {
+    void AbstractEngineChannel::IgnoreEvent(event_id_t id) {
         RTList<Event>::Iterator it = pEvents->fromID(id);
         if (it) pEvents->free(it);
+    }
+
+    /**
+     * Called by real-time instrument script functions to ignore the note
+     * reflected by given note ID. The note's event will be freed immediately
+     * to its event pool and this will prevent voices to be launched for the
+     * note.
+     *
+     * NOTE: preventing a note by calling this method works only if the note
+     * was launched within the current audio fragment cycle.
+     *
+     * @param id - unique ID of note to be dropped
+     */    
+    void AbstractEngineChannel::IgnoreNote(note_id_t id) {
+        NoteBase* pNote = pEngine->NoteByID(id);
+        if (!pNote) return;
+        IgnoreEvent(pNote->eventID);
+    }
+
+    /** @brief Drop the requested event.
+     *
+     * Called by real-time instrument script functions to ignore the event
+     * reflected by the given event @a id. This method detects whether the
+     * passed ID is actually a @c Note ID or a regular @c Event ID and act
+     * accordingly.
+     *
+     * @param id - event id (from script scope)
+     * @see ScriptID
+     */
+    void AbstractEngineChannel::IgnoreEventByScriptID(const ScriptID& id) {
+        switch (id.type()) {
+            case ScriptID::EVENT:
+                IgnoreEvent( id.eventID() );
+                break;
+            case ScriptID::NOTE:
+                IgnoreNote( id.noteID() );
+                break;
+        }
     }
 
     FxSend* AbstractEngineChannel::AddFxSend(uint8_t MidiCtrl, String Name) throw (Exception) {

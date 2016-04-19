@@ -16,6 +16,10 @@ Version SVN trunk (?)
       overall cleanup of the Reset*(), ConnectAudioDevice(),
       DisconnectAudioDevice() API methods would still be desirable though,
       because the current situation is still inconsistent and error prone.
+    - Active voices are now internally grouped to "Note" objects, instead of
+      being directly assigned to a keyboard key. This allows more fine graded
+      processing of voices, which is i.e. required for certain instrument
+      script features.
 
   * packaging changes:
     - removed unnecessary dependency to libuuid
@@ -34,6 +38,9 @@ Version SVN trunk (?)
       potentially causing undefined behavior.
     - Fixed crash which happened when trying to reference an undeclared
       variable.
+    - Built-in script function "play_note()": Added support for passing
+      special value -1 for "duration-us" argument, which will cause the
+      triggered note to be released once the original note was released.
 
 Version 2.0.0 (15 July 2015)
 

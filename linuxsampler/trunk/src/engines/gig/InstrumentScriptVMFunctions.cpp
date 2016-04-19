@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck
+ * Copyright (c) 2014-2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -34,19 +34,23 @@ namespace LinuxSampler { namespace gig {
         int zone = args->arg(2)->asInt()->evalInt();
 
         if (args->arg(0)->exprType() == INT_EXPR) {
-            int id  = args->arg(0)->asInt()->evalInt();
-            if (id < 0) {
-                wrnMsg("gig_set_dim_zone(): argument 1 may not be a negative event ID");
+            const ScriptID id = args->arg(0)->asInt()->evalInt();
+            if (!id) {
+                wrnMsg("gig_set_dim_zone(): note ID for argument 1 may not be zero");
+                return successResult();
+            }
+            if (!id.isNoteID()) {
+                wrnMsg("gig_set_dim_zone(): argument 1 is not a note ID");
                 return successResult();
             }
 
-            RTList<Event>::Iterator itEvent = pEngineChannel->pEngine->EventByID(id);
-            if (!itEvent) {
-                dmsg(2,("gig_set_dim_zone(): no active event with ID %d\n", id));
+            NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+            if (!pNote) {
+                dmsg(2,("gig_set_dim_zone(): no active note with ID %d\n", int(id)));
                 return successResult();
             }
 
-            int note = itEvent->Param.Note.Key;
+            int note = pNote->cause.Param.Note.Key;
 
             ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(note);
             if (!pRegion) {
@@ -71,20 +75,20 @@ namespace LinuxSampler { namespace gig {
             int mask = 0;
             for (int i = 0; i < bits; ++i) mask |= (1 << (baseBits + i));
 
-            itEvent->Format.Gig.DimMask |= mask;
-            itEvent->Format.Gig.DimBits |= (zone << baseBits) & mask;
+            pNote->Format.Gig.DimMask |= mask;
+            pNote->Format.Gig.DimBits |= (zone << baseBits) & mask;
 
-            dmsg(3,("gig_set_dim_zone(): success, mask=%d bits=%d\n", itEvent->Format.Gig.DimMask, itEvent->Format.Gig.DimBits));
+            dmsg(3,("gig_set_dim_zone(): success, mask=%d bits=%d\n", pNote->Format.Gig.DimMask, pNote->Format.Gig.DimBits));
         } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
             VMIntArrayExpr* ids = args->arg(0)->asIntArray();
             for (int i = 0; i < ids->arraySize(); ++i) {
-                int id = ids->evalIntElement(i);
-                if (id < 0) continue;
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
 
-                RTList<Event>::Iterator itEvent = pEngineChannel->pEngine->EventByID(id);
-                if (!itEvent) continue;
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
 
-                int note = itEvent->Param.Note.Key;
+                int note = pNote->cause.Param.Note.Key;
 
                 ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(note);
                 if (!pRegion) continue;
@@ -103,10 +107,10 @@ namespace LinuxSampler { namespace gig {
                 int mask = 0;
                 for (int i = 0; i < bits; ++i) mask |= (1 << (baseBits + i));
 
-                itEvent->Format.Gig.DimMask |= mask;
-                itEvent->Format.Gig.DimBits |= (zone << baseBits) & mask;
+                pNote->Format.Gig.DimMask |= mask;
+                pNote->Format.Gig.DimBits |= (zone << baseBits) & mask;
 
-                dmsg(3,("gig_set_dim_zone(): success, mask=%d bits=%d\n", itEvent->Format.Gig.DimMask, itEvent->Format.Gig.DimBits));
+                dmsg(3,("gig_set_dim_zone(): success, mask=%d bits=%d\n", pNote->Format.Gig.DimMask, pNote->Format.Gig.DimBits));
             }
         }
 

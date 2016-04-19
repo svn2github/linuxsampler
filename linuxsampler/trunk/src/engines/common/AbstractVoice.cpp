@@ -110,13 +110,12 @@ namespace LinuxSampler {
         #endif // CONFIG_DEVMODE
 
         Type            = VoiceType;
-        MIDIKey         = itNoteOnEvent->Param.Note.Key;
-        MIDIVelocity    = itNoteOnEvent->Param.Note.Velocity;
+        pNote           = pEngineChannel->pEngine->NoteByID( itNoteOnEvent->Param.Note.ID );
         PlaybackState   = playback_state_init; // mark voice as triggered, but no audio rendered yet
         Delay           = itNoteOnEvent->FragmentPos();
         itTriggerEvent  = itNoteOnEvent;
         itKillEvent     = Pool<Event>::Iterator();
-        MidiKeyBase* pKeyInfo = GetMidiKeyInfo(MIDIKey);
+        MidiKeyBase* pKeyInfo = GetMidiKeyInfo(MIDIKey());
 
         pGroupEvents = iKeyGroup ? pEngineChannel->ActiveKeyGroups[iKeyGroup] : 0;
 
@@ -248,7 +247,7 @@ namespace LinuxSampler {
                 // if portamento mode is on, we dedicate EG3 purely for portamento, otherwise if portamento is off we do as told by the patch
                 bool  bPortamento = pEngineChannel->PortamentoMode && pEngineChannel->PortamentoPos >= 0.0f;
                 float eg3depth = (bPortamento)
-                             ? RTMath::CentsToFreqRatio((pEngineChannel->PortamentoPos - (float) MIDIKey) * 100)
+                             ? RTMath::CentsToFreqRatio((pEngineChannel->PortamentoPos - (float) MIDIKey()) * 100)
                              : RTMath::CentsToFreqRatio(RgnInfo.EG3Depth);
                 float eg3time = (bPortamento)
                             ? pEngineChannel->PortamentoTime
@@ -353,7 +352,7 @@ namespace LinuxSampler {
         }
         
         AbstractEngineChannel* pChannel = pEngineChannel;
-        MidiKeyBase* pMidiKeyInfo = GetMidiKeyInfo(MIDIKey);
+        MidiKeyBase* pMidiKeyInfo = GetMidiKeyInfo(MIDIKey());
 
         const bool bVoiceRequiresDedicatedRouting =
             pEngineChannel->GetFxSendCount() > 0 &&
@@ -379,7 +378,7 @@ namespace LinuxSampler {
 
         RTList<Event>::Iterator itCCEvent = pChannel->pEvents->first();
         RTList<Event>::Iterator itNoteEvent;
-        GetFirstEventOnKey(MIDIKey, itNoteEvent);
+        GetFirstEventOnKey(HostKey(), itNoteEvent);
 
         RTList<Event>::Iterator itGroupEvent;
         if (pGroupEvents && !Orphan) itGroupEvent = pGroupEvents->first();
@@ -719,7 +718,7 @@ namespace LinuxSampler {
     void AbstractVoice::UpdatePortamentoPos(Pool<Event>::Iterator& itNoteOffEvent) {
         if (pSignalUnitRack == NULL) {
             const float fFinalEG3Level = EG3.level(itNoteOffEvent->FragmentPos());
-            pEngineChannel->PortamentoPos = (float) MIDIKey + RTMath::FreqRatioToCents(fFinalEG3Level) * 0.01f;
+            pEngineChannel->PortamentoPos = (float) MIDIKey() + RTMath::FreqRatioToCents(fFinalEG3Level) * 0.01f;
         } else {
             // TODO: 
         }
@@ -746,12 +745,12 @@ namespace LinuxSampler {
 
     Voice::PitchInfo AbstractVoice::CalculatePitchInfo(int PitchBend) {
         PitchInfo pitch;
-        double pitchbasecents = InstrInfo.FineTune + RgnInfo.FineTune + GetEngine()->ScaleTuning[MIDIKey % 12];
+        double pitchbasecents = InstrInfo.FineTune + RgnInfo.FineTune + GetEngine()->ScaleTuning[MIDIKey() % 12];
 
         // GSt behaviour: maximum transpose up is 40 semitones. If
         // MIDI key is more than 40 semitones above unity note,
         // the transpose is not done.
-        if (!SmplInfo.Unpitched && (MIDIKey - (int) RgnInfo.UnityNote) < 40) pitchbasecents += (MIDIKey - (int) RgnInfo.UnityNote) * 100;
+        if (!SmplInfo.Unpitched && (MIDIKey() - (int) RgnInfo.UnityNote) < 40) pitchbasecents += (MIDIKey() - (int) RgnInfo.UnityNote) * 100;
 
         pitch.PitchBase = RTMath::CentsToFreqRatioUnlimited(pitchbasecents) * (double(SmplInfo.SampleRate) / double(GetEngine()->SampleRate));
         pitch.PitchBendRange = 1.0 / 8192.0 * 100.0 * InstrInfo.PitchbendRange;
@@ -762,12 +761,12 @@ namespace LinuxSampler {
     
     void AbstractVoice::onScaleTuningChanged() {
         PitchInfo pitch = this->Pitch;
-        double pitchbasecents = InstrInfo.FineTune + RgnInfo.FineTune + GetEngine()->ScaleTuning[MIDIKey % 12];
+        double pitchbasecents = InstrInfo.FineTune + RgnInfo.FineTune + GetEngine()->ScaleTuning[MIDIKey() % 12];
         
         // GSt behaviour: maximum transpose up is 40 semitones. If
         // MIDI key is more than 40 semitones above unity note,
         // the transpose is not done.
-        if (!SmplInfo.Unpitched && (MIDIKey - (int) RgnInfo.UnityNote) < 40) pitchbasecents += (MIDIKey - (int) RgnInfo.UnityNote) * 100;
+        if (!SmplInfo.Unpitched && (MIDIKey() - (int) RgnInfo.UnityNote) < 40) pitchbasecents += (MIDIKey() - (int) RgnInfo.UnityNote) * 100;
         
         pitch.PitchBase = RTMath::CentsToFreqRatioUnlimited(pitchbasecents) * (double(SmplInfo.SampleRate) / double(GetEngine()->SampleRate));
         this->Pitch = pitch;
@@ -784,7 +783,7 @@ namespace LinuxSampler {
         // the volume of release triggered samples depends on note length
         if (Type & Voice::type_release_trigger) {
             float noteLength = float(GetEngine()->FrameTime + Delay -
-                GetNoteOnTime(MIDIKey) ) / GetEngine()->SampleRate;
+                GetNoteOnTime(MIDIKey()) ) / GetEngine()->SampleRate;
 
             volume *= GetReleaseTriggerAttenuation(noteLength);
         }

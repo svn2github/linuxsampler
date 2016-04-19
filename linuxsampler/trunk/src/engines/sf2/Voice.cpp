@@ -342,7 +342,7 @@ namespace LinuxSampler { namespace sf2 {
     }
 
     void Voice::ProcessGroupEvent(RTList<Event>::Iterator& itEvent) {
-        if (itEvent->Param.Note.Key != MIDIKey) {
+        if (itEvent->Param.Note.Key != HostKey()) {
             // kill the voice fast
             SignalRack.EnterFadeOutStage();
         }

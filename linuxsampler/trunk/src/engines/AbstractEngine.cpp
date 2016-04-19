@@ -79,6 +79,7 @@ namespace LinuxSampler {
         pSysexBuffer       = new RingBuffer<uint8_t,false>(CONFIG_SYSEX_BUFFER_SIZE, 0);
         pEventQueue        = new RingBuffer<Event,false>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
         pEventPool         = new Pool<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT);
+        pEventPool->setPoolElementIDsReservedBits(INSTR_SCRIPT_EVENT_ID_RESERVED_BITS);
         pGlobalEvents      = new RTList<Event>(pEventPool);
         FrameTime          = 0;
         RandomSeed         = 0;
@@ -431,7 +432,6 @@ namespace LinuxSampler {
         Event event             = pEventGenerator->CreateEvent();
         event.Type              = Event::type_sysex;
         event.Param.Sysex.Size  = Size;
-        memset(&event.Format, 0, sizeof(event.Format)); // init format speific stuff with zeroes
         event.pEngineChannel    = NULL; // as Engine global event
         event.pMidiInputPort    = pSender;
         if (pEventQueue->write_space() > 0) {

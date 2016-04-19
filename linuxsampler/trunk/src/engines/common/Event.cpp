@@ -163,6 +163,7 @@ namespace LinuxSampler {
      * @param Time       - time stamp on which this event occured
      */
     Event::Event(EventGenerator* pGenerator, time_stamp_t Time) {
+        Init();
         pEventGenerator = pGenerator;
         TimeStamp       = Time;
         iFragmentPos    = -1;
@@ -178,6 +179,7 @@ namespace LinuxSampler {
      *                      audio fragment to which this event belongs to
      */
     Event::Event(EventGenerator* pGenerator, int32_t FragmentPos) {
+        Init();
         pEventGenerator = pGenerator;
         iFragmentPos    = FragmentPos;
     }

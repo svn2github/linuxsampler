@@ -142,7 +142,7 @@ namespace LinuxSampler { namespace sfz {
             f = GetInfluence(egInfo.node[i].time_oncc);
             egInfo.node[i].time = std::min(egInfo.node[i].time + f, 100.0f);
         }
-        EG.trigger(egInfo, GetSampleRate(), pVoice->MIDIVelocity);
+        EG.trigger(egInfo, GetSampleRate(), pVoice->MIDIVelocity());
     }
     
     
@@ -151,7 +151,7 @@ namespace LinuxSampler { namespace sfz {
         depth = pRegion->pitcheg_depth + GetInfluence(pRegion->pitcheg_depth_oncc);
         
         // the length of the decay and release curves are dependent on the velocity
-        const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity);
+        const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity());
 
         // set the delay trigger
         float delay = pRegion->pitcheg_delay + pRegion->pitcheg_vel2delay * velrelease;
@@ -187,7 +187,7 @@ namespace LinuxSampler { namespace sfz {
         depth = pRegion->fileg_depth + GetInfluence(pRegion->fileg_depth_oncc);
         
         // the length of the decay and release curves are dependent on the velocity
-        const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity);
+        const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity());
 
         // set the delay trigger
         float delay = pRegion->fileg_delay + pRegion->fileg_vel2delay * velrelease;
@@ -222,7 +222,7 @@ namespace LinuxSampler { namespace sfz {
         ::sfz::Region* const pRegion = pVoice->pRegion;
         
         // the length of the decay and release curves are dependent on the velocity
-        const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity);
+        const double velrelease = 1 / pVoice->GetVelocityRelease(pVoice->MIDIVelocity());
 
         // set the delay trigger
         float delay = pRegion->ampeg_delay + pRegion->ampeg_vel2delay * velrelease;
@@ -530,13 +530,13 @@ namespace LinuxSampler { namespace sfz {
         
         float xfInVelCoeff = 1;
         
-        if (pVoice->MIDIVelocity <= pVoice->pRegion->xfin_lovel) {
+        if (pVoice->MIDIVelocity() <= pVoice->pRegion->xfin_lovel) {
             xfInVelCoeff = 0;
-        } else if (pVoice->MIDIVelocity >= pVoice->pRegion->xfin_hivel) {
+        } else if (pVoice->MIDIVelocity() >= pVoice->pRegion->xfin_hivel) {
             xfInVelCoeff = 1;
         } else {
             float xfVelSize = pVoice->pRegion->xfin_hivel - pVoice->pRegion->xfin_lovel;
-            float velPos = pVoice->MIDIVelocity - pVoice->pRegion->xfin_lovel;
+            float velPos = pVoice->MIDIVelocity() - pVoice->pRegion->xfin_lovel;
             xfInVelCoeff = velPos / xfVelSize;
             if (pVoice->pRegion->xf_velcurve == ::sfz::POWER) {
                 xfInVelCoeff = sin(xfInVelCoeff * M_PI / 2.0);
@@ -545,13 +545,13 @@ namespace LinuxSampler { namespace sfz {
         
         float xfOutVelCoeff = 1;
         
-        if (pVoice->MIDIVelocity >= pVoice->pRegion->xfout_hivel) {
+        if (pVoice->MIDIVelocity() >= pVoice->pRegion->xfout_hivel) {
             if (pVoice->pRegion->xfout_lovel < 127 /* is set */) xfOutVelCoeff = 0;
-        } else if (pVoice->MIDIVelocity <= pVoice->pRegion->xfout_lovel) {
+        } else if (pVoice->MIDIVelocity() <= pVoice->pRegion->xfout_lovel) {
             xfOutVelCoeff = 1;
         } else {
             float xfVelSize = pVoice->pRegion->xfout_hivel - pVoice->pRegion->xfout_lovel;
-            float velPos = pVoice->MIDIVelocity - pVoice->pRegion->xfout_lovel;
+            float velPos = pVoice->MIDIVelocity() - pVoice->pRegion->xfout_lovel;
             xfOutVelCoeff = 1.0f - velPos / xfVelSize;
             if (pVoice->pRegion->xf_velcurve == ::sfz::POWER) {
                 xfOutVelCoeff = sin(xfOutVelCoeff * M_PI / 2.0);
@@ -560,13 +560,13 @@ namespace LinuxSampler { namespace sfz {
         
         float xfInKeyCoeff = 1;
         
-        if (pVoice->MIDIKey <= pVoice->pRegion->xfin_lokey) {
+        if (pVoice->MIDIKey() <= pVoice->pRegion->xfin_lokey) {
             if (pVoice->pRegion->xfin_hikey > 0 /* is set */) xfInKeyCoeff = 0;
-        } else if (pVoice->MIDIKey >= pVoice->pRegion->xfin_hikey) {
+        } else if (pVoice->MIDIKey() >= pVoice->pRegion->xfin_hikey) {
             xfInKeyCoeff = 1;
         } else {
             float xfKeySize = pVoice->pRegion->xfin_hikey - pVoice->pRegion->xfin_lokey;
-            float keyPos = pVoice->MIDIKey - pVoice->pRegion->xfin_lokey;
+            float keyPos = pVoice->MIDIKey() - pVoice->pRegion->xfin_lokey;
             xfInKeyCoeff = keyPos / xfKeySize;
             if (pVoice->pRegion->xf_keycurve == ::sfz::POWER) {
                 xfInKeyCoeff = sin(xfInKeyCoeff * M_PI / 2.0);
@@ -575,13 +575,13 @@ namespace LinuxSampler { namespace sfz {
         
         float xfOutKeyCoeff = 1;
         
-        if (pVoice->MIDIKey >= pVoice->pRegion->xfout_hikey) {
+        if (pVoice->MIDIKey() >= pVoice->pRegion->xfout_hikey) {
             if (pVoice->pRegion->xfout_lokey < 127 /* is set */) xfOutKeyCoeff = 0;
-        } else if (pVoice->MIDIKey <= pVoice->pRegion->xfout_lokey) {
+        } else if (pVoice->MIDIKey() <= pVoice->pRegion->xfout_lokey) {
             xfOutKeyCoeff = 1;
         } else {
             float xfKeySize = pVoice->pRegion->xfout_hikey - pVoice->pRegion->xfout_lokey;
-            float keyPos = pVoice->MIDIKey - pVoice->pRegion->xfout_lokey;
+            float keyPos = pVoice->MIDIKey() - pVoice->pRegion->xfout_lokey;
             xfOutKeyCoeff = 1.0f - keyPos / xfKeySize;
             if (pVoice->pRegion->xf_keycurve == ::sfz::POWER) {
                 xfOutKeyCoeff = sin(xfOutKeyCoeff * M_PI / 2.0);
@@ -595,7 +595,7 @@ namespace LinuxSampler { namespace sfz {
         
         suPanOnCC.SetCCs(pVoice->pRegion->pan_oncc);
         
-        pitchVeltrackRatio = RTMath::CentsToFreqRatioUnlimited((pVoice->MIDIVelocity / 127.0f) * pVoice->pRegion->pitch_veltrack);
+        pitchVeltrackRatio = RTMath::CentsToFreqRatioUnlimited((pVoice->MIDIVelocity() / 127.0f) * pVoice->pRegion->pitch_veltrack);
     }
     
     bool EndpointUnit::Active() {
@@ -1198,7 +1198,7 @@ namespace LinuxSampler { namespace sfz {
         float bw2 = (suEq2BwOnCC.Active() ? suEq2BwOnCC.GetLevel() : 0) + pRegion->eq2_bw;
         float bw3 = (suEq3BwOnCC.Active() ? suEq3BwOnCC.GetLevel() : 0) + pRegion->eq3_bw;
         
-        const float vel = pVoice->MIDIVelocity / 127.0f;
+        const float vel = pVoice->MIDIVelocity() / 127.0f;
         
         dB1 += pRegion->eq1_vel2gain * vel;
         dB2 += pRegion->eq2_vel2gain * vel;

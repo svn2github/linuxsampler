@@ -33,6 +33,9 @@
 #include "InstrumentManager.h"
 #include "../common/global_private.h"
 
+// a bit headroom over CONFIG_MAX_VOICES to avoid minor complications i.e. under voice stealing conditions
+#define MAX_NOTES_HEADROOM  3
+#define GLOBAL_MAX_NOTES    (GLOBAL_MAX_VOICES * MAX_NOTES_HEADROOM)
 
 namespace LinuxSampler {
 
@@ -46,26 +49,40 @@ namespace LinuxSampler {
         class IM  /* Instrument Manager */,
         class I   /* Instrument */
     >
-    class EngineBase: public AbstractEngine, public RegionPools<R>, public VoicePool<V> {
+    class EngineBase: public AbstractEngine, public RegionPools<R>, public NotePool<V> {
 
         public:
+            typedef typename RTList< Note<V> >::Iterator NoteIterator;
             typedef typename RTList<V>::Iterator VoiceIterator;
             typedef typename Pool<V>::Iterator PoolVoiceIterator;
             typedef typename RTList<RR*>::Iterator RootRegionIterator;
             typedef typename MidiKeyboardManager<V>::MidiKey MidiKey;
             
-            EngineBase() : SuspendedRegions(128) {
+            EngineBase() : SuspendedRegions(128), noteIDPool(GLOBAL_MAX_NOTES) {
                 pDiskThread          = NULL;
+                pNotePool            = new Pool< Note<V> >(GLOBAL_MAX_NOTES);
+                pNotePool->setPoolElementIDsReservedBits(INSTR_SCRIPT_EVENT_ID_RESERVED_BITS);
                 pVoicePool           = new Pool<V>(GLOBAL_MAX_VOICES);
                 pRegionPool[0]       = new Pool<R*>(GLOBAL_MAX_VOICES);
                 pRegionPool[1]       = new Pool<R*>(GLOBAL_MAX_VOICES);
                 pVoiceStealingQueue  = new RTList<Event>(pEventPool);
                 iMaxDiskStreams      = GLOBAL_MAX_STREAMS;
 
-                for (VoiceIterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
+                // init all Voice objects in voice pool
+                for (VoiceIterator iterVoice = pVoicePool->allocAppend();
+                     iterVoice; iterVoice = pVoicePool->allocAppend())
+                {
                     iterVoice->SetEngine(this);
                 }
                 pVoicePool->clear();
+
+                // init all Note objects in note pool
+                for (NoteIterator itNote = pNotePool->allocAppend(); itNote;
+                     itNote = pNotePool->allocAppend())
+                {
+                    itNote->init(pVoicePool, &noteIDPool);
+                }
+                pNotePool->clear();
 
                 ResetInternal();
                 ResetScaleTuning();
@@ -78,6 +95,11 @@ namespace LinuxSampler {
                     pDiskThread->StopThread();
                     delete pDiskThread;
                     dmsg(1,("OK\n"));
+                }
+
+                if (pNotePool) {
+                    pNotePool->clear();
+                    delete pNotePool;
                 }
 
                 if (pVoicePool) {
@@ -236,17 +258,29 @@ namespace LinuxSampler {
                     pChannel->ResetRegionsInUse(pRegionPool);
                 }
 
+                // FIXME: Shouldn't all those pool elements be freed before resizing the pools?
                 try {
                     pVoicePool->resizePool(iVoices);
+                    pNotePool->resizePool(iVoices * MAX_NOTES_HEADROOM);
+                    noteIDPool.resizePool(iVoices * MAX_NOTES_HEADROOM);
                 } catch (...) {
                     throw Exception("FATAL: Could not resize voice pool!");
                 }
 
-                for (VoiceIterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
+                for (VoiceIterator iterVoice = pVoicePool->allocAppend();
+                     iterVoice; iterVoice = pVoicePool->allocAppend())
+                {
                     iterVoice->SetEngine(this);
                     iterVoice->pDiskThread = this->pDiskThread;
                 }
                 pVoicePool->clear();
+
+                for (NoteIterator itNote = pNotePool->allocAppend(); itNote;
+                     itNote = pNotePool->allocAppend())
+                {
+                    itNote->init(pVoicePool, &noteIDPool);
+                }
+                pNotePool->clear();
 
                 PostSetMaxVoices(iVoices);
                 ResumeAll();
@@ -316,6 +350,7 @@ namespace LinuxSampler {
                     MinFadeOutSamples = MaxSamplesPerCycle;
                     // lower minimum release time
                     const float minReleaseTime = (float) MaxSamplesPerCycle / (float) SampleRate;
+                    pVoicePool->clear();
                     for (VoiceIterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
                         iterVoice->CalculateFadeOutCoeff(minReleaseTime, SampleRate);
                     }
@@ -336,6 +371,7 @@ namespace LinuxSampler {
                     exit(EXIT_FAILURE);
                 }
 
+                pVoicePool->clear();
                 for (VoiceIterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
                     iterVoice->pDiskThread = this->pDiskThread;
                     dmsg(3,("d"));
@@ -565,8 +601,10 @@ namespace LinuxSampler {
                 return pRegionPool[index];
             }
 
-            // implementation of abstract method derived from class 'LinuxSampler::VoicePool'
-            virtual Pool<V>* GetVoicePool() { return pVoicePool; }
+            // implementation of abstract methods derived from class 'LinuxSampler::NotePool'
+            virtual Pool<V>* GetVoicePool() OVERRIDE { return pVoicePool; }
+            virtual Pool< Note<V> >* GetNotePool() OVERRIDE { return pNotePool; }
+            virtual Pool<note_id_t>* GetNodeIDPool() OVERRIDE { return &noteIDPool; }
 
             D* GetDiskThread() { return pDiskThread; }
 
@@ -586,7 +624,8 @@ namespace LinuxSampler {
                 }
 
                 virtual bool Process(MidiKey* pMidiKey) OVERRIDE {
-                    VoiceIterator itVoice = pMidiKey->pActiveVoices->first();
+                    NoteIterator  itNote  = pMidiKey->pActiveNotes->first();
+                    VoiceIterator itVoice = itNote->pActiveVoices->first();
                     // if current key is not associated with this region, skip this key
                     if (itVoice->GetRegion()->GetParent() != pPendingRegionSuspension) return false;
 
@@ -609,13 +648,97 @@ namespace LinuxSampler {
 
             int                          ActiveVoiceCountTemp;  ///< number of currently active voices (for internal usage, will be used for incrementation)
             VoiceIterator                itLastStolenVoice;     ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
+            NoteIterator                 itLastStolenNote;      ///< Only for voice stealing: points to the last note from which was theft in current audio fragment, NULL otherwise.
             RTList<uint>::Iterator       iuiLastStolenKey;      ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
             EngineChannelBase<V, R, I>*  pLastStolenChannel;    ///< Only for voice stealing: points to the engine channel on which the previous voice was stolen in this audio fragment.
             VoiceIterator                itLastStolenVoiceGlobally; ///< Same as itLastStolenVoice, but engine globally
+            NoteIterator                 itLastStolenNoteGlobally; ///< Same as itLastStolenNote, but engine globally
             RTList<uint>::Iterator       iuiLastStolenKeyGlobally;  ///< Same as iuiLastStolenKey, but engine globally
             RTList<Event>*               pVoiceStealingQueue;   ///< All voice-launching events which had to be postponed due to free voice shortage.
             Mutex                        ResetInternalMutex;    ///< Mutex to protect the ResetInternal function for concurrent usage (e.g. by the lscp and instrument loader threads).
             int iMaxDiskStreams;
+
+            NoteBase* NoteByID(note_id_t id) OVERRIDE {
+                NoteIterator itNote = GetNotePool()->fromID(id);
+                if (!itNote) return NULL;
+                return &*itNote;
+            }
+
+            /**
+             * Gets a new @c Note object from the note pool, initializes it
+             * appropriately, links it with requested parent note (if
+             * requested), moves it to the appropriate key's list of active
+             * notes it, and sticks the new note's unique ID to the
+             * passed @a pNoteOnEvent.
+             *
+             * @param pEngineChannel - engine channel on which this event happened
+             * @param pNoteOnEvent - event which caused this
+             * @returns new note's unique ID (or zero on error)
+             */
+            note_id_t LaunchNewNote(LinuxSampler::EngineChannel* pEngineChannel, Event* pNoteOnEvent) OVERRIDE {
+                EngineChannelBase<V, R, I>* pChannel = static_cast<EngineChannelBase<V, R, I>*>(pEngineChannel);
+                Pool< Note<V> >* pNotePool = GetNotePool();
+
+                if (pNotePool->poolIsEmpty()) {
+                    dmsg(1,("Engine: Could not launch new note; Note pool empty!\n"));
+                    return 0; // error
+                }
+
+                // create a new note (for new voices to be assigned to)
+                //NoteIterator itNewNote = pKey->pActiveNotes->allocAppend();
+                NoteIterator itNewNote = pNotePool->allocAppend();
+                const note_id_t newNoteID = pNotePool->getID(itNewNote);
+
+                // usually the new note (and its subsequent voices) will be
+                // allocated on the key provided by the event's note number,
+                // however if this new note is requested not to be a regular
+                // note, but rather a child note, then this new note will be
+                // allocated on the parent note's key instead in order to
+                // release the child note simultaniously with its parent note
+                itNewNote->hostKey = pNoteOnEvent->Param.Note.Key;
+
+                // in case this new note was requested to be a child note,
+                // then retrieve its parent note and link them with each other
+                const note_id_t parentNoteID = pNoteOnEvent->Param.Note.ParentNoteID;
+                if (parentNoteID) {
+                    NoteIterator itParentNote = pNotePool->fromID(parentNoteID);                        
+                    if (itParentNote) {
+                        RTList<note_id_t>::Iterator itChildNoteID = itParentNote->pChildNotes->allocAppend();
+                        if (itChildNoteID) {
+                            // link parent and child note with each other
+                            *itChildNoteID = newNoteID;
+                            itNewNote->parentNoteID = parentNoteID;
+                            itNewNote->hostKey = itParentNote->hostKey;
+                        } else {    
+                            dmsg(1,("Engine: Could not assign new note as child note; Note ID pool empty!\n"));
+                            pNotePool->free(itNewNote);
+                            return 0; // error
+                        }
+                    } else {
+                        // the parent note was apparently released already, so
+                        // free the new note again and inform caller that it
+                        // should drop the event
+                        dmsg(3,("Engine: Could not assign new note as child note; Parent note is gone!\n"));
+                        pNotePool->free(itNewNote);
+                        return 0; // error
+                    }
+                }
+
+                dmsg(2,("Launched new note on host key %d\n", itNewNote->hostKey));
+
+                // copy event which caused this note
+                itNewNote->cause = *pNoteOnEvent;
+                itNewNote->eventID = pEventPool->getID(pNoteOnEvent);
+
+                // move new note to its host key
+                MidiKey* pKey = &pChannel->pMIDIKeyInfo[itNewNote->hostKey];
+                itNewNote.moveToEndOf(pKey->pActiveNotes);
+
+                // assign unique note ID of this new note to the original note on event
+                pNoteOnEvent->Param.Note.ID = newNoteID;
+
+                return newNoteID; // success
+            }
 
             /**
              * Dispatch and handle all events in this audio fragment for the given
@@ -750,6 +873,8 @@ namespace LinuxSampler {
                 // reset voice stealing for the next engine channel (or next audio fragment)
                 itLastStolenVoice         = VoiceIterator();
                 itLastStolenVoiceGlobally = VoiceIterator();
+                itLastStolenNote          = NoteIterator();
+                itLastStolenNoteGlobally  = NoteIterator();
                 iuiLastStolenKey          = RTList<uint>::Iterator();
                 iuiLastStolenKeyGlobally  = RTList<uint>::Iterator();
                 pLastStolenChannel        = NULL;
@@ -841,9 +966,13 @@ namespace LinuxSampler {
 
                 // initialize/reset other members
                 itScriptEvent->cause = *itEvent;
-                itScriptEvent->id = pEventPool->getID(itEvent);
                 itScriptEvent->currentHandler = 0;
                 itScriptEvent->executionSlices = 0;
+                // this is the native representation of the $EVENT_ID script variable
+                itScriptEvent->id =
+                    (itEvent->Type == Event::type_note_on)
+                        ? ScriptID::fromNoteID( itEvent->Param.Note.ID )
+                        : ScriptID::fromEventID( pEventPool->getID(itEvent) );
 
                 // run script handler(s)
                 VMExecStatus_t res = pScriptVM->exec(
@@ -886,8 +1015,7 @@ namespace LinuxSampler {
             /** @brief Resume execution of instrument script.
              *
              * Will be called to resume execution of a real-time instrument
-             * script event which has been suspended in a previous audio
-             * fragment cycle.
+             * script event which has been suspended previously.
              *
              * Script execution might be suspended for various reasons. Usually
              * a script will be suspended if the script called the built-in
@@ -951,7 +1079,7 @@ namespace LinuxSampler {
              *  @param itNoteOnEvent - key, velocity and time stamp of the event
              *  @returns 0 on success, a value < 0 if no active voice could be picked for voice stealing
              */
-            int  StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
+            int StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
                 if (VoiceSpawnsLeft <= 0) {
                     dmsg(1,("Max. voice thefts per audio fragment reached (you may raise CONFIG_MAX_VOICES).\n"));
                     return -1;
@@ -959,99 +1087,124 @@ namespace LinuxSampler {
 
                 EngineChannelBase<V, R, I>* pEngineChn = static_cast<EngineChannelBase<V, R, I>*>(pEngineChannel);
 
-                if (!pEventPool->poolIsEmpty()) {
+                if (pEventPool->poolIsEmpty()) {
+                    dmsg(1,("Event pool emtpy!\n"));
+                    return -1;
+                }
 
-                    if(!pEngineChn->StealVoice(itNoteOnEvent, &itLastStolenVoice, &iuiLastStolenKey)) {
-                        --VoiceSpawnsLeft;
-                        return 0;
+                if (!pEngineChn->StealVoice(itNoteOnEvent, &itLastStolenVoice, &itLastStolenNote, &iuiLastStolenKey)) {
+                    --VoiceSpawnsLeft;
+                    return 0;
+                }
+
+                // if we couldn't steal a voice from the same engine channel then
+                // steal oldest voice on the oldest key from any other engine channel
+                // (the smaller engine channel number, the higher priority)
+                EngineChannelBase<V, R, I>*  pSelectedChannel;
+                int                          iChannelIndex;
+                VoiceIterator                itSelectedVoice;
+
+                // select engine channel
+                if (pLastStolenChannel) {
+                    pSelectedChannel = pLastStolenChannel;
+                    iChannelIndex    = pSelectedChannel->iEngineIndexSelf;
+                } else { // pick the engine channel followed by this engine channel
+                    iChannelIndex    = (pEngineChn->iEngineIndexSelf + 1) % engineChannels.size();
+                    pSelectedChannel = static_cast<EngineChannelBase<V, R, I>*>(engineChannels[iChannelIndex]);
+                }
+
+                // if we already stole in this fragment, try to proceed on same note
+                if (this->itLastStolenVoiceGlobally) {
+                    itSelectedVoice = this->itLastStolenVoiceGlobally;
+                    do {
+                        ++itSelectedVoice;
+                    } while (itSelectedVoice && !itSelectedVoice->IsStealable()); // proceed iterating if voice was created in this fragment cycle
+                }
+                // did we find a 'stealable' voice?
+                if (itSelectedVoice && itSelectedVoice->IsStealable()) {
+                    // remember which voice we stole, so we can simply proceed on next voice stealing
+                    this->itLastStolenVoiceGlobally = itSelectedVoice;
+                    // done
+                    goto stealable_voice_found;
+                }
+
+                // get (next) oldest note
+                if (this->itLastStolenNoteGlobally) {
+                    for (NoteIterator itNote = ++this->itLastStolenNoteGlobally;
+                         itNote; ++itNote)
+                    {
+                        for (itSelectedVoice = itNote->pActiveVoices->first(); itSelectedVoice; ++itSelectedVoice) {
+                            // proceed iterating if voice was created in this audio fragment cycle
+                            if (itSelectedVoice->IsStealable()) {
+                                // remember which voice of which note we stole, so we can simply proceed on next voice stealing
+                                this->itLastStolenNoteGlobally  = itNote;
+                                this->itLastStolenVoiceGlobally = itSelectedVoice;
+                                goto stealable_voice_found; // selection succeeded
+                            }
+                        }
                     }
+                }
 
-                    // if we couldn't steal a voice from the same engine channel then
-                    // steal oldest voice on the oldest key from any other engine channel
-                    // (the smaller engine channel number, the higher priority)
-                    EngineChannelBase<V, R, I>*  pSelectedChannel;
-                    int                       iChannelIndex;
-                    VoiceIterator             itSelectedVoice;
+                #if CONFIG_DEVMODE
+                EngineChannel* pBegin = pSelectedChannel; // to detect endless loop
+                #endif // CONFIG_DEVMODE
 
-                    // select engine channel
-                    if (pLastStolenChannel) {
-                        pSelectedChannel = pLastStolenChannel;
-                        iChannelIndex    = pSelectedChannel->iEngineIndexSelf;
-                    } else { // pick the engine channel followed by this engine channel
-                        iChannelIndex    = (pEngineChn->iEngineIndexSelf + 1) % engineChannels.size();
-                        pSelectedChannel = static_cast<EngineChannelBase<V, R, I>*>(engineChannels[iChannelIndex]);
-                    }
+                while (true) { // iterate through engine channels                        
+                    // get (next) oldest key
+                    RTList<uint>::Iterator iuiSelectedKey = (this->iuiLastStolenKeyGlobally) ? ++this->iuiLastStolenKeyGlobally : pSelectedChannel->pActiveKeys->first();
+                    this->iuiLastStolenKeyGlobally = RTList<uint>::Iterator(); // to prevent endless loop (see line above)
+                    while (iuiSelectedKey) {
+                        MidiKey* pSelectedKey = &pSelectedChannel->pMIDIKeyInfo[*iuiSelectedKey];
 
-                    // if we already stole in this fragment, try to proceed on same key
-                    if (this->itLastStolenVoiceGlobally) {
-                        itSelectedVoice = this->itLastStolenVoiceGlobally;
-                        do {
-                            ++itSelectedVoice;
-                        } while (itSelectedVoice && !itSelectedVoice->IsStealable()); // proceed iterating if voice was created in this fragment cycle
-                    }
-
-                    #if CONFIG_DEVMODE
-                    EngineChannel* pBegin = pSelectedChannel; // to detect endless loop
-                    #endif // CONFIG_DEVMODE
-
-                    // did we find a 'stealable' voice?
-                    if (itSelectedVoice && itSelectedVoice->IsStealable()) {
-                        // remember which voice we stole, so we can simply proceed on next voice stealing
-                        this->itLastStolenVoiceGlobally = itSelectedVoice;
-                    } else while (true) { // iterate through engine channels
-                        // get (next) oldest key
-                        RTList<uint>::Iterator iuiSelectedKey = (this->iuiLastStolenKeyGlobally) ? ++this->iuiLastStolenKeyGlobally : pSelectedChannel->pActiveKeys->first();
-                        this->iuiLastStolenKeyGlobally = RTList<uint>::Iterator(); // to prevent endless loop (see line above)
-                        while (iuiSelectedKey) {
-                            MidiKey* pSelectedKey = &pSelectedChannel->pMIDIKeyInfo[*iuiSelectedKey];
-                            itSelectedVoice = pSelectedKey->pActiveVoices->first();
+                        for (NoteIterator itNote = pSelectedKey->pActiveNotes->first(),
+                             itNotesEnd = pSelectedKey->pActiveNotes->end();
+                             itNote != itNotesEnd; ++itNote)
+                        {
+                            itSelectedVoice = itNote->pActiveVoices->first();
                             // proceed iterating if voice was created in this fragment cycle
                             while (itSelectedVoice && !itSelectedVoice->IsStealable()) ++itSelectedVoice;
                             // found a "stealable" voice ?
                             if (itSelectedVoice && itSelectedVoice->IsStealable()) {
-                                // remember which voice on which key on which engine channel we stole, so we can simply proceed on next voice stealing
+                                // remember which voice of which note on which key on which engine channel we stole, so we can simply proceed on next voice stealing
                                 this->iuiLastStolenKeyGlobally  = iuiSelectedKey;
+                                this->itLastStolenNoteGlobally  = itNote;
                                 this->itLastStolenVoiceGlobally = itSelectedVoice;
                                 this->pLastStolenChannel        = pSelectedChannel;
                                 goto stealable_voice_found; // selection succeeded
                             }
-                            ++iuiSelectedKey; // get next key on current engine channel
                         }
-                        // get next engine channel
-                        iChannelIndex    = (iChannelIndex + 1) % engineChannels.size();
-                        pSelectedChannel = static_cast<EngineChannelBase<V, R, I>*>(engineChannels[iChannelIndex]);
-
-                        #if CONFIG_DEVMODE
-                        if (pSelectedChannel == pBegin) {
-                            dmsg(1,("FATAL ERROR: voice stealing endless loop!\n"));
-                            dmsg(1,("VoiceSpawnsLeft=%d.\n", VoiceSpawnsLeft));
-                            dmsg(1,("Exiting.\n"));
-                            exit(-1);
-                        }
-                        #endif // CONFIG_DEVMODE
+                        ++iuiSelectedKey; // get next key on current engine channel
                     }
-
-                    // jump point if a 'stealable' voice was found
-                    stealable_voice_found:
+                    // get next engine channel
+                    iChannelIndex    = (iChannelIndex + 1) % engineChannels.size();
+                    pSelectedChannel = static_cast<EngineChannelBase<V, R, I>*>(engineChannels[iChannelIndex]);
 
                     #if CONFIG_DEVMODE
-                    if (!itSelectedVoice->IsActive()) {
-                        dmsg(1,("EngineBase: ERROR, tried to steal a voice which was not active !!!\n"));
-                        return -1;
+                    if (pSelectedChannel == pBegin) {
+                        dmsg(1,("FATAL ERROR: voice stealing endless loop!\n"));
+                        dmsg(1,("VoiceSpawnsLeft=%d.\n", VoiceSpawnsLeft));
+                        dmsg(1,("Exiting.\n"));
+                        exit(-1);
                     }
                     #endif // CONFIG_DEVMODE
-
-                    // now kill the selected voice
-                    itSelectedVoice->Kill(itNoteOnEvent);
-
-                    --VoiceSpawnsLeft;
-
-                    return 0; // success
                 }
-                else {
-                    dmsg(1,("Event pool emtpy!\n"));
+
+                // jump point if a 'stealable' voice was found
+                stealable_voice_found:
+
+                #if CONFIG_DEVMODE
+                if (!itSelectedVoice->IsActive()) {
+                    dmsg(1,("EngineBase: ERROR, tried to steal a voice which was not active !!!\n"));
                     return -1;
                 }
+                #endif // CONFIG_DEVMODE
+
+                // now kill the selected voice
+                itSelectedVoice->Kill(itNoteOnEvent);
+
+                --VoiceSpawnsLeft;
+
+                return 0; // success
             }
 
             void HandleInstrumentChanges() {
@@ -1145,9 +1298,23 @@ namespace LinuxSampler {
                     EngineChannelBase<V, R, I>* pEngineChannel =
                         static_cast<EngineChannelBase<V, R, I>*>(itVoiceStealEvent->pEngineChannel);;
                     if (!pEngineChannel->pInstrument) continue; // ignore if no instrument loaded
+                    
                     PoolVoiceIterator itNewVoice =
                         LaunchVoice(pEngineChannel, itVoiceStealEvent, itVoiceStealEvent->Param.Note.Layer, itVoiceStealEvent->Param.Note.ReleaseTrigger, false, false);
                     if (itNewVoice) {
+                        // usually there should already be a new Note object
+                        NoteIterator itNote = GetNotePool()->fromID(itVoiceStealEvent->Param.Note.ID);
+                        if (!itNote) { // should not happen, but just to be sure ...
+                            const note_id_t noteID = LaunchNewNote(pEngineChannel, &*itVoiceStealEvent);
+                            if (!noteID) {
+                                dmsg(1,("Engine: Voice stealing failed; No Note object and Note pool empty!\n"));
+                                continue;
+                            }
+                            itNote = GetNotePool()->fromID(noteID);
+                        }
+                        // move voice from whereever it was, to the new note's list of active voices
+                        itNewVoice = itNewVoice.moveToEndOf(itNote->pActiveVoices);
+                        // render audio of this new voice for the first time
                         itNewVoice->Render(Samples);
                         if (itNewVoice->IsActive()) { // still active
                             *(pEngineChannel->pRegionsInUse->allocAppend()) = itNewVoice->GetRegion();
@@ -1419,14 +1586,10 @@ namespace LinuxSampler {
                 EngineChannelBase<V, R, I>* pChannel =
                         static_cast<EngineChannelBase<V, R, I>*>(pEngineChannel);
 
-                //HACK: we should better add the transpose value only to the most mandatory places (like for retrieving the region and calculating the tuning), because otherwise voices will unintendedly survive when changing transpose while playing
-                int k = itNoteOnEvent->Param.Note.Key + pChannel->GlobalTranspose;
-                if (k < 0 || k > 127) return; //ignore keys outside the key range
-
-                itNoteOnEvent->Param.Note.Key += pChannel->GlobalTranspose;
-                int vel = itNoteOnEvent->Param.Note.Velocity;
-
                 const int key = itNoteOnEvent->Param.Note.Key;
+                const int vel = itNoteOnEvent->Param.Note.Velocity;
+                if (key < 0 || key > 127) return; // ignore event, key outside allowed key range
+
                 MidiKey* pKey = &pChannel->pMIDIKeyInfo[key];
 
                 pChannel->listeners.PreProcessNoteOn(key, vel);
@@ -1454,15 +1617,20 @@ namespace LinuxSampler {
                         if (pOtherKey->Active) {
                             // get final portamento position of currently active voice
                             if (pChannel->PortamentoMode) {
-                                VoiceIterator itVoice = pOtherKey->pActiveVoices->last();
-                                if (itVoice) itVoice->UpdatePortamentoPos(itNoteOnEventOnKeyList);
+                                NoteIterator itNote = pOtherKey->pActiveNotes->last();
+                                if (itNote) {
+                                    VoiceIterator itVoice = itNote->pActiveVoices->last();
+                                    if (itVoice) itVoice->UpdatePortamentoPos(itNoteOnEventOnKeyList);
+                                }
                             }
                             // kill all voices on the (other) key
-                            VoiceIterator itVoiceToBeKilled = pOtherKey->pActiveVoices->first();
-                            VoiceIterator end               = pOtherKey->pActiveVoices->end();
-                            for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
-                                if (!(itVoiceToBeKilled->Type & Voice::type_release_trigger))
-                                    itVoiceToBeKilled->Kill(itNoteOnEventOnKeyList);
+                            for (NoteIterator itNote = pOtherKey->pActiveNotes->first(); itNote; ++itNote) {
+                                VoiceIterator itVoiceToBeKilled = itNote->pActiveVoices->first();
+                                VoiceIterator end               = itNote->pActiveVoices->end();
+                                for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
+                                    if (!(itVoiceToBeKilled->Type & Voice::type_release_trigger))
+                                        itVoiceToBeKilled->Kill(itNoteOnEventOnKeyList);
+                                }
                             }
                         }
                     }
@@ -1530,14 +1698,10 @@ namespace LinuxSampler {
             virtual void ProcessNoteOff(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOffEvent) {
                 EngineChannelBase<V, R, I>* pChannel = static_cast<EngineChannelBase<V, R, I>*>(pEngineChannel);
 
-                int k = itNoteOffEvent->Param.Note.Key + pChannel->GlobalTranspose;
-                if (k < 0 || k > 127) return; //ignore keys outside the key range
-
-                //HACK: we should better add the transpose value only to the most mandatory places (like for retrieving the region and calculating the tuning), because otherwise voices will unintendedly survive when changing transpose while playing
-                itNoteOffEvent->Param.Note.Key += pChannel->GlobalTranspose;
-                int vel = itNoteOffEvent->Param.Note.Velocity;
-
                 const int iKey = itNoteOffEvent->Param.Note.Key;
+                const int vel  = itNoteOffEvent->Param.Note.Velocity;
+                if (iKey < 0 || iKey > 127) return; // ignore event, key outside allowed key range
+
                 MidiKey* pKey = &pChannel->pMIDIKeyInfo[iKey];
 
                 pChannel->listeners.PreProcessNoteOff(iKey, vel);
@@ -1571,7 +1735,8 @@ namespace LinuxSampler {
                                 pChannel->SoloKey = i;
                                 // get final portamento position of currently active voice
                                 if (pChannel->PortamentoMode) {
-                                    VoiceIterator itVoice = pKey->pActiveVoices->first();
+                                    NoteIterator itNote = pKey->pActiveNotes->first();
+                                    VoiceIterator itVoice = itNote->pActiveVoices->first();
                                     if (itVoice) itVoice->UpdatePortamentoPos(itNoteOffEventOnKeyList);
                                 }
                                 // create a pseudo note on event
@@ -1583,8 +1748,11 @@ namespace LinuxSampler {
                                     itPseudoNoteOnEvent->Type                = Event::type_note_on;
                                     itPseudoNoteOnEvent->Param.Note.Key      = i;
                                     itPseudoNoteOnEvent->Param.Note.Velocity = pOtherKey->Velocity;
-                                    // allocate and trigger new voice(s) for the other key
-                                    TriggerNewVoices(pChannel, itPseudoNoteOnEvent, false);
+                                    // assign a new note to this note-on event
+                                    if (LaunchNewNote(pChannel, &*itPseudoNoteOnEvent)) {
+                                        // allocate and trigger new voice(s) for the other key
+                                        TriggerNewVoices(pChannel, itPseudoNoteOnEvent, false);
+                                    }
                                     // if neither a voice was spawned or postponed then remove note on event from key again
                                     if (!pOtherKey->Active && !pOtherKey->VoiceTheftsQueued)
                                         pOtherKey->pEvents->free(itPseudoNoteOnEvent);
@@ -1597,11 +1765,13 @@ namespace LinuxSampler {
                     if (bOtherKeysPressed) {
                         if (pKey->Active) { // kill all voices on this key
                             bShouldRelease = false; // no need to release, as we kill it here
-                            VoiceIterator itVoiceToBeKilled = pKey->pActiveVoices->first();
-                            VoiceIterator end               = pKey->pActiveVoices->end();
-                            for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
-                                if (!(itVoiceToBeKilled->Type & Voice::type_release_trigger))
-                                    itVoiceToBeKilled->Kill(itNoteOffEventOnKeyList);
+                            for (NoteIterator itNote = pKey->pActiveNotes->first(); itNote; ++itNote) {
+                                VoiceIterator itVoiceToBeKilled = itNote->pActiveVoices->first();
+                                VoiceIterator end               = itNote->pActiveVoices->end();
+                                for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
+                                    if (!(itVoiceToBeKilled->Type & Voice::type_release_trigger))
+                                        itVoiceToBeKilled->Kill(itNoteOffEventOnKeyList);
+                                }
                             }
                         }
                     } else pChannel->PortamentoPos = -1.0f;
@@ -1613,7 +1783,11 @@ namespace LinuxSampler {
 
                     // spawn release triggered voice(s) if needed
                     if (pKey->ReleaseTrigger && pChannel->pInstrument) {
-                        TriggerReleaseVoices(pChannel, itNoteOffEventOnKeyList);
+                        // assign a new note to this release event
+                        if (LaunchNewNote(pChannel, &*itNoteOffEventOnKeyList)) {
+                            // allocate and trigger new release voice(s)
+                            TriggerReleaseVoices(pChannel, itNoteOffEventOnKeyList);
+                        }
                         pKey->ReleaseTrigger = false;
                     }
                 }
@@ -1642,11 +1816,23 @@ namespace LinuxSampler {
                 pVoiceStealingQueue->clear();
                 itLastStolenVoice          = VoiceIterator();
                 itLastStolenVoiceGlobally  = VoiceIterator();
+                itLastStolenNote           = NoteIterator();
+                itLastStolenNoteGlobally   = NoteIterator();
                 iuiLastStolenKey           = RTList<uint>::Iterator();
                 iuiLastStolenKeyGlobally   = RTList<uint>::Iterator();
                 pLastStolenChannel         = NULL;
 
+                // reset all notes
+                pNotePool->clear();
+                for (NoteIterator itNote = pNotePool->allocAppend(); itNote;
+                     itNote = pNotePool->allocAppend())
+                {
+                    itNote->reset();
+                }
+                pNotePool->clear();
+
                 // reset all voices
+                pVoicePool->clear();
                 for (VoiceIterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
                     iterVoice->Reset();
                 }
@@ -1730,7 +1916,7 @@ namespace LinuxSampler {
                     // launch the new voice
                     if (itNewVoice->Trigger(pChannel, itNoteOnEvent, pChannel->Pitch, pRegion, VoiceType, iKeyGroup) < 0) {
                         dmsg(4,("Voice not triggered\n"));
-                        pKey->pActiveVoices->free(itNewVoice);
+                        GetVoicePool()->free(itNewVoice);
                     }
                     else { // on success
                         --VoiceSpawnsLeft;
@@ -1779,6 +1965,8 @@ namespace LinuxSampler {
             }
 
         private:
+            Pool< Note<V> >* pNotePool;
+            Pool<note_id_t> noteIDPool;
             Pool<V>*    pVoicePool;            ///< Contains all voices that can be activated.
             Pool<RR*>   SuspendedRegions;
             Mutex       SuspendedRegionsMutex;

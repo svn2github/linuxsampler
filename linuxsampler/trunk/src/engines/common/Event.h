@@ -92,6 +92,38 @@ namespace LinuxSampler {
     };
 
     /**
+     * Unique numeric ID of an event which can be used to retrieve access to
+     * the actual @c Event object. Once the event associated with a certain ID
+     * was released (back to its event pool), this numeric ID becomes invalid
+     * and Pool< Event >::fromID() will detect this circumstance and will
+     * return an invalid Iterator, and thus will prevent you from misusing an
+     * event which no longer "exists".
+     *
+     * Note that an @c Event object usually just "exists" for exactly on audio
+     * fragment cycle: that is it exists right from the beginning of the audio
+     * fragment cycle where it was caused (i.e. where its MIDI data was
+     * received by the respective engine channel) and will disappear
+     * automatically at the end of that audio fragment cycle.
+     */
+    typedef pool_element_id_t event_id_t;
+
+    /**
+     * Unique numeric ID of a note which can be used to retrieve access to the
+     * actual @c Note object. Once the note associated with a certain ID was
+     * released (back to its note pool), this numeric ID becomes invalid and
+     * Pool< Note >::fromID() will detect this circumstance and will return
+     * an invalid Iterator, and thus will prevent you from misusing a note
+     * which no longer is "alive".
+     *
+     * A @c Note object exists right when the respective MIDI note-on event
+     * was received by the respective engine channel, and remains existent
+     * until the caused note and all its voices were finally freed (which might
+     * even be long time after the respective note-off event was received,
+     * depending on the duration of the voice's release stages etc.).
+     */
+    typedef pool_element_id_t note_id_t;
+
+    /**
      * Events are usually caused by a MIDI source or an internal modulation
      * controller like LFO or EG. An event should only be created by an
      * EventGenerator!
@@ -120,6 +152,8 @@ namespace LinuxSampler {
                     uint8_t Velocity;    ///< Trigger or release velocity of note-on / note-off event.
                     int8_t  Layer;       ///< Layer index (usually only used if a note-on event has to be postponed, e.g. due to shortage of free voices).
                     int8_t  ReleaseTrigger; ///< If new voice should be a release triggered voice (actually boolean field and usually only used if a note-on event has to be postponed, e.g. due to shortage of free voices).
+                    note_id_t ID;        ///< Unique numeric ID of the @c Note object associated with this note (on) event.
+                    note_id_t ParentNoteID; ///< If not zero: Unique numeric ID of the parent @c Note object that shall become parent of resulting new Note object of this Event. So this is used to associate a new note with a previous note, i.e. to release the new note once the parent note was released.
                     void*   pRegion;     ///< Engine specific pointer to instrument region
                 } Note;
                 /// Control change event specifics
@@ -150,17 +184,13 @@ namespace LinuxSampler {
                     uint8_t Value;   ///< New pressure value for note.
                 } NotePressure;
             } Param;
-            /// Sampler format specific informations and variables.
-            union {
-                /// Gigasampler/GigaStudio format specifics.
-                struct _Gig {
-                    uint8_t DimMask; ///< May be used to override the Dimension zone to be selected for a new voice: each 1 bit means that respective bit shall be overridden by taking the respective bit from DimBits instead.
-                    uint8_t DimBits; ///< Used only in conjunction with DimMask: Dimension bits that shall be selected.
-                } Gig;
-            } Format;
             EngineChannel* pEngineChannel; ///< Pointer to the EngineChannel where this event occured on, NULL means Engine global event (e.g. SysEx message).
             MidiInputPort* pMidiInputPort; ///< Pointer to the MIDI input port on which this event occured (NOTE: currently only for global events, that is SysEx messages)
 
+            inline void Init() {
+                Param.Note.ID = 0;
+                Param.Note.ParentNoteID = 0;
+            }
             inline int32_t FragmentPos() {
                 if (iFragmentPos >= 0) return iFragmentPos;
                 iFragmentPos = pEventGenerator->ToFragmentPos(TimeStamp);
@@ -169,6 +199,10 @@ namespace LinuxSampler {
             }
             inline void ResetFragmentPos() {
                 iFragmentPos = -1;
+            }
+            inline void CopyTimeFrom(const Event& other) {
+                TimeStamp = other.TimeStamp;
+                iFragmentPos = other.iFragmentPos;
             }
         protected:
             typedef EventGenerator::time_stamp_t time_stamp_t;
@@ -229,8 +263,8 @@ namespace LinuxSampler {
      */
     class ScriptEvent : public SchedulerNode {
     public:
-        Event cause; ///< Original external event that triggered this script event (i.e. MIDI note on event, MIDI CC event, etc.).
-        int id; ///< Unique ID of the external event that triggered this script event.
+        Event cause; ///< Copy of original external @c Event that triggered this script event (i.e. MIDI note on event, MIDI CC event, etc.).
+        pool_element_id_t id; ///< Native representation of built-in script variable $EVENT_ID. For scripts' "note" event handler this will reflect the unique ID of the @c Note object, for all other event handlers the unique ID of the original external @c Event object that triggered this script event.
         VMEventHandler** handlers; ///< The script's event handlers (callbacks) to be processed (NULL terminated list).
         VMExecContext* execCtx; ///< Script's current execution state (polyphonic variables and execution stack).
         int currentHandler; ///< Current index in 'handlers' list above.
@@ -240,7 +274,7 @@ namespace LinuxSampler {
     /**
      * Insert given @a node into the supplied timing @a queue with a scheduled
      * timing position given by @a fragmentPosBase and @a microseconds, where
-     * @a microseconds reflects the amount microseconds in future from "now"
+     * @a microseconds reflects the amount of microseconds in future from "now"
      * where the node shall be scheduled, and @a fragmentPos identifies the
      * sample point within the current audio fragment cycle which shall be
      * interpreted by this method to be "now".

@@ -46,6 +46,22 @@ const std::string __err_msg_iterator_invalidated = "Pool/RTList iterator invalid
 
 const std::string __err_msg_resize_while_in_use = "Pool::resizePool() ERROR: elements still in use!";
 
+/**
+ * Unique numeric ID for exactly one incarnation of one element allocated from
+ * a Pool. As soon as the respective element is once freed back to the Pool,
+ * the ID becomes invalid. Such an ID may be used to safely store an abstract
+ * reference to one Pool element for longer time. Since the Pool classes
+ * automatically detect whether an ID became invalid, using such an ID is thus
+ * safer than storing an Iterator or even a raw pointer in use case scenarios of
+ * storing long term references to Pool elements.
+ * 
+ * This ID type is currently set (constrained) to 32-bit because the current
+ * real-time instrument script infrastructure implementation, which heavily
+ * relies on element IDs, is currently using 32-bit for its integer script
+ * variable type.
+ */
+typedef uint32_t pool_element_id_t;
+
 // just symbol prototyping
 template<typename T> class Pool;
 template<typename T> class RTList;
@@ -61,7 +77,7 @@ class RTListBase {
             #if CONFIG_DEVMODE
             RTListBase<T1>* list; // list to which this node currently belongs to
             #endif // CONFIG_DEVMODE
-            int reincarnation; // just for Pool::fromID()
+            uint reincarnation; // just for Pool::fromID()
 
             _Node() {
                 next = NULL;
@@ -72,10 +88,24 @@ class RTListBase {
                 #endif // CONFIG_DEVMODE
                 reincarnation = 0;
             }
+
+            inline void bumpReincarnation(uint bits) {
+                reincarnation++;
+                // constrain the bitrange of "reincarnation", because Pool::fromID() will shift up/down for pool_element_id_t and compare this bitwise
+                reincarnation &= ((1 << bits) - 1);
+            }
         };
         typedef _Node<T> Node;
 
     public:
+        /**
+         * Pointer-like object which allows to iterate over elements of a RTList,
+         * similar to iterators of STL container classes. Note that the main
+         * purpose of this class is to access elements of a list / pool i.e.
+         * within a @c while() loop. If you rather want to keep a reference to
+         * one particular element (i.e. for longer time) then you might
+         * consider using @c pool_element_id_t variables instead.
+         */
         template<typename T1>
         class _Iterator {
             public:
@@ -626,7 +656,7 @@ class RTList : public RTListBase<T> {
             return pPool->getID(&*it);
         }
 
-        inline Iterator fromID(int id) const {
+        inline Iterator fromID(pool_element_id_t id) const {
             return pPool->fromID(id);
         }
 
@@ -647,9 +677,13 @@ class Pool : public RTList<T> {
         Node*         nodes;
         T*            data;
         RTListBase<T> freelist; // not yet allocated elements
-        int           poolsize;
+        uint          poolsize;
+        // following 3 used for element ID generation (and vice versa)
+        uint          poolsizebits; ///< Amount of bits required to index all elements of this pool (according to current pool size).
+        uint          reservedbits; ///< 3rd party reserved bits on the left side of id (default: 0).
+        uint          reincarnationbits; ///< Amount of bits allowed for reincarnation counter.
 
-        Pool(int Elements) : RTList<T>::RTList(this) {
+        Pool(int Elements) : RTList<T>::RTList(this), reservedbits(0) {
             _init(Elements);
         }
 
@@ -670,7 +704,7 @@ class Pool : public RTList<T> {
          *
          * @see resizePool()
          */
-        int poolSize() const {
+        uint poolSize() const {
             return poolsize;
         }
 
@@ -704,13 +738,34 @@ class Pool : public RTList<T> {
         }
 
         /**
+         * Sets the amount of bits on the left hand side of pool_element_id_t
+         * numbers to be reserved for 3rd party usage. So if you pass @c 1 for
+         * argument @a bits for example, then all generated element IDs will be
+         * maximum 31 bit large.
+         * 
+         * By default there are no reserved bits, and thus by default all IDs
+         * are max. 32 bit large.
+         *
+         * @param bits - amount of bits to reserve on every ID for other purposes
+         * @see pool_element_id_t
+         */
+        void setPoolElementIDsReservedBits(uint bits) {
+            reservedbits = bits;
+            updateReincarnationBits();
+        }
+
+        /**
          * Returns an abstract, unique numeric ID for the given object of
-         * this pool, it returns -1 in case the passed object is not a member
+         * this pool, it returns 0 in case the passed object is not a member
          * of this Pool, i.e. because it is simply an invalid pointer or member
          * of another Pool. The returned ID is unique among all elements of this
          * Pool and it differs with each reincarnation of an object. That means
          * each time you free an element to and allocate the same element back
          * from the Pool, it will have a different ID.
+         * 
+         * A valid ID will never be zero, so you may use ID values of 0 in your
+         * data structures for special purposes (i.e. reflecting an invalid
+         * object ID or not yet assigned object).
          *
          * Members are always translated both, from Iterators/pointers to IDs,
          * and from IDs to Iterators/pointers in constant time.
@@ -723,13 +778,13 @@ class Pool : public RTList<T> {
          * has already been freed / reallocated from the Pool in the meantime.
          *
          * @param obj - raw pointer to a data member of this Pool
-         * @returns unique numeric ID of @a obj or -1 if pointer was invalid
+         * @returns unique numeric ID (!= 0) of @a obj or 0 if pointer was invalid
          */
-        int getID(const T* obj) const {
-            if (!poolsize) return -1;
+        pool_element_id_t getID(const T* obj) const {
+            if (!poolsize) return 0;
             int index = obj - &data[0];
-            if (index < 0 || index >= poolsize) return -1;
-            return (nodes[index].reincarnation << bitsForSize(poolsize)) | index;
+            if (index < 0 || index >= poolsize) return 0;
+            return ((nodes[index].reincarnation << poolsizebits) | index) + 1;
         }
 
         /**
@@ -756,17 +811,19 @@ class Pool : public RTList<T> {
          * bits vs. 64 bits). You can also detect this way whether the object
          * has already been freed / reallocated from the Pool in the meantime.
          *
-         * @param id - unique ID of a Pool's data member
+         * @param id - unique ID (!= 0) of a Pool's data member
          * @returns Iterator object pointing to Pool's data element, invalid
          *          Iterator in case ID was invalid or data element was freed
          */
-        Iterator fromID(int id) const {
-            if (id < 0) return Iterator(); // invalid iterator
-            const uint bits = bitsForSize(poolsize);
+        Iterator fromID(pool_element_id_t id) const {
+            //TODO: -1 check here is a relict from older versions of Pool.h, once it is certain that no existing code base is still using -1 for "invalid" Pool elements then this -1 check can be removed
+            if (id == 0 || id == -1) return Iterator(); // invalid iterator
+            id--;
+            const uint bits = poolsizebits;
             uint index = id & ((1 << bits) - 1);
             if (index >= poolsize) return Iterator(); // invalid iterator
             Node* node = &nodes[index];
-            int reincarnation = uint(id) >> bits;
+            uint reincarnation = id >> bits;
             if (reincarnation != node->reincarnation) return Iterator(); // invalid iterator 
             return Iterator(node);
         }
@@ -797,13 +854,13 @@ class Pool : public RTList<T> {
         }
 
         inline void freeToPool(Iterator itElement) {
-            itElement.node()->reincarnation++;
+            itElement.node()->bumpReincarnation(reincarnationbits);
             freelist.append(itElement);
         }
 
         inline void freeToPool(Iterator itFirst, Iterator itLast) {
             for (Node* n = itFirst.node(); true; n = n->next) {
-                n->reincarnation++;
+                n->bumpReincarnation(reincarnationbits);
                 if (n == itLast.node()) break;
             }
             freelist.append(itFirst, itLast);
@@ -820,6 +877,12 @@ class Pool : public RTList<T> {
                 freelist.append(&nodes[i]);
             }
             poolsize = Elements;
+            poolsizebits = bitsForSize(poolsize + 1); // +1 here just because IDs are always incremented by one (to avoid them ever being zero)
+            updateReincarnationBits();
+        }
+
+        inline void updateReincarnationBits() {
+            reincarnationbits = sizeof(pool_element_id_t) * 8 - poolsizebits - reservedbits;
         }
 
         inline static int bitsForSize(int size) {

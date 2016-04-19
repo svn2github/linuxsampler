@@ -140,11 +140,24 @@ namespace LinuxSampler { namespace gig {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
         // first, get total amount of required voices (dependant on amount of layers)
         ::gig::Region* pRegion = pChannel->pInstrument->GetRegion(itNoteOnEvent->Param.Note.Key);
-        if (pRegion && !RegionSuspended(pRegion)) {
-            int voicesRequired = pRegion->Layers;
-            // now launch the required amount of voices
-            for (int i = 0; i < voicesRequired; i++)
+        if (!pRegion || RegionSuspended(pRegion))
+            return;
+        const int voicesRequired = pRegion->Layers;
+        if (voicesRequired <= 0)
+            return;
+
+        NoteIterator itNote = GetNotePool()->fromID(itNoteOnEvent->Param.Note.ID);
+        if (!itNote) {
+            dmsg(1,("gig::Engine: No Note object for triggering new voices!\n"));
+            return;
+        }
+
+        // now launch the required amount of voices
+        for (int i = 0; i < voicesRequired; i++) {
+            VoiceIterator itNewVoice =
                 LaunchVoice(pChannel, itNoteOnEvent, i, false, true, HandleKeyGroupConflicts);
+            if (!itNewVoice) continue;
+            itNewVoice.moveToEndOf(itNote->pActiveVoices);
         }
     }
 
@@ -156,15 +169,27 @@ namespace LinuxSampler { namespace gig {
         MidiKey* pKey = &pChannel->pMIDIKeyInfo[itNoteOffEvent->Param.Note.Key];
         // first, get total amount of required voices (dependant on amount of layers)
         ::gig::Region* pRegion = pChannel->pInstrument->GetRegion(itNoteOffEvent->Param.Note.Key);
-        if (pRegion) {
-            int voicesRequired = pRegion->Layers;
+        if (!pRegion)
+            return;
+        const int voicesRequired = pRegion->Layers;
+        if (voicesRequired <= 0)
+            return;
 
-            // MIDI note-on velocity is used instead of note-off velocity
-            itNoteOffEvent->Param.Note.Velocity = pKey->Velocity;
+        NoteIterator itNote = GetNotePool()->fromID(itNoteOffEvent->Param.Note.ID);
+        if (!itNote) {
+            dmsg(1,("gig::Engine: No Note object for triggering new release voices!\n"));
+            return;
+        }
 
-            // now launch the required amount of voices
-            for (int i = 0; i < voicesRequired; i++)
+        // MIDI note-on velocity is used instead of note-off velocity
+        itNoteOffEvent->Param.Note.Velocity = pKey->Velocity;
+
+        // now launch the required amount of voices
+        for (int i = 0; i < voicesRequired; i++) {
+            VoiceIterator itNewVoice =
                 LaunchVoice(pChannel, itNoteOffEvent, i, true, false, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
+            if (!itNewVoice) continue;
+            itNewVoice.moveToEndOf(itNote->pActiveVoices);
         }
     }
 
@@ -178,7 +203,7 @@ namespace LinuxSampler { namespace gig {
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
         int MIDIKey = itNoteOnEvent->Param.Note.Key;
-        EngineChannel::MidiKey* pKey  = &pChannel->pMIDIKeyInfo[MIDIKey];
+        //EngineChannel::MidiKey* pKey  = &pChannel->pMIDIKeyInfo[MIDIKey];
         ::gig::Region* pRegion = pChannel->pInstrument->GetRegion(MIDIKey);
 
         // if nothing defined for this key
@@ -310,15 +335,16 @@ namespace LinuxSampler { namespace gig {
         // change has occured between note on and off)
         if (ReleaseTriggerVoice && !(VoiceType & Voice::type_release_trigger)) return Pool<Voice>::Iterator();
 
-        
+        NoteIterator itNote = GetNotePool()->fromID(itNoteOnEvent->Param.Note.ID);
+
         ::gig::DimensionRegion* pDimRgn;
-        if (!itNoteOnEvent->Format.Gig.DimMask) { // normal case ...
+        if (!itNote->Format.Gig.DimMask) { // normal case ...
             pDimRgn = pRegion->GetDimensionRegionByValue(DimValues);
         } else { // some dimension zones were overridden (i.e. by instrument script) ...
-            dmsg(3,("trigger with dim mask=%d val=%d\n", itNoteOnEvent->Format.Gig.DimMask, itNoteOnEvent->Format.Gig.DimBits));
+            dmsg(3,("trigger with dim mask=%d val=%d\n", itNote->Format.Gig.DimMask, itNote->Format.Gig.DimBits));
             int index = pRegion->GetDimensionRegionIndexByValue(DimValues);
-            index &= ~itNoteOnEvent->Format.Gig.DimMask;
-            index |=  itNoteOnEvent->Format.Gig.DimBits & itNoteOnEvent->Format.Gig.DimMask;
+            index &= ~itNote->Format.Gig.DimMask;
+            index |=  itNote->Format.Gig.DimBits & itNote->Format.Gig.DimMask;
             pDimRgn = pRegion->pDimensionRegions[index & 255];
         }
         if (!pDimRgn) return Pool<Voice>::Iterator(); // error (could not resolve dimension region)
@@ -327,7 +353,7 @@ namespace LinuxSampler { namespace gig {
         if (!pDimRgn->pSample || !pDimRgn->pSample->SamplesTotal) return Pool<Voice>::Iterator();
 
         // allocate a new voice for the key
-        Pool<Voice>::Iterator itNewVoice = pKey->pActiveVoices->allocAppend();
+        Pool<Voice>::Iterator itNewVoice = GetVoicePool()->allocAppend();
 
         int res = InitNewVoice (
                 pChannel, pDimRgn, itNoteOnEvent, VoiceType, iLayer,
