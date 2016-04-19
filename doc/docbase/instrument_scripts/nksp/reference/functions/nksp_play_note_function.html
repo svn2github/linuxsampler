@@ -8,7 +8,9 @@
     <h1>play_note()</h1>
     <p>
       Triggers a new note to be played by the sampler. This is like generating
-      a new MIDI note-on event programmatically.
+      a new MIDI note-on event programmatically, with the difference though
+      that triggering a note programmatically this way does not cause a
+      <code>note</code> event handler to be executed for the new note.
     </p>
     
     <h3>Function Prototype</h3>
@@ -45,7 +47,8 @@ play_note(??note??, [??velocity??], [??offset-us??], [??duration-us??])
         <td>Integer Number</td>
         <td>Length of the note to be played in microseconds.<br>
             -1: The note will be stopped when the event
-                handler's note stops.<br>
+                handler's note stops (must only be used with
+                <code>note</code> event handlers).<br>
             0: The entire note's sample will be played to its end.<br>
             [optional, default: 0]</td>
       </tr>
@@ -53,12 +56,14 @@ play_note(??note??, [??velocity??], [??offset-us??], [??duration-us??])
 
     <note>
     You need at least LinuxSampler 2.0.0.svn2 or higher for passing a value
-    higher than <code>0</code> for <code>??duration-us??</code>.
+    higher than <code>0</code> for <code>??duration-us??</code>, and you need
+    at least LinuxSampler 2.0.0.svn3 or higher for passing <code>-1</code> for
+    <code>??duration-us??</code>.
     </note>
 
     <note class="important">
-    Passing <code>-1</code> for <code>??duration-us??</code> is not
-    supported by LinuxSampler yet.
+    Passing any other value than <code>0</code> for <code>??offset-us??</code>
+    is not supported by LinuxSampler yet.
     </note>
 
     <h3>Return Value</h3>

@@ -10,7 +10,7 @@
       Drops the given MIDI control change event and thus prevents the supplied
       event to be further processed by the sampler. You can use this function
       i.e. to filter out MIDI control change events, before they are causing
-      the sound to be changed.
+      any sound to be changed.
     </p>
     <p>
       The argument this function takes is optional. If you omit passing an
@@ -18,9 +18,23 @@
       caused this current <code lang="nksp">controller</code> event handler to be executed.
     </p>
     <p>
-      There is also an <code>ignore_event()</code> function. With
-      NKSP the two functions are both doing the same thing though.
-      The two exist merely due to compatibility reasons with KSP.
+      Dropping control change events with this function only succeeds if the
+      event just "recently" occurred. That effectively means you should drop
+      the control change event in the <code>controller</code> event handler
+      before any <code>wait() calls, and before entering any loops that may
+      execute your script for a very long time. Because in both cases the
+      sampler may suspend your script for a certain amount of time and once
+      your script got resumed, the respective control change event may already
+      have entered the sampler's regular event processing chain and thus can no
+      longer be dropped.
+    </p>
+    <p>
+      With NKSP you can also use <code>ignore_event()</code> to drop control
+      change events. So <code>ignore_controller()</code> merely exists due to
+      compatibility reasons with KSP. However when you already know that the
+      event to be dropped is a control change event, then it is recommended to
+      actually call <code>ignore_controller()</code> instead of
+      <code>ignore_event()</code>.
     </p>
 
     <h3>Function Prototype</h3>

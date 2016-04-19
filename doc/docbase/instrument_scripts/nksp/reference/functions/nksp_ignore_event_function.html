@@ -10,12 +10,25 @@
       Drops the given event and thus prevents the supplied event to be further
       processed by the sampler. You can use this function i.e. to filter out
       MIDI note on and MIDI note off events, before they are causing new notes
-      to be triggered.
+      to be triggered, or to drop certain MIDI control change events before
+      they can cause any sound to be changed.
     </p>
     <p>
-      There is also an <code lang="nksp">ignore_controller()</code> function. With
-      NKSP the two functions are both doing the same thing though.
-      The two exist merely due to compatibility reasons with KSP.
+      Dropping events with this function only succeeds if the event just
+      "recently" occurred. That effectively means you should drop the event in
+      the respective event handler before any <code>wait() calls, and before
+      entering any loops that may execute your script for a very long time.
+      Because in both cases the sampler may suspend your script for a certain
+      amount of time and once your script got resumed, the respective event may
+      already have entered the sampler's regular event processing chain and
+      thus can no longer be dropped.
+    </p>
+    <p>
+      There is also an <code lang="nksp">ignore_controller()</code> function,
+      intended for explicitly dropping control change events. With NKSP you
+      you can also use <code>ignore_event()</code> though to
+      drop control change events. So <code>ignore_controller()</code>
+      merely exists due to compatibility reasons with KSP.
     </p>
 
     <h3>Function Prototype</h3>
