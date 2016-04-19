@@ -21,7 +21,7 @@
       Dropping control change events with this function only succeeds if the
       event just "recently" occurred. That effectively means you should drop
       the control change event in the <code>controller</code> event handler
-      before any <code>wait() calls, and before entering any loops that may
+      before any <code>wait()</code> calls, and before entering any loops that may
       execute your script for a very long time. Because in both cases the
       sampler may suspend your script for a certain amount of time and once
       your script got resumed, the respective control change event may already

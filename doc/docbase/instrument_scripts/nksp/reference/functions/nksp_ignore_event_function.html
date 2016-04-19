@@ -16,7 +16,7 @@
     <p>
       Dropping events with this function only succeeds if the event just
       "recently" occurred. That effectively means you should drop the event in
-      the respective event handler before any <code>wait() calls, and before
+      the respective event handler before any <code lang="nksp">wait()</code> calls, and before
       entering any loops that may execute your script for a very long time.
       Because in both cases the sampler may suspend your script for a certain
       amount of time and once your script got resumed, the respective event may
@@ -24,7 +24,7 @@
       thus can no longer be dropped.
     </p>
     <p>
-      There is also an <code lang="nksp">ignore_controller()</code> function,
+      There is also an <code>ignore_controller()</code> function,
       intended for explicitly dropping control change events. With NKSP you
       you can also use <code>ignore_event()</code> though to
       drop control change events. So <code>ignore_controller()</code>
