@@ -771,8 +771,12 @@ namespace LinuxSampler {
                     //
                     // FIXME: it would probably be better to just schedule newly spawned script executions here and then execute them altogether with already suspended ones all at once in order of all their scheduled timing
                     for (RTList<Event>::Iterator itEvent = pChannel->pEvents->first(),
-                        end = pChannel->pEvents->end(); itEvent != end; ++itEvent)
+                        end = pChannel->pEvents->end(); itEvent != end; )
                     {
+                        //HACK: avoids iterator invalidation which might happen below since an instrument script might drop an event by direct raw pointer access (it would be considerable to extend the Iterator class to detect and circumvent this case by checking the "reincarnation" member variable).
+                        RTList<Event>::Iterator itNext = itEvent;
+                        ++itNext;
+
                         switch (itEvent->Type) {
                             case Event::type_note_on:
                                 if (pChannel->pScript->handlerNote)
@@ -792,6 +796,9 @@ namespace LinuxSampler {
                                 //TODO: ...
                                 break;
                         }
+
+                        // see HACK comment above
+                        itEvent = itNext;
                     }
 
                     // this has to be run again, since the newly spawned scripts

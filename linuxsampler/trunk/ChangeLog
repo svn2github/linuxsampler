@@ -24,6 +24,8 @@ Version SVN trunk (?)
   * packaging changes:
     - removed unnecessary dependency to libuuid
       (originated by libgig's usage of it)
+    - Automake: set environment variable GCC_COLORS=auto to allow GCC to
+      auto detect whether it (sh/c)ould output its messages in color.
 
   * Real-time instrument scripts:
     - Implemented scheduler for delayed MIDI events and for suspended scripts.

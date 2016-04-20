@@ -60,6 +60,7 @@ namespace LinuxSampler {
     template <class V /* Voice */, class R /* Region */, class I /* Instrument */>
     class EngineChannelBase: public AbstractEngineChannel, public MidiKeyboardManager<V>, public ResourceConsumer<I> {
         public:
+            typedef typename RTList< Note<V> >::Iterator NoteIterator;
             typedef typename RTList<R*>::Iterator RTListRegionIterator;
             typedef typename MidiKeyboardManager<V>::MidiKey MidiKey;
 
@@ -331,6 +332,38 @@ namespace LinuxSampler {
                 // stick a new note to the (copied) event on the queue
                 const note_id_t noteID = pEngine->LaunchNewNote(this, &*itEvent);
                 return noteID;
+            }
+
+            /**
+             * Called by real-time instrument script functions to ignore the note
+             * reflected by given note ID. The note's event will be freed immediately
+             * to its event pool and this will prevent voices to be launched for the
+             * note.
+             *
+             * NOTE: preventing a note by calling this method works only if the note
+             * was launched within the current audio fragment cycle.
+             *
+             * @param id - unique ID of note to be dropped
+             */
+            void IgnoreNote(note_id_t id) OVERRIDE {
+                Pool< Note<V> >* pNotePool =
+                    dynamic_cast<NotePool<V>*>(pEngine)->GetNotePool();
+
+                NoteIterator itNote = pNotePool->fromID(id);
+                if (!itNote) return; // note probably already released
+
+                // if the note already got active voices, then it is too late to drop it
+                if (!itNote->pActiveVoices->isEmpty()) return;
+
+                // if the original (note-on) event is not available anymore, then it is too late to drop it
+                RTList<Event>::Iterator itEvent = pEvents->fromID(itNote->eventID);
+                if (!itEvent) return;
+
+                // drop the note
+                pNotePool->free(itNote);
+
+                // drop the original event
+                pEvents->free(itEvent);
             }
 
             RTList<R*>* pRegionsInUse;     ///< temporary pointer into the instrument change command, used by the audio thread

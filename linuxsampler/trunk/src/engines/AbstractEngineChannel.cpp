@@ -888,23 +888,6 @@ namespace LinuxSampler {
         if (it) pEvents->free(it);
     }
 
-    /**
-     * Called by real-time instrument script functions to ignore the note
-     * reflected by given note ID. The note's event will be freed immediately
-     * to its event pool and this will prevent voices to be launched for the
-     * note.
-     *
-     * NOTE: preventing a note by calling this method works only if the note
-     * was launched within the current audio fragment cycle.
-     *
-     * @param id - unique ID of note to be dropped
-     */    
-    void AbstractEngineChannel::IgnoreNote(note_id_t id) {
-        NoteBase* pNote = pEngine->NoteByID(id);
-        if (!pNote) return;
-        IgnoreEvent(pNote->eventID);
-    }
-
     /** @brief Drop the requested event.
      *
      * Called by real-time instrument script functions to ignore the event

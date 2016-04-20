@@ -13,6 +13,9 @@ EXTRA_DIST = Doxyfile.in \
              benchmarks/Makefile \
              benchmarks/triang.cpp
 
+# let GCC auto detect whether it (sh/c)ould output its messages in color
+export GCC_COLORS=auto
+
 .PHONY: parser testcases
 
 if HAVE_SQLITE3

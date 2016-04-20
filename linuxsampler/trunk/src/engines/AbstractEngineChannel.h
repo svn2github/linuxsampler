@@ -186,7 +186,7 @@ namespace LinuxSampler {
             virtual note_id_t ScheduleNoteMicroSec(const Event* pEvent, int delay) = 0;
             event_id_t ScheduleEventMicroSec(const Event* pEvent, int delay);
             void IgnoreEvent(event_id_t id);
-            void IgnoreNote(note_id_t id);
+            virtual void IgnoreNote(note_id_t id) = 0;
             void IgnoreEventByScriptID(const ScriptID& id);
 
             void AddGroup(uint group);
