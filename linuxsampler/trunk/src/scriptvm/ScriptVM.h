@@ -15,12 +15,17 @@
 
 #include "../common/global.h"
 #include "common.h"
-#include "CoreVMFunctions.h"
 
 namespace LinuxSampler {
 
     class ParserContext;
     class ExecContext;
+    class CoreVMFunction_message;
+    class CoreVMFunction_exit;
+    class CoreVMFunction_wait;
+    class CoreVMFunction_abs;
+    class CoreVMFunction_random;
+    class CoreVMFunction_num_elements;
 
     /** @brief Core virtual machine for real-time instrument scripts.
      *
@@ -81,6 +86,33 @@ namespace LinuxSampler {
          * @returns parsed representation of the script
          */
         VMParserContext* loadScript(std::istream* is);
+
+        /**
+         * Parses a script's source code (passed as argument @a s to this
+         * method), splits that input up in its individual tokens (i.e.
+         * keyword, variable name, event name, etc.) and returns all those
+         * tokens, for the purpose that the caller can provide syntax syntax
+         * highlighting for the passed script.
+         *
+         * This method is actually not used by the sampler at all, it is rather
+         * provided for external script editor applications, to provide them a
+         * convenient backend for parsing scripts and providing syntax
+         * highlighting.
+         *
+         * @returns recognized tokens of passed script's source code
+         */
+        std::vector<VMSourceToken> syntaxHighlighting(const String& s);
+
+        /**
+         * Same as above's syntaxHighlighting() method, but this one reads the
+         * script's source code from an input stream object (i.e. stdin or a
+         * file).
+         *
+         * @param is - input stream from which the entire source code of the
+         *             script is to be read and loaded from
+         * @returns recognized tokens of passed script's source code
+         */
+        std::vector<VMSourceToken> syntaxHighlighting(std::istream* is);
 
         /**
          * Dumps the translated tree of the already parsed script, given by
@@ -188,12 +220,12 @@ namespace LinuxSampler {
     protected:
         VMEventHandler* m_eventHandler;
         ParserContext* m_parserContext;
-        CoreVMFunction_message fnMessage;
-        CoreVMFunction_exit fnExit;
-        CoreVMFunction_wait fnWait;
-        CoreVMFunction_abs fnAbs;
-        CoreVMFunction_random fnRandom;
-        CoreVMFunction_num_elements fnNumElements;
+        CoreVMFunction_message* m_fnMessage;
+        CoreVMFunction_exit* m_fnExit;
+        CoreVMFunction_wait* m_fnWait;
+        CoreVMFunction_abs* m_fnAbs;
+        CoreVMFunction_random* m_fnRandom;
+        CoreVMFunction_num_elements* m_fnNumElements;
     };
 
 } // namespace LinuxSampler

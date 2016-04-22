@@ -43,6 +43,10 @@ Version SVN trunk (?)
     - Built-in script function "play_note()": Added support for passing
       special value -1 for "duration-us" argument, which will cause the
       triggered note to be released once the original note was released.
+    - Instrument script classes now exported with the liblinuxsampler C++ API.
+    - Added new API method ScriptVM::syntaxHighlighting() which provides
+      a convenient syntax highlighting backend for external instrument
+      script editor applications.
 
 Version 2.0.0 (15 July 2015)
 

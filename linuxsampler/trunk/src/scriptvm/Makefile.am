@@ -3,8 +3,15 @@ METASOURCES = AUTO
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
+SUBDIRS = editor
+
 AM_YFLAGS = -d
 BUILT_SOURCES = parser.h
+
+liblinuxsamplerscriptvmincludedir = $(includedir)/linuxsampler/scriptvm
+liblinuxsamplerscriptvminclude_HEADERS = \
+	common.h \
+	ScriptVM.h
 
 noinst_LTLIBRARIES = liblinuxsamplerscriptvm.la
 liblinuxsamplerscriptvm_la_SOURCES = \

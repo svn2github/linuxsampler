@@ -3,7 +3,7 @@
 
 m4_define(linuxsampler_release_major, 2)
 m4_define(linuxsampler_release_minor, 0)
-m4_define(linuxsampler_release_build, 0.svn4)
+m4_define(linuxsampler_release_build, 0.svn5)
 
 
 AC_INIT([linuxsampler],[linuxsampler_release_major.linuxsampler_release_minor.linuxsampler_release_build])
@@ -1359,6 +1359,7 @@ AC_CONFIG_FILES([\
     src/hostplugins/vst/Makefile \
     src/hostplugins/au/Makefile \
     src/scriptvm/Makefile \
+    src/scriptvm/editor/Makefile \
     src/shell/Makefile \
     linuxsampler.spec \
     debian/Makefile \

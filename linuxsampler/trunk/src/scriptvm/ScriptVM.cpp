@@ -13,6 +13,8 @@
 #include <assert.h>
 #include "../common/global_private.h"
 #include "tree.h"
+#include "CoreVMFunctions.h"
+#include "editor/NkspScanner.h"
 
 #define DEBUG_SCRIPTVM_CORE 0
 
@@ -89,10 +91,22 @@ namespace LinuxSampler {
         return max;
     }
 
-    ScriptVM::ScriptVM() : m_eventHandler(NULL), m_parserContext(NULL), fnWait(this) {
+    ScriptVM::ScriptVM() : m_eventHandler(NULL), m_parserContext(NULL) {
+        m_fnMessage = new CoreVMFunction_message;
+        m_fnExit = new CoreVMFunction_exit;
+        m_fnWait = new CoreVMFunction_wait(this);
+        m_fnAbs = new CoreVMFunction_abs;
+        m_fnRandom = new CoreVMFunction_random;
+        m_fnNumElements = new CoreVMFunction_num_elements;
     }
 
     ScriptVM::~ScriptVM() {
+        delete m_fnMessage;
+        delete m_fnExit;
+        delete m_fnWait;
+        delete m_fnAbs;
+        delete m_fnRandom;
+        delete m_fnNumElements;
     }
 
     VMParserContext* ScriptVM::loadScript(const String& s) {
@@ -164,13 +178,31 @@ namespace LinuxSampler {
         return execCtx;
     }
 
+    std::vector<VMSourceToken> ScriptVM::syntaxHighlighting(const String& s) {
+        std::istringstream iss(s);
+        return syntaxHighlighting(&iss);
+    }
+
+    std::vector<VMSourceToken> ScriptVM::syntaxHighlighting(std::istream* is) {
+        NkspScanner scanner(is);
+        std::vector<SourceToken> tokens = scanner.tokens();
+        std::vector<VMSourceToken> result;
+        result.resize(tokens.size());
+        for (int i = 0; i < tokens.size(); ++i) {
+            SourceToken* st = new SourceToken;
+            *st = tokens[i];
+            result[i] = VMSourceToken(st);
+        }
+        return result;
+    }
+
     VMFunction* ScriptVM::functionByName(const String& name) {
-        if (name == "message") return &fnMessage;
-        else if (name == "exit") return &fnExit;
-        else if (name == "wait") return &fnWait;
-        else if (name == "abs") return &fnAbs;
-        else if (name == "random") return &fnRandom;
-        else if (name == "num_elements") return &fnNumElements;
+        if (name == "message") return m_fnMessage;
+        else if (name == "exit") return m_fnExit;
+        else if (name == "wait") return m_fnWait;
+        else if (name == "abs") return m_fnAbs;
+        else if (name == "random") return m_fnRandom;
+        else if (name == "num_elements") return m_fnNumElements;
         return NULL;
     }
 

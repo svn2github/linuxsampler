@@ -767,6 +767,57 @@ namespace LinuxSampler {
         virtual VMEventHandler* eventHandlerByName(const String& name) = 0;
     };
 
+    class SourceToken;
+
+    /** @brief Recognized token of a script's source code.
+     *
+     * Represents one recognized token of a script's source code, for example
+     * a keyword, variable name, etc. and it provides further informations about
+     * that particular token, i.e. the precise location (line and column) of the
+     * token within the original script's source code.
+     *
+     * This class is not actually used by the sampler itself. It is rather
+     * provided for external script editor applications. Primary purpose of
+     * this class is syntax highlighting for external script editors.
+     */
+    class VMSourceToken {
+    public:
+        VMSourceToken();
+        VMSourceToken(SourceToken* ct);
+        VMSourceToken(const VMSourceToken& other);
+        virtual ~VMSourceToken();
+
+        // original text of this token as it is in the script's source code
+        String text() const;
+
+        // position of token in script
+        int firstLine() const;
+        int firstColumn() const;
+
+        // base types
+        bool isEOF() const;
+        bool isNewLine() const;
+        bool isKeyword() const;
+        bool isVariableName() const;
+        bool isIdentifier() const;
+        bool isNumberLiteral() const;
+        bool isStringLiteral() const;
+        bool isComment() const;
+        bool isPreprocessor() const;
+        bool isOther() const;
+
+        // extended types
+        bool isIntegerVariable() const;
+        bool isStringVariable() const;
+        bool isArrayVariable() const;
+        bool isEventHandlerName() const;
+
+        VMSourceToken& operator=(const VMSourceToken& other);
+
+    private:
+        SourceToken* m_token;
+    };
+
 } // namespace LinuxSampler
 
 #endif // LS_INSTR_SCRIPT_PARSER_COMMON_H

@@ -120,6 +120,7 @@ int main(int argc, char **argv) {
     dmsg(1,("LinuxSampler %s\n", VERSION));
     dmsg(1,("Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck\n"));
     dmsg(1,("Copyright (C) 2005-2016 Christian Schoenebeck\n"));
+    dmsg(1,("Binary built: " __DATE__ "\n"))
 
     #if defined(WIN32)
     #if 0

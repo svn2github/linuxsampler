@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Christian Schoenebeck
+ * Copyright (c) 2014-2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -36,10 +36,20 @@ using namespace std;
 static void printUsage() {
     cout << "ls_instr_script - Parse real-time instrument script from stdin." << endl;
     cout << endl;
-    cout << "Usage: ls_instr_script ENGINE" << endl;
+    cout << "Usage: ls_instr_script ENGINE [OPTIONS]" << endl;
     cout << endl;
     cout << "    ENGINE\n";
     cout << "        Either \"core\", \"gig\", \"sf2\" or \"sfz\"." << endl;
+    cout << endl;
+    cout << "    OPTIONS" << endl;
+    cout << "        --syntax | -s" << endl;
+    cout << "            Prints the script to stdout with colored syntax highlighting" << endl;
+    cout << "            and exits immediately." << endl;
+    cout << endl;
+    cout << "        --debug-syntax | -ds" << endl;
+    cout << "            Prints a debugging representation (of the syntax" << endl;
+    cout << "            highlighting backend) of the parsed script to stdout and exits" << endl;
+    cout << "            immediately." << endl;
     cout << endl;
     cout << "If you pass \"core\" as argument, only the core language built-in" << endl;
     cout << "variables and functions are available. However in this particular" << endl;
@@ -50,6 +60,9 @@ static void printUsage() {
     cout << "program." << endl;
     cout << endl;
 }
+
+static void printCodeWithSyntaxHighlighting(ScriptVM* vm);
+static void dumpSyntaxHighlighting(ScriptVM* vm);
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -71,6 +84,29 @@ int main(int argc, char *argv[]) {
         std::cerr << "Unknown ENGINE '" << engine << "'\n\n";
         printUsage();
         return -1;
+    }
+
+    // validate & parse arguments provided to this program
+    for (int iArg = 2; iArg < argc; ++iArg) {
+        const string opt = argv[iArg];
+        if (opt == "--") { // common for all command line tools: separator between initial option arguments and i.e. subsequent file arguments
+            iArg++;
+            break;
+        }
+        if (opt.substr(0, 1) != "-") break;
+
+        if (opt == "-s" || opt == "--syntax") {
+            printCodeWithSyntaxHighlighting(vm);
+            return 0;
+        } else if (opt == "-ds" || opt == "--debug-syntax") {
+            dumpSyntaxHighlighting(vm);
+            return 0;
+        } else {
+            cerr << "Unknown option '" << opt << "'" << endl;
+            cerr << endl;
+            printUsage();
+            return -1;
+        }
     }
 
     VMParserContext* parserContext = vm->loadScript(&std::cin);
@@ -147,4 +183,69 @@ int main(int argc, char *argv[]) {
     if (vm) delete vm;
 
     return 0;
+}
+
+static void printCodeWithSyntaxHighlighting(ScriptVM* vm) {
+    vector<VMSourceToken> tokens = vm->syntaxHighlighting(&std::cin);
+
+    for (int i = 0; i < tokens.size(); ++i) {
+        const VMSourceToken& token = tokens[i];
+
+        CFmt fmt;
+        if (token.isKeyword()) {
+            fmt.bold();
+        } else if (token.isVariableName()) {
+            fmt.magenta();
+        } else if (token.isIdentifier()) {
+            if (token.isEventHandlerName()) {
+                fmt.bold();
+                fmt.cyan();
+            } else { // a function ...
+                fmt.cyan();
+            }
+        } else if (token.isNumberLiteral()) {
+            fmt.yellow();
+        } else if (token.isStringLiteral()) {
+            fmt.red();
+        } else if (token.isComment()) {
+            fmt.blue();
+        } else if (token.isPreprocessor()) {
+            fmt.green();
+        } else if (token.isNewLine()) {
+        }
+
+        printf("%s", token.text().c_str());
+        fflush(stdout);
+    }
+}
+
+static void dumpSyntaxHighlighting(ScriptVM* vm) {
+    vector<VMSourceToken> tokens = vm->syntaxHighlighting(&std::cin);
+
+    for (int i = 0; i < tokens.size(); ++i) {
+        const VMSourceToken& token = tokens[i];
+        const char* type = "OTHER";
+        if (token.isKeyword()) {
+            type = "KEYWORD";
+        } else if (token.isVariableName()) {
+            type = "VARIABLE";
+        } else if (token.isIdentifier()) {
+            if (token.isEventHandlerName()) {
+                type = "HANDLER_NAME";
+            } else { // a function ...
+                type = "FUNCTION";
+            }
+        } else if (token.isNumberLiteral()) {
+            type = "NUMBER";
+        } else if (token.isStringLiteral()) {
+            type = "STRING";
+        } else if (token.isComment()) {
+            type = "COMMENT";
+        } else if (token.isPreprocessor()) {
+            type = "PREPROC";
+        } else if (token.isNewLine()) {
+            type = "NL";
+        }
+        printf("L%d,C%d: %s \"%s\"\n", token.firstLine(), token.firstColumn(), type, token.text().c_str());
+    }
 }

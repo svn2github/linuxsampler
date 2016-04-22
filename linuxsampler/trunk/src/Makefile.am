@@ -43,6 +43,7 @@ liblinuxsampler_la_SOURCES = Sampler.cpp
 liblinuxsampler_la_LIBADD = \
 	$(sqlite3_lib) \
 	$(top_builddir)/src/scriptvm/liblinuxsamplerscriptvm.la \
+	$(top_builddir)/src/scriptvm/editor/liblinuxsamplerscriptvmeditor.la \
 	$(top_builddir)/src/network/liblinuxsamplernetwork.la \
 	$(top_builddir)/src/engines/gig/liblinuxsamplergigengine.la \
 	$(sf2_engine_lib) \

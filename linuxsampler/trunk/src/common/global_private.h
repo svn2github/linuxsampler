@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -30,6 +30,8 @@
 #include "global.h"
 #include "Exception.h"
 #include <sstream>
+#include <algorithm>
+#include <math.h>
 
 #if HAVE_CONFIG_H
 # include <config.h>
@@ -102,6 +104,20 @@ inline float ToFloat(const std::string& s) throw(LinuxSampler::Exception) {
     std::istringstream iss(s);
     if(!(iss >> i)) throw LinuxSampler::Exception("Not a floating-point number");
     return i;
+}
+
+inline std::string ltrim(std::string s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+    return s;
+}
+
+inline std::string rtrim(std::string s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    return s;
+}
+
+inline std::string trim(std::string s) {
+    return ltrim(rtrim(s));
 }
 
 class Runnable {
