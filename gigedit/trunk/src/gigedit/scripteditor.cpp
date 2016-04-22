@@ -50,36 +50,37 @@ ScriptEditor::ScriptEditor() :
     m_tagTable = Gtk::TextBuffer::TagTable::create();
 
     m_keywordTag = Gtk::TextBuffer::Tag::create();
+    m_keywordTag->property_foreground() = "#000000"; // black
     m_keywordTag->property_weight() = PANGO_WEIGHT_BOLD;
     m_tagTable->add(m_keywordTag);
 
     m_eventTag = Gtk::TextBuffer::Tag::create();
-    m_eventTag->property_foreground() = "blue";
+    m_eventTag->property_foreground() = "#07c0cf"; // cyan 1
     m_eventTag->property_weight() = PANGO_WEIGHT_BOLD;
     m_tagTable->add(m_eventTag);
     
     m_variableTag = Gtk::TextBuffer::Tag::create();
-    m_variableTag->property_foreground() = "magenta";
+    m_variableTag->property_foreground() = "#790cc4"; // magenta
     m_tagTable->add(m_variableTag);
     
     m_functionTag = Gtk::TextBuffer::Tag::create();
-    m_functionTag->property_foreground() = "cyan";
+    m_functionTag->property_foreground() = "#1ba1dd"; // cyan 2
     m_tagTable->add(m_functionTag);
     
     m_numberTag = Gtk::TextBuffer::Tag::create();
-    m_numberTag->property_foreground() = "yellow";
+    m_numberTag->property_foreground() = "#c4950c"; // yellow
     m_tagTable->add(m_numberTag);
 
     m_stringTag = Gtk::TextBuffer::Tag::create();
-    m_stringTag->property_foreground() = "red";
+    m_stringTag->property_foreground() = "#c40c0c"; // red
     m_tagTable->add(m_stringTag);
 
     m_commentTag = Gtk::TextBuffer::Tag::create();
-    m_commentTag->property_foreground() = "gray";
+    m_commentTag->property_foreground() = "#9c9c9c"; // gray
     m_tagTable->add(m_commentTag);
 
     m_preprocTag = Gtk::TextBuffer::Tag::create();
-    m_preprocTag->property_foreground() = "green";
+    m_preprocTag->property_foreground() = "#2f8a33"; // green
     m_tagTable->add(m_preprocTag);
 
     m_textBuffer = Gtk::TextBuffer::create(m_tagTable);

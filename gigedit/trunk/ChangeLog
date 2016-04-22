@@ -11,6 +11,8 @@ Version SVN HEAD (?)
     auto detect whether it (sh/c)ould output its messages in color.
   * NKSP Editor: Added support for liblinuxsampler's NKSP syntax
     highlighting backend.
+  * Script Editor: Some color tweaks (using now same text colors as on
+    the NKSP refrence documentation website).
 
 Version 1.0.0 (2015-07-17)
 
