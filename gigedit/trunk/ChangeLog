@@ -7,6 +7,10 @@ Version SVN HEAD (?)
   * synthesis paremeter page tabs are now scrollable (fixes an issue with
     GTK 3: default theme uses huge tabs which breaks the overall layout on
     average window sizes)
+  * Automake: set environment variable GCC_COLORS=auto to allow GCC to
+    auto detect whether it (sh/c)ould output its messages in color.
+  * NKSP Editor: Added support for liblinuxsampler's NKSP syntax
+    highlighting backend.
 
 Version 1.0.0 (2015-07-17)
 

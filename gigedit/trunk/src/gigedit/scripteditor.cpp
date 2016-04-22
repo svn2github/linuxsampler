@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014 Christian Schoenebeck
+    Copyright (c) 2014-2016 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -7,6 +7,11 @@
 
 #include "scripteditor.h"
 #include "global.h"
+#if USE_LS_SCRIPTVM
+# include <linuxsampler/scriptvm/ScriptVM.h>
+#endif
+
+#if !USE_LS_SCRIPTVM
 
 static const std::string _keywords[] = {
     "on", "end", "declare", "while", "if", "or", "and", "not", "else", "case",
@@ -31,22 +36,52 @@ static bool isEvent(const Glib::ustring& s) {
     return false;
 }
 
+#endif // !USE_LS_SCRIPTVM
+
 ScriptEditor::ScriptEditor() :
     m_applyButton(_("_Apply"), true),
     m_cancelButton(_("_Cancel"), true)
 {
     m_script = NULL;
+    m_vm = NULL;
 
     add(m_vbox);
 
     m_tagTable = Gtk::TextBuffer::TagTable::create();
+
     m_keywordTag = Gtk::TextBuffer::Tag::create();
     m_keywordTag->property_weight() = PANGO_WEIGHT_BOLD;
     m_tagTable->add(m_keywordTag);
+
     m_eventTag = Gtk::TextBuffer::Tag::create();
     m_eventTag->property_foreground() = "blue";
     m_eventTag->property_weight() = PANGO_WEIGHT_BOLD;
     m_tagTable->add(m_eventTag);
+    
+    m_variableTag = Gtk::TextBuffer::Tag::create();
+    m_variableTag->property_foreground() = "magenta";
+    m_tagTable->add(m_variableTag);
+    
+    m_functionTag = Gtk::TextBuffer::Tag::create();
+    m_functionTag->property_foreground() = "cyan";
+    m_tagTable->add(m_functionTag);
+    
+    m_numberTag = Gtk::TextBuffer::Tag::create();
+    m_numberTag->property_foreground() = "yellow";
+    m_tagTable->add(m_numberTag);
+
+    m_stringTag = Gtk::TextBuffer::Tag::create();
+    m_stringTag->property_foreground() = "red";
+    m_tagTable->add(m_stringTag);
+
+    m_commentTag = Gtk::TextBuffer::Tag::create();
+    m_commentTag->property_foreground() = "gray";
+    m_tagTable->add(m_commentTag);
+
+    m_preprocTag = Gtk::TextBuffer::Tag::create();
+    m_preprocTag->property_foreground() = "green";
+    m_tagTable->add(m_preprocTag);
+
     m_textBuffer = Gtk::TextBuffer::create(m_tagTable);
     m_textView.set_buffer(m_textBuffer);
     {
@@ -106,6 +141,7 @@ ScriptEditor::ScriptEditor() :
 
 ScriptEditor::~ScriptEditor() {
     printf("ScriptEditor destruct\n");
+    if (m_vm) delete m_vm;
 }
 
 void ScriptEditor::setScript(gig::Script* script) {
@@ -124,6 +160,9 @@ void ScriptEditor::setScript(gig::Script* script) {
 }
 
 void ScriptEditor::onTextInserted(const Gtk::TextBuffer::iterator& itEnd, const Glib::ustring& txt, int length) {
+#if USE_LS_SCRIPTVM
+    updateSyntaxHighlightingByVM();
+#else
     //printf("inserted %d\n", length);
     Gtk::TextBuffer::iterator itStart = itEnd;
     itStart.backward_chars(length);
@@ -164,10 +203,61 @@ void ScriptEditor::onTextInserted(const Gtk::TextBuffer::iterator& itEnd, const 
     
     EOF_REACHED:
     ;
+    
+#endif // USE_LS_SCRIPTVM
 }
+
+#if USE_LS_SCRIPTVM
+
+static void applyCodeTag(Glib::RefPtr<Gtk::TextBuffer>& txtbuf, const LinuxSampler::VMSourceToken& token, Glib::RefPtr<Gtk::TextBuffer::Tag>& tag) {
+    Gtk::TextBuffer::iterator itStart =
+        txtbuf->get_iter_at_line_index(token.firstLine(), token.firstColumn());
+    Gtk::TextBuffer::iterator itEnd = itStart;
+    const int length = token.text().length();
+    itEnd.forward_chars(length);
+    txtbuf->apply_tag(tag, itStart, itEnd);
+}
+
+void ScriptEditor::updateSyntaxHighlightingByVM() {
+    if (!m_vm) m_vm = new LinuxSampler::ScriptVM();
+    const std::string s = m_textBuffer->get_text();
+    std::vector<LinuxSampler::VMSourceToken> tokens = m_vm->syntaxHighlighting(s);
+
+    m_textBuffer->remove_all_tags(m_textBuffer->begin(), m_textBuffer->end());
+
+    for (int i = 0; i < tokens.size(); ++i) {
+        const LinuxSampler::VMSourceToken& token = tokens[i];
+
+        if (token.isKeyword()) {
+            applyCodeTag(m_textBuffer, token, m_keywordTag);
+        } else if (token.isVariableName()) {
+            applyCodeTag(m_textBuffer, token, m_variableTag);
+        } else if (token.isIdentifier()) {
+            if (token.isEventHandlerName()) {
+                applyCodeTag(m_textBuffer, token, m_eventTag);
+            } else { // a function ...
+                applyCodeTag(m_textBuffer, token, m_functionTag);
+            }
+        } else if (token.isNumberLiteral()) {
+            applyCodeTag(m_textBuffer, token, m_numberTag);
+        } else if (token.isStringLiteral()) {
+            applyCodeTag(m_textBuffer, token, m_stringTag);
+        } else if (token.isComment()) {
+            applyCodeTag(m_textBuffer, token, m_commentTag);
+        } else if (token.isPreprocessor()) {
+            applyCodeTag(m_textBuffer, token, m_preprocTag);
+        } else if (token.isNewLine()) {
+        }
+    }
+}
+
+#endif // USE_LS_SCRIPTVM
 
 void ScriptEditor::onTextErased(const Gtk::TextBuffer::iterator& itStart, const Gtk::TextBuffer::iterator& itEnd) {
     //printf("erased\n");
+#if USE_LS_SCRIPTVM
+    updateSyntaxHighlightingByVM();
+#else
     Gtk::TextBuffer::iterator itStart2 = itStart;
     if (itStart2.inside_word() || itStart2.ends_word())
         itStart2.backward_word_start();
@@ -176,6 +266,7 @@ void ScriptEditor::onTextErased(const Gtk::TextBuffer::iterator& itStart, const 
     if (itEnd2.inside_word()) itEnd2.forward_word_end();
 
     m_textBuffer->remove_all_tags(itStart2, itEnd2);
+#endif // USE_LS_SCRIPTVM
 }
 
 void ScriptEditor::onModifiedChanged() {
