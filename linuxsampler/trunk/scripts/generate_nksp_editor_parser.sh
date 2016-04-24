@@ -28,6 +28,6 @@ echo -n "Generating NKSP editor syntax highlighting scanner ... "
     cd $PARSER_SRC_DIR
 
     $LEX_CMD nksp.l
-    mv -f lex.Nksp_.c nksp.cpp
+    mv -f lex.Nksp_.c nksp.cpp 2>/dev/null
 )
 echo "Done"

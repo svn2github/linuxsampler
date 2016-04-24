@@ -586,8 +586,8 @@ public:
     IntVariableRef globalIntVar(const String& name);
     StringVariableRef globalStrVar(const String& name);
     VariableRef variableByName(const String& name);
-    void addErr(int line, const char* txt);
-    void addWrn(int line, const char* txt);
+    void addErr(int line, int column, const char* txt);
+    void addWrn(int line, int column, const char* txt);
     void createScanner(std::istream* is);
     void destroyScanner();
     bool setPreprocessorCondition(const char* name);

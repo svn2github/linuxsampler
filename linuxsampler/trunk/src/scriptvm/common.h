@@ -668,6 +668,7 @@ namespace LinuxSampler {
     struct ParserIssue {
         String txt; ///< Human readable explanation text of the parser issue.
         int line; ///< Line number within the script where this issue was encountered.
+        int column; ///< Column within the script where this issue was encountered.
         ParserIssueType_t type; ///< Whether this issue is either a parser error or just a parser warning.
 
         /**
@@ -676,10 +677,10 @@ namespace LinuxSampler {
         inline void dump() {
             switch (type) {
                 case PARSER_ERROR:
-                    printf("[ERROR] line %d: %s\n", line, txt.c_str());
+                    printf("[ERROR] line %d, column %d: %s\n", line, column, txt.c_str());
                     break;
                 case PARSER_WARNING:
-                    printf("[Warning] line %d: %s\n", line, txt.c_str());
+                    printf("[Warning] line %d, column %d: %s\n", line, column, txt.c_str());
                     break;
             }
         }

@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck and Andreas Persson
+ * Copyright (c) 2014-2016 Christian Schoenebeck and Andreas Persson
  *
  * http://www.linuxsampler.org
  *
  * This file is part of LinuxSampler and released under the same terms.
  * See README file for details.
  */
+ 
+/* Parser for NKSP real-time instrument script language. */
 
 %{
     #define YYERROR_VERBOSE 1
@@ -18,8 +20,8 @@
     void InstrScript_warning(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* txt);
     int InstrScript_lex(YYSTYPE* lvalp, YYLTYPE* llocp, void* scanner);
     #define scanner context->scanner
-    #define PARSE_ERR(txt)  yyerror(&yylloc, context, txt)
-    #define PARSE_WRN(txt)  InstrScript_warning(&yylloc, context, txt)
+    #define PARSE_ERR(loc,txt)  yyerror(&loc, context, txt)
+    #define PARSE_WRN(loc,txt)  InstrScript_warning(&loc, context, txt)
 %}
 
 // generate reentrant safe parser
@@ -72,25 +74,25 @@ eventhandlers:
 eventhandler:
     ON NOTE statements END ON  {
         if (context->onNote)
-            PARSE_ERR("Redeclaration of 'note' event handler.");
+            PARSE_ERR(@2, "Redeclaration of 'note' event handler.");
         context->onNote = new OnNote($3);
         $$ = context->onNote;
     }
     | ON INIT statements END ON  {
         if (context->onInit)
-            PARSE_ERR("Redeclaration of 'init' event handler.");
+            PARSE_ERR(@2, "Redeclaration of 'init' event handler.");
         context->onInit = new OnInit($3);
         $$ = context->onInit;
     }
     | ON RELEASE statements END ON  {
         if (context->onRelease)
-            PARSE_ERR("Redeclaration of 'release' event handler.");
+            PARSE_ERR(@2, "Redeclaration of 'release' event handler.");
         context->onRelease = new OnRelease($3);
         $$ = context->onRelease;
     }
     | ON CONTROLLER statements END ON  {
         if (context->onController)
-            PARSE_ERR("Redeclaration of 'controller' event handler.");
+            PARSE_ERR(@2, "Redeclaration of 'controller' event handler.");
         context->onController = new OnController($3);
         $$ = context->onController;
     }
@@ -101,14 +103,14 @@ statements:
         if ($1) {
             if (!isNoOperation($1)) $$->add($1); // filter out NoOperation statements
         } else 
-            PARSE_WRN("Not a statement.");
+            PARSE_WRN(@1, "Not a statement.");
     }
     | statements statement  {
         $$ = $1;
         if ($2) {
             if (!isNoOperation($2)) $$->add($2); // filter out NoOperation statements
         } else
-            PARSE_WRN("Not a statement.");
+            PARSE_WRN(@2, "Not a statement.");
     }
 
 statement:
@@ -119,7 +121,7 @@ statement:
         const char* name = $2;
         //printf("declared var '%s'\n", name);
         if (context->variableByName(name))
-            PARSE_ERR((String("Redeclaration of variable '") + name + "'.").c_str());
+            PARSE_ERR(@2, (String("Redeclaration of variable '") + name + "'.").c_str());
         if (name[0] == '@') {
             context->vartable[name] = new StringVariable(context);
             $$ = new NoOperation;
@@ -132,9 +134,9 @@ statement:
         const char* name = $3;
         //printf("declared polyphonic var '%s'\n", name);
         if (context->variableByName(name))
-            PARSE_ERR((String("Redeclaration of variable '") + name + "'.").c_str());
+            PARSE_ERR(@3, (String("Redeclaration of variable '") + name + "'.").c_str());
         if (name[0] != '$') {
-            PARSE_ERR("Polyphonic variables may only be declared as integers.");
+            PARSE_ERR(@3, "Polyphonic variables may only be declared as integers.");
             $$ = new FunctionCall("nothing", new Args, NULL); // whatever
         } else {
             context->vartable[name] = new PolyphonicIntVariable(context);
@@ -145,10 +147,10 @@ statement:
         const char* name = $2;
         //printf("declared assign var '%s'\n", name);
         if (context->variableByName(name))
-            PARSE_ERR((String("Redeclaration of variable '") + name + "'.").c_str());
+            PARSE_ERR(@2, (String("Redeclaration of variable '") + name + "'.").c_str());
         if ($4->exprType() == STRING_EXPR) {
             if (name[0] == '$')
-                PARSE_WRN((String("Variable '") + name + "' declared as integer, string expression assigned though.").c_str());
+                PARSE_WRN(@2, (String("Variable '") + name + "' declared as integer, string expression assigned though.").c_str());
             StringExprRef expr = $4;
             if (expr->isConstExpr()) {
                 const String s = expr->evalStr();
@@ -162,7 +164,7 @@ statement:
             }
         } else {
             if (name[0] == '@')
-                PARSE_WRN((String("Variable '") + name + "' declared as string, integer expression assigned though.").c_str());
+                PARSE_WRN(@2, (String("Variable '") + name + "' declared as string, integer expression assigned though.").c_str());
             IntExprRef expr = $4;
             if (expr->isConstExpr()) {
                 const int i = expr->evalInt();
@@ -180,19 +182,19 @@ statement:
         //printf("declare array without args\n");
         const char* name = $2;
         if (!$4->isConstExpr()) {
-            PARSE_ERR((String("Array variable '") + name + "' must be declared with constant array size.").c_str());
+            PARSE_ERR(@4, (String("Array variable '") + name + "' must be declared with constant array size.").c_str());
             $$ = new FunctionCall("nothing", new Args, NULL); // whatever
         } else if ($4->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Size of array variable '") + name + "' declared with non integer expression.").c_str());
+            PARSE_ERR(@4, (String("Size of array variable '") + name + "' declared with non integer expression.").c_str());
             $$ = new FunctionCall("nothing", new Args, NULL); // whatever
         } else if (context->variableByName(name)) {
-            PARSE_ERR((String("Redeclaration of variable '") + name + "'.").c_str());
+            PARSE_ERR(@2, (String("Redeclaration of variable '") + name + "'.").c_str());
             $$ = new FunctionCall("nothing", new Args, NULL); // whatever
         } else {
             IntExprRef expr = $4;
             int size = expr->evalInt();
             if (size <= 0) {
-                PARSE_ERR((String("Array variable '") + name + "' declared with array size " + ToString(size) + ".").c_str());
+                PARSE_ERR(@4, (String("Array variable '") + name + "' declared with array size " + ToString(size) + ".").c_str());
                 $$ = new FunctionCall("nothing", new Args, NULL); // whatever
             } else {
                 context->vartable[name] = new IntArrayVariable(context, size);
@@ -203,23 +205,23 @@ statement:
     | DECLARE VARIABLE '[' expr ']' ASSIGNMENT '(' args ')'  {
         const char* name = $2;
         if (!$4->isConstExpr()) {
-            PARSE_ERR((String("Array variable '") + name + "' must be declared with constant array size.").c_str());
+            PARSE_ERR(@4, (String("Array variable '") + name + "' must be declared with constant array size.").c_str());
             $$ = new FunctionCall("nothing", new Args, NULL); // whatever
         } else if ($4->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Size of array variable '") + name + "' declared with non integer expression.").c_str());
+            PARSE_ERR(@4, (String("Size of array variable '") + name + "' declared with non integer expression.").c_str());
             $$ = new FunctionCall("nothing", new Args, NULL); // whatever
         } else if (context->variableByName(name)) {
-            PARSE_ERR((String("Redeclaration of variable '") + name + "'.").c_str());
+            PARSE_ERR(@2, (String("Redeclaration of variable '") + name + "'.").c_str());
             $$ = new FunctionCall("nothing", new Args, NULL); // whatever
         } else {
             IntExprRef sizeExpr = $4;
             ArgsRef args = $8;
             int size = sizeExpr->evalInt();
             if (size <= 0) {
-                PARSE_ERR((String("Array variable '") + name + "' must be declared with positive array size.").c_str());
+                PARSE_ERR(@4, (String("Array variable '") + name + "' must be declared with positive array size.").c_str());
                 $$ = new FunctionCall("nothing", new Args, NULL); // whatever
             } else if (args->argsCount() > size) {
-                PARSE_ERR((String("Variable '") + name +
+                PARSE_ERR(@8, (String("Variable '") + name +
                           "' was declared with size " + ToString(size) +
                           " but " + ToString(args->argsCount()) +
                           " values were assigned." ).c_str());
@@ -229,6 +231,7 @@ statement:
                 for (int i = 0; i < args->argsCount(); ++i) {
                     if (args->arg(i)->exprType() != INT_EXPR) {
                         PARSE_ERR(
+                            @8, 
                             (String("Array variable '") + name +
                             "' declared with invalid assignment values. Assigned element " +
                             ToString(i+1) + " is not an integer expression.").c_str()
@@ -248,26 +251,26 @@ statement:
         const char* name = $3;
         if ($5->exprType() == STRING_EXPR) {
             if (name[0] == '$')
-                PARSE_WRN("Variable declared as integer, string expression assigned though.");
+                PARSE_WRN(@5, "Variable declared as integer, string expression assigned though.");
             String s;
             StringExprRef expr = $5;
             if (expr->isConstExpr())
                 s = expr->evalStr();
             else
-                PARSE_ERR((String("Assignment to const string variable '") + name + "' requires const expression.").c_str());
+                PARSE_ERR(@5, (String("Assignment to const string variable '") + name + "' requires const expression.").c_str());
             ConstStringVariableRef var = new ConstStringVariable(context, s);
             context->vartable[name] = var;
             //$$ = new Assignment(var, new StringLiteral(s));
             $$ = new NoOperation();
         } else {
             if (name[0] == '@')
-                PARSE_WRN("Variable declared as string, integer expression assigned though.");
+                PARSE_WRN(@5, "Variable declared as string, integer expression assigned though.");
             int i = 0;
             IntExprRef expr = $5;
             if (expr->isConstExpr())
                 i = expr->evalInt();
             else
-                PARSE_ERR((String("Assignment to const integer variable '") + name + "' requires const expression.").c_str());
+                PARSE_ERR(@5, (String("Assignment to const integer variable '") + name + "' requires const expression.").c_str());
             ConstIntVariableRef var = new ConstIntVariable(i);
             context->vartable[name] = var;
             //$$ = new Assignment(var, new IntLiteral(i));
@@ -281,7 +284,7 @@ statement:
         if ($3->exprType() == INT_EXPR) {
             $$ = new While($3, $5);
         } else {
-            PARSE_ERR("Condition for 'while' loops must be integer expression.");
+            PARSE_ERR(@3, "Condition for 'while' loops must be integer expression.");
             $$ = new While(new IntLiteral(0), $5);
         }
     }
@@ -295,7 +298,7 @@ statement:
         if ($2->exprType() == INT_EXPR) {
             $$ = new SelectCase($2, $3);
         } else {
-            PARSE_ERR("Statement 'select' can only by applied to integer expressions.");
+            PARSE_ERR(@2, "Statement 'select' can only by applied to integer expressions.");
             $$ = new SelectCase(new IntLiteral(0), $3);
         }
     }
@@ -330,19 +333,19 @@ functioncall:
         ArgsRef args = $3;
         VMFunction* fn = context->functionProvider->functionByName(name);
         if (!fn) {
-            PARSE_ERR((String("No built-in function with name '") + name + "'.").c_str());
+            PARSE_ERR(@1, (String("No built-in function with name '") + name + "'.").c_str());
             $$ = new FunctionCall(name, args, NULL);
         } else if (args->argsCount() < fn->minRequiredArgs()) {
-            PARSE_ERR((String("Built-in function '") + name + "' requires at least " + ToString(fn->minRequiredArgs()) + " arguments.").c_str());
+            PARSE_ERR(@3, (String("Built-in function '") + name + "' requires at least " + ToString(fn->minRequiredArgs()) + " arguments.").c_str());
             $$ = new FunctionCall(name, args, NULL);
         } else if (args->argsCount() > fn->maxAllowedArgs()) {
-            PARSE_ERR((String("Built-in function '") + name + "' accepts max. " + ToString(fn->maxAllowedArgs()) + " arguments.").c_str());
+            PARSE_ERR(@3, (String("Built-in function '") + name + "' accepts max. " + ToString(fn->maxAllowedArgs()) + " arguments.").c_str());
             $$ = new FunctionCall(name, args, NULL);
         } else {
             bool argsOK = true;
             for (int i = 0; i < args->argsCount(); ++i) {
                 if (args->arg(i)->exprType() != fn->argType(i) && !fn->acceptsArgType(i, args->arg(i)->exprType())) {
-                    PARSE_ERR((String("Argument ") + ToString(i+1) + " of built-in function '" + name + "' expects " + typeStr(fn->argType(i)) + " type, but type " + typeStr(args->arg(i)->exprType()) + " was given instead.").c_str());
+                    PARSE_ERR(@3, (String("Argument ") + ToString(i+1) + " of built-in function '" + name + "' expects " + typeStr(fn->argType(i)) + " type, but type " + typeStr(args->arg(i)->exprType()) + " was given instead.").c_str());
                     argsOK = false;
                     break;
                 }
@@ -356,10 +359,10 @@ functioncall:
         ArgsRef args = new Args;
         VMFunction* fn = context->functionProvider->functionByName(name);
         if (!fn) {
-            PARSE_ERR((String("No built-in function with name '") + name + "'.").c_str());
+            PARSE_ERR(@1, (String("No built-in function with name '") + name + "'.").c_str());
             $$ = new FunctionCall(name, args, NULL);
         } else if (fn->minRequiredArgs() > 0) {
-            PARSE_ERR((String("Built-in function '") + name + "' requires at least " + ToString(fn->minRequiredArgs()) + " arguments.").c_str());
+            PARSE_ERR(@3, (String("Built-in function '") + name + "' requires at least " + ToString(fn->minRequiredArgs()) + " arguments.").c_str());
             $$ = new FunctionCall(name, args, NULL);
         } else {
             $$ = new FunctionCall(name, args, fn);
@@ -371,10 +374,10 @@ functioncall:
         ArgsRef args = new Args;
         VMFunction* fn = context->functionProvider->functionByName(name);
         if (!fn) {
-            PARSE_ERR((String("No built-in function with name '") + name + "'.").c_str());
+            PARSE_ERR(@1, (String("No built-in function with name '") + name + "'.").c_str());
             $$ = new FunctionCall(name, args, NULL);
         } else if (fn->minRequiredArgs() > 0) {
-            PARSE_ERR((String("Built-in function '") + name + "' requires at least " + ToString(fn->minRequiredArgs()) + " arguments.").c_str());
+            PARSE_ERR(@1, (String("Built-in function '") + name + "' requires at least " + ToString(fn->minRequiredArgs()) + " arguments.").c_str());
             $$ = new FunctionCall(name, args, NULL);
         } else {
             $$ = new FunctionCall(name, args, fn);
@@ -400,24 +403,24 @@ assignment:
         const char* name = $1;
         VariableRef var = context->variableByName(name);
         if (!var)
-            PARSE_ERR((String("Variable assignment: No variable declared with name '") + name + "'.").c_str());
+            PARSE_ERR(@1, (String("Variable assignment: No variable declared with name '") + name + "'.").c_str());
         else if (var->isConstExpr())
-            PARSE_ERR((String("Variable assignment: Cannot modify const variable '") + name + "'.").c_str());
+            PARSE_ERR(@2, (String("Variable assignment: Cannot modify const variable '") + name + "'.").c_str());
         else if (var->exprType() != $3->exprType())
-            PARSE_ERR((String("Variable assignment: Variable '") + name + "' is of type " + typeStr(var->exprType()) + ", assignment is of type " + typeStr($3->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Variable assignment: Variable '") + name + "' is of type " + typeStr(var->exprType()) + ", assignment is of type " + typeStr($3->exprType()) + " though.").c_str());
         $$ = new Assignment(var, $3);
     }
     | VARIABLE '[' expr ']' ASSIGNMENT expr  {
         const char* name = $1;
         VariableRef var = context->variableByName(name);
         if (!var)
-            PARSE_ERR((String("No variable declared with name '") + name + "'.").c_str());
+            PARSE_ERR(@1, (String("No variable declared with name '") + name + "'.").c_str());
         else if (var->exprType() != INT_ARR_EXPR)
-            PARSE_ERR((String("Variable '") + name + "' is not an array variable.").c_str());
+            PARSE_ERR(@2, (String("Variable '") + name + "' is not an array variable.").c_str());
         else if ($3->exprType() != INT_EXPR)
-            PARSE_ERR((String("Array variable '") + name + "' accessed with non integer expression.").c_str());
+            PARSE_ERR(@3, (String("Array variable '") + name + "' accessed with non integer expression.").c_str());
         else if ($6->exprType() != INT_EXPR)
-            PARSE_ERR((String("Value assigned to array variable '") + name + "' must be an integer expression.").c_str());
+            PARSE_ERR(@5, (String("Value assigned to array variable '") + name + "' must be an integer expression.").c_str());
         IntArrayElementRef element = new IntArrayElement(var, $3);
         $$ = new Assignment(element, $6);
     }
@@ -435,7 +438,7 @@ unary_expr:
         if (var)
             $$ = var;
         else {
-            PARSE_ERR((String("No variable declared with name '") + $1 + "'.").c_str());
+            PARSE_ERR(@1, (String("No variable declared with name '") + $1 + "'.").c_str());
             $$ = new IntLiteral(0);
         }
     }
@@ -443,13 +446,13 @@ unary_expr:
         const char* name = $1;
         VariableRef var = context->variableByName(name);
         if (!var) {
-            PARSE_ERR((String("No variable declared with name '") + name + "'.").c_str());
+            PARSE_ERR(@1, (String("No variable declared with name '") + name + "'.").c_str());
             $$ = new IntLiteral(0);
         } else if (var->exprType() != INT_ARR_EXPR) {
-            PARSE_ERR((String("Variable '") + name + "' is not an array variable.").c_str());
+            PARSE_ERR(@2, (String("Variable '") + name + "' is not an array variable.").c_str());
             $$ = new IntLiteral(0);
         } else if ($3->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Array variable '") + name + "' accessed with non integer expression.").c_str());
+            PARSE_ERR(@3, (String("Array variable '") + name + "' accessed with non integer expression.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new IntArrayElement(var, $3);
@@ -466,7 +469,7 @@ unary_expr:
     }
     | NOT unary_expr  {
         if ($2->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of operator 'not' must be an integer expression, is ") + typeStr($2->exprType()) + " though.").c_str());
+            PARSE_ERR(@2, (String("Right operand of operator 'not' must be an integer expression, is ") + typeStr($2->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new Not($2);
@@ -496,10 +499,10 @@ or_expr:
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Left operand of operator 'or' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@1, (String("Left operand of operator 'or' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else if (rhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of operator 'or' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Right operand of operator 'or' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new Or(lhs, rhs);
@@ -514,10 +517,10 @@ and_expr:
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Left operand of operator 'and' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@1, (String("Left operand of operator 'and' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else if (rhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of operator 'and' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Right operand of operator 'and' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new And(lhs, rhs);
@@ -530,10 +533,10 @@ rel_expr:
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Left operand of operator '<' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@1, (String("Left operand of operator '<' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else if (rhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of operator '<' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Right operand of operator '<' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new Relation(lhs, Relation::LESS_THAN, rhs);
@@ -543,10 +546,10 @@ rel_expr:
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Left operand of operator '>' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@1, (String("Left operand of operator '>' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else if (rhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of operator '>' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Right operand of operator '>' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new Relation(lhs, Relation::GREATER_THAN, rhs);
@@ -556,10 +559,10 @@ rel_expr:
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Left operand of operator '<=' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@1, (String("Left operand of operator '<=' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else if (rhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of operator '<=' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Right operand of operator '<=' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new Relation(lhs, Relation::LESS_OR_EQUAL, rhs);
@@ -569,10 +572,10 @@ rel_expr:
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Left operand of operator '>=' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@1, (String("Left operand of operator '>=' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else if (rhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of operator '>=' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Right operand of operator '>=' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new Relation(lhs, Relation::GREATER_OR_EQUAL, rhs);
@@ -591,10 +594,10 @@ add_expr:
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Left operand of operator '+' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@1, (String("Left operand of operator '+' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else if (rhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of operator '+' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Right operand of operator '+' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new Add(lhs,rhs);
@@ -604,10 +607,10 @@ add_expr:
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Left operand of operator '-' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@1, (String("Left operand of operator '-' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else if (rhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of operator '-' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Right operand of operator '-' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new Sub(lhs,rhs);
@@ -620,10 +623,10 @@ mul_expr:
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Left operand of operator '*' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@1, (String("Left operand of operator '*' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else if (rhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of operator '*' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Right operand of operator '*' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new Mul(lhs,rhs);
@@ -633,10 +636,10 @@ mul_expr:
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Left operand of operator '/' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@1, (String("Left operand of operator '/' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else if (rhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of operator '/' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Right operand of operator '/' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new Div(lhs,rhs);
@@ -646,10 +649,10 @@ mul_expr:
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Left operand of modulo operator must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@1, (String("Left operand of modulo operator must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else if (rhs->exprType() != INT_EXPR) {
-            PARSE_ERR((String("Right operand of modulo operator must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            PARSE_ERR(@3, (String("Right operand of modulo operator must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
             $$ = new IntLiteral(0);
         } else {
             $$ = new Mod(lhs,rhs);
@@ -660,10 +663,10 @@ mul_expr:
 
 void InstrScript_error(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* err) {
     //fprintf(stderr, "%d: %s\n", locp->first_line, err);
-    context->addErr(locp->first_line, err);
+    context->addErr(locp->first_line, locp->first_column+1, err);
 }
 
 void InstrScript_warning(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* txt) {
     //fprintf(stderr, "WRN %d: %s\n", locp->first_line, txt);
-    context->addWrn(locp->first_line, txt);
+    context->addWrn(locp->first_line, locp->first_column+1, txt);
 }

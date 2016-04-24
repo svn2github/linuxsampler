@@ -38,11 +38,11 @@ echo -n "Generating instrument script parser ... "
 
     $LEX_CMD scanner.l
     #mv -f lex.yy.c scanner.cpp
-    mv -f lex.InstrScript_.c scanner.cpp
+    mv -f lex.InstrScript_.c scanner.cpp 2>/dev/null
 
     $YACC_CMD -d parser.y
     $YACC_CMD parser.y
-    mv -f y.tab.h parser.h
-    mv -f y.tab.c parser.cpp
+    mv -f y.tab.h parser.h 2>/dev/null
+    mv -f y.tab.c parser.cpp 2>/dev/null
 )
 echo "Done"

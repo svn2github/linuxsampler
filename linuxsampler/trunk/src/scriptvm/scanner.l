@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck and Andreas Persson
+ * Copyright (c) 2014-2016 Christian Schoenebeck and Andreas Persson
  *
  * http://www.linuxsampler.org
  *
@@ -7,13 +7,7 @@
  * See README file for details.
  */
 
-/* Token scanner for instrument script language. */
-
-/* FIXME: line numbers (i.e. on error/warning messages) are incorrect, because
-   the current grammar does not process new line characters. \n is currently
-   filtered out in this lexer. Due to this, the parser will sometimes read
-   several lines before it matches the next complete grammar rule, causing the
-   incorrect lines in the error/warning messages. */
+/* Token scanner for NKSP real-time instrument script language. */
 
 %{
 
@@ -26,8 +20,9 @@
 {                                       \
     yylloc->first_line = yylineno;      \
     yylloc->last_line  = yylineno;      \
-    /* first_column = TODO */           \
-    /* last_column  = TODO */           \
+    yylloc->first_column = yycolumn;    \
+    yycolumn += yyleng;                 \
+    yylloc->last_column = yycolumn - 1; \
     /*printf("lex: line '%s'\n", yytext);*/  \
 }
 // custom (f)lex input for reading from std::istream object
@@ -43,11 +38,11 @@
 }
 
 static void scanner_error(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* err) {
-    context->addErr(locp->first_line, err);
+    context->addErr(locp->first_line, locp->first_column, err);
 }
 
 static void scanner_warning(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* txt) {
-    context->addWrn(locp->first_line, txt);
+    context->addWrn(locp->first_line, locp->first_column, txt);
 }
 
 #define SCANNER_ERR(txt)  scanner_error(yylloc, yyextra, txt)
@@ -55,10 +50,33 @@ static void scanner_warning(YYLTYPE* locp, LinuxSampler::ParserContext* context,
 
 using namespace LinuxSampler;
 
+static int countNewLineChars(const char* txt) {
+    int n = 0;
+    for (int i = 0; txt[i]; ++i)
+        if (txt[i] == '\n') ++n;
+    return n;
+}
+
+static int countCharsPastLastNewLine(const char* txt) {
+    const int n = strlen(txt);
+    for (int i = n - 1; i >= 0; --i)
+        if (txt[i] == '\n')
+            return n - i - 1;
+    return n;
+}
+
+#define processLocation() { \
+    const int nl = countNewLineChars(yytext); \
+    yylineno += nl; \
+    if (nl) yycolumn = countCharsPastLastNewLine(yytext); \
+}
+
 %}
 
-/* use Flex's built-in support for line numbers */
-%option yylineno
+/* use Flex's built-in support for line numbers
+   (disabled, because it seems to be unreliable, so we are using our own
+   tracking code in the respective scanner rules below) */
+/*%option yylineno*/
 /* generate a reentrant safe scanner */
 %option reentrant
 /* avoid symbol collision with other (i.e. future) scanner symbols */
@@ -188,8 +206,12 @@ ID       [a-zA-Z0-9_]*
     //printf("-->END_USE_CODE\n");
     yy_pop_state(yyscanner);
 }
-<PREPROC_BODY_EAT>[ \t\r\n]* /* eat up code block filtered out by preprocessor */
-<PREPROC_BODY_EAT>.* /* eat up code block filtered out by preprocessor */
+<PREPROC_BODY_EAT>[ \t\r\n]* { /* eat up code block filtered out by preprocessor */
+    processLocation();
+}
+<PREPROC_BODY_EAT>.* { /* eat up code block filtered out by preprocessor */
+    processLocation();
+}
 
 
  /* Language keywords */
@@ -240,11 +262,15 @@ on|end|note|init|declare|if|then|begin|end|procedure|function {
 ":=" return ASSIGNMENT;
 
 \n+ {
+     yylineno += countNewLineChars(yytext);
+     yycolumn = 0;
     //printf("lex: new line %d\n", yylineno, yytext);
     //return LF;
 }
 
-"{"[^}]*"}" /* eat up comments */
+"{"[^}]*"}" { /* eat up comments */
+    processLocation();
+}
 
 [ \t\r]+ /* eat up whitespace */
 

@@ -24,8 +24,8 @@ echo "Generating LSCP parser..."
     cd $NETWORK_SRC_DIR
     $YACC_CMD -d lscp.y
     $YACC_CMD lscp.y
-    mv -f y.tab.h lscpsymbols.h
-    mv -f y.tab.c lscpparser.cpp
+    mv -f y.tab.h lscpsymbols.h 2>/dev/null
+    mv -f y.tab.c lscpparser.cpp 2>/dev/null
 )
 echo "Done"
 
