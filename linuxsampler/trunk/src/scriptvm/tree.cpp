@@ -828,22 +828,26 @@ ParserContext::~ParserContext() {
     }
 }
 
-void ParserContext::addErr(int line, int column, const char* txt) {
+void ParserContext::addErr(int firstLine, int lastLine, int firstColumn, int lastColumn, const char* txt) {
     ParserIssue e;
     e.type = PARSER_ERROR;
     e.txt = txt;
-    e.line = line;
-    e.column = column;
+    e.firstLine = firstLine;
+    e.lastLine = lastLine;
+    e.firstColumn = firstColumn;
+    e.lastColumn = lastColumn;
     vErrors.push_back(e);
     vIssues.push_back(e);
 }
 
-void ParserContext::addWrn(int line, int column, const char* txt) {
+void ParserContext::addWrn(int firstLine, int lastLine, int firstColumn, int lastColumn, const char* txt) {
     ParserIssue w;
     w.type = PARSER_WARNING;
     w.txt = txt;
-    w.line = line;
-    w.column = column;
+    w.firstLine = firstLine;
+    w.lastLine = lastLine;
+    w.firstColumn = firstColumn;
+    w.lastColumn = lastColumn;
     vWarnings.push_back(w);
     vIssues.push_back(w);
 }

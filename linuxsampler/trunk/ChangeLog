@@ -47,6 +47,10 @@ Version SVN trunk (?)
     - Added new API method ScriptVM::syntaxHighlighting() which provides
       a convenient syntax highlighting backend for external instrument
       script editor applications.
+    - Added new C++ API class "ScriptVMFactory".
+    - Extended parser issues to provide not only first line and first
+      column, but also last line and last column of issue (thus marking
+      the precise span of the issue within the source code).
 
 Version 2.0.0 (15 July 2015)
 

@@ -38,11 +38,11 @@
 }
 
 static void scanner_error(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* err) {
-    context->addErr(locp->first_line, locp->first_column, err);
+    context->addErr(locp->first_line, locp->last_line, locp->first_column, locp->last_column, err);
 }
 
 static void scanner_warning(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* txt) {
-    context->addWrn(locp->first_line, locp->first_column, txt);
+    context->addWrn(locp->first_line, locp->last_line, locp->first_column, locp->last_column, txt);
 }
 
 #define SCANNER_ERR(txt)  scanner_error(yylloc, yyextra, txt)

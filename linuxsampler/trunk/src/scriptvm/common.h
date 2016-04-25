@@ -667,8 +667,10 @@ namespace LinuxSampler {
      */
     struct ParserIssue {
         String txt; ///< Human readable explanation text of the parser issue.
-        int line; ///< Line number within the script where this issue was encountered.
-        int column; ///< Column within the script where this issue was encountered.
+        int firstLine; ///< The first line number within the script where this issue was encountered (indexed with 1 being the very first line).
+        int lastLine; ///< The last line number within the script where this issue was encountered.
+        int firstColumn; ///< The first column within the script where this issue was encountered (indexed with 1 being the very first column).
+        int lastColumn; ///< The last column within the script where this issue was encountered.
         ParserIssueType_t type; ///< Whether this issue is either a parser error or just a parser warning.
 
         /**
@@ -677,10 +679,10 @@ namespace LinuxSampler {
         inline void dump() {
             switch (type) {
                 case PARSER_ERROR:
-                    printf("[ERROR] line %d, column %d: %s\n", line, column, txt.c_str());
+                    printf("[ERROR] line %d, column %d: %s\n", firstLine, firstColumn, txt.c_str());
                     break;
                 case PARSER_WARNING:
-                    printf("[Warning] line %d, column %d: %s\n", line, column, txt.c_str());
+                    printf("[Warning] line %d, column %d: %s\n", firstLine, firstColumn, txt.c_str());
                     break;
             }
         }
@@ -792,8 +794,8 @@ namespace LinuxSampler {
         String text() const;
 
         // position of token in script
-        int firstLine() const;
-        int firstColumn() const;
+        int firstLine() const; ///< First line this source token is located at in script source code (indexed with 0 being the very first line).
+        int firstColumn() const; ///< Last line this source token is located at in script source code.
 
         // base types
         bool isEOF() const;

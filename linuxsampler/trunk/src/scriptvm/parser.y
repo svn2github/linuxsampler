@@ -663,10 +663,10 @@ mul_expr:
 
 void InstrScript_error(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* err) {
     //fprintf(stderr, "%d: %s\n", locp->first_line, err);
-    context->addErr(locp->first_line, locp->first_column+1, err);
+    context->addErr(locp->first_line, locp->last_line, locp->first_column+1, locp->last_column+1, err);
 }
 
 void InstrScript_warning(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* txt) {
     //fprintf(stderr, "WRN %d: %s\n", locp->first_line, txt);
-    context->addWrn(locp->first_line, locp->first_column+1, txt);
+    context->addWrn(locp->first_line, locp->last_line, locp->first_column+1, locp->last_column+1, txt);
 }

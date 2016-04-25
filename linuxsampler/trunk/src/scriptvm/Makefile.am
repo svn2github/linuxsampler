@@ -11,7 +11,8 @@ BUILT_SOURCES = parser.h
 liblinuxsamplerscriptvmincludedir = $(includedir)/linuxsampler/scriptvm
 liblinuxsamplerscriptvminclude_HEADERS = \
 	common.h \
-	ScriptVM.h
+	ScriptVM.h \
+	ScriptVMFactory.h
 
 noinst_LTLIBRARIES = liblinuxsamplerscriptvm.la
 liblinuxsamplerscriptvm_la_SOURCES = \
@@ -20,7 +21,8 @@ liblinuxsamplerscriptvm_la_SOURCES = \
 	parser.h parser.cpp \
 	tree.h tree.cpp \
 	CoreVMFunctions.h CoreVMFunctions.cpp \
-	ScriptVM.h ScriptVM.cpp
+	ScriptVM.h ScriptVM.cpp \
+	ScriptVMFactory.h ScriptVMFactory.cpp
 
 yacc_sources = parser.y
 

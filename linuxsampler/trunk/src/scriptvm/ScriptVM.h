@@ -72,6 +72,9 @@ namespace LinuxSampler {
          * parser errors, you may pass the VMParserContext object to method
          * exec() for actually executing the script.
          *
+         * It is your responsibility to free the returned VMParserContext
+         * object once you don't need it anymore.
+         *
          * @param s - entire source code of the script to be loaded
          * @returns parsed representation of the script
          */
