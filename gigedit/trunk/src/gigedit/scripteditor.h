@@ -46,6 +46,8 @@ protected:
     Glib::RefPtr<Gtk::TextBuffer::Tag> m_stringTag;
     Glib::RefPtr<Gtk::TextBuffer::Tag> m_commentTag;
     Glib::RefPtr<Gtk::TextBuffer::Tag> m_preprocTag;
+    Glib::RefPtr<Gtk::TextBuffer::Tag> m_errorTag;
+    Glib::RefPtr<Gtk::TextBuffer::Tag> m_warningTag;
     Gtk::TextView m_textView;
     Gtk::Button m_applyButton;
     Gtk::Button m_cancelButton;
@@ -63,6 +65,8 @@ protected:
     void onModifiedChanged();
 #if USE_LS_SCRIPTVM
     void updateSyntaxHighlightingByVM();
+    void updateParserIssuesByVM();
+    LinuxSampler::ScriptVM* GetScriptVM();
 #endif
 };
 

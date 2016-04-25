@@ -9,6 +9,7 @@
 #include "global.h"
 #if USE_LS_SCRIPTVM
 # include <linuxsampler/scriptvm/ScriptVM.h>
+# include <linuxsampler/scriptvm/ScriptVMFactory.h>
 #endif
 
 #if !USE_LS_SCRIPTVM
@@ -82,6 +83,14 @@ ScriptEditor::ScriptEditor() :
     m_preprocTag = Gtk::TextBuffer::Tag::create();
     m_preprocTag->property_foreground() = "#2f8a33"; // green
     m_tagTable->add(m_preprocTag);
+
+    m_errorTag = Gtk::TextBuffer::Tag::create();
+    m_errorTag->property_background() = "#ff9393"; // red
+    m_tagTable->add(m_errorTag);
+
+    m_warningTag = Gtk::TextBuffer::Tag::create();
+    m_warningTag->property_background() = "#fffd7c"; // yellow
+    m_tagTable->add(m_warningTag);
 
     m_textBuffer = Gtk::TextBuffer::create(m_tagTable);
     m_textView.set_buffer(m_textBuffer);
@@ -162,7 +171,9 @@ void ScriptEditor::setScript(gig::Script* script) {
 
 void ScriptEditor::onTextInserted(const Gtk::TextBuffer::iterator& itEnd, const Glib::ustring& txt, int length) {
 #if USE_LS_SCRIPTVM
+    m_textBuffer->remove_all_tags(m_textBuffer->begin(), m_textBuffer->end());
     updateSyntaxHighlightingByVM();
+    updateParserIssuesByVM();
 #else
     //printf("inserted %d\n", length);
     Gtk::TextBuffer::iterator itStart = itEnd;
@@ -210,6 +221,11 @@ void ScriptEditor::onTextInserted(const Gtk::TextBuffer::iterator& itEnd, const 
 
 #if USE_LS_SCRIPTVM
 
+LinuxSampler::ScriptVM* ScriptEditor::GetScriptVM() {
+    if (!m_vm) m_vm = LinuxSampler::ScriptVMFactory::Create("gig");
+    return m_vm;
+}
+
 static void applyCodeTag(Glib::RefPtr<Gtk::TextBuffer>& txtbuf, const LinuxSampler::VMSourceToken& token, Glib::RefPtr<Gtk::TextBuffer::Tag>& tag) {
     Gtk::TextBuffer::iterator itStart =
         txtbuf->get_iter_at_line_index(token.firstLine(), token.firstColumn());
@@ -219,12 +235,24 @@ static void applyCodeTag(Glib::RefPtr<Gtk::TextBuffer>& txtbuf, const LinuxSampl
     txtbuf->apply_tag(tag, itStart, itEnd);
 }
 
+static void applyCodeTag(Glib::RefPtr<Gtk::TextBuffer>& txtbuf, const LinuxSampler::ParserIssue& issue, Glib::RefPtr<Gtk::TextBuffer::Tag>& tag) {
+    Gtk::TextBuffer::iterator itStart =
+        txtbuf->get_iter_at_line_index(issue.firstLine - 1, issue.firstColumn - 1);
+    Gtk::TextBuffer::iterator itEnd = itStart;
+    itEnd.forward_lines(issue.lastLine - issue.firstLine);
+    itEnd.forward_chars(
+        (issue.lastLine != issue.firstLine)
+            ? issue.lastColumn - 1
+            : issue.lastColumn - issue.firstColumn + 1
+    );
+    txtbuf->apply_tag(tag, itStart, itEnd);
+}
+
+
 void ScriptEditor::updateSyntaxHighlightingByVM() {
-    if (!m_vm) m_vm = new LinuxSampler::ScriptVM();
+    GetScriptVM();
     const std::string s = m_textBuffer->get_text();
     std::vector<LinuxSampler::VMSourceToken> tokens = m_vm->syntaxHighlighting(s);
-
-    m_textBuffer->remove_all_tags(m_textBuffer->begin(), m_textBuffer->end());
 
     for (int i = 0; i < tokens.size(); ++i) {
         const LinuxSampler::VMSourceToken& token = tokens[i];
@@ -252,12 +280,33 @@ void ScriptEditor::updateSyntaxHighlightingByVM() {
     }
 }
 
+void ScriptEditor::updateParserIssuesByVM() {
+    GetScriptVM();
+    const std::string s = m_textBuffer->get_text();
+    LinuxSampler::VMParserContext* parserContext = m_vm->loadScript(s);
+    std::vector<LinuxSampler::ParserIssue> issues = parserContext->issues();
+
+    for (int i = 0; i < issues.size(); ++i) {
+        const LinuxSampler::ParserIssue& issue = issues[i];
+
+        if (issue.isErr()) {
+            applyCodeTag(m_textBuffer, issue, m_errorTag);
+        } else if (issue.isWrn()) {
+            applyCodeTag(m_textBuffer, issue, m_warningTag);
+        }
+    }
+
+    delete parserContext;
+}
+
 #endif // USE_LS_SCRIPTVM
 
 void ScriptEditor::onTextErased(const Gtk::TextBuffer::iterator& itStart, const Gtk::TextBuffer::iterator& itEnd) {
     //printf("erased\n");
 #if USE_LS_SCRIPTVM
+    m_textBuffer->remove_all_tags(m_textBuffer->begin(), m_textBuffer->end());
     updateSyntaxHighlightingByVM();
+    updateParserIssuesByVM();
 #else
     Gtk::TextBuffer::iterator itStart2 = itStart;
     if (itStart2.inside_word() || itStart2.ends_word())

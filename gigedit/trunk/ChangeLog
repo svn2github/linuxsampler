@@ -13,6 +13,9 @@ Version SVN HEAD (?)
     highlighting backend.
   * Script Editor: Some color tweaks (using now same text colors as on
     the NKSP refrence documentation website).
+  * Script Editor: Added support for liblinuxsampler's NKSP parser
+    backend for displaying parser errors and warnings directly within
+    the source code.
 
 Version 1.0.0 (2015-07-17)
 
