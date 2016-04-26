@@ -11,6 +11,13 @@
 #include <glibmm/keyfile.h>
 #include <iostream>
 #include <stdio.h>
+#include <fstream>
+
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 40) || GTKMM_MAJOR_VERSION < 2
+# define HAS_GLIB_KEYFILE_SAVE_TO_FILE 0
+#else
+# define HAS_GLIB_KEYFILE_SAVE_TO_FILE 1
+#endif
 
 static std::string configDir() {
     //printf("configDir '%s'\n", g_get_user_config_dir());
@@ -29,6 +36,19 @@ static std::string configFile() {
 static std::string groupName(Settings::Group_t group) {
     return "Global";
 }
+
+#if !HAS_GLIB_KEYFILE_SAVE_TO_FILE
+
+static bool saveToFile(Glib::KeyFile* keyfile, std::string filename) {
+    Glib::ustring s = keyfile->to_data();
+    std::ofstream out;
+    out.open(filename.c_str(), std::ios_base::out | std::ios_base::trunc);
+    out << s;
+    out.close();
+    return true;
+}
+
+#endif // ! HAS_GLIB_KEYFILE_SAVE_TO_FILE
 
 static Settings* _instance = NULL;
     
@@ -85,7 +105,11 @@ void Settings::onPropertyChanged(Glib::PropertyBase* pProperty, RawValueType_t t
     }
 
     try {
+#if HAS_GLIB_KEYFILE_SAVE_TO_FILE
         bool ok = file.save_to_file(configFile());
+#else
+        bool ok = saveToFile(&file, configFile());
+#endif
         if (!ok) {
             std::cerr << "Failed saving gigedit config to '" << configFile() << "'\n" << std::flush;
         } else {
