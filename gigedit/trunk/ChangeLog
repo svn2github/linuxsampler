@@ -16,6 +16,7 @@ Version SVN HEAD (?)
   * Script Editor: Added support for liblinuxsampler's NKSP parser
     backend for displaying parser errors and warnings directly within
     the source code.
+  * User settings are now automatically saved and restored.
 
 Version 1.0.0 (2015-07-17)
 

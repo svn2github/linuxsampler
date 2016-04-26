@@ -18,6 +18,7 @@ endif
 pkglib_LTLIBRARIES = libgigedit.la
 libgigedit_la_SOURCES = \
 	global.h \
+	Settings.cpp Settings.h \
 	compat.cpp compat.h \
 	gigedit.cpp gigedit.h \
 	mainwindow.cpp mainwindow.h \
@@ -28,7 +29,6 @@ libgigedit_la_SOURCES = \
 	dimensionmanager.cpp dimensionmanager.h \
 	CombineInstrumentsDialog.cpp CombineInstrumentsDialog.h \
 	midirules.cpp midirules.h \
-	Settings.cpp Settings.h \
 	scripteditor.cpp scripteditor.h \
 	scriptslots.cpp scriptslots.h \
 	ReferencesView.cpp ReferencesView.h \
