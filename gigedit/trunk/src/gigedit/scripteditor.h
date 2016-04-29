@@ -11,8 +11,8 @@
 #include <gig.h>
 #include <gtkmm.h>
 #include <config.h>
-
 #include "compat.h"
+#include "ManagedWindow.h"
 
 // Should we use a very simple (and buggy) local NKSP syntax parser, or should
 // we rather use the full features NKSP syntax highlighting backend from
@@ -27,11 +27,18 @@ namespace LinuxSampler {
 }
 #endif
 
-class ScriptEditor : public Gtk::Window {
+class ScriptEditor : public ManagedWindow {
 public:
     ScriptEditor();
    ~ScriptEditor();
     void setScript(gig::Script* script);
+
+    // implementation for abstract methods of interface class "ManagedWindow"
+    virtual Settings::Property<int>* windowSettingX() { return &Settings::singleton()->scriptEditorWindowX; }
+    virtual Settings::Property<int>* windowSettingY() { return &Settings::singleton()->scriptEditorWindowY; }
+    virtual Settings::Property<int>* windowSettingWidth() { return &Settings::singleton()->scriptEditorWindowW; }
+    virtual Settings::Property<int>* windowSettingHeight() { return &Settings::singleton()->scriptEditorWindowH; }
+
 protected:
     Gtk::VBox m_vbox;
     Gtk::HButtonBox m_buttonBox;

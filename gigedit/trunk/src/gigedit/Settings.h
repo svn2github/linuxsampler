@@ -36,7 +36,9 @@ public:
      * All settings are grouped into these settings groups.
      */
     enum Group_t {
-        GLOBAL
+        GLOBAL,
+        MAIN_WINDOW,
+        SCRIPT_EDITOR,
     };
 
     /**
@@ -108,9 +110,22 @@ public:
         Group_t m_group;
     };
 
+    // settings of "Global" group
     Property<bool> warnUserOnExtensions; ///< if enabled, the user shall he be warned if he is trying to use a gig format extension that will not work with Gigasampler/GigaStudio
     Property<bool> syncSamplerInstrumentSelection; ///< if enabled, the sampler's current instrument will automatically be switched whenever another instrument was selected in gigedit
     Property<bool> moveRootNoteWithRegionMoved; ///< if enabled, the root note(s) of regions are automatically moving when the user drags a region around at the virtual keyboard
+
+    // settings of "MainWindow" group
+    Property<int> mainWindowX;
+    Property<int> mainWindowY;
+    Property<int> mainWindowW;
+    Property<int> mainWindowH;
+
+    // settings of "ScriptEditor" group
+    Property<int> scriptEditorWindowX;
+    Property<int> scriptEditorWindowY;
+    Property<int> scriptEditorWindowW;
+    Property<int> scriptEditorWindowH;
 
     static Settings* singleton();
     Settings();

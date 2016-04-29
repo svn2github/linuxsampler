@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006 - 2015 Andreas Persson
+ * Copyright (C) 2006 - 2016 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -47,6 +47,7 @@
 #ifndef OLD_THREADS
 #include <glibmm/threads.h>
 #endif
+#include "ManagedWindow.h"
 
 class MainWindow;
 
@@ -173,7 +174,7 @@ private:
     float progress;
 };
 
-class MainWindow : public Gtk::Window {
+class MainWindow : public ManagedWindow {
 public:
     MainWindow();
     virtual ~MainWindow();
@@ -198,6 +199,12 @@ public:
     sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_released();
 
     sigc::signal<void, gig::Instrument*>& signal_switch_sampler_instrument();
+    
+    // implementation for abstract methods of interface class "ManagedWindow"
+    virtual Settings::Property<int>* windowSettingX() { return &Settings::singleton()->mainWindowX; }
+    virtual Settings::Property<int>* windowSettingY() { return &Settings::singleton()->mainWindowY; }
+    virtual Settings::Property<int>* windowSettingWidth() { return &Settings::singleton()->mainWindowW; }
+    virtual Settings::Property<int>* windowSettingHeight() { return &Settings::singleton()->mainWindowH; }
 
 protected:
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;

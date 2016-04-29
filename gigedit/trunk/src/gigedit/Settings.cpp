@@ -34,6 +34,11 @@ static std::string configFile() {
 }
 
 static std::string groupName(Settings::Group_t group) {
+    switch (group) {
+        case Settings::GLOBAL: return "Global";
+        case Settings::MAIN_WINDOW: return "MainWindow";
+        case Settings::SCRIPT_EDITOR: return "ScriptEditor";
+    }
     return "Global";
 }
 
@@ -64,11 +69,27 @@ Settings::Settings() : Glib::ObjectBase(typeid(Settings)),
     warnUserOnExtensions(*this, GLOBAL, "warnUserOnExtensions", true),
     syncSamplerInstrumentSelection(*this, GLOBAL, "syncSamplerInstrumentSelection", true),
     moveRootNoteWithRegionMoved(*this, GLOBAL, "moveRootNoteWithRegionMoved", true),
+    mainWindowX(*this, MAIN_WINDOW, "x", -1),
+    mainWindowY(*this, MAIN_WINDOW, "y", -1),
+    mainWindowW(*this, MAIN_WINDOW, "w", -1),
+    mainWindowH(*this, MAIN_WINDOW, "h", -1),
+    scriptEditorWindowX(*this, SCRIPT_EDITOR, "x", -1),
+    scriptEditorWindowY(*this, SCRIPT_EDITOR, "y", -1),
+    scriptEditorWindowW(*this, SCRIPT_EDITOR, "w", -1),
+    scriptEditorWindowH(*this, SCRIPT_EDITOR, "h", -1),
     m_ignoreNotifies(false)
 {
     m_boolProps.push_back(&warnUserOnExtensions);
     m_boolProps.push_back(&syncSamplerInstrumentSelection);
     m_boolProps.push_back(&moveRootNoteWithRegionMoved);
+    m_intProps.push_back(&mainWindowX);
+    m_intProps.push_back(&mainWindowY);
+    m_intProps.push_back(&mainWindowW);
+    m_intProps.push_back(&mainWindowH);
+    m_intProps.push_back(&scriptEditorWindowX);
+    m_intProps.push_back(&scriptEditorWindowY);
+    m_intProps.push_back(&scriptEditorWindowW);
+    m_intProps.push_back(&scriptEditorWindowH);
 }
 
 void Settings::onPropertyChanged(Glib::PropertyBase* pProperty, RawValueType_t type, Group_t group) {

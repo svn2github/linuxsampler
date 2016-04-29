@@ -17,6 +17,8 @@ Version SVN HEAD (?)
     backend for displaying parser errors and warnings directly within
     the source code.
   * User settings are now automatically saved and restored.
+  * Automatically save & restore window size and position
+    (yet limited to main window and script editor window).
 
 Version 1.0.0 (2015-07-17)
 
