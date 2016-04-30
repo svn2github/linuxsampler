@@ -39,6 +39,13 @@ public:
         GLOBAL,
         MAIN_WINDOW,
         SCRIPT_EDITOR,
+        DIMENSION_MANAGER,
+        SCRIPT_SLOTS,
+        COMBINE_INSTRUMENTS,
+        MIDI_RULES,
+        FILE_PROPS,
+        INSTR_PROPS,
+        SAMPLE_REFS,
     };
 
     /**
@@ -126,6 +133,48 @@ public:
     Property<int> scriptEditorWindowY;
     Property<int> scriptEditorWindowW;
     Property<int> scriptEditorWindowH;
+
+    // settings of "DimensionManager" group
+    Property<int> dimensionManagerWindowX;
+    Property<int> dimensionManagerWindowY;
+    Property<int> dimensionManagerWindowW;
+    Property<int> dimensionManagerWindowH;
+
+    // settings of "ScriptSlots" group
+    Property<int> scriptSlotsWindowX;
+    Property<int> scriptSlotsWindowY;
+    Property<int> scriptSlotsWindowW;
+    Property<int> scriptSlotsWindowH;
+
+    // settings of "CombineInstruments" group
+    Property<int> combineInstrumentsWindowX;
+    Property<int> combineInstrumentsWindowY;
+    Property<int> combineInstrumentsWindowW;
+    Property<int> combineInstrumentsWindowH;
+
+    // settings of "MidiRules" group
+    Property<int> midiRulesWindowX;
+    Property<int> midiRulesWindowY;
+    Property<int> midiRulesWindowW;
+    Property<int> midiRulesWindowH;
+
+    // settings of "FileProps" group
+    Property<int> filePropsWindowX;
+    Property<int> filePropsWindowY;
+    Property<int> filePropsWindowW;
+    Property<int> filePropsWindowH;
+
+    // settings of "InstrProps" group
+    Property<int> instrPropsWindowX;
+    Property<int> instrPropsWindowY;
+    Property<int> instrPropsWindowW;
+    Property<int> instrPropsWindowH;
+
+    // settings of "SampleRefs" group
+    Property<int> sampleRefsWindowX;
+    Property<int> sampleRefsWindowY;
+    Property<int> sampleRefsWindowW;
+    Property<int> sampleRefsWindowH;
 
     static Settings* singleton();
     Settings();

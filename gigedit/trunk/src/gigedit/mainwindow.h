@@ -51,12 +51,19 @@
 
 class MainWindow;
 
-class PropDialog : public Gtk::Window,
+class PropDialog : public ManagedWindow,
                    public PropEditor<DLS::Info> {
 public:
     PropDialog();
     void set_info(DLS::Info* info);
     void set_file(gig::File* file);
+
+    // implementation for abstract methods of interface class "ManagedWindow"
+    virtual Settings::Property<int>* windowSettingX() { return &Settings::singleton()->filePropsWindowX; }
+    virtual Settings::Property<int>* windowSettingY() { return &Settings::singleton()->filePropsWindowY; }
+    virtual Settings::Property<int>* windowSettingWidth() { return &Settings::singleton()->filePropsWindowW; }
+    virtual Settings::Property<int>* windowSettingHeight() { return &Settings::singleton()->filePropsWindowH; }
+
 protected:
     ChoiceEntry<int> eFileFormat;
     StringEntry eName;
@@ -85,7 +92,7 @@ protected:
     void onFileFormatChanged();
 };
 
-class InstrumentProps : public Gtk::Window,
+class InstrumentProps : public ManagedWindow,
                         public PropEditor<gig::Instrument> {
 public:
     InstrumentProps();
@@ -95,6 +102,13 @@ public:
     sigc::signal<void>& signal_name_changed() {
         return sig_name_changed;
     }
+
+    // implementation for abstract methods of interface class "ManagedWindow"
+    virtual Settings::Property<int>* windowSettingX() { return &Settings::singleton()->instrPropsWindowX; }
+    virtual Settings::Property<int>* windowSettingY() { return &Settings::singleton()->instrPropsWindowY; }
+    virtual Settings::Property<int>* windowSettingWidth() { return &Settings::singleton()->instrPropsWindowW; }
+    virtual Settings::Property<int>* windowSettingHeight() { return &Settings::singleton()->instrPropsWindowH; }
+
 protected:
     void set_Name(const gig::String& name);
     void set_IsDrum(bool value);

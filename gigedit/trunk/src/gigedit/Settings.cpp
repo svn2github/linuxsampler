@@ -38,6 +38,13 @@ static std::string groupName(Settings::Group_t group) {
         case Settings::GLOBAL: return "Global";
         case Settings::MAIN_WINDOW: return "MainWindow";
         case Settings::SCRIPT_EDITOR: return "ScriptEditor";
+        case Settings::DIMENSION_MANAGER: return "DimensionManager";
+        case Settings::SCRIPT_SLOTS: return "ScriptSlots";
+        case Settings::COMBINE_INSTRUMENTS: return "CombineInstruments";
+        case Settings::MIDI_RULES: return "MidiRules";
+        case Settings::FILE_PROPS: return "FileProps";
+        case Settings::INSTR_PROPS: return "InstrProps";
+        case Settings::SAMPLE_REFS: return "SampleRefs";
     }
     return "Global";
 }
@@ -77,6 +84,34 @@ Settings::Settings() : Glib::ObjectBase(typeid(Settings)),
     scriptEditorWindowY(*this, SCRIPT_EDITOR, "y", -1),
     scriptEditorWindowW(*this, SCRIPT_EDITOR, "w", -1),
     scriptEditorWindowH(*this, SCRIPT_EDITOR, "h", -1),
+    dimensionManagerWindowX(*this, DIMENSION_MANAGER, "x", -1),
+    dimensionManagerWindowY(*this, DIMENSION_MANAGER, "y", -1),
+    dimensionManagerWindowW(*this, DIMENSION_MANAGER, "w", -1),
+    dimensionManagerWindowH(*this, DIMENSION_MANAGER, "h", -1),
+    scriptSlotsWindowX(*this, SCRIPT_SLOTS, "x", -1),
+    scriptSlotsWindowY(*this, SCRIPT_SLOTS, "y", -1),
+    scriptSlotsWindowW(*this, SCRIPT_SLOTS, "w", -1),
+    scriptSlotsWindowH(*this, SCRIPT_SLOTS, "h", -1),
+    combineInstrumentsWindowX(*this, COMBINE_INSTRUMENTS, "x", -1),
+    combineInstrumentsWindowY(*this, COMBINE_INSTRUMENTS, "y", -1),
+    combineInstrumentsWindowW(*this, COMBINE_INSTRUMENTS, "w", -1),
+    combineInstrumentsWindowH(*this, COMBINE_INSTRUMENTS, "h", -1),
+    midiRulesWindowX(*this, MIDI_RULES, "x", -1),
+    midiRulesWindowY(*this, MIDI_RULES, "y", -1),
+    midiRulesWindowW(*this, MIDI_RULES, "w", -1),
+    midiRulesWindowH(*this, MIDI_RULES, "h", -1),
+    filePropsWindowX(*this, FILE_PROPS, "x", -1),
+    filePropsWindowY(*this, FILE_PROPS, "y", -1),
+    filePropsWindowW(*this, FILE_PROPS, "w", -1),
+    filePropsWindowH(*this, FILE_PROPS, "h", -1),
+    instrPropsWindowX(*this, INSTR_PROPS, "x", -1),
+    instrPropsWindowY(*this, INSTR_PROPS, "y", -1),
+    instrPropsWindowW(*this, INSTR_PROPS, "w", -1),
+    instrPropsWindowH(*this, INSTR_PROPS, "h", -1),
+    sampleRefsWindowX(*this, SAMPLE_REFS, "x", -1),
+    sampleRefsWindowY(*this, SAMPLE_REFS, "y", -1),
+    sampleRefsWindowW(*this, SAMPLE_REFS, "w", -1),
+    sampleRefsWindowH(*this, SAMPLE_REFS, "h", -1),
     m_ignoreNotifies(false)
 {
     m_boolProps.push_back(&warnUserOnExtensions);
@@ -90,6 +125,34 @@ Settings::Settings() : Glib::ObjectBase(typeid(Settings)),
     m_intProps.push_back(&scriptEditorWindowY);
     m_intProps.push_back(&scriptEditorWindowW);
     m_intProps.push_back(&scriptEditorWindowH);
+    m_intProps.push_back(&dimensionManagerWindowX);
+    m_intProps.push_back(&dimensionManagerWindowY);
+    m_intProps.push_back(&dimensionManagerWindowW);
+    m_intProps.push_back(&dimensionManagerWindowH);
+    m_intProps.push_back(&scriptSlotsWindowX);
+    m_intProps.push_back(&scriptSlotsWindowY);
+    m_intProps.push_back(&scriptSlotsWindowW);
+    m_intProps.push_back(&scriptSlotsWindowH);
+    m_intProps.push_back(&combineInstrumentsWindowX);
+    m_intProps.push_back(&combineInstrumentsWindowY);
+    m_intProps.push_back(&combineInstrumentsWindowW);
+    m_intProps.push_back(&combineInstrumentsWindowH);
+    m_intProps.push_back(&midiRulesWindowX);
+    m_intProps.push_back(&midiRulesWindowY);
+    m_intProps.push_back(&midiRulesWindowW);
+    m_intProps.push_back(&midiRulesWindowH);
+    m_intProps.push_back(&filePropsWindowX);
+    m_intProps.push_back(&filePropsWindowY);
+    m_intProps.push_back(&filePropsWindowW);
+    m_intProps.push_back(&filePropsWindowH);
+    m_intProps.push_back(&instrPropsWindowX);
+    m_intProps.push_back(&instrPropsWindowY);
+    m_intProps.push_back(&instrPropsWindowW);
+    m_intProps.push_back(&instrPropsWindowH);
+    m_intProps.push_back(&sampleRefsWindowX);
+    m_intProps.push_back(&sampleRefsWindowY);
+    m_intProps.push_back(&sampleRefsWindowW);
+    m_intProps.push_back(&sampleRefsWindowH);
 }
 
 void Settings::onPropertyChanged(Glib::PropertyBase* pProperty, RawValueType_t type, Group_t group) {

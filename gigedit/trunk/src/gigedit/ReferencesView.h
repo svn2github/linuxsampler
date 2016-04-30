@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014,2015 Christian Schoenebeck
+    Copyright (c) 2014-2016 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -11,13 +11,14 @@
 #include <gig.h>
 #include <gtkmm.h>
 #include "wrapLabel.hh"
+#include "ManagedWindow.h"
 
 /** @brief Sample reference browser dialog.
  *
  * Shows a modal dialog with a tree view showing all instruments and their
  * respective regions which reference the selected sample at least once.
  */
-class ReferencesView : public Gtk::Dialog {
+class ReferencesView : public ManagedDialog {
 public:
     ReferencesView(Gtk::Window& parent);
     void setSample(gig::Sample* sample);
@@ -28,6 +29,12 @@ public:
     // further editing. The editor shall return true if selection was successful
     // or should return false on errors.
     sigc::signal<bool, gig::DimensionRegion*> dimension_region_selected;
+
+    // implementation for abstract methods of interface class "ManagedDialog"
+    virtual Settings::Property<int>* windowSettingX() { return &Settings::singleton()->sampleRefsWindowX; }
+    virtual Settings::Property<int>* windowSettingY() { return &Settings::singleton()->sampleRefsWindowY; }
+    virtual Settings::Property<int>* windowSettingWidth() { return &Settings::singleton()->sampleRefsWindowW; }
+    virtual Settings::Property<int>* windowSettingHeight() { return &Settings::singleton()->sampleRefsWindowH; }
 
 protected:
     gig::Sample* m_sample;

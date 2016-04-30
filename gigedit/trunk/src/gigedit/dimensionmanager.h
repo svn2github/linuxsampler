@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006 - 2016 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -33,6 +33,7 @@
 
 #include <gig.h>
 #include <set>
+#include "ManagedWindow.h"
 
 class DimTypeCellRenderer : public Gtk::CellRendererText {
 public:
@@ -71,7 +72,7 @@ private:
     Glib::Property<std::set<int> > m_propertyValue;
 };
 
-class DimensionManager : public Gtk::Window {
+class DimensionManager : public ManagedWindow {
 public:
     sigc::signal<void, gig::Region*> region_to_be_changed_signal;
     sigc::signal<void, gig::Region*> region_changed_signal;
@@ -79,6 +80,13 @@ public:
     DimensionManager();
     void show(gig::Region* region);
     void set_region(gig::Region* region);
+
+    // implementation for abstract methods of interface class "ManagedWindow"
+    virtual Settings::Property<int>* windowSettingX() { return &Settings::singleton()->dimensionManagerWindowX; }
+    virtual Settings::Property<int>* windowSettingY() { return &Settings::singleton()->dimensionManagerWindowY; }
+    virtual Settings::Property<int>* windowSettingWidth() { return &Settings::singleton()->dimensionManagerWindowW; }
+    virtual Settings::Property<int>* windowSettingHeight() { return &Settings::singleton()->dimensionManagerWindowH; }
+    
 protected:
     gig::Region* region;
     Gtk::VBox vbox;

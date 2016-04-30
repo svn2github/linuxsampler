@@ -13,7 +13,7 @@ Glib::ustring gig_to_utf8(const gig::String& gig_string);
 Glib::ustring note_str(int note);
 
 ReferencesView::ReferencesView(Gtk::Window& parent) :
-    Gtk::Dialog("", parent, true), m_sample(NULL),
+    ManagedDialog("", parent, true), m_sample(NULL),
     m_closeButton(_("_Close"), true), m_descriptionLabel()
 {
     set_title("Nothing selected");

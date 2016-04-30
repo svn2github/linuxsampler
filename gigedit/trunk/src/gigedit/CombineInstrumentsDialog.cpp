@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014-2015 Christian Schoenebeck
+    Copyright (c) 2014-2016 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -804,7 +804,7 @@ static void combineInstruments(std::vector<gig::Instrument*>& instruments, gig::
 // class 'CombineInstrumentsDialog'
 
 CombineInstrumentsDialog::CombineInstrumentsDialog(Gtk::Window& parent, gig::File* gig)
-    : Gtk::Dialog(_("Combine Instruments"), parent, true),
+    : ManagedDialog(_("Combine Instruments"), parent, true),
       m_gig(gig), m_fileWasChanged(false), m_newCombinedInstrument(NULL),
       m_cancelButton(_("_Cancel"), true), m_OKButton(_("_OK"), true),
       m_descriptionLabel(), m_tableDimCombo(2, 2), m_comboDimType(),

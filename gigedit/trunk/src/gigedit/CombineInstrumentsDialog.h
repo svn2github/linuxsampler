@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014 Christian Schoenebeck
+    Copyright (c) 2014-2016 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -20,6 +20,7 @@
 #include <gtkmm/scrolledwindow.h>
 
 #include "wrapLabel.hh"
+#include "ManagedWindow.h"
 
 /**
  * @brief Modal dialog which allows to merge instruments.
@@ -31,11 +32,18 @@
  * If the user successfully combined instruments in this dialog, then
  * newCombinedInstrument() will return a pointer to that new instrument.
  */
-class CombineInstrumentsDialog : public Gtk::Dialog {
+class CombineInstrumentsDialog : public ManagedDialog {
 public:
     CombineInstrumentsDialog(Gtk::Window& parent, gig::File* gig);
     bool fileWasChanged() const;
     gig::Instrument* newCombinedInstrument() const;
+
+    // implementation for abstract methods of interface class "ManagedDialog"
+    virtual Settings::Property<int>* windowSettingX() { return &Settings::singleton()->combineInstrumentsWindowX; }
+    virtual Settings::Property<int>* windowSettingY() { return &Settings::singleton()->combineInstrumentsWindowY; }
+    virtual Settings::Property<int>* windowSettingWidth() { return &Settings::singleton()->combineInstrumentsWindowW; }
+    virtual Settings::Property<int>* windowSettingHeight() { return &Settings::singleton()->combineInstrumentsWindowH; }
+
 protected:
     gig::File* m_gig;
     bool m_fileWasChanged;

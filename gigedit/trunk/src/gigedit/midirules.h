@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2013-2014 Andreas Persson
+ * Copyright (C) 2013-2016 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -41,6 +41,7 @@
 
 #include "paramedit.h"
 #include "compat.h"
+#include "ManagedWindow.h"
 
 class MidiRuleCtrlTrigger : public Gtk::VBox,
                             public PropEditor<gig::MidiRuleCtrlTrigger> {
@@ -138,11 +139,17 @@ protected:
 };
 
 
-class MidiRules : public Gtk::Window,
+class MidiRules : public ManagedWindow,
                   public PropEditor<gig::Instrument> {
 public:
     MidiRules();
     void set_instrument(gig::Instrument* instrument);
+
+    // implementation for abstract methods of interface class "ManagedWindow"
+    virtual Settings::Property<int>* windowSettingX() { return &Settings::singleton()->midiRulesWindowX; }
+    virtual Settings::Property<int>* windowSettingY() { return &Settings::singleton()->midiRulesWindowY; }
+    virtual Settings::Property<int>* windowSettingWidth() { return &Settings::singleton()->midiRulesWindowW; }
+    virtual Settings::Property<int>* windowSettingHeight() { return &Settings::singleton()->midiRulesWindowH; }
 
 protected:
     enum {

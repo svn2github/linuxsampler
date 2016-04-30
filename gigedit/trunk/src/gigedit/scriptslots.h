@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014 Christian Schoenebeck
+    Copyright (c) 2014 - 2016 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -12,12 +12,21 @@
 #include <gtkmm.h>
 #include "compat.h"
 #include <vector>
+#include "Settings.h"
+#include "ManagedWindow.h"
 
-class ScriptSlots : public Gtk::Window {
+class ScriptSlots : public ManagedWindow {
 public:
     ScriptSlots();
    ~ScriptSlots();
     void setInstrument(gig::Instrument* instrument);
+
+    // implementation for abstract methods of interface class "ManagedWindow"
+    virtual Settings::Property<int>* windowSettingX() { return &Settings::singleton()->scriptSlotsWindowX; }
+    virtual Settings::Property<int>* windowSettingY() { return &Settings::singleton()->scriptSlotsWindowY; }
+    virtual Settings::Property<int>* windowSettingWidth() { return &Settings::singleton()->scriptSlotsWindowW; }
+    virtual Settings::Property<int>* windowSettingHeight() { return &Settings::singleton()->scriptSlotsWindowH; }
+
 protected:
     struct Row {
         int id;
