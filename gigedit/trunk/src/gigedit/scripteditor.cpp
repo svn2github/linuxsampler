@@ -7,10 +7,6 @@
 
 #include "scripteditor.h"
 #include "global.h"
-#if USE_LS_SCRIPTVM
-# include <linuxsampler/scriptvm/ScriptVM.h>
-# include <linuxsampler/scriptvm/ScriptVMFactory.h>
-#endif
 
 #if !USE_LS_SCRIPTVM
 
@@ -44,7 +40,10 @@ ScriptEditor::ScriptEditor() :
     m_cancelButton(_("_Cancel"), true)
 {
     m_script = NULL;
+#if USE_LS_SCRIPTVM
     m_vm = NULL;
+#endif
+    m_ignoreEraseEvents = false;
 
     add(m_vbox);
 
@@ -91,6 +90,10 @@ ScriptEditor::ScriptEditor() :
     m_warningTag = Gtk::TextBuffer::Tag::create();
     m_warningTag->property_background() = "#fffd7c"; // yellow
     m_tagTable->add(m_warningTag);
+
+    m_readOnlyTag = Gtk::TextBuffer::Tag::create();
+    m_readOnlyTag->property_editable() = false;
+    m_tagTable->add(m_readOnlyTag);
 
     m_textBuffer = Gtk::TextBuffer::create(m_tagTable);
     m_textView.set_buffer(m_textBuffer);
@@ -151,7 +154,9 @@ ScriptEditor::ScriptEditor() :
 
 ScriptEditor::~ScriptEditor() {
     printf("ScriptEditor destruct\n");
+#if USE_LS_SCRIPTVM
     if (m_vm) delete m_vm;
+#endif
 }
 
 void ScriptEditor::setScript(gig::Script* script) {
@@ -170,7 +175,10 @@ void ScriptEditor::setScript(gig::Script* script) {
 }
 
 void ScriptEditor::onTextInserted(const Gtk::TextBuffer::iterator& itEnd, const Glib::ustring& txt, int length) {
+    printf("onTextInserted()\n");
+    fflush(stdout);
 #if USE_LS_SCRIPTVM
+    removeIssueAnchors();
     m_textBuffer->remove_all_tags(m_textBuffer->begin(), m_textBuffer->end());
     updateSyntaxHighlightingByVM();
     updateParserIssuesByVM();
@@ -248,6 +256,21 @@ static void applyCodeTag(Glib::RefPtr<Gtk::TextBuffer>& txtbuf, const LinuxSampl
     txtbuf->apply_tag(tag, itStart, itEnd);
 }
 
+void ScriptEditor::removeIssueAnchors() {
+    m_ignoreEraseEvents = true; // avoid endless recursion
+    
+    for (int i = 0; i < m_issues.size(); ++i) {
+        const LinuxSampler::ParserIssue& issue = m_issues[i];
+        printf("erase anchor at l%d c%d\n", issue.firstLine - 1, issue.firstColumn - 1);
+        fflush(stdout);
+        Gtk::TextBuffer::iterator iter = m_textBuffer->get_iter_at_line_index(issue.firstLine - 1, issue.firstColumn - 1);
+        Gtk::TextBuffer::iterator iterEnd = iter;
+        iterEnd.forward_chars(1);
+        m_textBuffer->erase(iter, iterEnd);
+    }
+    
+    m_ignoreEraseEvents = false; // back to normal
+}
 
 void ScriptEditor::updateSyntaxHighlightingByVM() {
     GetScriptVM();
@@ -280,19 +303,54 @@ void ScriptEditor::updateSyntaxHighlightingByVM() {
     }
 }
 
+static Glib::RefPtr<Gdk::Pixbuf> createIcon(std::string name, const Glib::RefPtr<Gdk::Screen>& screen) {
+    const int targetH = 9;
+    Glib::RefPtr<Gtk::IconTheme> theme = Gtk::IconTheme::get_for_screen(screen);
+    int w = 0;
+    int h = 0; // ignored
+    Gtk::IconSize::lookup(Gtk::ICON_SIZE_SMALL_TOOLBAR, w, h);
+    Glib::RefPtr<Gdk::Pixbuf> pixbuf = theme->load_icon(name, w, Gtk::ICON_LOOKUP_GENERIC_FALLBACK);
+    if (pixbuf->get_height() != targetH) {
+        pixbuf = pixbuf->scale_simple(targetH, targetH, Gdk::INTERP_BILINEAR);
+    }
+    return pixbuf;
+}
+
 void ScriptEditor::updateParserIssuesByVM() {
     GetScriptVM();
     const std::string s = m_textBuffer->get_text();
     LinuxSampler::VMParserContext* parserContext = m_vm->loadScript(s);
-    std::vector<LinuxSampler::ParserIssue> issues = parserContext->issues();
+    m_issues = parserContext->issues();
 
-    for (int i = 0; i < issues.size(); ++i) {
-        const LinuxSampler::ParserIssue& issue = issues[i];
+    for (int i = 0; i < m_issues.size(); ++i) {
+        const LinuxSampler::ParserIssue& issue = m_issues[i];
 
         if (issue.isErr()) {
             applyCodeTag(m_textBuffer, issue, m_errorTag);
         } else if (issue.isWrn()) {
             applyCodeTag(m_textBuffer, issue, m_warningTag);
+        }
+    }
+
+    for (int i = m_issues.size() - 1; i >= 0; --i) {
+        const LinuxSampler::ParserIssue& issue = m_issues[i];
+
+        if (issue.isErr() || issue.isWrn()) {
+            Glib::RefPtr<Gdk::Pixbuf> pixbuf = createIcon(issue.isErr() ? "dialog-error" : "dialog-warning-symbolic", get_screen());
+            Gtk::Image* image = Gtk::manage(new Gtk::Image(pixbuf));
+            image->show();
+            Gtk::TextBuffer::iterator iter =
+                m_textBuffer->get_iter_at_line_index(issue.firstLine - 1, issue.firstColumn - 1);
+            Glib::RefPtr<Gtk::TextChildAnchor> anchor = m_textBuffer->create_child_anchor(iter);
+            m_textView.add_child_at_anchor(*image, anchor);
+            
+            iter =
+                m_textBuffer->get_iter_at_line_index(issue.firstLine - 1, issue.firstColumn - 1);
+            Gtk::TextBuffer::iterator itEnd = iter;
+            itEnd.forward_char();
+
+            // prevent that the user can erase the icon with backspace key
+            m_textBuffer->apply_tag(m_readOnlyTag, iter, itEnd);
         }
     }
 
@@ -303,7 +361,10 @@ void ScriptEditor::updateParserIssuesByVM() {
 
 void ScriptEditor::onTextErased(const Gtk::TextBuffer::iterator& itStart, const Gtk::TextBuffer::iterator& itEnd) {
     //printf("erased\n");
+    if (m_ignoreEraseEvents) return;
+
 #if USE_LS_SCRIPTVM
+    removeIssueAnchors();
     m_textBuffer->remove_all_tags(m_textBuffer->begin(), m_textBuffer->end());
     updateSyntaxHighlightingByVM();
     updateParserIssuesByVM();

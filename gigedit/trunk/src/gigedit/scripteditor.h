@@ -22,9 +22,8 @@
 #endif
 
 #if USE_LS_SCRIPTVM
-namespace LinuxSampler {
-    class ScriptVM;
-}
+# include <linuxsampler/scriptvm/ScriptVM.h>
+# include <linuxsampler/scriptvm/ScriptVMFactory.h>
 #endif
 
 class ScriptEditor : public ManagedWindow {
@@ -55,6 +54,7 @@ protected:
     Glib::RefPtr<Gtk::TextBuffer::Tag> m_preprocTag;
     Glib::RefPtr<Gtk::TextBuffer::Tag> m_errorTag;
     Glib::RefPtr<Gtk::TextBuffer::Tag> m_warningTag;
+    Glib::RefPtr<Gtk::TextBuffer::Tag> m_readOnlyTag;
     Gtk::TextView m_textView;
     Gtk::Button m_applyButton;
     Gtk::Button m_cancelButton;
@@ -62,7 +62,10 @@ protected:
     gig::Script* m_script;
 #if USE_LS_SCRIPTVM
     LinuxSampler::ScriptVM* m_vm;
+    std::vector<LinuxSampler::ParserIssue> m_issues;
 #endif
+
+    bool m_ignoreEraseEvents;
 
     void onButtonCancel();
     void onButtonApply();
@@ -71,6 +74,7 @@ protected:
     void onTextErased(const Gtk::TextBuffer::iterator& itStart, const Gtk::TextBuffer::iterator& itEnd);
     void onModifiedChanged();
 #if USE_LS_SCRIPTVM
+    void removeIssueAnchors();
     void updateSyntaxHighlightingByVM();
     void updateParserIssuesByVM();
     LinuxSampler::ScriptVM* GetScriptVM();
