@@ -54,7 +54,6 @@ protected:
     Glib::RefPtr<Gtk::TextBuffer::Tag> m_preprocTag;
     Glib::RefPtr<Gtk::TextBuffer::Tag> m_errorTag;
     Glib::RefPtr<Gtk::TextBuffer::Tag> m_warningTag;
-    Glib::RefPtr<Gtk::TextBuffer::Tag> m_readOnlyTag;
     Gtk::TextView m_textView;
     Gtk::Button m_applyButton;
     Gtk::Button m_cancelButton;
@@ -65,8 +64,6 @@ protected:
     std::vector<LinuxSampler::ParserIssue> m_issues;
 #endif
 
-    bool m_ignoreEraseEvents;
-
     void onButtonCancel();
     void onButtonApply();
     void onWindowHide();
@@ -74,11 +71,12 @@ protected:
     void onTextErased(const Gtk::TextBuffer::iterator& itStart, const Gtk::TextBuffer::iterator& itEnd);
     void onModifiedChanged();
 #if USE_LS_SCRIPTVM
-    void removeIssueAnchors();
     void updateSyntaxHighlightingByVM();
     void updateParserIssuesByVM();
     LinuxSampler::ScriptVM* GetScriptVM();
+    void updateIssueTooltip(GdkEventMotion* e);
 #endif
+    bool on_motion_notify_event(GdkEventMotion* e);
 };
 
 #endif // GIGEDIT_SCRIPTEDITOR_H

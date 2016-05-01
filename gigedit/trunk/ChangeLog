@@ -18,6 +18,9 @@ Version SVN HEAD (?)
     the source code.
   * User settings are now automatically saved and restored.
   * Automatically save & restore window size and position.
+  * Script Editor: Show precise parser error/warning messages as tooltip
+    when the mouse points over the respective location in the script's
+    source code.
 
 Version 1.0.0 (2015-07-17)
 

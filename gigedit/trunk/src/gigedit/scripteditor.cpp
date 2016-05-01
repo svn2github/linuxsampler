@@ -43,7 +43,6 @@ ScriptEditor::ScriptEditor() :
 #if USE_LS_SCRIPTVM
     m_vm = NULL;
 #endif
-    m_ignoreEraseEvents = false;
 
     add(m_vbox);
 
@@ -90,10 +89,6 @@ ScriptEditor::ScriptEditor() :
     m_warningTag = Gtk::TextBuffer::Tag::create();
     m_warningTag->property_background() = "#fffd7c"; // yellow
     m_tagTable->add(m_warningTag);
-
-    m_readOnlyTag = Gtk::TextBuffer::Tag::create();
-    m_readOnlyTag->property_editable() = false;
-    m_tagTable->add(m_readOnlyTag);
 
     m_textBuffer = Gtk::TextBuffer::create(m_tagTable);
     m_textView.set_buffer(m_textBuffer);
@@ -175,10 +170,8 @@ void ScriptEditor::setScript(gig::Script* script) {
 }
 
 void ScriptEditor::onTextInserted(const Gtk::TextBuffer::iterator& itEnd, const Glib::ustring& txt, int length) {
-    printf("onTextInserted()\n");
-    fflush(stdout);
+    //printf("onTextInserted()\n");
 #if USE_LS_SCRIPTVM
-    removeIssueAnchors();
     m_textBuffer->remove_all_tags(m_textBuffer->begin(), m_textBuffer->end());
     updateSyntaxHighlightingByVM();
     updateParserIssuesByVM();
@@ -234,6 +227,17 @@ LinuxSampler::ScriptVM* ScriptEditor::GetScriptVM() {
     return m_vm;
 }
 
+static void getIteratorsForIssue(Glib::RefPtr<Gtk::TextBuffer>& txtbuf, const LinuxSampler::ParserIssue& issue, Gtk::TextBuffer::iterator& start, Gtk::TextBuffer::iterator& end) {
+    start = txtbuf->get_iter_at_line_index(issue.firstLine - 1, issue.firstColumn - 1);
+    end = start;
+    end.forward_lines(issue.lastLine - issue.firstLine);
+    end.forward_chars(
+        (issue.lastLine != issue.firstLine)
+            ? issue.lastColumn - 1
+            : issue.lastColumn - issue.firstColumn + 1
+    );
+}
+
 static void applyCodeTag(Glib::RefPtr<Gtk::TextBuffer>& txtbuf, const LinuxSampler::VMSourceToken& token, Glib::RefPtr<Gtk::TextBuffer::Tag>& tag) {
     Gtk::TextBuffer::iterator itStart =
         txtbuf->get_iter_at_line_index(token.firstLine(), token.firstColumn());
@@ -244,32 +248,9 @@ static void applyCodeTag(Glib::RefPtr<Gtk::TextBuffer>& txtbuf, const LinuxSampl
 }
 
 static void applyCodeTag(Glib::RefPtr<Gtk::TextBuffer>& txtbuf, const LinuxSampler::ParserIssue& issue, Glib::RefPtr<Gtk::TextBuffer::Tag>& tag) {
-    Gtk::TextBuffer::iterator itStart =
-        txtbuf->get_iter_at_line_index(issue.firstLine - 1, issue.firstColumn - 1);
-    Gtk::TextBuffer::iterator itEnd = itStart;
-    itEnd.forward_lines(issue.lastLine - issue.firstLine);
-    itEnd.forward_chars(
-        (issue.lastLine != issue.firstLine)
-            ? issue.lastColumn - 1
-            : issue.lastColumn - issue.firstColumn + 1
-    );
+    Gtk::TextBuffer::iterator itStart, itEnd;
+    getIteratorsForIssue(txtbuf, issue, itStart, itEnd);
     txtbuf->apply_tag(tag, itStart, itEnd);
-}
-
-void ScriptEditor::removeIssueAnchors() {
-    m_ignoreEraseEvents = true; // avoid endless recursion
-    
-    for (int i = 0; i < m_issues.size(); ++i) {
-        const LinuxSampler::ParserIssue& issue = m_issues[i];
-        printf("erase anchor at l%d c%d\n", issue.firstLine - 1, issue.firstColumn - 1);
-        fflush(stdout);
-        Gtk::TextBuffer::iterator iter = m_textBuffer->get_iter_at_line_index(issue.firstLine - 1, issue.firstColumn - 1);
-        Gtk::TextBuffer::iterator iterEnd = iter;
-        iterEnd.forward_chars(1);
-        m_textBuffer->erase(iter, iterEnd);
-    }
-    
-    m_ignoreEraseEvents = false; // back to normal
 }
 
 void ScriptEditor::updateSyntaxHighlightingByVM() {
@@ -303,19 +284,6 @@ void ScriptEditor::updateSyntaxHighlightingByVM() {
     }
 }
 
-static Glib::RefPtr<Gdk::Pixbuf> createIcon(std::string name, const Glib::RefPtr<Gdk::Screen>& screen) {
-    const int targetH = 9;
-    Glib::RefPtr<Gtk::IconTheme> theme = Gtk::IconTheme::get_for_screen(screen);
-    int w = 0;
-    int h = 0; // ignored
-    Gtk::IconSize::lookup(Gtk::ICON_SIZE_SMALL_TOOLBAR, w, h);
-    Glib::RefPtr<Gdk::Pixbuf> pixbuf = theme->load_icon(name, w, Gtk::ICON_LOOKUP_GENERIC_FALLBACK);
-    if (pixbuf->get_height() != targetH) {
-        pixbuf = pixbuf->scale_simple(targetH, targetH, Gdk::INTERP_BILINEAR);
-    }
-    return pixbuf;
-}
-
 void ScriptEditor::updateParserIssuesByVM() {
     GetScriptVM();
     const std::string s = m_textBuffer->get_text();
@@ -332,39 +300,47 @@ void ScriptEditor::updateParserIssuesByVM() {
         }
     }
 
-    for (int i = m_issues.size() - 1; i >= 0; --i) {
+    delete parserContext;
+}
+
+void ScriptEditor::updateIssueTooltip(GdkEventMotion* e) {
+    int x, y;
+    m_textView.window_to_buffer_coords(Gtk::TEXT_WINDOW_TEXT, int(e->x), int(e->y), x, y);
+
+    Gtk::TextBuffer::iterator it;
+    m_textView.get_iter_at_location(it, x, y);
+    
+    const int line = it.get_line();
+    const int column = it.get_line_offset();
+
+    //printf("mouse at l%d c%d\n", line, column);
+
+    for (int i = 0; i < m_issues.size(); ++i) {
         const LinuxSampler::ParserIssue& issue = m_issues[i];
-
-        if (issue.isErr() || issue.isWrn()) {
-            Glib::RefPtr<Gdk::Pixbuf> pixbuf = createIcon(issue.isErr() ? "dialog-error" : "dialog-warning-symbolic", get_screen());
-            Gtk::Image* image = Gtk::manage(new Gtk::Image(pixbuf));
-            image->show();
-            Gtk::TextBuffer::iterator iter =
-                m_textBuffer->get_iter_at_line_index(issue.firstLine - 1, issue.firstColumn - 1);
-            Glib::RefPtr<Gtk::TextChildAnchor> anchor = m_textBuffer->create_child_anchor(iter);
-            m_textView.add_child_at_anchor(*image, anchor);
-            
-            iter =
-                m_textBuffer->get_iter_at_line_index(issue.firstLine - 1, issue.firstColumn - 1);
-            Gtk::TextBuffer::iterator itEnd = iter;
-            itEnd.forward_char();
-
-            // prevent that the user can erase the icon with backspace key
-            m_textBuffer->apply_tag(m_readOnlyTag, iter, itEnd);
+        const int firstLine   = issue.firstLine - 1;
+        const int firstColumn = issue.firstColumn - 1;
+        const int lastLine    = issue.lastLine - 1;
+        const int lastColumn  = issue.lastColumn - 1;
+        if (firstLine <= line && line <= lastLine &&
+            (firstLine != line || firstColumn <= column) &&
+            (lastLine  != line || lastColumn  >= column))
+        {
+            m_textView.set_tooltip_markup(
+                (issue.isErr() ? "<span foreground=\"#ff9393\">ERROR:</span> " : "<span foreground=\"#c4950c\">Warning:</span> ") +
+                issue.txt
+            );
+            return;
         }
     }
 
-    delete parserContext;
+    m_textView.set_tooltip_markup("");
 }
 
 #endif // USE_LS_SCRIPTVM
 
 void ScriptEditor::onTextErased(const Gtk::TextBuffer::iterator& itStart, const Gtk::TextBuffer::iterator& itEnd) {
     //printf("erased\n");
-    if (m_ignoreEraseEvents) return;
-
 #if USE_LS_SCRIPTVM
-    removeIssueAnchors();
     m_textBuffer->remove_all_tags(m_textBuffer->begin(), m_textBuffer->end());
     updateSyntaxHighlightingByVM();
     updateParserIssuesByVM();
@@ -378,6 +354,14 @@ void ScriptEditor::onTextErased(const Gtk::TextBuffer::iterator& itStart, const 
 
     m_textBuffer->remove_all_tags(itStart2, itEnd2);
 #endif // USE_LS_SCRIPTVM
+}
+
+bool ScriptEditor::on_motion_notify_event(GdkEventMotion* e) {
+#if USE_LS_SCRIPTVM
+    //TODO: event throttling would be a good idea here
+    updateIssueTooltip(e);
+#endif
+    return ManagedWindow::on_motion_notify_event(e);
 }
 
 void ScriptEditor::onModifiedChanged() {
