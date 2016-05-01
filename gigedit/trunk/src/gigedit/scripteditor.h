@@ -64,6 +64,7 @@ protected:
     std::vector<LinuxSampler::ParserIssue> m_issues;
 #endif
 
+    bool isModified() const;
     void onButtonCancel();
     void onButtonApply();
     void onWindowHide();
@@ -77,6 +78,7 @@ protected:
     void updateIssueTooltip(GdkEventMotion* e);
 #endif
     bool on_motion_notify_event(GdkEventMotion* e);
+    bool onWindowDelete(GdkEventAny* e);
 };
 
 #endif // GIGEDIT_SCRIPTEDITOR_H

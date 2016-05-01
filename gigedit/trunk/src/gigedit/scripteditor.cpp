@@ -142,6 +142,10 @@ ScriptEditor::ScriptEditor() :
         sigc::mem_fun(*this, &ScriptEditor::onWindowHide)
     );
 
+    signal_delete_event().connect(
+        sigc::mem_fun(*this, &ScriptEditor::onWindowDelete)
+    );
+
     show_all_children();
 
     resize(460,300);
@@ -364,11 +368,54 @@ bool ScriptEditor::on_motion_notify_event(GdkEventMotion* e) {
     return ManagedWindow::on_motion_notify_event(e);
 }
 
+bool ScriptEditor::onWindowDelete(GdkEventAny* e) {
+    //printf("onWindowDelete\n");
+
+    if (!isModified()) return false; // propagate event further (which will close this window)
+
+    gchar* msg = g_strdup_printf(_("Apply changes to instrument script \"%s\" before closing?"),
+                                 m_script->Name.c_str());
+    Gtk::MessageDialog dialog(*this, msg, false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE);
+    g_free(msg);
+    dialog.set_secondary_text(_("If you close without applying, your changes will be lost."));
+    dialog.add_button(_("Close _Without Applying"), Gtk::RESPONSE_NO);
+    dialog.add_button(_("_Cancel"), Gtk::RESPONSE_CANCEL);
+    dialog.add_button(_("_Apply"), Gtk::RESPONSE_YES);
+    dialog.set_default_response(Gtk::RESPONSE_YES);
+    int response = dialog.run();
+    dialog.hide();
+
+    // user decided to close script editor without saving
+    if (response == Gtk::RESPONSE_NO)
+        return false; // propagate event further (which will close this window)
+
+    // user cancelled dialog, thus don't close script editor
+    if (response == Gtk::RESPONSE_CANCEL) {
+        show();
+        return true; // drop event (prevents closing this window)
+    }
+
+    // user wants to apply the changes, afterwards close window
+    if (response == Gtk::RESPONSE_YES) {
+        onButtonApply();
+        return false; // propagate event further (which will close this window)
+    }
+
+    // should never ever make it to this point actually
+    return false;
+}
+
+bool ScriptEditor::isModified() const {
+    return m_textBuffer->get_modified();
+}
+
 void ScriptEditor::onModifiedChanged() {
-    m_applyButton.set_sensitive( m_textBuffer->get_modified() );
+    m_applyButton.set_sensitive(isModified());
 }
 
 void ScriptEditor::onButtonCancel() {
+    bool dropEvent = onWindowDelete(NULL);
+    if (dropEvent) return;
     hide();
 }
 

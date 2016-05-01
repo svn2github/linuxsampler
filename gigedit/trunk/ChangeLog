@@ -21,6 +21,8 @@ Version SVN HEAD (?)
   * Script Editor: Show precise parser error/warning messages as tooltip
     when the mouse points over the respective location in the script's
     source code.
+  * Script Editor: Show a question dialog to the user when the editor is
+    to be closed and the script changes have not been applied yet.
 
 Version 1.0.0 (2015-07-17)
 
