@@ -15,7 +15,7 @@
 #include "ManagedWindow.h"
 
 // Should we use a very simple (and buggy) local NKSP syntax parser, or should
-// we rather use the full features NKSP syntax highlighting backend from
+// we rather use the full featured NKSP syntax highlighting backend from
 // liblinuxsampler for syntax highlighting of this text editor?
 #if HAVE_LINUXSAMPLER
 # define USE_LS_SCRIPTVM 1
@@ -40,6 +40,8 @@ public:
 
 protected:
     Gtk::VBox m_vbox;
+    Gtk::HBox m_footerHBox;
+    Gtk::HBox m_statusHBox;
     Gtk::HButtonBox m_buttonBox;
     Gtk::ScrolledWindow m_scrolledWindow;
     Glib::RefPtr<Gtk::TextBuffer> m_textBuffer;
@@ -55,13 +57,21 @@ protected:
     Glib::RefPtr<Gtk::TextBuffer::Tag> m_errorTag;
     Glib::RefPtr<Gtk::TextBuffer::Tag> m_warningTag;
     Gtk::TextView m_textView;
+    Gtk::Image m_statusImage;
+    Gtk::Label m_statusLabel;
     Gtk::Button m_applyButton;
     Gtk::Button m_cancelButton;
+
+    Glib::RefPtr<Gdk::Pixbuf> m_warningIcon;
+    Glib::RefPtr<Gdk::Pixbuf> m_errorIcon;
+    Glib::RefPtr<Gdk::Pixbuf> m_successIcon;
 
     gig::Script* m_script;
 #if USE_LS_SCRIPTVM
     LinuxSampler::ScriptVM* m_vm;
     std::vector<LinuxSampler::ParserIssue> m_issues;
+    std::vector<LinuxSampler::ParserIssue> m_errors;
+    std::vector<LinuxSampler::ParserIssue> m_warnings;
 #endif
 
     bool isModified() const;
@@ -76,6 +86,7 @@ protected:
     void updateParserIssuesByVM();
     LinuxSampler::ScriptVM* GetScriptVM();
     void updateIssueTooltip(GdkEventMotion* e);
+    void updateStatusBar();
 #endif
     bool on_motion_notify_event(GdkEventMotion* e);
     bool onWindowDelete(GdkEventAny* e);

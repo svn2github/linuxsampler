@@ -35,7 +35,21 @@ static bool isEvent(const Glib::ustring& s) {
 
 #endif // !USE_LS_SCRIPTVM
 
+static Glib::RefPtr<Gdk::Pixbuf> createIcon(std::string name, const Glib::RefPtr<Gdk::Screen>& screen) {
+    const int targetH = 16;
+    Glib::RefPtr<Gtk::IconTheme> theme = Gtk::IconTheme::get_for_screen(screen);
+    int w = 0;
+    int h = 0; // ignored
+    Gtk::IconSize::lookup(Gtk::ICON_SIZE_SMALL_TOOLBAR, w, h);
+    Glib::RefPtr<Gdk::Pixbuf> pixbuf = theme->load_icon(name, w, Gtk::ICON_LOOKUP_GENERIC_FALLBACK);
+    if (pixbuf->get_height() != targetH) {
+        pixbuf = pixbuf->scale_simple(targetH, targetH, Gdk::INTERP_BILINEAR);
+    }
+    return pixbuf;
+}
+
 ScriptEditor::ScriptEditor() :
+    m_statusLabel("",  Gtk::ALIGN_START),
     m_applyButton(_("_Apply"), true),
     m_cancelButton(_("_Cancel"), true)
 {
@@ -43,6 +57,10 @@ ScriptEditor::ScriptEditor() :
 #if USE_LS_SCRIPTVM
     m_vm = NULL;
 #endif
+
+    m_errorIcon = createIcon("dialog-error", get_screen());
+    m_warningIcon = createIcon("dialog-warning-symbolic", get_screen());
+    m_successIcon = createIcon("emblem-default", get_screen());
 
     add(m_vbox);
 
@@ -116,7 +134,18 @@ ScriptEditor::ScriptEditor() :
     m_applyButton.set_can_default();
     m_applyButton.set_sensitive(false);
     m_applyButton.grab_focus();
-    m_vbox.pack_start(m_buttonBox, Gtk::PACK_SHRINK);
+    
+    m_statusImage.set_margin_left(6);
+    m_statusImage.set_margin_right(6);
+
+    m_statusHBox.pack_start(m_statusImage, Gtk::PACK_SHRINK);
+    m_statusHBox.pack_start(m_statusLabel);
+    m_statusHBox.show_all_children();
+
+    m_footerHBox.pack_start(m_statusHBox);
+    m_footerHBox.pack_start(m_buttonBox, Gtk::PACK_SHRINK);
+
+    m_vbox.pack_start(m_footerHBox, Gtk::PACK_SHRINK);
 
     m_applyButton.signal_clicked().connect(
         sigc::mem_fun(*this, &ScriptEditor::onButtonApply)
@@ -179,6 +208,7 @@ void ScriptEditor::onTextInserted(const Gtk::TextBuffer::iterator& itEnd, const 
     m_textBuffer->remove_all_tags(m_textBuffer->begin(), m_textBuffer->end());
     updateSyntaxHighlightingByVM();
     updateParserIssuesByVM();
+    updateStatusBar();
 #else
     //printf("inserted %d\n", length);
     Gtk::TextBuffer::iterator itStart = itEnd;
@@ -293,6 +323,8 @@ void ScriptEditor::updateParserIssuesByVM() {
     const std::string s = m_textBuffer->get_text();
     LinuxSampler::VMParserContext* parserContext = m_vm->loadScript(s);
     m_issues = parserContext->issues();
+    m_errors = parserContext->errors();
+    m_warnings = parserContext->warnings();
 
     for (int i = 0; i < m_issues.size(); ++i) {
         const LinuxSampler::ParserIssue& issue = m_issues[i];
@@ -340,6 +372,46 @@ void ScriptEditor::updateIssueTooltip(GdkEventMotion* e) {
     m_textView.set_tooltip_markup("");
 }
 
+static std::string warningsCountTxt(const std::vector<LinuxSampler::ParserIssue> warnings) {
+    std::string txt = "<span foreground=\"#c4950c\">" + ToString(warnings.size());
+    txt += (warnings.size() == 1) ? " Warning" : " Warnings";
+    txt += "</span>";
+    return txt;
+}
+
+static std::string errorsCountTxt(const std::vector<LinuxSampler::ParserIssue> errors) {
+    std::string txt = "<span foreground=\"#c40c0c\">" + ToString(errors.size());
+    txt += (errors.size() == 1) ? " Error" : " Errors";
+    txt += "</span>";
+    return txt;
+}
+
+void ScriptEditor::updateStatusBar() {
+    // update status text
+    std::string txt;
+    if (m_issues.empty()) {
+        txt = "No issues with this script.";
+    } else {
+        const char* txtWontLoad = ". Sampler won't load instruments using this script!";
+        txt = "There ";
+        txt += (m_errors.size() <= 1 && m_warnings.size() <= 1) ? "is " : "are ";
+        if (m_errors.empty()) {
+            txt += warningsCountTxt(m_warnings) + ". Script will load, but might not behave as expected!";
+        } else if (m_warnings.empty()) {
+            txt += errorsCountTxt(m_errors) + txtWontLoad;
+        } else {
+            txt += errorsCountTxt(m_errors) + " and " +
+                   warningsCountTxt(m_warnings) + txtWontLoad;
+        }
+    }
+    m_statusLabel.set_markup(txt);
+
+    // update status icon
+    m_statusImage.set(
+        m_issues.empty() ? m_successIcon : !m_errors.empty() ? m_errorIcon : m_warningIcon
+    );
+}
+
 #endif // USE_LS_SCRIPTVM
 
 void ScriptEditor::onTextErased(const Gtk::TextBuffer::iterator& itStart, const Gtk::TextBuffer::iterator& itEnd) {
@@ -348,6 +420,7 @@ void ScriptEditor::onTextErased(const Gtk::TextBuffer::iterator& itStart, const 
     m_textBuffer->remove_all_tags(m_textBuffer->begin(), m_textBuffer->end());
     updateSyntaxHighlightingByVM();
     updateParserIssuesByVM();
+    updateStatusBar();
 #else
     Gtk::TextBuffer::iterator itStart2 = itStart;
     if (itStart2.inside_word() || itStart2.ends_word())
@@ -411,6 +484,9 @@ bool ScriptEditor::isModified() const {
 
 void ScriptEditor::onModifiedChanged() {
     m_applyButton.set_sensitive(isModified());
+#if USE_LS_SCRIPTVM
+    updateStatusBar();
+#endif
 }
 
 void ScriptEditor::onButtonCancel() {
