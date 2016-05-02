@@ -135,8 +135,12 @@ ScriptEditor::ScriptEditor() :
     m_applyButton.set_sensitive(false);
     m_applyButton.grab_focus();
     
+#if GTKMM_MAJOR_VERSION >= 3
     m_statusImage.set_margin_left(6);
     m_statusImage.set_margin_right(6);
+#else
+    m_statusHBox.set_spacing(6);
+#endif
 
     m_statusHBox.pack_start(m_statusImage, Gtk::PACK_SHRINK);
     m_statusHBox.pack_start(m_statusLabel);
