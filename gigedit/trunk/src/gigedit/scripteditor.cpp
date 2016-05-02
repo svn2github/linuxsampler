@@ -108,6 +108,30 @@ ScriptEditor::ScriptEditor() :
     m_warningTag->property_background() = "#fffd7c"; // yellow
     m_tagTable->add(m_warningTag);
 
+    // create menu
+    m_actionGroup = Gtk::ActionGroup::create();
+    m_actionGroup->add(Gtk::Action::create("MenuScript", _("_Script")));
+    m_actionGroup->add(Gtk::Action::create("Apply", _("_Apply")),
+                       Gtk::AccelKey("<control>s"),
+                       sigc::mem_fun(*this, &ScriptEditor::onButtonApply));
+    m_actionGroup->add(Gtk::Action::create("Close", _("_Close")),
+                       Gtk::AccelKey("<control>x"),
+                       sigc::mem_fun(*this, &ScriptEditor::onButtonCancel));
+    m_uiManager = Gtk::UIManager::create();
+    m_uiManager->insert_action_group(m_actionGroup);
+    add_accel_group(m_uiManager->get_accel_group());
+    m_uiManager->add_ui_from_string(
+        "<ui>"
+        "  <menubar name='MenuBar'>"
+        "    <menu action='MenuScript'>"
+        "      <menuitem action='Apply'/>"
+        "      <separator/>"
+        "      <menuitem action='Close'/>"
+        "    </menu>"
+        "  </menubar>"
+        "</ui>"
+    );
+
     m_textBuffer = Gtk::TextBuffer::create(m_tagTable);
     m_textView.set_buffer(m_textBuffer);
     {
@@ -126,6 +150,9 @@ ScriptEditor::ScriptEditor() :
     }
     m_scrolledWindow.add(m_textView);
     m_scrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+
+    Gtk::Widget* menuBar = m_uiManager->get_widget("/MenuBar");
+    m_vbox.pack_start(*menuBar, Gtk::PACK_SHRINK);
     m_vbox.pack_start(m_scrolledWindow);
 
     m_buttonBox.set_layout(Gtk::BUTTONBOX_END);
@@ -134,7 +161,7 @@ ScriptEditor::ScriptEditor() :
     m_applyButton.set_can_default();
     m_applyButton.set_sensitive(false);
     m_applyButton.grab_focus();
-    
+
 #if GTKMM_MAJOR_VERSION >= 3
     m_statusImage.set_margin_left(6);
     m_statusImage.set_margin_right(6);
@@ -180,8 +207,6 @@ ScriptEditor::ScriptEditor() :
     );
 
     show_all_children();
-
-    resize(460,300);
 }
 
 ScriptEditor::~ScriptEditor() {

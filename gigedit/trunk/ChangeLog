@@ -25,6 +25,8 @@ Version SVN HEAD (?)
     to be closed and the script changes have not been applied yet.
   * Script Editor: Added status bar at the bottom of the script editor
     window showing the amount (if any) of errors and warnings.
+  * Script Editor: Added menu bar and two initial entries: "Apply" (Ctrl-S)
+    and "Close" (Ctrl-X).
 
 Version 1.0.0 (2015-07-17)
 

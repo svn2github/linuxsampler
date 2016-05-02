@@ -12,6 +12,8 @@
 #include <gtkmm.h>
 #include <config.h>
 #include "compat.h"
+#include <gtkmm/uimanager.h>
+#include <gtkmm/actiongroup.h>
 #include "ManagedWindow.h"
 
 // Should we use a very simple (and buggy) local NKSP syntax parser, or should
@@ -65,6 +67,9 @@ protected:
     Glib::RefPtr<Gdk::Pixbuf> m_warningIcon;
     Glib::RefPtr<Gdk::Pixbuf> m_errorIcon;
     Glib::RefPtr<Gdk::Pixbuf> m_successIcon;
+
+    Glib::RefPtr<Gtk::ActionGroup> m_actionGroup;
+    Glib::RefPtr<Gtk::UIManager> m_uiManager;
 
     gig::Script* m_script;
 #if USE_LS_SCRIPTVM
