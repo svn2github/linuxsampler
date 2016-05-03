@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2012 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -116,6 +116,7 @@ namespace LinuxSampler { namespace gig {
 
             void UncacheInitialSamples(::gig::Sample* pSample);
             std::vector< ::gig::Instrument*> GetInstrumentsCurrentlyUsedOf(::gig::File* pFile, bool bLock);
+            std::set<EngineChannel*> GetEngineChannelsUsingScriptSourceCode(const String& code, bool bLock);
             std::set<EngineChannel*> GetEngineChannelsUsing(::gig::Instrument* pInstrument, bool bLock);
             std::set<Engine*> GetEnginesUsing(::gig::Instrument* pInstrument, bool bLock);
             std::set<Engine*> GetEnginesUsing(::gig::File* pFile, bool bLock);
@@ -128,6 +129,8 @@ namespace LinuxSampler { namespace gig {
             ArrayList<InstrumentConsumer*> InstrumentEditorProxies; ///< here we store the objects that react on instrument specific notifications on behalf of the respective instrument editor
             std::set<Engine*> suspendedEngines; ///< all engines currently completely suspended
             Mutex             suspendedEnginesMutex; ///< protects 'suspendedEngines' set
+            std::map< ::gig::Script*,String> pendingScriptUpdates; ///< Used to prepare updates of instrument scripts (value of the map is the original source code of the script before it is modified).
+            Mutex                            pendingScriptUpdatesMutex; ///< Protectes 'pendingScriptUpdates'.
     };
 
 }} // namespace LinuxSampler::gig

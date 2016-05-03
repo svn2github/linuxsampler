@@ -28,7 +28,7 @@
 
 namespace LinuxSampler { namespace gig {
     EngineChannel::EngineChannel() {
-        
+        CurrentGigScript = NULL;
     }
 
     EngineChannel::~EngineChannel() {
@@ -84,7 +84,7 @@ namespace LinuxSampler { namespace gig {
 
         // make sure we don't trigger any new notes with an old
         // instrument
-        InstrumentChangeCmd< ::gig::DimensionRegion, ::gig::Instrument>& cmd = ChangeInstrument(0);
+        InstrumentChangeCmd< ::gig::DimensionRegion, ::gig::Instrument>& cmd = ChangeInstrument(NULL);
         if (cmd.pInstrument) {
             // give old instrument back to instrument manager, but
             // keep the dimension regions and samples that are in use
@@ -93,6 +93,7 @@ namespace LinuxSampler { namespace gig {
         if (cmd.pScript) {
             // give old instrument script back to instrument resource manager
             cmd.pScript->resetAll();
+            CurrentGigScript = NULL;
         }
         cmd.pRegionsInUse->clear();
 
@@ -119,6 +120,7 @@ namespace LinuxSampler { namespace gig {
                 String sourceCode = script->GetScriptAsText();
                 LoadInstrumentScript(sourceCode);
             }
+            CurrentGigScript = script;
         }
         catch (RIFF::Exception e) {
             InstrumentStat = -2;
@@ -168,6 +170,31 @@ namespace LinuxSampler { namespace gig {
         }
 
         StatusChanged(true);
+    }
+
+    /**
+     * Called by instrument editor API to inform this engine channel that the
+     * passed @a script has been modified by the instrument editor and that
+     * this engine channel should thus reload the instrument script (that is
+     * that it should re-parse the scripts new source code).
+     */
+    void EngineChannel::reloadScript(::gig::Script* script) {
+        dmsg(3,("gig::EngineChannel::realoadScript()\n"));
+        // make sure this engine channel is actually using the requested
+        // modified gig::Script object (because the internal script resource
+        // manager will i.e. provide the same VM object for different
+        // ::gig::Script objects with same source code though.
+        if (!script || CurrentGigScript != script) return;
+
+        //TODO: reloading the entire instrument is currently a very lazy (and slow) solution just for reloading the instrument script
+        try {
+            LoadInstrument();
+        } catch (Exception e) {
+            std::cerr << e.Message() << std::endl;
+        } catch (...) {
+            String msg = "gig::Engine error: Failed to reload instrument script, cause: Unknown exception while trying to reload gig file.";
+            std::cerr << msg << std::endl;
+        }
     }
 
     void EngineChannel::ProcessKeySwitchChange(int key) {

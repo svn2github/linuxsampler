@@ -45,6 +45,8 @@ namespace LinuxSampler { namespace gig {
 
             virtual AbstractEngine::Format GetEngineFormat();
 
+            void reloadScript(::gig::Script* script);
+
             friend class Voice;
             friend class Engine;
             friend class LinuxSampler::EngineChannelFactory;
@@ -54,6 +56,7 @@ namespace LinuxSampler { namespace gig {
             virtual ~EngineChannel();
 
             float CurrentKeyDimension;      ///< Current value (0-1.0) for the keyboard dimension, altered by pressing a keyswitching key.
+            ::gig::Script* CurrentGigScript; ///< Only used when a script is updated (i.e. by instrument editor), to check whether this engine channel is actually using that specific script reference.
 
             virtual void ProcessKeySwitchChange(int key);
 

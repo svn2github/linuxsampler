@@ -55,7 +55,7 @@ namespace LinuxSampler {
      * @endcode
      * This is required because engine internally notes and regular events are
      * using their own, separate ID generating pool, and their ID number set
-     * may thu soverlap.
+     * may thus overlap.
      *
      * @see INSTR_SCRIPT_EVENT_ID_RESERVED_BITS
      */

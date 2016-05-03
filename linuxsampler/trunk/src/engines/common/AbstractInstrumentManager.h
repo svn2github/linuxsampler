@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck
+ * Copyright (c) 2014-2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -24,6 +24,15 @@ namespace LinuxSampler {
         AbstractInstrumentManager() { }
         virtual ~AbstractInstrumentManager() { }
 
+        /**
+         * Resource manager for loading and sharing the parsed (executable) VM
+         * presentation of real-time instrument scripts. The key used here, and
+         * associated with each script resource, is not as one might expect the
+         * script name or something equivalent, instead the key used is
+         * actually the entire script's source code text. The value (the actual
+         * resource) is of type @c VMParserContext, which is the parsed
+         * (executable) VM representation of the respective script.
+         */
         class ScriptResourceManager : public ResourceManager<String, VMParserContext> {
         public:
             ScriptResourceManager() {}

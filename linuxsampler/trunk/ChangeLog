@@ -51,6 +51,8 @@ Version SVN trunk (?)
     - Extended parser issues to provide not only first line and first
       column, but also last line and last column of issue (thus marking
       the precise span of the issue within the source code).
+    - Reload script automatically after being modified by an instrument
+      editor.
 
 Version 2.0.0 (15 July 2015)
 

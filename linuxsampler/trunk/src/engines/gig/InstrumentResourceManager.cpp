@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2015 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -392,6 +392,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     void InstrumentResourceManager::OnDataStructureToBeChanged(void* pStruct, String sStructType, InstrumentEditor* pSender) {
+        dmsg(5,("gig::InstrumentResourceManager::OnDataStructureToBeChanged(%s)\n", sStructType.c_str()));
         //TODO: remove code duplication
         if (sStructType == "gig::File") {
             // completely suspend all engines that use that file
@@ -432,6 +433,16 @@ namespace LinuxSampler { namespace gig {
             std::set<Engine*>::iterator end  = engines.end();
             for (; iter != end; ++iter) (*iter)->Suspend(pRegion);
             Unlock();
+        } else if (sStructType == "gig::Script") {
+            // no need to suspend anything here, since the sampler is
+            // processing a translated VM representation of the original script
+            // source code, not accessing the source code itself during playback
+            ::gig::Script* pScript = (::gig::Script*) pStruct;
+            // remember the original source code of the script, since the script
+            // resource manager uses the source code as key
+            pendingScriptUpdatesMutex.Lock();
+            pendingScriptUpdates[pScript] = pScript->GetScriptAsText();
+            pendingScriptUpdatesMutex.Unlock();
         } else {
             std::cerr << "gig::InstrumentResourceManager: ERROR, unknown data "
                          "structure '" << sStructType << "' requested to be "
@@ -442,6 +453,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     void InstrumentResourceManager::OnDataStructureChanged(void* pStruct, String sStructType, InstrumentEditor* pSender) {
+        dmsg(5,("gig::InstrumentResourceManager::OnDataStructureChanged(%s)\n", sStructType.c_str()));
         //TODO: remove code duplication
         if (sStructType == "gig::File") {
             // resume all previously suspended engines
@@ -499,6 +511,20 @@ namespace LinuxSampler { namespace gig {
             std::set<Engine*>::iterator end  = engines.end();
             for (; iter != end; ++iter) (*iter)->Resume(pRegion);
             Unlock();
+        } else if (sStructType == "gig::Script") {
+            // inform all engine channels which are using this script, that
+            // they need to reload (parse) the script's source code text
+            ::gig::Script* pScript = (::gig::Script*) pStruct;
+            pendingScriptUpdatesMutex.Lock();
+            if (pendingScriptUpdates.count(pScript)) {
+                const String& code = pendingScriptUpdates[pScript];
+                std::set<EngineChannel*> channels = GetEngineChannelsUsingScriptSourceCode(code, true/*lock*/);
+                pendingScriptUpdates.erase(pScript);
+                std::set<EngineChannel*>::iterator iter = channels.begin();
+                std::set<EngineChannel*>::iterator end  = channels.end();
+                for (; iter != end; ++iter) (*iter)->reloadScript(pScript);
+            }
+            pendingScriptUpdatesMutex.Unlock();
         } else {
             std::cerr << "gig::InstrumentResourceManager: ERROR, unknown data "
                          "structure '" << sStructType << "' requested to be "
@@ -710,6 +736,29 @@ namespace LinuxSampler { namespace gig {
                 (::gig::File*) allInstruments[i]->GetParent()
                 == pFile
             ) result.push_back(allInstruments[i]);
+        if (bLock) Unlock();
+        return result;
+    }
+
+    /**
+     * Returns a list with all gig engine channels that are currently using
+     * the given real-time instrument script (provided as source code).
+     *
+     * @param pScript - search criteria
+     * @param bLock - whether we should lock (mutex) the instrument manager
+     *                during this call and unlock at the end of this call
+     */
+    std::set<EngineChannel*> InstrumentResourceManager::GetEngineChannelsUsingScriptSourceCode(const String& code, bool bLock) {
+        if (bLock) Lock();
+        std::set<EngineChannel*> result;
+        std::set<InstrumentScriptConsumer*> consumers = scripts.ConsumersOf(code);
+        std::set<InstrumentScriptConsumer*>::iterator iter = consumers.begin();
+        std::set<InstrumentScriptConsumer*>::iterator end  = consumers.end();
+        for (; iter != end; ++iter) {
+            EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(*iter);
+            if (!pEngineChannel) continue;
+            result.insert(pEngineChannel);
+        }
         if (bLock) Unlock();
         return result;
     }
