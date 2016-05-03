@@ -34,6 +34,9 @@ public:
    ~ScriptEditor();
     void setScript(gig::Script* script);
 
+    sigc::signal<void, gig::Script*> signal_script_to_be_changed;
+    sigc::signal<void, gig::Script*> signal_script_changed;
+
     // implementation for abstract methods of interface class "ManagedWindow"
     virtual Settings::Property<int>* windowSettingX() { return &Settings::singleton()->scriptEditorWindowX; }
     virtual Settings::Property<int>* windowSettingY() { return &Settings::singleton()->scriptEditorWindowY; }

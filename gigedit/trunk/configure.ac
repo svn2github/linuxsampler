@@ -5,7 +5,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 m4_define(gigedit_ver_major, 1)
 m4_define(gigedit_ver_minor, 0)
-m4_define(gigedit_ver_release, 0.svn12)
+m4_define(gigedit_ver_release, 0.svn13)
 
 AC_INIT([gigedit], [gigedit_ver_major.gigedit_ver_minor.gigedit_ver_release])
 AC_CONFIG_SRCDIR([configure.ac])

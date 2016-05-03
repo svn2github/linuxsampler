@@ -124,6 +124,22 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
     app->signal_switch_sampler_instrument().connect(
         sigc::mem_fun(*this, &LinuxSamplerPlugin::__requestSamplerToSwitchInstrument)
     );
+    app->signal_script_to_be_changed.connect(
+        sigc::bind(
+            sigc::mem_fun(
+                *this, &LinuxSamplerPlugin::NotifyDataStructureToBeChanged
+            ),
+            "gig::Script"
+        )
+    );
+    app->signal_script_changed.connect(
+        sigc::bind(
+            sigc::mem_fun(
+                *this, &LinuxSamplerPlugin::NotifyDataStructureChanged
+            ),
+            "gig::Script"
+        )
+    );
 
     // register a timeout job to gigedit's main loop, so we can poll the
     // the sampler periodically for MIDI events (I HOPE it works on all

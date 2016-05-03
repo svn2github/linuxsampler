@@ -115,7 +115,7 @@ ScriptEditor::ScriptEditor() :
                        Gtk::AccelKey("<control>s"),
                        sigc::mem_fun(*this, &ScriptEditor::onButtonApply));
     m_actionGroup->add(Gtk::Action::create("Close", _("_Close")),
-                       Gtk::AccelKey("<control>x"),
+                       Gtk::AccelKey("<control>q"),
                        sigc::mem_fun(*this, &ScriptEditor::onButtonCancel));
     m_uiManager = Gtk::UIManager::create();
     m_uiManager->insert_action_group(m_actionGroup);
@@ -525,7 +525,9 @@ void ScriptEditor::onButtonCancel() {
 }
 
 void ScriptEditor::onButtonApply() {
+    signal_script_to_be_changed.emit(m_script);
     m_script->SetScriptAsText(m_textBuffer->get_text());
+    signal_script_changed.emit(m_script);
     m_textBuffer->set_modified(false);
 }
 

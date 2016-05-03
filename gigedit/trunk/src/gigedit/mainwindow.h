@@ -213,7 +213,10 @@ public:
     sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_released();
 
     sigc::signal<void, gig::Instrument*>& signal_switch_sampler_instrument();
-    
+
+    sigc::signal<void, gig::Script*> signal_script_to_be_changed;
+    sigc::signal<void, gig::Script*> signal_script_changed;
+
     // implementation for abstract methods of interface class "ManagedWindow"
     virtual Settings::Property<int>* windowSettingX() { return &Settings::singleton()->mainWindowX; }
     virtual Settings::Property<int>* windowSettingY() { return &Settings::singleton()->mainWindowY; }

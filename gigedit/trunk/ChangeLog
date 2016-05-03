@@ -26,7 +26,10 @@ Version SVN HEAD (?)
   * Script Editor: Added status bar at the bottom of the script editor
     window showing the amount (if any) of errors and warnings.
   * Script Editor: Added menu bar and two initial entries: "Apply" (Ctrl-S)
-    and "Close" (Ctrl-X).
+    and "Close" (Ctrl-Q).
+  * Script Editor: if editor is used in live-mode, inform the sampler that
+    it needs to automatically reload the script after the script has been
+    altered and applied with the script editor.
 
 Version 1.0.0 (2015-07-17)
 

@@ -251,6 +251,12 @@ void connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {
     mainwindow->signal_switch_sampler_instrument().connect(
         gigedit->signal_switch_sampler_instrument().make_slot()
     );
+    mainwindow->signal_script_to_be_changed.connect(
+        gigedit->signal_script_to_be_changed.make_slot()
+    );
+    mainwindow->signal_script_changed.connect(
+        gigedit->signal_script_changed.make_slot()
+    );
 }
 
 } // namespace

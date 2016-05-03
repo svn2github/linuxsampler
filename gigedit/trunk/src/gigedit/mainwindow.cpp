@@ -2340,6 +2340,12 @@ void MainWindow::on_action_edit_script() {
     if (!script) return;
 
     ScriptEditor* editor = new ScriptEditor;
+    editor->signal_script_to_be_changed.connect(
+        signal_script_to_be_changed.make_slot()
+    );
+    editor->signal_script_changed.connect(
+        signal_script_changed.make_slot()
+    );
     editor->setScript(script);
     //editor->reparent(*this);
     editor->show();
@@ -3082,6 +3088,12 @@ void MainWindow::script_double_clicked(const Gtk::TreeModel::Path& path,
     if (!script) return;
 
     ScriptEditor* editor = new ScriptEditor;
+    editor->signal_script_to_be_changed.connect(
+        signal_script_to_be_changed.make_slot()
+    );
+    editor->signal_script_changed.connect(
+        signal_script_changed.make_slot()
+    );
     editor->setScript(script);
     //editor->reparent(*this);
     editor->show();
