@@ -1,5 +1,11 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2016-05-04">
+    There are is some progress regarding Gigedit's integrated
+    <link ref="http://doc.linuxsampler.org/Instrument_Scripts/NKSP_Language/">NKSP</link>
+    real-time instrument script editor. Check out the
+    <link ref="http://doc.linuxsampler.org/News/Instrument_Script_Editor_2016-05-04/">News Article ...</link>
+  </entry>
   <entry date="2015-07-18">
     LinuxSampler 2.0.0 had been released after six years of development!
     Check the
