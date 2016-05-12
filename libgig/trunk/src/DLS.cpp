@@ -1467,8 +1467,9 @@ namespace DLS {
                 for (int i = 0 ; i < WavePoolCount ; i++) {
                     pWavePoolTableHi[i] = ptbl->ReadUint32();
                     pWavePoolTable[i] = ptbl->ReadUint32();
-                    if (pWavePoolTable[i] & 0x80000000)
-                        throw DLS::Exception("Files larger than 2 GB not yet supported");
+                    //NOTE: disabled this 2GB check, not sure why this check was still left here (Christian, 2016-05-12)
+                    //if (pWavePoolTable[i] & 0x80000000)
+                    //    throw DLS::Exception("Files larger than 2 GB not yet supported");
                 }
             } else { // conventional 32 bit offsets
                 ptbl->Read(pWavePoolTable, WavePoolCount, sizeof(uint32_t));

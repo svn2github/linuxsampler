@@ -1,12 +1,18 @@
 Version SVN trunk
+  * general changes:
+    - removed 2GB limitation when loading a gig or DLS file
+
   * src/gig.cpp:
     - fixed bug in Script::SetGroup: the script chunk wasn't moved
     - fixed compilation error with clang 3.4
+
   * src/tools/akaidump.cpp, src/tools/akaiextract.cpp:
     - improved output of non-ascii characters in usage messages
     - fixed printf format strings
+
   * src/tools/korg2gig.cpp:
     - fixed c++11 narrowing warnings
+    - fixed fine tuning which was not translated at all
 
 Version 4.0.0 (14 Jul 2015)
   * general changes:

@@ -755,6 +755,8 @@ int main(int argc, char *argv[]) {
                         dimRgn->DimensionUpperLimits[iVelocityDimensionIndex] = velRange.high; // gig v3 and above
                     }
 
+                    dimRgn->FineTune = kmpRegion->Tune;
+
                     // assign the respective gig sample to this dimension region
                     gig::Sample* gigSample = findOrCreateGigSampleForKSFRegion(kmpRegion);
                     dimRgn->pSample = gigSample; // might be NULL (if Korg sample had zero size, or if the original instrument's internal samples were used)
