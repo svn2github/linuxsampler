@@ -44,7 +44,7 @@
 
 %type <nEventHandlers> script eventhandlers
 %type <nEventHandler> eventhandler
-%type <nStatements> statements
+%type <nStatements> statements body
 %type <nStatement> statement assignment
 %type <nFunctionCall> functioncall
 %type <nArgs> args
@@ -72,29 +72,37 @@ eventhandlers:
     }
 
 eventhandler:
-    ON NOTE statements END ON  {
+    ON NOTE body END ON  {
         if (context->onNote)
             PARSE_ERR(@2, "Redeclaration of 'note' event handler.");
         context->onNote = new OnNote($3);
         $$ = context->onNote;
     }
-    | ON INIT statements END ON  {
+    | ON INIT body END ON  {
         if (context->onInit)
             PARSE_ERR(@2, "Redeclaration of 'init' event handler.");
         context->onInit = new OnInit($3);
         $$ = context->onInit;
     }
-    | ON RELEASE statements END ON  {
+    | ON RELEASE body END ON  {
         if (context->onRelease)
             PARSE_ERR(@2, "Redeclaration of 'release' event handler.");
         context->onRelease = new OnRelease($3);
         $$ = context->onRelease;
     }
-    | ON CONTROLLER statements END ON  {
+    | ON CONTROLLER body END ON  {
         if (context->onController)
             PARSE_ERR(@2, "Redeclaration of 'controller' event handler.");
         context->onController = new OnController($3);
         $$ = context->onController;
+    }
+
+body:
+    /* epsilon (empty argument) */  {
+        $$ = new Statements();
+    }
+    | statements  {
+        $$ = $1;
     }
 
 statements:

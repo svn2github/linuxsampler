@@ -53,6 +53,8 @@ Version SVN trunk (?)
       the precise span of the issue within the source code).
     - Reload script automatically after being modified by an instrument
       editor.
+    - NKSP language grammar correction: allow empty event handler bodies
+      like "on note end on".
 
 Version 2.0.0 (15 July 2015)
 
