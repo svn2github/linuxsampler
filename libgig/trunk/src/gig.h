@@ -45,7 +45,6 @@
 # define CHUNK_ID_SCRI  0x53637269 // own gig format extension
 # define CHUNK_ID_LSNM  0x4c534e4d // own gig format extension
 # define CHUNK_ID_SCSL  0x5343534c // own gig format extension
-# define CHUNK_ID_FFMT  0x46466D74 // own gig format extension
 #else  // little endian
 # define LIST_TYPE_3PRG	0x67727033
 # define LIST_TYPE_3EWL	0x6C776533
@@ -64,7 +63,6 @@
 # define CHUNK_ID_SCRI  0x69726353 // own gig format extension
 # define CHUNK_ID_LSNM  0x4d4e534c // own gig format extension
 # define CHUNK_ID_SCSL  0x4c534353 // own gig format extension
-# define CHUNK_ID_FFMT  0x746D4646 // own gig format extension
 #endif // WORDS_BIGENDIAN
 
 /** Gigasampler/GigaStudio specific classes and definitions */
@@ -1269,8 +1267,6 @@ namespace gig {
             virtual void LoadInstruments(progress_t* pProgress);
             virtual void LoadScriptGroups();
             void SetSampleChecksum(Sample* pSample, uint32_t crc);
-            uint GetFormatExtensionVersion() const;
-            bool HasMonolithicLargeFilePolicy() const;
             friend class Region;
             friend class Sample;
             friend class Instrument;

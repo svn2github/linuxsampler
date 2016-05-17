@@ -6,9 +6,9 @@ Version SVN trunk
     - fixed bug in Script::SetGroup: the script chunk wasn't moved
     - fixed compilation error with clang 3.4
     - GIG FORMAT EXTENSION: added support for saving gig file larger than 4 GB
-      as one single monolithic gig file. A new custom RIFF chunk "FFmt" was
-      added to distinguish such monolithic large .gig files from old ones which
-      were splitted over several (.gx01, .gx02, ...) "extension" files.
+      as one single monolithic gig file. In case .gig file is >= 2GB expect a
+      large monolithic file, otherwise if .gig file is < 2 GB check for
+      "extension" files (.gx01, .gx02, ...) instead.
 
   * src/DLS.cpp, src/DLS.h:
     - Sample: wave pool offsets are now 64 bits (to allow support for files

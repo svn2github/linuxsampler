@@ -3850,7 +3850,9 @@ namespace {
         if ((int32_t)WavePoolTableIndex == -1) return NULL;
         File* file = (File*) GetParent()->GetParent();
         if (!file->pWavePoolTable) return NULL;
-        if (file->HasMonolithicLargeFilePolicy()) {
+        // for new files or files >= 2 GB use 64 bit wave pool offsets
+        if (file->pRIFF->IsNew() || (file->pRIFF->GetCurrentFileSize() >> 31)) {
+            // use 64 bit wave pool offsets (treating this as large file)
             uint64_t soughtoffset =
                 uint64_t(file->pWavePoolTable[WavePoolTableIndex]) |
                 uint64_t(file->pWavePoolTableHi[WavePoolTableIndex]) << 32;
@@ -3861,6 +3863,7 @@ namespace {
                 sample = file->GetNextSample();
             }
         } else {
+            // use extension files and 32 bit wave pool offsets
             file_offset_t soughtoffset = file->pWavePoolTable[WavePoolTableIndex];
             file_offset_t soughtfileno = file->pWavePoolTableHi[WavePoolTableIndex];
             Sample* sample = file->GetFirstSample(pProgress);
@@ -5348,8 +5351,9 @@ namespace {
         int iTotalSamples = WavePoolCount;
 
         // check if samples should be loaded from extension files
+        // (only for old gig files < 2 GB)
         int lastFileNo = 0;
-        if (!HasMonolithicLargeFilePolicy()) {
+        if (!file->IsNew() && !(file->GetCurrentFileSize() >> 31)) {
             for (int i = 0 ; i < WavePoolCount ; i++) {
                 if (pWavePoolTableHi[i] > lastFileNo) lastFileNo = pWavePoolTableHi[i];
             }
@@ -5841,78 +5845,6 @@ namespace {
         }
     }
 
-    /** @brief Returns the version number of libgig's Giga file format extension.
-     *
-     * libgig added several new features which were not available with the
-     * original GigaStudio software. For those purposes libgig's own custom RIFF
-     * chunks were added to the Giga file format.
-     *
-     * This method returns the version number of the Giga file format extension
-     * used in this Giga file. Currently there are 3 possible values that might
-     * be returned by this method:
-     *
-     * - @c 0: This gig file is not using any libgig specific file format
-     *         extension at all.
-     * - @c 1: This gig file uses the RT instrument script format extension.
-     * - @c 2: This gig file additionally provides support for monolithic
-     *         large gig files (larger than 2 GB).
-     *
-     * @note This method is currently protected and shall not be used as public
-     * API method, since its method signature might change in future.
-     */
-    uint File::GetFormatExtensionVersion() const {
-        RIFF::List* lst3LS = pRIFF->GetSubList(LIST_TYPE_3LS);
-        if (!lst3LS) return 0; // is not using custom Giga format extensions at all
-        RIFF::Chunk* ckFFmt = lst3LS->GetSubChunk(CHUNK_ID_FFMT);
-        if (!ckFFmt) return 1; // uses custom Giga format extension(s) but had no format version saved
-        uint8_t* pData = (uint8_t*) ckFFmt->LoadChunkData();
-        return load32(pData);
-    }
-
-    /** @brief Returns true in case this file is stored as one, single monolithic gig file.
-     *
-     * To avoid issues with operating systems which did not support large files
-     * (larger than 2 GB) the original Giga file format avoided to ever save gig
-     * files larger than 2 GB, instead such large Giga files were splitted into
-     * several files, each one not being larger than 2 GB. It used a predefined
-     * file name scheme for them like this:
-     * @code
-     * foo.gig
-     * foo.gx01
-     * foo.gx02
-     * foo.gx03
-     * ...
-     * @endcode
-     * So when like in this example foo.gig was loaded, all other files
-     * (foo.gx01, ...) were automatically loaded as well to make up the overall
-     * large gig file (provided they were located at the same directory). Such
-     * additional .gxYY files were called "extension files".
-     *
-     * Since nowadays all modern systems support large files, libgig always
-     * saves large gig files as one single monolithic gig file instead, that
-     * is libgig won't split such a large gig file into separate files like the
-     * original GigaStudio software did. It uses a custom Giga file format
-     * extension for this feature.
-     *
-     * For still being able though to load old splitted gig files and the new
-     * large monolithic ones, this method is used to determine which loading
-     * policy must be used for this gig file.
-     *
-     * @note This method is currently protected and shall not be used as public
-     * API method, since its method signature might change in future and since
-     * this method should not be directly relevant for applications based on
-     * libgig.
-     */
-    bool File::HasMonolithicLargeFilePolicy() const {
-        RIFF::List* lst3LS = pRIFF->GetSubList(LIST_TYPE_3LS);
-        if (!lst3LS) return false;
-        RIFF::Chunk* ckFFmt = lst3LS->GetSubChunk(CHUNK_ID_FFMT);
-        if (!ckFFmt) return false;
-        uint8_t* pData = (uint8_t*) ckFFmt->LoadChunkData();
-        uint32_t formatBitField = load32(&pData[4]);
-        return formatBitField & 1;
-    }
-
     /**
      * Apply all the gig file's current instruments, samples, groups and settings
      * to the respective RIFF chunks. You have to call Save() to make changes
@@ -5927,8 +5859,6 @@ namespace {
     void File::UpdateChunks(progress_t* pProgress) {
         bool newFile = pRIFF->GetSubList(LIST_TYPE_INFO) == NULL;
 
-        b64BitWavePoolOffsets = pVersion && pVersion->major == 3;
-
         // update own gig format extension chunks
         // (not part of the GigaStudio 4 format)
         RIFF::List* lst3LS = pRIFF->GetSubList(LIST_TYPE_3LS);
@@ -5936,38 +5866,11 @@ namespace {
             lst3LS = pRIFF->AddSubList(LIST_TYPE_3LS);
         }
         // Make sure <3LS > chunk is placed before <ptbl> chunk. The precise
-        // location of <3LS > is irrelevant, however it MUST BE located BEFORE
-        // the actual wave data, otherwise the <3LS > chunk becomes
-        // inaccessible on gig files larger than 4GB !
+        // location of <3LS > is irrelevant, however it should be located
+        // before  the actual wave data
         RIFF::Chunk* ckPTBL = pRIFF->GetSubChunk(CHUNK_ID_PTBL);
         pRIFF->MoveSubChunk(lst3LS, ckPTBL);
 
-        // Update <FFmt> chunk with informations about our file format
-        // extensions. Currently this <FFmt> chunk has the following
-        // layout:
-        //
-        // <uint32> -> (libgig's) File Format Extension version
-        // <uint32> -> Format bit field:
-        //             bit 0: If flag is not set use separate .gx01
-        //                    extension files if file is larger than 2 GB
-        //                    like with the original Giga format, if flag
-        //                    is set use 64 bit sample references and keep
-        //                    everything as one single monolithic gig file.
-        RIFF::Chunk* ckFFmt = lst3LS->GetSubChunk(CHUNK_ID_FFMT);
-        if (!ckFFmt) {
-            const int iChunkSize = 2 * sizeof(uint32_t);
-            ckFFmt = lst3LS->AddSubChunk(CHUNK_ID_FFMT, iChunkSize);
-        }
-        {
-            uint8_t* pData = (uint8_t*) ckFFmt->LoadChunkData();
-            store32(&pData[0], GIG_FILE_EXT_VERSION);
-            // for now we always save gig files larger than 2 GB as one
-            // single monolithic file (saving those with extension files is
-            // currently not supported and probably also not desired anymore
-            // nowadays).
-            uint32_t formatBitfield = 1;
-            store32(&pData[4], formatBitfield);
-        }
         // This must be performed before writing the chunks for instruments,
         // because the instruments' script slots will write the file offsets
         // of the respective instrument script chunk as reference.
@@ -5978,6 +5881,13 @@ namespace {
             {
                 (*it)->UpdateChunks(pProgress);
             }
+        }
+
+        // in case no libgig custom format data was added, then remove the
+        // custom "3LS " chunk again
+        if (!lst3LS->CountSubChunks()) {
+            pRIFF->DeleteSubChunk(lst3LS);
+            lst3LS = NULL;
         }
 
         // first update base class's chunks
