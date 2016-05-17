@@ -125,7 +125,8 @@ namespace RIFF {
             read(pFile->hFileRead, &ChunkID, 4);
             read(pFile->hFileRead, &ullCurrentChunkSize, pFile->FileOffsetSize);
         #elif defined(WIN32)
-        if (SetFilePointerEx(pFile->hFileRead, filePos, NULL/*new pos pointer*/, FILE_BEGIN)) {
+        const LARGE_INTEGER liFilePos = { .QuadPart = filePos };
+        if (SetFilePointerEx(pFile->hFileRead, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN)) {
             DWORD dwBytesRead;
             ReadFile(pFile->hFileRead, &ChunkID, 4, &dwBytesRead, NULL);
             ReadFile(pFile->hFileRead, &ullCurrentChunkSize, pFile->FileOffsetSize, &dwBytesRead, NULL);
@@ -184,7 +185,8 @@ namespace RIFF {
             write(pFile->hFileWrite, &ullNewChunkSize, pFile->FileOffsetSize);
         }
         #elif defined(WIN32)
-        if (SetFilePointerEx(pFile->hFileWrite, filePos, NULL/*new pos pointer*/, FILE_BEGIN)) {
+        const LARGE_INTEGER liFilePos = { .QuadPart = filePos };
+        if (SetFilePointerEx(pFile->hFileWrite, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN)) {
             DWORD dwBytesWritten;
             WriteFile(pFile->hFileWrite, &uiNewChunkID, 4, &dwBytesWritten, NULL);
             WriteFile(pFile->hFileWrite, &ullNewChunkSize, pFile->FileOffsetSize, &dwBytesWritten, NULL);
@@ -329,7 +331,8 @@ namespace RIFF {
         }
         readWords /= WordSize;
         #elif defined(WIN32)
-        if (!SetFilePointerEx(pFile->hFileRead, ullStartPos + ullPos, NULL/*new pos pointer*/, FILE_BEGIN))
+        const LARGE_INTEGER liFilePos = { .QuadPart = ullStartPos + ullPos };
+        if (!SetFilePointerEx(pFile->hFileRead, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN))
             return 0;
         DWORD readWords;
         ReadFile(pFile->hFileRead, pData, WordCount * WordSize, &readWords, NULL); //FIXME: does not work for reading buffers larger than 2GB (even though this should rarely be the case in practice)
@@ -413,7 +416,8 @@ namespace RIFF {
         if (writtenWords < 1) throw Exception("POSIX IO Error while trying to write chunk data");
         writtenWords /= WordSize;
         #elif defined(WIN32)
-        if (!SetFilePointerEx(pFile->hFileWrite, ullStartPos + ullPos, NULL/*new pos pointer*/, FILE_BEGIN)) {
+        const LARGE_INTEGER liFilePos = { .QuadPart = ullStartPos + ullPos };
+        if (!SetFilePointerEx(pFile->hFileWrite, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN)) {
             throw Exception("Could not seek to position " + ToString(ullPos) +
                             " in chunk (" + ToString(ullStartPos + ullPos) + " in file)");
         }
@@ -803,7 +807,8 @@ namespace RIFF {
             #if POSIX
             if (lseek(pFile->hFileRead, ullStartPos, SEEK_SET) == -1) return NULL;
             #elif defined(WIN32)
-            if (!SetFilePointerEx(pFile->hFileRead, ullStartPos, NULL/*new pos pointer*/, FILE_BEGIN)) return NULL;
+            const LARGE_INTEGER liFilePos = { .QuadPart = ullStartPos };
+            if (!SetFilePointerEx(pFile->hFileRead, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN)) return NULL;
             #else
             if (fseeko(pFile->hFileRead, ullStartPos, SEEK_SET)) return NULL;
             #endif // POSIX
@@ -907,7 +912,8 @@ namespace RIFF {
                 throw Exception("Writing Chunk data (from RAM) failed");
             }
             #elif defined(WIN32)
-            SetFilePointerEx(pFile->hFileWrite, ullWritePos, NULL/*new pos pointer*/, FILE_BEGIN);
+            const LARGE_INTEGER liFilePos = { .QuadPart = ullWritePos };
+            SetFilePointerEx(pFile->hFileWrite, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN);
             DWORD dwBytesWritten;
             WriteFile(pFile->hFileWrite, pChunkData, ullNewChunkSize, &dwBytesWritten, NULL); //FIXME: won't save chunks larger than 2GB !
             if (dwBytesWritten != ullNewChunkSize) {
@@ -936,9 +942,11 @@ namespace RIFF {
                 lseek(pFile->hFileWrite, ullWritePos + ullOffset, SEEK_SET);
                 iBytesMoved = write(pFile->hFileWrite, pCopyBuffer, iBytesMoved);
                 #elif defined(WIN32)
-                SetFilePointerEx(pFile->hFileRead, ullStartPos + ullCurrentDataOffset + ullOffset, NULL/*new pos pointer*/, FILE_BEGIN);
+                LARGE_INTEGER liFilePos = { .QuadPart = ullStartPos + ullCurrentDataOffset + ullOffset };
+                SetFilePointerEx(pFile->hFileRead, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN);
                 ReadFile(pFile->hFileRead, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
-                SetFilePointerEx(pFile->hFileWrite, ullWritePos + ullOffset, NULL/*new pos pointer*/, FILE_BEGIN);
+                liFilePos.QuadPart = ullWritePos + ullOffset;
+                SetFilePointerEx(pFile->hFileWrite, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN);
                 WriteFile(pFile->hFileWrite, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
                 #else
                 fseeko(pFile->hFileRead, ullStartPos + ullCurrentDataOffset + ullOffset, SEEK_SET);
@@ -968,7 +976,8 @@ namespace RIFF {
             lseek(pFile->hFileWrite, ullStartPos + ullNewChunkSize, SEEK_SET);
             write(pFile->hFileWrite, &cPadByte, 1);
             #elif defined(WIN32)
-            SetFilePointerEx(pFile->hFileWrite, ullStartPos + ullNewChunkSize, NULL/*new pos pointer*/, FILE_BEGIN);
+            const LARGE_INTEGER liFilePos = { .QuadPart = ullStartPos + ullNewChunkSize };
+            SetFilePointerEx(pFile->hFileWrite, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN);
             DWORD dwBytesWritten;
             WriteFile(pFile->hFileWrite, &cPadByte, 1, &dwBytesWritten, NULL);
             #else
@@ -1366,7 +1375,8 @@ namespace RIFF {
         lseek(pFile->hFileRead, filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize), SEEK_SET);
         read(pFile->hFileRead, &ListType, 4);
         #elif defined(WIN32)
-        SetFilePointerEx(pFile->hFileRead, filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize), NULL/*new pos pointer*/, FILE_BEGIN);
+        const LARGE_INTEGER liFilePos = { .QuadPart = filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize) };
+        SetFilePointerEx(pFile->hFileRead, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN);
         DWORD dwBytesRead;
         ReadFile(pFile->hFileRead, &ListType, 4, &dwBytesRead, NULL);
         #else
@@ -1390,7 +1400,8 @@ namespace RIFF {
         lseek(pFile->hFileWrite, filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize), SEEK_SET);
         write(pFile->hFileWrite, &ListType, 4);
         #elif defined(WIN32)
-        SetFilePointerEx(pFile->hFileWrite, filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize), NULL/*new pos pointer*/, FILE_BEGIN);
+        const LARGE_INTEGER liFilePos = { .QuadPart = filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize) };
+        SetFilePointerEx(pFile->hFileWrite, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN);
         DWORD dwBytesWritten;
         WriteFile(pFile->hFileWrite, &ListType, 4, &dwBytesWritten, NULL);
         #else
@@ -1898,9 +1909,11 @@ namespace RIFF {
                 lseek(hFileWrite, ullPos + positiveSizeDiff, SEEK_SET);
                 iBytesMoved = write(hFileWrite, pCopyBuffer, iBytesMoved);
                 #elif defined(WIN32)
-                SetFilePointerEx(hFileRead, ullPos, NULL/*new pos pointer*/, FILE_BEGIN);
+                LARGE_INTEGER liFilePos = { .QuadPart = ullPos };
+                SetFilePointerEx(hFileRead, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN);
                 ReadFile(hFileRead, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
-                SetFilePointerEx(hFileWrite, ullPos + positiveSizeDiff, NULL/*new pos pointer*/, FILE_BEGIN);
+                liFilePos.QuadPart = ullPos + positiveSizeDiff;
+                SetFilePointerEx(hFileWrite, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN);
                 WriteFile(hFileWrite, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
                 #else
                 fseeko(hFileRead, ullPos, SEEK_SET);
@@ -2040,8 +2053,9 @@ namespace RIFF {
         if (ftruncate(hFileWrite, ullNewSize) < 0)
             throw Exception("Could not resize file \"" + Filename + "\"");
         #elif defined(WIN32)
+        const LARGE_INTEGER liFilePos = { .QuadPart = ullNewSize };
         if (
-            !SetFilePointerEx(hFileWrite, ullNewSize, NULL/*new pos pointer*/, FILE_BEGIN) ||
+            !SetFilePointerEx(hFileWrite, liFilePos, NULL/*new pos pointer*/, FILE_BEGIN) ||
             !SetEndOfFile(hFileWrite)
         ) throw Exception("Could not resize file \"" + Filename + "\"");
         #else
@@ -2203,10 +2217,10 @@ namespace RIFF {
     }
     #elif defined(WIN32)
     file_offset_t File::__GetFileSize(HANDLE hFile) const {
-        PLARGE_INTEGER size;
+        LARGE_INTEGER size;
         if (!GetFileSizeEx(hFile, &size))
             throw Exception("Windows FS error: could not determine file size");
-        return size;
+        return size.QuadPart;
     }
     #else // standard C functions
     file_offset_t File::__GetFileSize(FILE* hFile) const {
