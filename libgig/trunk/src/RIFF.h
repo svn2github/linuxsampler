@@ -68,6 +68,9 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 #ifdef WIN32
+# if (_WIN32 && !_WIN64) || (__GNUC__ && !(__x86_64__ || __ppc64__)) /* if 32 bit windows compilation */
+#  define _WIN32_WINNT 0x0501 /* Win XP (no service pack): required for 32 bit compilation for GetFileSizeEx() to be declared by windows.h */
+# endif
 # include <windows.h>
   typedef unsigned int   uint;
 #endif // WIN32
