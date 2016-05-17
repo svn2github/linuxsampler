@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2015 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2016 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -73,67 +73,66 @@ namespace RIFF {
         #if DEBUG
         std::cout << "Chunk::Chunk(File* pFile)" << std::endl;
         #endif // DEBUG
-        ulPos      = 0;
+        ullPos     = 0;
         pParent    = NULL;
         pChunkData = NULL;
-        CurrentChunkSize = 0;
-        NewChunkSize = 0;
-        ulChunkDataSize = 0;
+        ullCurrentChunkSize = 0;
+        ullNewChunkSize = 0;
+        ullChunkDataSize = 0;
         ChunkID    = CHUNK_ID_RIFF;
         this->pFile = pFile;
     }
 
-    Chunk::Chunk(File* pFile, unsigned long StartPos, List* Parent) {
+    Chunk::Chunk(File* pFile, file_offset_t StartPos, List* Parent) {
         #if DEBUG
-        std::cout << "Chunk::Chunk(File*,ulong,bool,List*),StartPos=" << StartPos << std::endl;
+        std::cout << "Chunk::Chunk(File*,file_offset_t,List*),StartPos=" << StartPos << std::endl;
         #endif // DEBUG
         this->pFile   = pFile;
-        ulStartPos    = StartPos + CHUNK_HEADER_SIZE;
+        ullStartPos   = StartPos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize);
         pParent       = Parent;
-        ulPos         = 0;
+        ullPos        = 0;
         pChunkData    = NULL;
-        CurrentChunkSize = 0;
-        NewChunkSize = 0;
-        ulChunkDataSize = 0;
+        ullCurrentChunkSize = 0;
+        ullNewChunkSize = 0;
+        ullChunkDataSize = 0;
         ReadHeader(StartPos);
     }
 
-    Chunk::Chunk(File* pFile, List* pParent, uint32_t uiChunkID, uint uiBodySize) {
+    Chunk::Chunk(File* pFile, List* pParent, uint32_t uiChunkID, file_offset_t ullBodySize) {
         this->pFile      = pFile;
-        ulStartPos       = 0; // arbitrary usually, since it will be updated when we write the chunk
+        ullStartPos      = 0; // arbitrary usually, since it will be updated when we write the chunk
         this->pParent    = pParent;
-        ulPos            = 0;
+        ullPos           = 0;
         pChunkData       = NULL;
         ChunkID          = uiChunkID;
-        ulChunkDataSize  = 0;
-        CurrentChunkSize = 0;
-        NewChunkSize     = uiBodySize;
+        ullChunkDataSize = 0;
+        ullCurrentChunkSize = 0;
+        ullNewChunkSize  = ullBodySize;
     }
 
     Chunk::~Chunk() {
-        if (pFile) pFile->UnlogResized(this);
         if (pChunkData) delete[] pChunkData;
     }
 
-    void Chunk::ReadHeader(unsigned long fPos) {
+    void Chunk::ReadHeader(file_offset_t filePos) {
         #if DEBUG
-        std::cout << "Chunk::Readheader(" << fPos << ") ";
+        std::cout << "Chunk::Readheader(" << filePos << ") ";
         #endif // DEBUG
         ChunkID = 0;
-        NewChunkSize = CurrentChunkSize = 0;
+        ullNewChunkSize = ullCurrentChunkSize = 0;
         #if POSIX
-        if (lseek(pFile->hFileRead, fPos, SEEK_SET) != -1) {
+        if (lseek(pFile->hFileRead, filePos, SEEK_SET) != -1) {
             read(pFile->hFileRead, &ChunkID, 4);
-            read(pFile->hFileRead, &CurrentChunkSize, 4);
+            read(pFile->hFileRead, &ullCurrentChunkSize, pFile->FileOffsetSize);
         #elif defined(WIN32)
-        if (SetFilePointer(pFile->hFileRead, fPos, NULL/*32 bit*/, FILE_BEGIN) != INVALID_SET_FILE_POINTER) {
+        if (SetFilePointerEx(pFile->hFileRead, filePos, NULL/*new pos pointer*/, FILE_BEGIN)) {
             DWORD dwBytesRead;
             ReadFile(pFile->hFileRead, &ChunkID, 4, &dwBytesRead, NULL);
-            ReadFile(pFile->hFileRead, &CurrentChunkSize, 4, &dwBytesRead, NULL);
+            ReadFile(pFile->hFileRead, &ullCurrentChunkSize, pFile->FileOffsetSize, &dwBytesRead, NULL);
         #else
-        if (!fseek(pFile->hFileRead, fPos, SEEK_SET)) {
+        if (!fseeko(pFile->hFileRead, filePos, SEEK_SET)) {
             fread(&ChunkID, 4, 1, pFile->hFileRead);
-            fread(&CurrentChunkSize, 4, 1, pFile->hFileRead);
+            fread(&ullCurrentChunkSize, pFile->FileOffsetSize, 1, pFile->hFileRead);
         #endif // POSIX
             #if WORDS_BIGENDIAN
             if (ChunkID == CHUNK_ID_RIFF) {
@@ -147,18 +146,21 @@ namespace RIFF {
             #endif // WORDS_BIGENDIAN
             if (!pFile->bEndianNative) {
                 //swapBytes_32(&ChunkID);
-                swapBytes_32(&CurrentChunkSize);
+                if (pFile->FileOffsetSize == 4)
+                    swapBytes_32(&ullCurrentChunkSize);
+                else
+                    swapBytes_64(&ullCurrentChunkSize);
             }
             #if DEBUG
             std::cout << "ckID=" << convertToString(ChunkID) << " ";
-            std::cout << "ckSize=" << CurrentChunkSize << " ";
+            std::cout << "ckSize=" << ullCurrentChunkSize << " ";
             std::cout << "bEndianNative=" << pFile->bEndianNative << std::endl;
             #endif // DEBUG
-            NewChunkSize = CurrentChunkSize;
+            ullNewChunkSize = ullCurrentChunkSize;
         }
     }
 
-    void Chunk::WriteHeader(unsigned long fPos) {
+    void Chunk::WriteHeader(file_offset_t filePos) {
         uint32_t uiNewChunkID = ChunkID;
         if (ChunkID == CHUNK_ID_RIFF) {
             #if WORDS_BIGENDIAN
@@ -168,26 +170,29 @@ namespace RIFF {
             #endif // WORDS_BIGENDIAN
         }
 
-        uint32_t uiNewChunkSize = NewChunkSize;
+        uint64_t ullNewChunkSize = this->ullNewChunkSize;
         if (!pFile->bEndianNative) {
-            swapBytes_32(&uiNewChunkSize);
+            if (pFile->FileOffsetSize == 4)
+                swapBytes_32(&ullNewChunkSize);
+            else
+                swapBytes_64(&ullNewChunkSize);
         }
 
         #if POSIX
-        if (lseek(pFile->hFileWrite, fPos, SEEK_SET) != -1) {
+        if (lseek(pFile->hFileWrite, filePos, SEEK_SET) != -1) {
             write(pFile->hFileWrite, &uiNewChunkID, 4);
-            write(pFile->hFileWrite, &uiNewChunkSize, 4);
+            write(pFile->hFileWrite, &ullNewChunkSize, pFile->FileOffsetSize);
         }
         #elif defined(WIN32)
-        if (SetFilePointer(pFile->hFileWrite, fPos, NULL/*32 bit*/, FILE_BEGIN) != INVALID_SET_FILE_POINTER) {
+        if (SetFilePointerEx(pFile->hFileWrite, filePos, NULL/*new pos pointer*/, FILE_BEGIN)) {
             DWORD dwBytesWritten;
             WriteFile(pFile->hFileWrite, &uiNewChunkID, 4, &dwBytesWritten, NULL);
-            WriteFile(pFile->hFileWrite, &uiNewChunkSize, 4, &dwBytesWritten, NULL);
+            WriteFile(pFile->hFileWrite, &ullNewChunkSize, pFile->FileOffsetSize, &dwBytesWritten, NULL);
         }
         #else
-        if (!fseek(pFile->hFileWrite, fPos, SEEK_SET)) {
+        if (!fseeko(pFile->hFileWrite, filePos, SEEK_SET)) {
             fwrite(&uiNewChunkID, 4, 1, pFile->hFileWrite);
-            fwrite(&uiNewChunkSize, 4, 1, pFile->hFileWrite);
+            fwrite(&ullNewChunkSize, pFile->FileOffsetSize, 1, pFile->hFileWrite);
         }
         #endif // POSIX
     }
@@ -196,7 +201,7 @@ namespace RIFF {
      *  Returns the String representation of the chunk's ID (e.g. "RIFF",
      *  "LIST").
      */
-    String Chunk::GetChunkIDString() {
+    String Chunk::GetChunkIDString() const {
         return convertToString(ChunkID);
     }
 
@@ -212,26 +217,26 @@ namespace RIFF {
      *                  if omitted \a Where relates to beginning of the chunk
      *                  data
      */
-    unsigned long Chunk::SetPos(unsigned long Where, stream_whence_t Whence) {
-     #if DEBUG
-     std::cout << "Chunk::SetPos(ulong)" << std::endl;
-     #endif // DEBUG
+    file_offset_t Chunk::SetPos(file_offset_t Where, stream_whence_t Whence) {
+        #if DEBUG
+        std::cout << "Chunk::SetPos(file_offset_t,stream_whence_t)" << std::endl;
+        #endif // DEBUG
         switch (Whence) {
             case stream_curpos:
-                ulPos += Where;
+                ullPos += Where;
                 break;
             case stream_end:
-                ulPos = CurrentChunkSize - 1 - Where;
+                ullPos = ullCurrentChunkSize - 1 - Where;
                 break;
             case stream_backward:
-                ulPos -= Where;
+                ullPos -= Where;
                 break;
             case stream_start: default:
-                ulPos = Where;
+                ullPos = Where;
                 break;
         }
-        if (ulPos > CurrentChunkSize) ulPos = CurrentChunkSize;
-        return ulPos;
+        if (ullPos > ullCurrentChunkSize) ullPos = ullCurrentChunkSize;
+        return ullPos;
     }
 
     /**
@@ -244,11 +249,24 @@ namespace RIFF {
      *
      *  @returns  number of bytes left to read
      */
-    unsigned long Chunk::RemainingBytes() {
-       #if DEBUG
-       std::cout << "Chunk::Remainingbytes()=" << CurrentChunkSize - ulPos << std::endl;
-       #endif // DEBUG
-        return (CurrentChunkSize > ulPos) ? CurrentChunkSize - ulPos : 0;
+    file_offset_t Chunk::RemainingBytes() const {
+        #if DEBUG
+        std::cout << "Chunk::Remainingbytes()=" << ullCurrentChunkSize - ullPos << std::endl;
+        #endif // DEBUG
+        return (ullCurrentChunkSize > ullPos) ? ullCurrentChunkSize - ullPos : 0;
+    }
+
+    /**
+     *  Returns the actual total size in bytes (including header) of this Chunk
+     *  if being stored to a file.
+     *
+     *  @param fileOffsetSize - RIFF file offset size (in bytes) assumed when 
+     *                          being saved to a file
+     */
+    file_offset_t Chunk::RequiredPhysicalSize(int fileOffsetSize) {
+        return CHUNK_HEADER_SIZE(fileOffsetSize) + // RIFF chunk header
+               ullNewChunkSize + // chunks's actual data body
+               ullNewChunkSize % 2; // optional pad byte
     }
 
     /**
@@ -262,10 +280,10 @@ namespace RIFF {
      *    already reached the end of the chunk data, no more reading
      *    possible without SetPos()
      */
-    stream_state_t Chunk::GetState() {
-      #if DEBUG
-      std::cout << "Chunk::GetState()" << std::endl;
-      #endif // DEBUG
+    stream_state_t Chunk::GetState() const {
+        #if DEBUG
+        std::cout << "Chunk::GetState()" << std::endl;
+        #endif // DEBUG
         #if POSIX
         if (pFile->hFileRead == 0) return stream_closed;
         #elif defined (WIN32)
@@ -274,8 +292,8 @@ namespace RIFF {
         #else
         if (pFile->hFileRead == NULL) return stream_closed;
         #endif // POSIX
-        if (ulPos < CurrentChunkSize) return stream_ready;
-        else                          return stream_end_reached;
+        if (ullPos < ullCurrentChunkSize) return stream_ready;
+        else                              return stream_end_reached;
     }
 
     /**
@@ -293,15 +311,15 @@ namespace RIFF {
      *  @returns          number of successfully read data words or 0 if end
      *                    of file reached or error occured
      */
-    unsigned long Chunk::Read(void* pData, unsigned long WordCount, unsigned long WordSize) {
-       #if DEBUG
-       std::cout << "Chunk::Read(void*,ulong,ulong)" << std::endl;
-       #endif // DEBUG
+    file_offset_t Chunk::Read(void* pData, file_offset_t WordCount, file_offset_t WordSize) {
+        #if DEBUG
+        std::cout << "Chunk::Read(void*,file_offset_t,file_offset_t)" << std::endl;
+        #endif // DEBUG
         //if (ulStartPos == 0) return 0; // is only 0 if this is a new chunk, so nothing to read (yet)
-        if (ulPos >= CurrentChunkSize) return 0;
-        if (ulPos + WordCount * WordSize >= CurrentChunkSize) WordCount = (CurrentChunkSize - ulPos) / WordSize;
+        if (ullPos >= ullCurrentChunkSize) return 0;
+        if (ullPos + WordCount * WordSize >= ullCurrentChunkSize) WordCount = (ullCurrentChunkSize - ullPos) / WordSize;
         #if POSIX
-        if (lseek(pFile->hFileRead, ulStartPos + ulPos, SEEK_SET) < 0) return 0;
+        if (lseek(pFile->hFileRead, ullStartPos + ullPos, SEEK_SET) < 0) return 0;
         ssize_t readWords = read(pFile->hFileRead, pData, WordCount * WordSize);
         if (readWords < 1) {
             #if DEBUG
@@ -311,27 +329,32 @@ namespace RIFF {
         }
         readWords /= WordSize;
         #elif defined(WIN32)
-        if (SetFilePointer(pFile->hFileRead, ulStartPos + ulPos, NULL/*32 bit*/, FILE_BEGIN) == INVALID_SET_FILE_POINTER) return 0;
+        if (!SetFilePointerEx(pFile->hFileRead, ullStartPos + ullPos, NULL/*new pos pointer*/, FILE_BEGIN))
+            return 0;
         DWORD readWords;
-        ReadFile(pFile->hFileRead, pData, WordCount * WordSize, &readWords, NULL);
+        ReadFile(pFile->hFileRead, pData, WordCount * WordSize, &readWords, NULL); //FIXME: does not work for reading buffers larger than 2GB (even though this should rarely be the case in practice)
         if (readWords < 1) return 0;
         readWords /= WordSize;
         #else // standard C functions
-        if (fseek(pFile->hFileRead, ulStartPos + ulPos, SEEK_SET)) return 0;
-        size_t readWords = fread(pData, WordSize, WordCount, pFile->hFileRead);
+        if (fseeko(pFile->hFileRead, ullStartPos + ullPos, SEEK_SET)) return 0;
+        file_offset_t readWords = fread(pData, WordSize, WordCount, pFile->hFileRead);
         #endif // POSIX
         if (!pFile->bEndianNative && WordSize != 1) {
             switch (WordSize) {
                 case 2:
-                    for (unsigned long iWord = 0; iWord < readWords; iWord++)
+                    for (file_offset_t iWord = 0; iWord < readWords; iWord++)
                         swapBytes_16((uint16_t*) pData + iWord);
                     break;
                 case 4:
-                    for (unsigned long iWord = 0; iWord < readWords; iWord++)
+                    for (file_offset_t iWord = 0; iWord < readWords; iWord++)
                         swapBytes_32((uint32_t*) pData + iWord);
                     break;
+                case 8:
+                    for (file_offset_t iWord = 0; iWord < readWords; iWord++)
+                        swapBytes_64((uint64_t*) pData + iWord);
+                    break;
                 default:
-                    for (unsigned long iWord = 0; iWord < readWords; iWord++)
+                    for (file_offset_t iWord = 0; iWord < readWords; iWord++)
                         swapBytes((uint8_t*) pData + iWord * WordSize, WordSize);
                     break;
             }
@@ -356,58 +379,62 @@ namespace RIFF {
      *                           chunk size or any IO error occured
      *  @see Resize()
      */
-    unsigned long Chunk::Write(void* pData, unsigned long WordCount, unsigned long WordSize) {
+    file_offset_t Chunk::Write(void* pData, file_offset_t WordCount, file_offset_t WordSize) {
         if (pFile->Mode != stream_mode_read_write)
             throw Exception("Cannot write data to chunk, file has to be opened in read+write mode first");
-        if (ulPos >= CurrentChunkSize || ulPos + WordCount * WordSize > CurrentChunkSize)
+        if (ullPos >= ullCurrentChunkSize || ullPos + WordCount * WordSize > ullCurrentChunkSize)
             throw Exception("End of chunk reached while trying to write data");
         if (!pFile->bEndianNative && WordSize != 1) {
             switch (WordSize) {
                 case 2:
-                    for (unsigned long iWord = 0; iWord < WordCount; iWord++)
+                    for (file_offset_t iWord = 0; iWord < WordCount; iWord++)
                         swapBytes_16((uint16_t*) pData + iWord);
                     break;
                 case 4:
-                    for (unsigned long iWord = 0; iWord < WordCount; iWord++)
+                    for (file_offset_t iWord = 0; iWord < WordCount; iWord++)
                         swapBytes_32((uint32_t*) pData + iWord);
                     break;
+                case 8:
+                    for (file_offset_t iWord = 0; iWord < WordCount; iWord++)
+                        swapBytes_64((uint64_t*) pData + iWord);
+                    break;
                 default:
-                    for (unsigned long iWord = 0; iWord < WordCount; iWord++)
+                    for (file_offset_t iWord = 0; iWord < WordCount; iWord++)
                         swapBytes((uint8_t*) pData + iWord * WordSize, WordSize);
                     break;
             }
         }
         #if POSIX
-        if (lseek(pFile->hFileWrite, ulStartPos + ulPos, SEEK_SET) < 0) {
-            throw Exception("Could not seek to position " + ToString(ulPos) +
-                            " in chunk (" + ToString(ulStartPos + ulPos) + " in file)");
+        if (lseek(pFile->hFileWrite, ullStartPos + ullPos, SEEK_SET) < 0) {
+            throw Exception("Could not seek to position " + ToString(ullPos) +
+                            " in chunk (" + ToString(ullStartPos + ullPos) + " in file)");
         }
-        unsigned long writtenWords = write(pFile->hFileWrite, pData, WordCount * WordSize);
+        ssize_t writtenWords = write(pFile->hFileWrite, pData, WordCount * WordSize);
         if (writtenWords < 1) throw Exception("POSIX IO Error while trying to write chunk data");
         writtenWords /= WordSize;
         #elif defined(WIN32)
-        if (SetFilePointer(pFile->hFileWrite, ulStartPos + ulPos, NULL/*32 bit*/, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-            throw Exception("Could not seek to position " + ToString(ulPos) +
-                            " in chunk (" + ToString(ulStartPos + ulPos) + " in file)");
+        if (!SetFilePointerEx(pFile->hFileWrite, ullStartPos + ullPos, NULL/*new pos pointer*/, FILE_BEGIN)) {
+            throw Exception("Could not seek to position " + ToString(ullPos) +
+                            " in chunk (" + ToString(ullStartPos + ullPos) + " in file)");
         }
         DWORD writtenWords;
-        WriteFile(pFile->hFileWrite, pData, WordCount * WordSize, &writtenWords, NULL);
+        WriteFile(pFile->hFileWrite, pData, WordCount * WordSize, &writtenWords, NULL); //FIXME: does not work for writing buffers larger than 2GB (even though this should rarely be the case in practice)
         if (writtenWords < 1) throw Exception("Windows IO Error while trying to write chunk data");
         writtenWords /= WordSize;
         #else // standard C functions
-        if (fseek(pFile->hFileWrite, ulStartPos + ulPos, SEEK_SET)) {
-            throw Exception("Could not seek to position " + ToString(ulPos) +
-                            " in chunk (" + ToString(ulStartPos + ulPos) + " in file)");
+        if (fseeko(pFile->hFileWrite, ullStartPos + ullPos, SEEK_SET)) {
+            throw Exception("Could not seek to position " + ToString(ullPos) +
+                            " in chunk (" + ToString(ullStartPos + ullPos) + " in file)");
         }
-        unsigned long writtenWords = fwrite(pData, WordSize, WordCount, pFile->hFileWrite);
+        file_offset_t writtenWords = fwrite(pData, WordSize, WordCount, pFile->hFileWrite);
         #endif // POSIX
         SetPos(writtenWords * WordSize, stream_curpos);
         return writtenWords;
     }
 
     /** Just an internal wrapper for the main <i>Read()</i> method with additional Exception throwing on errors. */
-    unsigned long Chunk::ReadSceptical(void* pData, unsigned long WordCount, unsigned long WordSize) {
-        unsigned long readWords = Read(pData, WordCount, WordSize);
+    file_offset_t Chunk::ReadSceptical(void* pData, file_offset_t WordCount, file_offset_t WordSize) {
+        file_offset_t readWords = Read(pData, WordCount, WordSize);
         if (readWords != WordCount) throw RIFF::Exception("End of chunk data reached.");
         return readWords;
     }
@@ -423,10 +450,10 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured or less than
      *                          \a WordCount integers could be read!
      */
-    unsigned long Chunk::ReadInt8(int8_t* pData, unsigned long WordCount) {
-       #if DEBUG
-       std::cout << "Chunk::ReadInt8(int8_t*,ulong)" << std::endl;
-       #endif // DEBUG
+    file_offset_t Chunk::ReadInt8(int8_t* pData, file_offset_t WordCount) {
+        #if DEBUG
+        std::cout << "Chunk::ReadInt8(int8_t*,file_offset_t)" << std::endl;
+        #endif // DEBUG
         return ReadSceptical(pData, WordCount, 1);
     }
 
@@ -444,7 +471,7 @@ namespace RIFF {
      * @throws RIFF::Exception  if an IO error occured
      * @see Resize()
      */
-    unsigned long Chunk::WriteInt8(int8_t* pData, unsigned long WordCount) {
+    file_offset_t Chunk::WriteInt8(int8_t* pData, file_offset_t WordCount) {
         return Write(pData, WordCount, 1);
     }
 
@@ -460,10 +487,10 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured or less than
      *                          \a WordCount integers could be read!
      */
-    unsigned long Chunk::ReadUint8(uint8_t* pData, unsigned long WordCount) {
-       #if DEBUG
-       std::cout << "Chunk::ReadUint8(uint8_t*,ulong)" << std::endl;
-       #endif // DEBUG
+    file_offset_t Chunk::ReadUint8(uint8_t* pData, file_offset_t WordCount) {
+        #if DEBUG
+        std::cout << "Chunk::ReadUint8(uint8_t*,file_offset_t)" << std::endl;
+        #endif // DEBUG
         return ReadSceptical(pData, WordCount, 1);
     }
 
@@ -481,7 +508,7 @@ namespace RIFF {
      * @throws RIFF::Exception  if an IO error occured
      * @see Resize()
      */
-    unsigned long Chunk::WriteUint8(uint8_t* pData, unsigned long WordCount) {
+    file_offset_t Chunk::WriteUint8(uint8_t* pData, file_offset_t WordCount) {
         return Write(pData, WordCount, 1);
     }
 
@@ -497,10 +524,10 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured or less than
      *                          \a WordCount integers could be read!
      */
-    unsigned long Chunk::ReadInt16(int16_t* pData, unsigned long WordCount) {
-      #if DEBUG
-      std::cout << "Chunk::ReadInt16(int16_t*,ulong)" << std::endl;
-      #endif // DEBUG
+    file_offset_t Chunk::ReadInt16(int16_t* pData, file_offset_t WordCount) {
+        #if DEBUG
+        std::cout << "Chunk::ReadInt16(int16_t*,file_offset_t)" << std::endl;
+        #endif // DEBUG
         return ReadSceptical(pData, WordCount, 2);
     }
 
@@ -518,7 +545,7 @@ namespace RIFF {
      * @throws RIFF::Exception  if an IO error occured
      * @see Resize()
      */
-    unsigned long Chunk::WriteInt16(int16_t* pData, unsigned long WordCount) {
+    file_offset_t Chunk::WriteInt16(int16_t* pData, file_offset_t WordCount) {
         return Write(pData, WordCount, 2);
     }
 
@@ -534,10 +561,10 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured or less than
      *                          \a WordCount integers could be read!
      */
-    unsigned long Chunk::ReadUint16(uint16_t* pData, unsigned long WordCount) {
-      #if DEBUG
-      std::cout << "Chunk::ReadUint16(uint16_t*,ulong)" << std::endl;
-      #endif // DEBUG
+    file_offset_t Chunk::ReadUint16(uint16_t* pData, file_offset_t WordCount) {
+        #if DEBUG
+        std::cout << "Chunk::ReadUint16(uint16_t*,file_offset_t)" << std::endl;
+        #endif // DEBUG
         return ReadSceptical(pData, WordCount, 2);
     }
 
@@ -555,7 +582,7 @@ namespace RIFF {
      * @throws RIFF::Exception  if an IO error occured
      * @see Resize()
      */
-    unsigned long Chunk::WriteUint16(uint16_t* pData, unsigned long WordCount) {
+    file_offset_t Chunk::WriteUint16(uint16_t* pData, file_offset_t WordCount) {
         return Write(pData, WordCount, 2);
     }
 
@@ -571,10 +598,10 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured or less than
      *                          \a WordCount integers could be read!
      */
-    unsigned long Chunk::ReadInt32(int32_t* pData, unsigned long WordCount) {
-       #if DEBUG
-       std::cout << "Chunk::ReadInt32(int32_t*,ulong)" << std::endl;
-       #endif // DEBUG
+    file_offset_t Chunk::ReadInt32(int32_t* pData, file_offset_t WordCount) {
+        #if DEBUG
+        std::cout << "Chunk::ReadInt32(int32_t*,file_offset_t)" << std::endl;
+        #endif // DEBUG
         return ReadSceptical(pData, WordCount, 4);
     }
 
@@ -592,7 +619,7 @@ namespace RIFF {
      * @throws RIFF::Exception  if an IO error occured
      * @see Resize()
      */
-    unsigned long Chunk::WriteInt32(int32_t* pData, unsigned long WordCount) {
+    file_offset_t Chunk::WriteInt32(int32_t* pData, file_offset_t WordCount) {
         return Write(pData, WordCount, 4);
     }
 
@@ -608,10 +635,10 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured or less than
      *                          \a WordCount integers could be read!
      */
-    unsigned long Chunk::ReadUint32(uint32_t* pData, unsigned long WordCount) {
-       #if DEBUG
-       std::cout << "Chunk::ReadUint32(uint32_t*,ulong)" << std::endl;
-       #endif // DEBUG
+    file_offset_t Chunk::ReadUint32(uint32_t* pData, file_offset_t WordCount) {
+        #if DEBUG
+        std::cout << "Chunk::ReadUint32(uint32_t*,file_offset_t)" << std::endl;
+        #endif // DEBUG
         return ReadSceptical(pData, WordCount, 4);
     }
 
@@ -646,7 +673,7 @@ namespace RIFF {
      * @throws RIFF::Exception  if an IO error occured
      * @see Resize()
      */
-    unsigned long Chunk::WriteUint32(uint32_t* pData, unsigned long WordCount) {
+    file_offset_t Chunk::WriteUint32(uint32_t* pData, file_offset_t WordCount) {
         return Write(pData, WordCount, 4);
     }
 
@@ -658,9 +685,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured
      */
     int8_t Chunk::ReadInt8() {
-      #if DEBUG
-      std::cout << "Chunk::ReadInt8()" << std::endl;
-      #endif // DEBUG
+        #if DEBUG
+        std::cout << "Chunk::ReadInt8()" << std::endl;
+        #endif // DEBUG
         int8_t word;
         ReadSceptical(&word,1,1);
         return word;
@@ -674,9 +701,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured
      */
     uint8_t Chunk::ReadUint8() {
-      #if DEBUG
-      std::cout << "Chunk::ReadUint8()" << std::endl;
-      #endif // DEBUG
+        #if DEBUG
+        std::cout << "Chunk::ReadUint8()" << std::endl;
+        #endif // DEBUG
         uint8_t word;
         ReadSceptical(&word,1,1);
         return word;
@@ -691,9 +718,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured
      */
     int16_t Chunk::ReadInt16() {
-      #if DEBUG
-      std::cout << "Chunk::ReadInt16()" << std::endl;
-      #endif // DEBUG
+        #if DEBUG
+        std::cout << "Chunk::ReadInt16()" << std::endl;
+        #endif // DEBUG
         int16_t word;
         ReadSceptical(&word,1,2);
         return word;
@@ -708,9 +735,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured
      */
     uint16_t Chunk::ReadUint16() {
-      #if DEBUG
-      std::cout << "Chunk::ReadUint16()" << std::endl;
-      #endif // DEBUG
+        #if DEBUG
+        std::cout << "Chunk::ReadUint16()" << std::endl;
+        #endif // DEBUG
         uint16_t word;
         ReadSceptical(&word,1,2);
         return word;
@@ -725,9 +752,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured
      */
     int32_t Chunk::ReadInt32() {
-      #if DEBUG
-      std::cout << "Chunk::ReadInt32()" << std::endl;
-      #endif // DEBUG
+        #if DEBUG
+        std::cout << "Chunk::ReadInt32()" << std::endl;
+        #endif // DEBUG
         int32_t word;
         ReadSceptical(&word,1,4);
         return word;
@@ -742,9 +769,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occured
      */
     uint32_t Chunk::ReadUint32() {
-      #if DEBUG
-      std::cout << "Chunk::ReadUint32()" << std::endl;
-      #endif // DEBUG
+        #if DEBUG
+        std::cout << "Chunk::ReadUint32()" << std::endl;
+        #endif // DEBUG
         uint32_t word;
         ReadSceptical(&word,1,4);
         return word;
@@ -774,37 +801,37 @@ namespace RIFF {
     void* Chunk::LoadChunkData() {
         if (!pChunkData && pFile->Filename != "" /*&& ulStartPos != 0*/) {
             #if POSIX
-            if (lseek(pFile->hFileRead, ulStartPos, SEEK_SET) == -1) return NULL;
+            if (lseek(pFile->hFileRead, ullStartPos, SEEK_SET) == -1) return NULL;
             #elif defined(WIN32)
-            if (SetFilePointer(pFile->hFileRead, ulStartPos, NULL/*32 bit*/, FILE_BEGIN) == INVALID_SET_FILE_POINTER) return NULL;
+            if (!SetFilePointerEx(pFile->hFileRead, ullStartPos, NULL/*new pos pointer*/, FILE_BEGIN)) return NULL;
             #else
-            if (fseek(pFile->hFileRead, ulStartPos, SEEK_SET)) return NULL;
+            if (fseeko(pFile->hFileRead, ullStartPos, SEEK_SET)) return NULL;
             #endif // POSIX
-            unsigned long ulBufferSize = (CurrentChunkSize > NewChunkSize) ? CurrentChunkSize : NewChunkSize;
-            pChunkData = new uint8_t[ulBufferSize];
+            file_offset_t ullBufferSize = (ullCurrentChunkSize > ullNewChunkSize) ? ullCurrentChunkSize : ullNewChunkSize;
+            pChunkData = new uint8_t[ullBufferSize];
             if (!pChunkData) return NULL;
-            memset(pChunkData, 0, ulBufferSize);
+            memset(pChunkData, 0, ullBufferSize);
             #if POSIX
-            unsigned long readWords = read(pFile->hFileRead, pChunkData, GetSize());
+            file_offset_t readWords = read(pFile->hFileRead, pChunkData, GetSize());
             #elif defined(WIN32)
             DWORD readWords;
-            ReadFile(pFile->hFileRead, pChunkData, GetSize(), &readWords, NULL);
+            ReadFile(pFile->hFileRead, pChunkData, GetSize(), &readWords, NULL); //FIXME: won't load chunks larger than 2GB !
             #else
-            unsigned long readWords = fread(pChunkData, 1, GetSize(), pFile->hFileRead);
+            file_offset_t readWords = fread(pChunkData, 1, GetSize(), pFile->hFileRead);
             #endif // POSIX
             if (readWords != GetSize()) {
                 delete[] pChunkData;
                 return (pChunkData = NULL);
             }
-            ulChunkDataSize = ulBufferSize;
-        } else if (NewChunkSize > ulChunkDataSize) {
-            uint8_t* pNewBuffer = new uint8_t[NewChunkSize];
-            if (!pNewBuffer) throw Exception("Could not enlarge chunk data buffer to " + ToString(NewChunkSize) + " bytes");
-            memset(pNewBuffer, 0 , NewChunkSize);
-            memcpy(pNewBuffer, pChunkData, ulChunkDataSize);
+            ullChunkDataSize = ullBufferSize;
+        } else if (ullNewChunkSize > ullChunkDataSize) {
+            uint8_t* pNewBuffer = new uint8_t[ullNewChunkSize];
+            if (!pNewBuffer) throw Exception("Could not enlarge chunk data buffer to " + ToString(ullNewChunkSize) + " bytes");
+            memset(pNewBuffer, 0 , ullNewChunkSize);
+            memcpy(pNewBuffer, pChunkData, ullChunkDataSize);
             delete[] pChunkData;
-            pChunkData      = pNewBuffer;
-            ulChunkDataSize = NewChunkSize;
+            pChunkData       = pNewBuffer;
+            ullChunkDataSize = ullNewChunkSize;
         }
         return pChunkData;
     }
@@ -836,34 +863,35 @@ namespace RIFF {
      * calling File::Save() as this might exceed the current chunk's body
      * boundary!
      *
-     * @param iNewSize - new chunk body size in bytes (must be greater than zero)
-     * @throws RIFF::Exception  if \a iNewSize is less than 1
+     * @param NewSize - new chunk body size in bytes (must be greater than zero)
+     * @throws RIFF::Exception  if \a NewSize is less than 1 or Unrealistic large
      * @see File::Save()
      */
-    void Chunk::Resize(int iNewSize) {
-        if (iNewSize <= 0)
+    void Chunk::Resize(file_offset_t NewSize) {
+        if (NewSize == 0)
             throw Exception("There is at least one empty chunk (zero size): " + __resolveChunkPath(this));
-        if (NewChunkSize == iNewSize) return;
-        NewChunkSize = iNewSize;
-        pFile->LogAsResized(this);
+        if ((NewSize >> 48) != 0)
+            throw Exception("Unrealistic high chunk size detected: " + __resolveChunkPath(this));
+        if (ullNewChunkSize == NewSize) return;
+        ullNewChunkSize = NewSize;
     }
 
     /** @brief Write chunk persistently e.g. to disk.
      *
      * Stores the chunk persistently to its actual "physical" file.
      *
-     * @param ulWritePos - position within the "physical" file where this
+     * @param ullWritePos - position within the "physical" file where this
      *                     chunk should be written to
-     * @param ulCurrentDataOffset - offset of current (old) data within
+     * @param ullCurrentDataOffset - offset of current (old) data within
      *                              the file
      * @param pProgress - optional: callback function for progress notification
      * @returns new write position in the "physical" file, that is
-     *          \a ulWritePos incremented by this chunk's new size
+     *          \a ullWritePos incremented by this chunk's new size
      *          (including its header size of course)
      */
-    unsigned long Chunk::WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset, progress_t* pProgress) {
-        const unsigned long ulOriginalPos = ulWritePos;
-        ulWritePos += CHUNK_HEADER_SIZE;
+    file_offset_t Chunk::WriteChunk(file_offset_t ullWritePos, file_offset_t ullCurrentDataOffset, progress_t* pProgress) {
+        const file_offset_t ullOriginalPos = ullWritePos;
+        ullWritePos += CHUNK_HEADER_SIZE(pFile->FileOffsetSize);
 
         if (pFile->Mode != stream_mode_read_write)
             throw Exception("Cannot write list chunk, file has to be opened in read+write mode");
@@ -874,48 +902,48 @@ namespace RIFF {
             LoadChunkData();
             // write chunk data from RAM persistently to the file
             #if POSIX
-            lseek(pFile->hFileWrite, ulWritePos, SEEK_SET);
-            if (write(pFile->hFileWrite, pChunkData, NewChunkSize) != NewChunkSize) {
+            lseek(pFile->hFileWrite, ullWritePos, SEEK_SET);
+            if (write(pFile->hFileWrite, pChunkData, ullNewChunkSize) != ullNewChunkSize) {
                 throw Exception("Writing Chunk data (from RAM) failed");
             }
             #elif defined(WIN32)
-            SetFilePointer(pFile->hFileWrite, ulWritePos, NULL/*32 bit*/, FILE_BEGIN);
+            SetFilePointerEx(pFile->hFileWrite, ullWritePos, NULL/*new pos pointer*/, FILE_BEGIN);
             DWORD dwBytesWritten;
-            WriteFile(pFile->hFileWrite, pChunkData, NewChunkSize, &dwBytesWritten, NULL);
-            if (dwBytesWritten != NewChunkSize) {
+            WriteFile(pFile->hFileWrite, pChunkData, ullNewChunkSize, &dwBytesWritten, NULL); //FIXME: won't save chunks larger than 2GB !
+            if (dwBytesWritten != ullNewChunkSize) {
                 throw Exception("Writing Chunk data (from RAM) failed");
             }
             #else
-            fseek(pFile->hFileWrite, ulWritePos, SEEK_SET);
-            if (fwrite(pChunkData, 1, NewChunkSize, pFile->hFileWrite) != NewChunkSize) {
+            fseeko(pFile->hFileWrite, ullWritePos, SEEK_SET);
+            if (fwrite(pChunkData, 1, ullNewChunkSize, pFile->hFileWrite) != ullNewChunkSize) {
                 throw Exception("Writing Chunk data (from RAM) failed");
             }
             #endif // POSIX
         } else {
             // move chunk data from the end of the file to the appropriate position
             int8_t* pCopyBuffer = new int8_t[4096];
-            unsigned long ulToMove = (NewChunkSize < CurrentChunkSize) ? NewChunkSize : CurrentChunkSize;
+            file_offset_t ullToMove = (ullNewChunkSize < ullCurrentChunkSize) ? ullNewChunkSize : ullCurrentChunkSize;
             #if defined(WIN32)
             DWORD iBytesMoved = 1; // we have to pass it via pointer to the Windows API, thus the correct size must be ensured
             #else
             int iBytesMoved = 1;
             #endif
-            for (unsigned long ulOffset = 0; ulToMove > 0 && iBytesMoved > 0; ulOffset += iBytesMoved, ulToMove -= iBytesMoved) {
-                iBytesMoved = (ulToMove < 4096) ? ulToMove : 4096;
+            for (file_offset_t ullOffset = 0; ullToMove > 0 && iBytesMoved > 0; ullOffset += iBytesMoved, ullToMove -= iBytesMoved) {
+                iBytesMoved = (ullToMove < 4096) ? ullToMove : 4096;
                 #if POSIX
-                lseek(pFile->hFileRead, ulStartPos + ulCurrentDataOffset + ulOffset, SEEK_SET);
+                lseek(pFile->hFileRead, ullStartPos + ullCurrentDataOffset + ullOffset, SEEK_SET);
                 iBytesMoved = read(pFile->hFileRead, pCopyBuffer, iBytesMoved);
-                lseek(pFile->hFileWrite, ulWritePos + ulOffset, SEEK_SET);
+                lseek(pFile->hFileWrite, ullWritePos + ullOffset, SEEK_SET);
                 iBytesMoved = write(pFile->hFileWrite, pCopyBuffer, iBytesMoved);
                 #elif defined(WIN32)
-                SetFilePointer(pFile->hFileRead, ulStartPos + ulCurrentDataOffset + ulOffset, NULL/*32 bit*/, FILE_BEGIN);
+                SetFilePointerEx(pFile->hFileRead, ullStartPos + ullCurrentDataOffset + ullOffset, NULL/*new pos pointer*/, FILE_BEGIN);
                 ReadFile(pFile->hFileRead, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
-                SetFilePointer(pFile->hFileWrite, ulWritePos + ulOffset, NULL/*32 bit*/, FILE_BEGIN);
+                SetFilePointerEx(pFile->hFileWrite, ullWritePos + ullOffset, NULL/*new pos pointer*/, FILE_BEGIN);
                 WriteFile(pFile->hFileWrite, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
                 #else
-                fseek(pFile->hFileRead, ulStartPos + ulCurrentDataOffset + ulOffset, SEEK_SET);
+                fseeko(pFile->hFileRead, ullStartPos + ullCurrentDataOffset + ullOffset, SEEK_SET);
                 iBytesMoved = fread(pCopyBuffer, 1, iBytesMoved, pFile->hFileRead);
-                fseek(pFile->hFileWrite, ulWritePos + ulOffset, SEEK_SET);
+                fseeko(pFile->hFileWrite, ullWritePos + ullOffset, SEEK_SET);
                 iBytesMoved = fwrite(pCopyBuffer, 1, iBytesMoved, pFile->hFileWrite);
                 #endif
             }
@@ -924,37 +952,37 @@ namespace RIFF {
         }
 
         // update this chunk's header
-        CurrentChunkSize = NewChunkSize;
-        WriteHeader(ulOriginalPos);
+        ullCurrentChunkSize = ullNewChunkSize;
+        WriteHeader(ullOriginalPos);
 
         __notify_progress(pProgress, 1.0); // notify done
 
         // update chunk's position pointers
-        ulStartPos = ulOriginalPos + CHUNK_HEADER_SIZE;
-        ulPos      = 0;
+        ullStartPos = ullOriginalPos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize);
+        ullPos      = 0;
 
         // add pad byte if needed
-        if ((ulStartPos + NewChunkSize) % 2 != 0) {
+        if ((ullStartPos + ullNewChunkSize) % 2 != 0) {
             const char cPadByte = 0;
             #if POSIX
-            lseek(pFile->hFileWrite, ulStartPos + NewChunkSize, SEEK_SET);
+            lseek(pFile->hFileWrite, ullStartPos + ullNewChunkSize, SEEK_SET);
             write(pFile->hFileWrite, &cPadByte, 1);
             #elif defined(WIN32)
-            SetFilePointer(pFile->hFileWrite, ulStartPos + NewChunkSize, NULL/*32 bit*/, FILE_BEGIN);
+            SetFilePointerEx(pFile->hFileWrite, ullStartPos + ullNewChunkSize, NULL/*new pos pointer*/, FILE_BEGIN);
             DWORD dwBytesWritten;
             WriteFile(pFile->hFileWrite, &cPadByte, 1, &dwBytesWritten, NULL);
             #else
-            fseek(pFile->hFileWrite, ulStartPos + NewChunkSize, SEEK_SET);
+            fseeko(pFile->hFileWrite, ullStartPos + ullNewChunkSize, SEEK_SET);
             fwrite(&cPadByte, 1, 1, pFile->hFileWrite);
             #endif
-            return ulStartPos + NewChunkSize + 1;
+            return ullStartPos + ullNewChunkSize + 1;
         }
 
-        return ulStartPos + NewChunkSize;
+        return ullStartPos + ullNewChunkSize;
     }
 
     void Chunk::__resetPos() {
-        ulPos = 0;
+        ullPos = 0;
     }
 
 
@@ -963,22 +991,22 @@ namespace RIFF {
 // *
 
     List::List(File* pFile) : Chunk(pFile) {
-      #if DEBUG
-      std::cout << "List::List(File* pFile)" << std::endl;
-      #endif // DEBUG
+        #if DEBUG
+        std::cout << "List::List(File* pFile)" << std::endl;
+        #endif // DEBUG
         pSubChunks    = NULL;
         pSubChunksMap = NULL;
     }
 
-    List::List(File* pFile, unsigned long StartPos, List* Parent)
+    List::List(File* pFile, file_offset_t StartPos, List* Parent)
       : Chunk(pFile, StartPos, Parent) {
         #if DEBUG
-        std::cout << "List::List(File*,ulong,bool,List*)" << std::endl;
+        std::cout << "List::List(File*,file_offset_t,List*)" << std::endl;
         #endif // DEBUG
         pSubChunks    = NULL;
         pSubChunksMap = NULL;
         ReadHeader(StartPos);
-        ulStartPos    = StartPos + LIST_HEADER_SIZE;
+        ullStartPos = StartPos + LIST_HEADER_SIZE(pFile->FileOffsetSize);
     }
 
     List::List(File* pFile, List* pParent, uint32_t uiListID)
@@ -989,9 +1017,9 @@ namespace RIFF {
     }
 
     List::~List() {
-      #if DEBUG
-      std::cout << "List::~List()" << std::endl;
-      #endif // DEBUG
+        #if DEBUG
+        std::cout << "List::~List()" << std::endl;
+        #endif // DEBUG
         DeleteChunkList();
     }
 
@@ -1024,9 +1052,9 @@ namespace RIFF {
      *                   that ID
      */
     Chunk* List::GetSubChunk(uint32_t ChunkID) {
-      #if DEBUG
-      std::cout << "List::GetSubChunk(uint32_t)" << std::endl;
-      #endif // DEBUG
+        #if DEBUG
+        std::cout << "List::GetSubChunk(uint32_t)" << std::endl;
+        #endif // DEBUG
         if (!pSubChunksMap) LoadSubChunks();
         return (*pSubChunksMap)[ChunkID];
     }
@@ -1193,25 +1221,24 @@ namespace RIFF {
     /** @brief Creates a new sub chunk.
      *
      * Creates and adds a new sub chunk to this list chunk. Note that the
-     * chunk's body size given by \a uiBodySize must be greater than zero.
+     * chunk's body size given by \a ullBodySize must be greater than zero.
      * You have to call File::Save() to make this change persistent to the
      * actual file and <b>before</b> performing any data write operations
      * on the new chunk!
      *
      * @param uiChunkID  - chunk ID of the new chunk
-     * @param uiBodySize - size of the new chunk's body, that is its actual
-     *                     data size (without header)
-     * @throws RIFF::Exception if \a uiBodySize equals zero
+     * @param ullBodySize - size of the new chunk's body, that is its actual
+     *                      data size (without header)
+     * @throws RIFF::Exception if \a ullBodySize equals zero
      */
-    Chunk* List::AddSubChunk(uint32_t uiChunkID, uint uiBodySize) {
-        if (uiBodySize == 0) throw Exception("Chunk body size must be at least 1 byte");
+    Chunk* List::AddSubChunk(uint32_t uiChunkID, file_offset_t ullBodySize) {
+        if (ullBodySize == 0) throw Exception("Chunk body size must be at least 1 byte");
         if (!pSubChunks) LoadSubChunks();
         Chunk* pNewChunk = new Chunk(pFile, this, uiChunkID, 0);
         pSubChunks->push_back(pNewChunk);
         (*pSubChunksMap)[uiChunkID] = pNewChunk;
-        pNewChunk->Resize(uiBodySize);
-        NewChunkSize += CHUNK_HEADER_SIZE;
-        pFile->LogAsResized(this);
+        pNewChunk->Resize(ullBodySize);
+        ullNewChunkSize += CHUNK_HEADER_SIZE(pFile->FileOffsetSize);
         return pNewChunk;
     }
 
@@ -1279,8 +1306,7 @@ namespace RIFF {
         List* pNewListChunk = new List(pFile, this, uiListType);
         pSubChunks->push_back(pNewListChunk);
         (*pSubChunksMap)[CHUNK_ID_LIST] = pNewListChunk;
-        NewChunkSize += LIST_HEADER_SIZE;
-        pFile->LogAsResized(this);
+        ullNewChunkSize += LIST_HEADER_SIZE(pFile->FileOffsetSize);
         return pNewListChunk;
     }
 
@@ -1312,54 +1338,71 @@ namespace RIFF {
         delete pSubChunk;
     }
 
-    void List::ReadHeader(unsigned long fPos) {
-      #if DEBUG
-      std::cout << "List::Readheader(ulong) ";
-      #endif // DEBUG
-        Chunk::ReadHeader(fPos);
-        if (CurrentChunkSize < 4) return;
-        NewChunkSize = CurrentChunkSize -= 4;
+    /**
+     *  Returns the actual total size in bytes (including List chunk header and
+     *  all subchunks) of this List Chunk if being stored to a file.
+     *
+     *  @param fileOffsetSize - RIFF file offset size (in bytes) assumed when 
+     *                          being saved to a file
+     */
+    file_offset_t List::RequiredPhysicalSize(int fileOffsetSize) {
+        if (!pSubChunks) LoadSubChunks();
+        file_offset_t size = LIST_HEADER_SIZE(fileOffsetSize);
+        ChunkList::iterator iter = pSubChunks->begin();
+        ChunkList::iterator end  = pSubChunks->end();
+        for (; iter != end; ++iter)
+            size += (*iter)->RequiredPhysicalSize(fileOffsetSize);
+        return size;
+    }
+
+    void List::ReadHeader(file_offset_t filePos) {
+        #if DEBUG
+        std::cout << "List::Readheader(file_offset_t) ";
+        #endif // DEBUG
+        Chunk::ReadHeader(filePos);
+        if (ullCurrentChunkSize < 4) return;
+        ullNewChunkSize = ullCurrentChunkSize -= 4;
         #if POSIX
-        lseek(pFile->hFileRead, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
+        lseek(pFile->hFileRead, filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize), SEEK_SET);
         read(pFile->hFileRead, &ListType, 4);
         #elif defined(WIN32)
-        SetFilePointer(pFile->hFileRead, fPos + CHUNK_HEADER_SIZE, NULL/*32 bit*/, FILE_BEGIN);
+        SetFilePointerEx(pFile->hFileRead, filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize), NULL/*new pos pointer*/, FILE_BEGIN);
         DWORD dwBytesRead;
         ReadFile(pFile->hFileRead, &ListType, 4, &dwBytesRead, NULL);
         #else
-        fseek(pFile->hFileRead, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
+        fseeko(pFile->hFileRead, filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize), SEEK_SET);
         fread(&ListType, 4, 1, pFile->hFileRead);
         #endif // POSIX
-      #if DEBUG
-      std::cout << "listType=" << convertToString(ListType) << std::endl;
-      #endif // DEBUG
+        #if DEBUG
+        std::cout << "listType=" << convertToString(ListType) << std::endl;
+        #endif // DEBUG
         if (!pFile->bEndianNative) {
             //swapBytes_32(&ListType);
         }
     }
 
-    void List::WriteHeader(unsigned long fPos) {
+    void List::WriteHeader(file_offset_t filePos) {
         // the four list type bytes officially belong the chunk's body in the RIFF format
-        NewChunkSize += 4;
-        Chunk::WriteHeader(fPos);
-        NewChunkSize -= 4; // just revert the +4 incrementation
+        ullNewChunkSize += 4;
+        Chunk::WriteHeader(filePos);
+        ullNewChunkSize -= 4; // just revert the +4 incrementation
         #if POSIX
-        lseek(pFile->hFileWrite, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
+        lseek(pFile->hFileWrite, filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize), SEEK_SET);
         write(pFile->hFileWrite, &ListType, 4);
         #elif defined(WIN32)
-        SetFilePointer(pFile->hFileWrite, fPos + CHUNK_HEADER_SIZE, NULL/*32 bit*/, FILE_BEGIN);
+        SetFilePointerEx(pFile->hFileWrite, filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize), NULL/*new pos pointer*/, FILE_BEGIN);
         DWORD dwBytesWritten;
         WriteFile(pFile->hFileWrite, &ListType, 4, &dwBytesWritten, NULL);
         #else
-        fseek(pFile->hFileWrite, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
+        fseeko(pFile->hFileWrite, filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize), SEEK_SET);
         fwrite(&ListType, 4, 1, pFile->hFileWrite);
         #endif // POSIX
     }
 
     void List::LoadSubChunks(progress_t* pProgress) {
-       #if DEBUG
-       std::cout << "List::LoadSubChunks()";
-       #endif // DEBUG
+        #if DEBUG
+        std::cout << "List::LoadSubChunks()";
+        #endif // DEBUG
         if (!pSubChunks) {
             pSubChunks    = new ChunkList();
             pSubChunksMap = new ChunkMap();
@@ -1368,28 +1411,28 @@ namespace RIFF {
             #else
             if (!pFile->hFileRead) return;
             #endif
-            unsigned long uiOriginalPos = GetPos();
+            file_offset_t ullOriginalPos = GetPos();
             SetPos(0); // jump to beginning of list chunk body
-            while (RemainingBytes() >= CHUNK_HEADER_SIZE) {
+            while (RemainingBytes() >= CHUNK_HEADER_SIZE(pFile->FileOffsetSize)) {
                 Chunk* ck;
                 uint32_t ckid;
                 Read(&ckid, 4, 1);
-       #if DEBUG
-       std::cout << " ckid=" << convertToString(ckid) << std::endl;
-       #endif // DEBUG
+                #if DEBUG
+                std::cout << " ckid=" << convertToString(ckid) << std::endl;
+                #endif // DEBUG
                 if (ckid == CHUNK_ID_LIST) {
-                    ck = new RIFF::List(pFile, ulStartPos + ulPos - 4, this);
-                    SetPos(ck->GetSize() + LIST_HEADER_SIZE - 4, RIFF::stream_curpos);
+                    ck = new RIFF::List(pFile, ullStartPos + ullPos - 4, this);
+                    SetPos(ck->GetSize() + LIST_HEADER_SIZE(pFile->FileOffsetSize) - 4, RIFF::stream_curpos);
                 }
                 else { // simple chunk
-                    ck = new RIFF::Chunk(pFile, ulStartPos + ulPos - 4, this);
-                    SetPos(ck->GetSize() + CHUNK_HEADER_SIZE - 4, RIFF::stream_curpos);
+                    ck = new RIFF::Chunk(pFile, ullStartPos + ullPos - 4, this);
+                    SetPos(ck->GetSize() + CHUNK_HEADER_SIZE(pFile->FileOffsetSize) - 4, RIFF::stream_curpos);
                 }
                 pSubChunks->push_back(ck);
                 (*pSubChunksMap)[ckid] = ck;
                 if (GetPos() % 2 != 0) SetPos(1, RIFF::stream_curpos); // jump over pad byte
             }
-            SetPos(uiOriginalPos); // restore position before this call
+            SetPos(ullOriginalPos); // restore position before this call
         }
         __notify_progress(pProgress, 1.0); // notify done
     }
@@ -1413,18 +1456,18 @@ namespace RIFF {
      * subchunks (including sub list chunks) will be stored recursively as
      * well.
      *
-     * @param ulWritePos - position within the "physical" file where this
+     * @param ullWritePos - position within the "physical" file where this
      *                     list chunk should be written to
-     * @param ulCurrentDataOffset - offset of current (old) data within
+     * @param ullCurrentDataOffset - offset of current (old) data within
      *                              the file
      * @param pProgress - optional: callback function for progress notification
      * @returns new write position in the "physical" file, that is
-     *          \a ulWritePos incremented by this list chunk's new size
+     *          \a ullWritePos incremented by this list chunk's new size
      *          (including its header size of course)
      */
-    unsigned long List::WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset, progress_t* pProgress) {
-        const unsigned long ulOriginalPos = ulWritePos;
-        ulWritePos += LIST_HEADER_SIZE;
+    file_offset_t List::WriteChunk(file_offset_t ullWritePos, file_offset_t ullCurrentDataOffset, progress_t* pProgress) {
+        const file_offset_t ullOriginalPos = ullWritePos;
+        ullWritePos += LIST_HEADER_SIZE(pFile->FileOffsetSize);
 
         if (pFile->Mode != stream_mode_read_write)
             throw Exception("Cannot write list chunk, file has to be opened in read+write mode");
@@ -1438,20 +1481,20 @@ namespace RIFF {
                 progress_t subprogress;
                 __divide_progress(pProgress, &subprogress, n, i);
                 // do the actual work
-                ulWritePos = (*iter)->WriteChunk(ulWritePos, ulCurrentDataOffset, &subprogress);
+                ullWritePos = (*iter)->WriteChunk(ullWritePos, ullCurrentDataOffset, &subprogress);
             }
         }
 
         // update this list chunk's header
-        CurrentChunkSize = NewChunkSize = ulWritePos - ulOriginalPos - LIST_HEADER_SIZE;
-        WriteHeader(ulOriginalPos);
+        ullCurrentChunkSize = ullNewChunkSize = ullWritePos - ullOriginalPos - LIST_HEADER_SIZE(pFile->FileOffsetSize);
+        WriteHeader(ullOriginalPos);
 
         // offset of this list chunk in new written file may have changed
-        ulStartPos = ulOriginalPos + LIST_HEADER_SIZE;
+        ullStartPos = ullOriginalPos + LIST_HEADER_SIZE(pFile->FileOffsetSize);
 
          __notify_progress(pProgress, 1.0); // notify done
 
-        return ulWritePos;
+        return ullWritePos;
     }
 
     void List::__resetPos() {
@@ -1466,7 +1509,7 @@ namespace RIFF {
     /**
      *  Returns string representation of the lists's id
      */
-    String List::GetListTypeString() {
+    String List::GetListTypeString() const {
         return convertToString(ListType);
     }
 
@@ -1490,7 +1533,8 @@ namespace RIFF {
      * @see AddSubChunk(), AddSubList(), SetByteOrder()
      */
     File::File(uint32_t FileType)
-        : List(this), bIsNewFile(true), Layout(layout_standard)
+        : List(this), bIsNewFile(true), Layout(layout_standard),
+          FileOffsetPreference(offset_size_auto)
     {
         #if defined(WIN32)
         hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
@@ -1499,8 +1543,9 @@ namespace RIFF {
         #endif
         Mode = stream_mode_closed;
         bEndianNative = true;
-        ulStartPos = RIFF_HEADER_SIZE;
         ListType = FileType;
+        FileOffsetSize = 4;
+        ullStartPos = RIFF_HEADER_SIZE(FileOffsetSize);
     }
 
     /** @brief Load existing RIFF file.
@@ -1512,12 +1557,14 @@ namespace RIFF {
      *                         given RIFF file
      */
     File::File(const String& path)
-        : List(this), Filename(path), bIsNewFile(false), Layout(layout_standard)
+        : List(this), Filename(path), bIsNewFile(false), Layout(layout_standard),
+          FileOffsetPreference(offset_size_auto)
     {
-       #if DEBUG
-       std::cout << "File::File("<<path<<")" << std::endl;
-       #endif // DEBUG
+        #if DEBUG
+        std::cout << "File::File("<<path<<")" << std::endl;
+        #endif // DEBUG
         bEndianNative = true;
+        FileOffsetSize = 4;
         try {
             __openExistingFile(path);
             if (ChunkID != CHUNK_ID_RIFF && ChunkID != CHUNK_ID_RIFX) {
@@ -1552,13 +1599,18 @@ namespace RIFF {
      *                   first chunk found in the file)
      * @param Endian - whether the file uses little endian or big endian layout
      * @param layout - general file structure type
+     * @param fileOffsetSize - (optional) preference how to deal with large files
      * @throws RIFF::Exception if error occured while trying to load the
      *                         given RIFF-alike file
      */
-    File::File(const String& path, uint32_t FileType, endian_t Endian, layout_t layout)
-        : List(this), Filename(path), bIsNewFile(false), Layout(layout)
+    File::File(const String& path, uint32_t FileType, endian_t Endian, layout_t layout, offset_size_t fileOffsetSize)
+        : List(this), Filename(path), bIsNewFile(false), Layout(layout),
+          FileOffsetPreference(fileOffsetSize)
     {
         SetByteOrder(Endian);
+        if (fileOffsetSize < offset_size_auto || fileOffsetSize > offset_size_64bit)
+            throw Exception("Invalid RIFF::offset_size_t");
+        FileOffsetSize = 4;
         try {
             __openExistingFile(path, &FileType);
         }
@@ -1579,7 +1631,6 @@ namespace RIFF {
      *                         given RIFF file or RIFF-alike file
      */
     void File::__openExistingFile(const String& path, uint32_t* FileType) {
-        ResizedChunks.clear();
         #if POSIX
         hFileRead = hFileWrite = open(path.c_str(), O_RDONLY | O_NONBLOCK);
         if (hFileRead == -1) {
@@ -1604,16 +1655,21 @@ namespace RIFF {
         if (!hFileRead) throw RIFF::Exception("Can't open \"" + path + "\"");
         #endif // POSIX
         Mode = stream_mode_read;
+
+        // determine RIFF file offset size to be used (in RIFF chunk headers)
+        // according to the current file offset preference
+        FileOffsetSize = FileOffsetSizeFor(GetCurrentFileSize());
+
         switch (Layout) {
             case layout_standard: // this is a normal RIFF file
-                ulStartPos = RIFF_HEADER_SIZE;
+                ullStartPos = RIFF_HEADER_SIZE(FileOffsetSize);
                 ReadHeader(0);
                 if (FileType && ChunkID != *FileType)
                     throw RIFF::Exception("Invalid file container ID");
                 break;
             case layout_flat: // non-standard RIFF-alike file
-                ulStartPos = 0;
-                NewChunkSize = CurrentChunkSize = GetFileSize();
+                ullStartPos = 0;
+                ullNewChunkSize = ullCurrentChunkSize = GetCurrentFileSize();
                 if (FileType) {
                     uint32_t ckid;
                     if (Read(&ckid, 4, 1) != 4) {
@@ -1629,7 +1685,7 @@ namespace RIFF {
         }
     }
 
-    String File::GetFileName() {
+    String File::GetFileName() const {
         return Filename;
     }
     
@@ -1637,7 +1693,7 @@ namespace RIFF {
         Filename = path;
     }
 
-    stream_mode_t File::GetMode() {
+    stream_mode_t File::GetMode() const {
         return Mode;
     }
 
@@ -1771,9 +1827,7 @@ namespace RIFF {
     /** @brief Save changes to same file.
      *
      * Make all changes of all chunks persistent by writing them to the
-     * actual (same) file. The file might temporarily grow to a higher size
-     * than it will have at the end of the saving process, in case chunks
-     * were grown.
+     * actual (same) file.
      *
      * @param pProgress - optional: callback function for progress notification
      * @throws RIFF::Exception if there is an empty chunk or empty list
@@ -1798,64 +1852,64 @@ namespace RIFF {
         // reopen file in write mode
         SetMode(stream_mode_read_write);
 
+        // get the current file size as it is now still physically stored on disk
+        const file_offset_t workingFileSize = GetCurrentFileSize();
+
+        // get the overall file size required to save this file
+        const file_offset_t newFileSize = GetRequiredFileSize(FileOffsetPreference);
+
+        // determine whether this file will yield in a large file (>=4GB) and
+        // the RIFF file offset size to be used accordingly for all chunks
+        FileOffsetSize = FileOffsetSizeFor(newFileSize);
+
         // to be able to save the whole file without loading everything into
         // RAM and without having to store the data in a temporary file, we
-        // enlarge the file with the sum of all _positive_ chunk size
-        // changes, move current data towards the end of the file with the
-        // calculated sum and finally update / rewrite the file by copying
-        // the old data back to the right position at the beginning of the file
-
-        // first we sum up all positive chunk size changes (and skip all negative ones)
-        unsigned long ulPositiveSizeDiff = 0;
-        for (std::set<Chunk*>::const_iterator iter = ResizedChunks.begin(), end = ResizedChunks.end(); iter != end; ++iter) {
-            if ((*iter)->GetNewSize() == 0) {
-                throw Exception("There is at least one empty chunk (zero size): " + __resolveChunkPath(*iter));
-            }
-            unsigned long newSizePadded = (*iter)->GetNewSize() + (*iter)->GetNewSize() % 2;
-            unsigned long oldSizePadded = (*iter)->GetSize() + (*iter)->GetSize() % 2;
-            if (newSizePadded > oldSizePadded) ulPositiveSizeDiff += newSizePadded - oldSizePadded;
-        }
-
-        unsigned long ulWorkingFileSize = GetFileSize();
+        // enlarge the file with the overall positive file size change,
+        // then move current data towards the end of the file by the calculated
+        // positive file size difference and finally update / rewrite the file
+        // by copying the old data back to the right position at the beginning
+        // of the file
 
         // if there are positive size changes...
-        if (ulPositiveSizeDiff > 0) {
+        file_offset_t positiveSizeDiff = 0;
+        if (newFileSize > workingFileSize) {
+            positiveSizeDiff = newFileSize - workingFileSize;
+
             // divide progress into subprogress
             progress_t subprogress;
             __divide_progress(pProgress, &subprogress, 3.f, 1.f); // arbitrarily subdivided into 1/3 of total progress
 
             // ... we enlarge this file first ...
-            ulWorkingFileSize += ulPositiveSizeDiff;
-            ResizeFile(ulWorkingFileSize);
+            ResizeFile(newFileSize);
+
             // ... and move current data by the same amount towards end of file.
             int8_t* pCopyBuffer = new int8_t[4096];
-            const unsigned long ulFileSize = GetSize() + RIFF_HEADER_SIZE;
             #if defined(WIN32)
             DWORD iBytesMoved = 1; // we have to pass it via pointer to the Windows API, thus the correct size must be ensured
             #else
             int iBytesMoved = 1;
             #endif
-            for (unsigned long ulPos = ulFileSize, iNotif = 0; iBytesMoved > 0; ++iNotif) {
-                iBytesMoved = (ulPos < 4096) ? ulPos : 4096;
-                ulPos -= iBytesMoved;
+            for (file_offset_t ullPos = workingFileSize, iNotif = 0; iBytesMoved > 0; ++iNotif) {
+                iBytesMoved = (ullPos < 4096) ? ullPos : 4096;
+                ullPos -= iBytesMoved;
                 #if POSIX
-                lseek(hFileRead, ulPos, SEEK_SET);
+                lseek(hFileRead, ullPos, SEEK_SET);
                 iBytesMoved = read(hFileRead, pCopyBuffer, iBytesMoved);
-                lseek(hFileWrite, ulPos + ulPositiveSizeDiff, SEEK_SET);
+                lseek(hFileWrite, ullPos + positiveSizeDiff, SEEK_SET);
                 iBytesMoved = write(hFileWrite, pCopyBuffer, iBytesMoved);
                 #elif defined(WIN32)
-                SetFilePointer(hFileRead, ulPos, NULL/*32 bit*/, FILE_BEGIN);
+                SetFilePointerEx(hFileRead, ullPos, NULL/*new pos pointer*/, FILE_BEGIN);
                 ReadFile(hFileRead, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
-                SetFilePointer(hFileWrite, ulPos + ulPositiveSizeDiff, NULL/*32 bit*/, FILE_BEGIN);
+                SetFilePointerEx(hFileWrite, ullPos + positiveSizeDiff, NULL/*new pos pointer*/, FILE_BEGIN);
                 WriteFile(hFileWrite, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
                 #else
-                fseek(hFileRead, ulPos, SEEK_SET);
+                fseeko(hFileRead, ullPos, SEEK_SET);
                 iBytesMoved = fread(pCopyBuffer, 1, iBytesMoved, hFileRead);
-                fseek(hFileWrite, ulPos + ulPositiveSizeDiff, SEEK_SET);
+                fseeko(hFileWrite, ullPos + positiveSizeDiff, SEEK_SET);
                 iBytesMoved = fwrite(pCopyBuffer, 1, iBytesMoved, hFileWrite);
                 #endif
                 if (!(iNotif % 8) && iBytesMoved > 0)
-                    __notify_progress(&subprogress, float(ulFileSize - ulPos) / float(ulFileSize));
+                    __notify_progress(&subprogress, float(workingFileSize - ullPos) / float(workingFileSize));
             }
             delete[] pCopyBuffer;
             if (iBytesMoved < 0) throw Exception("Could not modify file while trying to enlarge it");
@@ -1869,16 +1923,13 @@ namespace RIFF {
         progress_t subprogress;
         __divide_progress(pProgress, &subprogress, 3.f, 2.f); // arbitrarily subdivided into 1/3 of total progress
         // do the actual work
-        unsigned long ulTotalSize  = WriteChunk(0, ulPositiveSizeDiff, &subprogress);
-        unsigned long ulActualSize = __GetFileSize(hFileWrite);
+        const file_offset_t finalSize = WriteChunk(0, positiveSizeDiff, &subprogress);
+        const file_offset_t finalActualSize = __GetFileSize(hFileWrite);
         // notify subprogress done
         __notify_progress(&subprogress, 1.f);
 
         // resize file to the final size
-        if (ulTotalSize < ulActualSize) ResizeFile(ulTotalSize);
-
-        // forget all resized chunks
-        ResizedChunks.clear();
+        if (finalSize < finalActualSize) ResizeFile(finalSize);
 
         __notify_progress(pProgress, 1.0); // notify done
     }
@@ -1943,24 +1994,28 @@ namespace RIFF {
         #endif // POSIX
         Mode = stream_mode_read_write;
 
+        // get the overall file size required to save this file
+        const file_offset_t newFileSize = GetRequiredFileSize(FileOffsetPreference);
+
+        // determine whether this file will yield in a large file (>=4GB) and
+        // the RIFF file offset size to be used accordingly for all chunks
+        FileOffsetSize = FileOffsetSizeFor(newFileSize);
+
         // write complete RIFF tree to the other (new) file
-        unsigned long ulTotalSize;
+        file_offset_t ullTotalSize;
         {
             // divide progress into subprogress
             progress_t subprogress;
             __divide_progress(pProgress, &subprogress, 2.f, 1.f); // arbitrarily subdivided into 1/2 of total progress
             // do the actual work
-            ulTotalSize = WriteChunk(0, 0, &subprogress);
+            ullTotalSize = WriteChunk(0, 0, &subprogress);
             // notify subprogress done
             __notify_progress(&subprogress, 1.f);
         }
-        unsigned long ulActualSize = __GetFileSize(hFileWrite);
+        file_offset_t ullActualSize = __GetFileSize(hFileWrite);
 
         // resize file to the final size (if the file was originally larger)
-        if (ulTotalSize < ulActualSize) ResizeFile(ulTotalSize);
-
-        // forget all resized chunks
-        ResizedChunks.clear();
+        if (ullActualSize > ullTotalSize) ResizeFile(ullTotalSize);
 
         #if POSIX
         if (hFileWrite) close(hFileWrite);
@@ -1980,13 +2035,13 @@ namespace RIFF {
         __notify_progress(pProgress, 1.0); // notify done
     }
 
-    void File::ResizeFile(unsigned long ulNewSize) {
+    void File::ResizeFile(file_offset_t ullNewSize) {
         #if POSIX
-        if (ftruncate(hFileWrite, ulNewSize) < 0)
+        if (ftruncate(hFileWrite, ullNewSize) < 0)
             throw Exception("Could not resize file \"" + Filename + "\"");
         #elif defined(WIN32)
         if (
-            SetFilePointer(hFileWrite, ulNewSize, NULL/*32 bit*/, FILE_BEGIN) == INVALID_SET_FILE_POINTER ||
+            !SetFilePointerEx(hFileWrite, ullNewSize, NULL/*new pos pointer*/, FILE_BEGIN) ||
             !SetEndOfFile(hFileWrite)
         ) throw Exception("Could not resize file \"" + Filename + "\"");
         #else
@@ -1996,12 +2051,12 @@ namespace RIFF {
     }
 
     File::~File() {
-       #if DEBUG
-       std::cout << "File::~File()" << std::endl;
-       #endif // DEBUG
+        #if DEBUG
+        std::cout << "File::~File()" << std::endl;
+        #endif // DEBUG
         Cleanup();
     }
-    
+
     /**
      * Returns @c true if this file has been created new from scratch and
      * has not been stored to disk yet.
@@ -2020,41 +2075,146 @@ namespace RIFF {
         #endif // POSIX
         DeleteChunkList();
         pFile = NULL;
-        ResizedChunks.clear();
     }
 
-    void File::LogAsResized(Chunk* pResizedChunk) {
-        ResizedChunks.insert(pResizedChunk);
+    /**
+     * Returns the current size of this file (in bytes) as it is currently
+     * yet stored on disk. If this file does not yet exist on disk (i.e. when
+     * this RIFF File has just been created from scratch and Save() has not
+     * been called yet) then this method returns 0.
+     */
+    file_offset_t File::GetCurrentFileSize() const {
+        file_offset_t size = 0;
+        try {
+            size = __GetFileSize(hFileRead);
+        } catch (...) {
+            size = 0;
+        }
+        return size;
     }
 
-    void File::UnlogResized(Chunk* pResizedChunk) {
-        ResizedChunks.erase(pResizedChunk);
+    /**
+     * Returns the required size (in bytes) for this RIFF File to be saved to
+     * disk. The precise size of the final file on disk depends on the RIFF
+     * file offset size actually used internally in all headers of the RIFF
+     * chunks. By default libgig handles the required file offset size
+     * automatically for you; that means it is using 32 bit offsets for files
+     * smaller than 4 GB and 64 bit offsets for files equal or larger than
+     * 4 GB. You may however also override this default behavior by passing the
+     * respective option to the RIFF File constructor to force one particular
+     * offset size. In the latter case this method will return the file size
+     * for the requested forced file offset size that will be used when calling
+     * Save() later on.
+     *
+     * You may also use the overridden method below to get the file size for
+     * an arbitrary other file offset size instead.
+     *
+     * @see offset_size_t
+     * @see GetFileOffsetSize()
+     */
+    file_offset_t File::GetRequiredFileSize() {
+        return GetRequiredFileSize(FileOffsetPreference);
     }
 
-    unsigned long File::GetFileSize() {
-        return __GetFileSize(hFileRead);
+    /**
+     * Returns the rquired size (in bytes) for this RIFF file to be saved to
+     * disk, assuming the passed @a fileOffsestSize would be used for the
+     * Save() operation.
+     *
+     * This overridden method essentialy behaves like the above method, with
+     * the difference that you must provide a specific RIFF @a fileOffsetSize
+     * for calculating the theoretical final file size.
+     *
+     * @see GetFileOffsetSize()
+     */
+    file_offset_t File::GetRequiredFileSize(offset_size_t fileOffsetSize) {
+        switch (fileOffsetSize) {
+            case offset_size_auto: {
+                file_offset_t fileSize = GetRequiredFileSize(offset_size_32bit);
+                if (fileSize >> 32)
+                    return GetRequiredFileSize(offset_size_64bit);
+                else
+                    return fileSize;
+            }
+            case offset_size_32bit: break;
+            case offset_size_64bit: break;
+            default: throw Exception("Internal error: Invalid RIFF::offset_size_t");
+        }
+        return RequiredPhysicalSize(FileOffsetSize);
+    }
+
+    int File::FileOffsetSizeFor(file_offset_t fileSize) const {
+        switch (FileOffsetPreference) {
+            case offset_size_auto:
+                return (fileSize >> 32) ? 8 : 4; 
+            case offset_size_32bit:
+                return 4;
+            case offset_size_64bit:
+                return 8;
+            default:
+                throw Exception("Internal error: Invalid RIFF::offset_size_t");
+        }
+    }
+
+    /**
+     * Returns the current size (in bytes) of file offsets stored in the
+     * headers of all chunks of this file.
+     *
+     * Most RIFF files are using 32 bit file offsets internally, which limits
+     * them to a maximum file size of less than 4 GB though. In contrast to the
+     * common standard, this RIFF File class implementation supports handling of
+     * RIFF files equal or larger than 4 GB. In such cases 64 bit file offsets
+     * have to be used in all headers of all RIFF Chunks when being stored to a
+     * physical file. libgig by default automatically selects the correct file
+     * offset size for you. You may however also force one particular file
+     * offset size by supplying the respective option to the RIFF::File
+     * constructor.
+     *
+     * This method can be used to check which RIFF file offset size is currently
+     * being used for this RIFF File.
+     *
+     * @returns current RIFF file offset size used (in bytes)
+     * @see offset_size_t
+     */
+    int File::GetFileOffsetSize() const {
+        return FileOffsetSize;
+    }
+
+    /**
+     * Returns the required size (in bytes) of file offsets stored in the
+     * headers of all chunks of this file if the current RIFF tree would be
+     * saved to disk by calling Save().
+     *
+     * See GetFileOffsetSize() for mor details about RIFF file offsets.
+     *
+     * @returns RIFF file offset size required (in bytes) if being saved
+     * @see offset_size_t
+     */
+    int File::GetRequiredFileOffsetSize() {
+        return FileOffsetSizeFor(GetCurrentFileSize());
     }
 
     #if POSIX
-    unsigned long File::__GetFileSize(int hFile) {
+    file_offset_t File::__GetFileSize(int hFile) const {
         struct stat filestat;
-        fstat(hFile, &filestat);
-        long size = filestat.st_size;
-        return size;
+        if (fstat(hFile, &filestat) == -1)
+            throw Exception("POSIX FS error: could not determine file size");
+        return filestat.st_size;
     }
     #elif defined(WIN32)
-    unsigned long File::__GetFileSize(HANDLE hFile) {
-        DWORD dwSize = ::GetFileSize(hFile, NULL /*32bit*/);
-        if (dwSize == INVALID_FILE_SIZE)
+    file_offset_t File::__GetFileSize(HANDLE hFile) const {
+        PLARGE_INTEGER size;
+        if (!GetFileSizeEx(hFile, &size))
             throw Exception("Windows FS error: could not determine file size");
-        return dwSize;
+        return size;
     }
     #else // standard C functions
-    unsigned long File::__GetFileSize(FILE* hFile) {
-        long curpos = ftell(hFile);
-        fseek(hFile, 0, SEEK_END);
-        long size = ftell(hFile);
-        fseek(hFile, curpos, SEEK_SET);
+    file_offset_t File::__GetFileSize(FILE* hFile) const {
+        off_t curpos = ftello(hFile);
+        if (fseeko(hFile, 0, SEEK_END) == -1)
+            throw Exception("FS error: could not determine file size");
+        off_t size = ftello(hFile);
+        fseeko(hFile, curpos, SEEK_SET);
         return size;
     }
     #endif

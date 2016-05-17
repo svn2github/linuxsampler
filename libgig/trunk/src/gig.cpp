@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2015 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2016 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -29,6 +29,10 @@
 #include <math.h>
 #include <iostream>
 #include <assert.h>
+
+/// libgig's current file format version (for extending the original Giga file
+/// format with libgig's own custom data / custom features).
+#define GIG_FILE_EXT_VERSION    2
 
 /// Initial size of the sample buffer which is used for decompression of
 /// compressed sample wave streams - this value should always be bigger than
@@ -91,8 +95,8 @@ namespace {
     void Decompress16(int compressionmode, const unsigned char* params,
                       int srcStep, int dstStep,
                       const unsigned char* pSrc, int16_t* pDst,
-                      unsigned long currentframeoffset,
-                      unsigned long copysamples)
+                      file_offset_t currentframeoffset,
+                      file_offset_t copysamples)
     {
         switch (compressionmode) {
             case 0: // 16 bit uncompressed
@@ -128,8 +132,8 @@ namespace {
 
     void Decompress24(int compressionmode, const unsigned char* params,
                       int dstStep, const unsigned char* pSrc, uint8_t* pDst,
-                      unsigned long currentframeoffset,
-                      unsigned long copysamples, int truncatedBits)
+                      file_offset_t currentframeoffset,
+                      file_offset_t copysamples, int truncatedBits)
     {
         int y, dy, ddy, dddy;
 
@@ -335,7 +339,7 @@ namespace {
      * @param fileNo         - number of an extension file where this sample
      *                         is located, 0 otherwise
      */
-    Sample::Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset, unsigned long fileNo) : DLS::Sample((DLS::File*) pFile, waveList, WavePoolOffset) {
+    Sample::Sample(File* pFile, RIFF::List* waveList, file_offset_t WavePoolOffset, unsigned long fileNo) : DLS::Sample((DLS::File*) pFile, waveList, WavePoolOffset) {
         static const DLS::Info::string_length_t fixedStringLengths[] = {
             { CHUNK_ID_INAM, 64 },
             { 0, 0 }
@@ -477,10 +481,10 @@ namespace {
         const int iReadAtOnce = 32*1024;
         char* buf = new char[iReadAtOnce * orig->FrameSize];
         Sample* pOrig = (Sample*) orig; //HACK: remove constness for now
-        unsigned long restorePos = pOrig->GetPos();
+        file_offset_t restorePos = pOrig->GetPos();
         pOrig->SetPos(0);
         SetPos(0);
-        for (unsigned long n = pOrig->Read(buf, iReadAtOnce); n;
+        for (file_offset_t n = pOrig->Read(buf, iReadAtOnce); n;
                            n = pOrig->Read(buf, iReadAtOnce))
         {
             Write(buf, n);
@@ -565,7 +569,7 @@ namespace {
     void Sample::ScanCompressedSample() {
         //TODO: we have to add some more scans here (e.g. determine compression rate)
         this->SamplesTotal = 0;
-        std::list<unsigned long> frameOffsets;
+        std::list<file_offset_t> frameOffsets;
 
         SamplesPerFrame = BitDepth == 24 ? 256 : 2048;
         WorstCaseFrameSize = SamplesPerFrame * FrameSize + Channels; // +Channels for compression flag
@@ -581,7 +585,7 @@ namespace {
                 const int mode_l = pCkData->ReadUint8();
                 const int mode_r = pCkData->ReadUint8();
                 if (mode_l > 5 || mode_r > 5) throw gig::Exception("Unknown compression mode");
-                const unsigned long frameSize = bytesPerFrame[mode_l] + bytesPerFrame[mode_r];
+                const file_offset_t frameSize = bytesPerFrame[mode_l] + bytesPerFrame[mode_r];
 
                 if (pCkData->RemainingBytes() <= frameSize) {
                     SamplesInLastFrame =
@@ -600,7 +604,7 @@ namespace {
 
                 const int mode = pCkData->ReadUint8();
                 if (mode > 5) throw gig::Exception("Unknown compression mode");
-                const unsigned long frameSize = bytesPerFrame[mode];
+                const file_offset_t frameSize = bytesPerFrame[mode];
 
                 if (pCkData->RemainingBytes() <= frameSize) {
                     SamplesInLastFrame =
@@ -616,9 +620,9 @@ namespace {
 
         // Build the frames table (which is used for fast resolving of a frame's chunk offset)
         if (FrameTable) delete[] FrameTable;
-        FrameTable = new unsigned long[frameOffsets.size()];
-        std::list<unsigned long>::iterator end  = frameOffsets.end();
-        std::list<unsigned long>::iterator iter = frameOffsets.begin();
+        FrameTable = new file_offset_t[frameOffsets.size()];
+        std::list<file_offset_t>::iterator end  = frameOffsets.end();
+        std::list<file_offset_t>::iterator iter = frameOffsets.begin();
         for (int i = 0; iter != end; i++, iter++) {
             FrameTable[i] = *iter;
         }
@@ -659,7 +663,7 @@ namespace {
      *                      the cached sample data in bytes
      * @see                 ReleaseSampleData(), Read(), SetPos()
      */
-    buffer_t Sample::LoadSampleData(unsigned long SampleCount) {
+    buffer_t Sample::LoadSampleData(file_offset_t SampleCount) {
         return LoadSampleDataWithNullSamplesExtension(SampleCount, 0); // 0 amount of NullSamples
     }
 
@@ -718,10 +722,10 @@ namespace {
      *                           size of the cached sample data in bytes
      * @see                      ReleaseSampleData(), Read(), SetPos()
      */
-    buffer_t Sample::LoadSampleDataWithNullSamplesExtension(unsigned long SampleCount, uint NullSamplesCount) {
+    buffer_t Sample::LoadSampleDataWithNullSamplesExtension(file_offset_t SampleCount, uint NullSamplesCount) {
         if (SampleCount > this->SamplesTotal) SampleCount = this->SamplesTotal;
         if (RAMCache.pStart) delete[] (int8_t*) RAMCache.pStart;
-        unsigned long allocationsize = (SampleCount + NullSamplesCount) * this->FrameSize;
+        file_offset_t allocationsize = (SampleCount + NullSamplesCount) * this->FrameSize;
         SetPos(0); // reset read position to begin of sample
         RAMCache.pStart            = new int8_t[allocationsize];
         RAMCache.Size              = Read(RAMCache.pStart, SampleCount) * this->FrameSize;
@@ -819,7 +823,7 @@ namespace {
      * @returns            the new sample position
      * @see                Read()
      */
-    unsigned long Sample::SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence) {
+    file_offset_t Sample::SetPos(file_offset_t SampleCount, RIFF::stream_whence_t Whence) {
         if (Compressed) {
             switch (Whence) {
                 case RIFF::stream_curpos:
@@ -837,14 +841,14 @@ namespace {
             }
             if (this->SamplePos > this->SamplesTotal) this->SamplePos = this->SamplesTotal;
 
-            unsigned long frame = this->SamplePos / 2048; // to which frame to jump
+            file_offset_t frame = this->SamplePos / 2048; // to which frame to jump
             this->FrameOffset   = this->SamplePos % 2048; // offset (in sample points) within that frame
             pCkData->SetPos(FrameTable[frame]);           // set chunk pointer to the start of sought frame
             return this->SamplePos;
         }
         else { // not compressed
-            unsigned long orderedBytes = SampleCount * this->FrameSize;
-            unsigned long result = pCkData->SetPos(orderedBytes, Whence);
+            file_offset_t orderedBytes = SampleCount * this->FrameSize;
+            file_offset_t result = pCkData->SetPos(orderedBytes, Whence);
             return (result == orderedBytes) ? SampleCount
                                             : result / this->FrameSize;
         }
@@ -853,7 +857,7 @@ namespace {
     /**
      * Returns the current position in the sample (in sample points).
      */
-    unsigned long Sample::GetPos() const {
+    file_offset_t Sample::GetPos() const {
         if (Compressed) return SamplePos;
         else            return pCkData->GetPos() / FrameSize;
     }
@@ -892,9 +896,9 @@ namespace {
      * @returns                number of successfully read sample points
      * @see                    CreateDecompressionBuffer()
      */
-    unsigned long Sample::ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState,
+    file_offset_t Sample::ReadAndLoop(void* pBuffer, file_offset_t SampleCount, playback_state_t* pPlaybackState,
                                       DimensionRegion* pDimRgn, buffer_t* pExternalDecompressionBuffer) {
-        unsigned long samplestoread = SampleCount, totalreadsamples = 0, readsamples, samplestoloopend;
+        file_offset_t samplestoread = SampleCount, totalreadsamples = 0, readsamples, samplestoloopend;
         uint8_t* pDst = (uint8_t*) pBuffer;
 
         SetPos(pPlaybackState->position); // recover position from the last time
@@ -932,10 +936,10 @@ namespace {
                                 // reading, swap all sample frames so it reflects
                                 // backward playback
 
-                                unsigned long swapareastart       = totalreadsamples;
-                                unsigned long loopoffset          = GetPos() - loop.LoopStart;
-                                unsigned long samplestoreadinloop = Min(samplestoread, loopoffset);
-                                unsigned long reverseplaybackend  = GetPos() - samplestoreadinloop;
+                                file_offset_t swapareastart       = totalreadsamples;
+                                file_offset_t loopoffset          = GetPos() - loop.LoopStart;
+                                file_offset_t samplestoreadinloop = Min(samplestoread, loopoffset);
+                                file_offset_t reverseplaybackend  = GetPos() - samplestoreadinloop;
 
                                 SetPos(reverseplaybackend);
 
@@ -983,11 +987,11 @@ namespace {
                         // reading, swap all sample frames so it reflects
                         // backward playback
 
-                        unsigned long swapareastart       = totalreadsamples;
-                        unsigned long loopoffset          = GetPos() - loop.LoopStart;
-                        unsigned long samplestoreadinloop = (this->LoopPlayCount) ? Min(samplestoread, pPlaybackState->loop_cycles_left * loop.LoopLength - loopoffset)
+                        file_offset_t swapareastart       = totalreadsamples;
+                        file_offset_t loopoffset          = GetPos() - loop.LoopStart;
+                        file_offset_t samplestoreadinloop = (this->LoopPlayCount) ? Min(samplestoread, pPlaybackState->loop_cycles_left * loop.LoopLength - loopoffset)
                                                                                   : samplestoread;
-                        unsigned long reverseplaybackend  = loop.LoopStart + Abs((loopoffset - samplestoreadinloop) % loop.LoopLength);
+                        file_offset_t reverseplaybackend  = loop.LoopStart + Abs((loopoffset - samplestoreadinloop) % loop.LoopLength);
 
                         SetPos(reverseplaybackend);
 
@@ -1067,7 +1071,7 @@ namespace {
      * @returns            number of successfully read sample points
      * @see                SetPos(), CreateDecompressionBuffer()
      */
-    unsigned long Sample::Read(void* pBuffer, unsigned long SampleCount, buffer_t* pExternalDecompressionBuffer) {
+    file_offset_t Sample::Read(void* pBuffer, file_offset_t SampleCount, buffer_t* pExternalDecompressionBuffer) {
         if (SampleCount == 0) return 0;
         if (!Compressed) {
             if (BitDepth == 24) {
@@ -1082,7 +1086,7 @@ namespace {
         else {
             if (this->SamplePos >= this->SamplesTotal) return 0;
             //TODO: efficiency: maybe we should test for an average compression rate
-            unsigned long assumedsize      = GuessSize(SampleCount),
+            file_offset_t assumedsize      = GuessSize(SampleCount),
                           remainingbytes   = 0,           // remaining bytes in the local buffer
                           remainingsamples = SampleCount,
                           copysamples, skipsamples,
@@ -1105,8 +1109,8 @@ namespace {
             remainingbytes = pCkData->Read(pSrc, assumedsize, 1);
 
             while (remainingsamples && remainingbytes) {
-                unsigned long framesamples = SamplesPerFrame;
-                unsigned long framebytes, rightChannelOffset = 0, nextFrameOffset;
+                file_offset_t framesamples = SamplesPerFrame;
+                file_offset_t framebytes, rightChannelOffset = 0, nextFrameOffset;
 
                 int mode_l = *pSrc++, mode_r = 0;
 
@@ -1256,7 +1260,7 @@ namespace {
      * @throws gig::Exception if sample is compressed
      * @see DLS::LoadSampleData()
      */
-    unsigned long Sample::Write(void* pBuffer, unsigned long SampleCount) {
+    file_offset_t Sample::Write(void* pBuffer, file_offset_t SampleCount) {
         if (Compressed) throw gig::Exception("There is no support for writing compressed gig samples (yet)");
 
         // if this is the first write in this sample, reset the
@@ -1265,7 +1269,7 @@ namespace {
             __resetCRC(crc);
         }
         if (GetSize() < SampleCount) throw Exception("Could not write sample data, current sample size to small");
-        unsigned long res;
+        file_offset_t res;
         if (BitDepth == 24) {
             res = pCkData->Write(pBuffer, SampleCount * FrameSize, 1) / FrameSize;
         } else { // 16 bit
@@ -1299,11 +1303,11 @@ namespace {
      * @returns allocated decompression buffer
      * @see DestroyDecompressionBuffer()
      */
-    buffer_t Sample::CreateDecompressionBuffer(unsigned long MaxReadSize) {
+    buffer_t Sample::CreateDecompressionBuffer(file_offset_t MaxReadSize) {
         buffer_t result;
         const double worstCaseHeaderOverhead =
                 (256.0 /*frame size*/ + 12.0 /*header*/ + 2.0 /*compression type flag (stereo)*/) / 256.0;
-        result.Size              = (unsigned long) (double(MaxReadSize) * 3.0 /*(24 Bit)*/ * 2.0 /*stereo*/ * worstCaseHeaderOverhead);
+        result.Size              = (file_offset_t) (double(MaxReadSize) * 3.0 /*(24 Bit)*/ * 2.0 /*stereo*/ * worstCaseHeaderOverhead);
         result.pStart            = new int8_t[result.Size];
         result.NullExtensionSize = 0;
         return result;
@@ -3846,13 +3850,25 @@ namespace {
         if ((int32_t)WavePoolTableIndex == -1) return NULL;
         File* file = (File*) GetParent()->GetParent();
         if (!file->pWavePoolTable) return NULL;
-        unsigned long soughtoffset = file->pWavePoolTable[WavePoolTableIndex];
-        unsigned long soughtfileno = file->pWavePoolTableHi[WavePoolTableIndex];
-        Sample* sample = file->GetFirstSample(pProgress);
-        while (sample) {
-            if (sample->ulWavePoolOffset == soughtoffset &&
-                sample->FileNo == soughtfileno) return static_cast<gig::Sample*>(sample);
-            sample = file->GetNextSample();
+        if (file->HasMonolithicLargeFilePolicy()) {
+            uint64_t soughtoffset =
+                uint64_t(file->pWavePoolTable[WavePoolTableIndex]) |
+                uint64_t(file->pWavePoolTableHi[WavePoolTableIndex]) << 32;
+            Sample* sample = file->GetFirstSample(pProgress);
+            while (sample) {
+                if (sample->ullWavePoolOffset == soughtoffset)
+                    return static_cast<gig::Sample*>(sample);
+                sample = file->GetNextSample();
+            }
+        } else {
+            file_offset_t soughtoffset = file->pWavePoolTable[WavePoolTableIndex];
+            file_offset_t soughtfileno = file->pWavePoolTableHi[WavePoolTableIndex];
+            Sample* sample = file->GetFirstSample(pProgress);
+            while (sample) {
+                if (sample->ullWavePoolOffset == soughtoffset &&
+                    sample->FileNo == soughtfileno) return static_cast<gig::Sample*>(sample);
+                sample = file->GetNextSample();
+            }
         }
         return NULL;
     }
@@ -4561,7 +4577,7 @@ namespace {
                uint32_t fileOffset =
                     (*pScriptRefs)[i].script->pChunk->GetFilePos() -
                     (*pScriptRefs)[i].script->pChunk->GetPos() -
-                    CHUNK_HEADER_SIZE;
+                    CHUNK_HEADER_SIZE(ckSCSL->GetFile()->GetFileOffsetSize());
                ckSCSL->WriteUint32(&fileOffset);
                // jump over flags entry (containing the bypass flag)
                ckSCSL->SetPos(sizeof(uint32_t), RIFF::stream_curpos);
@@ -4769,7 +4785,7 @@ namespace {
                     if (script->pChunk) {
                         uint32_t offset = script->pChunk->GetFilePos() -
                                           script->pChunk->GetPos() -
-                                          CHUNK_HEADER_SIZE;
+                                          CHUNK_HEADER_SIZE(script->pChunk->GetFile()->GetFileOffsetSize());
                         if (offset == soughtOffset)
                         {
                             _ScriptPooolRef ref;
@@ -5333,8 +5349,10 @@ namespace {
 
         // check if samples should be loaded from extension files
         int lastFileNo = 0;
-        for (int i = 0 ; i < WavePoolCount ; i++) {
-            if (pWavePoolTableHi[i] > lastFileNo) lastFileNo = pWavePoolTableHi[i];
+        if (!HasMonolithicLargeFilePolicy()) {
+            for (int i = 0 ; i < WavePoolCount ; i++) {
+                if (pWavePoolTableHi[i] > lastFileNo) lastFileNo = pWavePoolTableHi[i];
+            }
         }
         String name(pRIFF->GetFileName());
         int nameLen = name.length();
@@ -5344,7 +5362,7 @@ namespace {
         for (int fileNo = 0 ; ; ) {
             RIFF::List* wvpl = file->GetSubList(LIST_TYPE_WVPL);
             if (wvpl) {
-                unsigned long wvplFileOffset = wvpl->GetFilePos();
+                file_offset_t wvplFileOffset = wvpl->GetFilePos();
                 RIFF::List* wave = wvpl->GetFirstSubList();
                 while (wave) {
                     if (wave->GetListType() == LIST_TYPE_WAVE) {
@@ -5352,7 +5370,7 @@ namespace {
                         const float subprogress = (float) iSampleIndex / (float) iTotalSamples;
                         __notify_progress(pProgress, subprogress);
 
-                        unsigned long waveFileOffset = wave->GetFilePos();
+                        file_offset_t waveFileOffset = wave->GetFilePos();
                         pSamples->push_back(new Sample(this, wave, waveFileOffset - wvplFileOffset, fileNo));
 
                         iSampleIndex++;
@@ -5823,6 +5841,78 @@ namespace {
         }
     }
 
+    /** @brief Returns the version number of libgig's Giga file format extension.
+     *
+     * libgig added several new features which were not available with the
+     * original GigaStudio software. For those purposes libgig's own custom RIFF
+     * chunks were added to the Giga file format.
+     *
+     * This method returns the version number of the Giga file format extension
+     * used in this Giga file. Currently there are 3 possible values that might
+     * be returned by this method:
+     *
+     * - @c 0: This gig file is not using any libgig specific file format
+     *         extension at all.
+     * - @c 1: This gig file uses the RT instrument script format extension.
+     * - @c 2: This gig file additionally provides support for monolithic
+     *         large gig files (larger than 2 GB).
+     *
+     * @note This method is currently protected and shall not be used as public
+     * API method, since its method signature might change in future.
+     */
+    uint File::GetFormatExtensionVersion() const {
+        RIFF::List* lst3LS = pRIFF->GetSubList(LIST_TYPE_3LS);
+        if (!lst3LS) return 0; // is not using custom Giga format extensions at all
+        RIFF::Chunk* ckFFmt = lst3LS->GetSubChunk(CHUNK_ID_FFMT);
+        if (!ckFFmt) return 1; // uses custom Giga format extension(s) but had no format version saved
+        uint8_t* pData = (uint8_t*) ckFFmt->LoadChunkData();
+        return load32(pData);
+    }
+
+    /** @brief Returns true in case this file is stored as one, single monolithic gig file.
+     *
+     * To avoid issues with operating systems which did not support large files
+     * (larger than 2 GB) the original Giga file format avoided to ever save gig
+     * files larger than 2 GB, instead such large Giga files were splitted into
+     * several files, each one not being larger than 2 GB. It used a predefined
+     * file name scheme for them like this:
+     * @code
+     * foo.gig
+     * foo.gx01
+     * foo.gx02
+     * foo.gx03
+     * ...
+     * @endcode
+     * So when like in this example foo.gig was loaded, all other files
+     * (foo.gx01, ...) were automatically loaded as well to make up the overall
+     * large gig file (provided they were located at the same directory). Such
+     * additional .gxYY files were called "extension files".
+     *
+     * Since nowadays all modern systems support large files, libgig always
+     * saves large gig files as one single monolithic gig file instead, that
+     * is libgig won't split such a large gig file into separate files like the
+     * original GigaStudio software did. It uses a custom Giga file format
+     * extension for this feature.
+     *
+     * For still being able though to load old splitted gig files and the new
+     * large monolithic ones, this method is used to determine which loading
+     * policy must be used for this gig file.
+     *
+     * @note This method is currently protected and shall not be used as public
+     * API method, since its method signature might change in future and since
+     * this method should not be directly relevant for applications based on
+     * libgig.
+     */
+    bool File::HasMonolithicLargeFilePolicy() const {
+        RIFF::List* lst3LS = pRIFF->GetSubList(LIST_TYPE_3LS);
+        if (!lst3LS) return false;
+        RIFF::Chunk* ckFFmt = lst3LS->GetSubChunk(CHUNK_ID_FFMT);
+        if (!ckFFmt) return false;
+        uint8_t* pData = (uint8_t*) ckFFmt->LoadChunkData();
+        uint32_t formatBitField = load32(&pData[4]);
+        return formatBitField & 1;
+    }
+
     /**
      * Apply all the gig file's current instruments, samples, groups and settings
      * to the respective RIFF chunks. You have to call Save() to make changes
@@ -5841,24 +5931,52 @@ namespace {
 
         // update own gig format extension chunks
         // (not part of the GigaStudio 4 format)
+        RIFF::List* lst3LS = pRIFF->GetSubList(LIST_TYPE_3LS);
+        if (!lst3LS) {
+            lst3LS = pRIFF->AddSubList(LIST_TYPE_3LS);
+        }
+        // Make sure <3LS > chunk is placed before <ptbl> chunk. The precise
+        // location of <3LS > is irrelevant, however it MUST BE located BEFORE
+        // the actual wave data, otherwise the <3LS > chunk becomes
+        // inaccessible on gig files larger than 4GB !
+        RIFF::Chunk* ckPTBL = pRIFF->GetSubChunk(CHUNK_ID_PTBL);
+        pRIFF->MoveSubChunk(lst3LS, ckPTBL);
+
+        // Update <FFmt> chunk with informations about our file format
+        // extensions. Currently this <FFmt> chunk has the following
+        // layout:
         //
+        // <uint32> -> (libgig's) File Format Extension version
+        // <uint32> -> Format bit field:
+        //             bit 0: If flag is not set use separate .gx01
+        //                    extension files if file is larger than 2 GB
+        //                    like with the original Giga format, if flag
+        //                    is set use 64 bit sample references and keep
+        //                    everything as one single monolithic gig file.
+        RIFF::Chunk* ckFFmt = lst3LS->GetSubChunk(CHUNK_ID_FFMT);
+        if (!ckFFmt) {
+            const int iChunkSize = 2 * sizeof(uint32_t);
+            ckFFmt = lst3LS->AddSubChunk(CHUNK_ID_FFMT, iChunkSize);
+        }
+        {
+            uint8_t* pData = (uint8_t*) ckFFmt->LoadChunkData();
+            store32(&pData[0], GIG_FILE_EXT_VERSION);
+            // for now we always save gig files larger than 2 GB as one
+            // single monolithic file (saving those with extension files is
+            // currently not supported and probably also not desired anymore
+            // nowadays).
+            uint32_t formatBitfield = 1;
+            store32(&pData[4], formatBitfield);
+        }
         // This must be performed before writing the chunks for instruments,
         // because the instruments' script slots will write the file offsets
         // of the respective instrument script chunk as reference.
         if (pScriptGroups) {
-            RIFF::List* lst3LS = pRIFF->GetSubList(LIST_TYPE_3LS);
-            if (pScriptGroups->empty()) {
-                if (lst3LS) pRIFF->DeleteSubChunk(lst3LS);
-            } else {
-                if (!lst3LS) lst3LS = pRIFF->AddSubList(LIST_TYPE_3LS);
-
-                // Update instrument script (group) chunks.
-
-                for (std::list<ScriptGroup*>::iterator it = pScriptGroups->begin();
-                     it != pScriptGroups->end(); ++it)
-                {
-                    (*it)->UpdateChunks(pProgress);
-                }
+            // Update instrument script (group) chunks.
+            for (std::list<ScriptGroup*>::iterator it = pScriptGroups->begin();
+                 it != pScriptGroups->end(); ++it)
+            {
+                (*it)->UpdateChunks(pProgress);
             }
         }
 

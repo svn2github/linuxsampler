@@ -53,6 +53,46 @@ inline long Abs(long val) {
     return (val > 0) ? val : -val;
 }
 
+inline void swapBytes_16(void* Word) {
+    uint8_t byteCache = *((uint8_t*) Word);
+    *((uint8_t*) Word)     = *((uint8_t*) Word + 1);
+    *((uint8_t*) Word + 1) = byteCache;
+}
+
+inline void swapBytes_32(void* Word) {
+    uint8_t byteCache = *((uint8_t*) Word);
+    *((uint8_t*) Word)     = *((uint8_t*) Word + 3);
+    *((uint8_t*) Word + 3) = byteCache;
+    byteCache = *((uint8_t*) Word + 1);
+    *((uint8_t*) Word + 1) = *((uint8_t*) Word + 2);
+    *((uint8_t*) Word + 2) = byteCache;
+}
+
+inline void swapBytes_64(void* Word) {
+    uint8_t byteCache = ((uint8_t*)Word)[0];
+    ((uint8_t*)Word)[0] = ((uint8_t*)Word)[7];
+    ((uint8_t*)Word)[7] = byteCache;
+    byteCache = ((uint8_t*)Word)[1];
+    ((uint8_t*)Word)[1] = ((uint8_t*)Word)[6];
+    ((uint8_t*)Word)[6] = byteCache;
+    byteCache = ((uint8_t*)Word)[2];
+    ((uint8_t*)Word)[2] = ((uint8_t*)Word)[5];
+    ((uint8_t*)Word)[5] = byteCache;
+    byteCache = ((uint8_t*)Word)[3];
+    ((uint8_t*)Word)[3] = ((uint8_t*)Word)[4];
+    ((uint8_t*)Word)[4] = byteCache;
+}
+
+inline void swapBytes(void* Word, uint64_t WordSize) {
+    uint8_t byteCache;
+    uint64_t lo = 0, hi = WordSize - 1;
+    for (; lo < hi; hi--, lo++) {
+        byteCache = *((uint8_t*) Word + lo);
+        *((uint8_t*) Word + lo) = *((uint8_t*) Word + hi);
+        *((uint8_t*) Word + hi) = byteCache;
+    }
+}
+
 /**
  * Stores a 16 bit integer in memory using little-endian format.
  *
@@ -75,6 +115,19 @@ inline void store32(uint8_t* pData, uint32_t data) {
     pData[1] = data >> 8;
     pData[2] = data >> 16;
     pData[3] = data >> 24;
+}
+
+/**
+ * Loads a 32 bit integer in memory using little-endian format.
+ *
+ * @param pData - memory pointer
+ * @returns 32 bit data word
+ */
+inline uint32_t load32(uint8_t* pData) {
+    return uint32_t(pData[0])       |
+           uint32_t(pData[1]) << 8  |
+           uint32_t(pData[2]) << 16 |
+           uint32_t(pData[3]) << 24;
 }
 
 /**

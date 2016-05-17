@@ -1,10 +1,27 @@
 Version SVN trunk
   * general changes:
-    - removed 2GB limitation when loading a gig or DLS file
+    - removed 2 GB limitation when loading a gig or DLS file
 
-  * src/gig.cpp:
+  * src/gig.cpp, src/gig.h:
     - fixed bug in Script::SetGroup: the script chunk wasn't moved
     - fixed compilation error with clang 3.4
+    - GIG FORMAT EXTENSION: added support for saving gig file larger than 4 GB
+      as one single monolithic gig file. A new custom RIFF chunk "FFmt" was
+      added to distinguish such monolithic large .gig files from old ones which
+      were splitted over several (.gx01, .gx02, ...) "extension" files.
+
+  * src/DLS.cpp, src/DLS.h:
+    - Sample: wave pool offsets are now 64 bits (to allow support for files
+      larger than 4 GB).
+      
+  * src/RIFF.cpp, src/RIFF.h:
+    - added support for RIFF files larger than 4 GB, by default the required
+      internal RIFF file offset size is automatically detected (that is RIFF
+      files < 4 GB automatically use 32 bit offsets while files >= 4 GB
+      automatically use 64 bit offsets), a particular offset size can be forced
+      with a new option added to the RIFF File constructor though
+    - when saving a modified, grown RIFF file, the temporary file size during
+      Save() operation will no longer be larger than the final grown file size
 
   * src/tools/akaidump.cpp, src/tools/akaiextract.cpp:
     - improved output of non-ascii characters in usage messages
@@ -13,6 +30,10 @@ Version SVN trunk
   * src/tools/korg2gig.cpp:
     - fixed c++11 narrowing warnings
     - fixed fine tuning which was not translated at all
+
+  * packaging changes:
+    - Automake: set environment variable GCC_COLORS=auto to allow GCC to
+      auto detect whether it (sh/c)ould output its messages in color.
 
 Version 4.0.0 (14 Jul 2015)
   * general changes:

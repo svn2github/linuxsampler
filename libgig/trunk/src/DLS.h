@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2016 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -105,6 +105,7 @@ namespace DLS {
 
     typedef std::string String;
     typedef RIFF::progress_t progress_t;
+    typedef RIFF::file_offset_t file_offset_t;
 
     /** Quadtuple version number ("major.minor.release.build"). */
     struct version_t {
@@ -400,25 +401,26 @@ namespace DLS {
             uint32_t      AverageBytesPerSecond; ///< The average number of bytes per second at which the waveform data should be transferred (Playback software can estimate the buffer size using this value).
             uint16_t      BlockAlign;            ///< The block alignment (in bytes) of the waveform data. Playback software needs to process a multiple of <i>BlockAlign</i> bytes of data at a time, so the value of <i>BlockAlign</i> can be used for buffer alignment.
             uint16_t      BitDepth;              ///< Size of each sample per channel (only if known sample data format is used, 0 otherwise).
-            unsigned long SamplesTotal;          ///< Reflects total number of sample points (only if known sample data format is used, 0 otherwise), do not bother to change this value, it will not be saved.
+            file_offset_t SamplesTotal;          ///< Reflects total number of sample points (only if known sample data format is used, 0 otherwise), do not bother to change this value, it will not be saved.
             uint          FrameSize;             ///< Reflects the size (in bytes) of one single sample point (only if known sample data format is used, 0 otherwise). <b>Caution:</b> with the current version of libgig you have to upate this field by yourself whenever you change one of the following fields: Channels, BitDepth ! Ignoring this might lead to undesired behavior when i.e. calling Resize(), SetPos(), Write() or Read().
 
             void*         LoadSampleData();
             void          ReleaseSampleData();
-            unsigned long GetSize() const;
+            file_offset_t GetSize() const;
             void          Resize(int iNewSize);
-            unsigned long SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
-            unsigned long Read(void* pBuffer, unsigned long SampleCount);
-            unsigned long Write(void* pBuffer, unsigned long SampleCount);
+            file_offset_t SetPos(file_offset_t SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
+            file_offset_t Read(void* pBuffer, file_offset_t SampleCount);
+            file_offset_t Write(void* pBuffer, file_offset_t SampleCount);
             virtual void  UpdateChunks(progress_t* pProgress);
             virtual void  CopyAssign(const Sample* orig);
+
         protected:
             RIFF::List*   pWaveList;
             RIFF::Chunk*  pCkData;
             RIFF::Chunk*  pCkFormat;
-            unsigned long ulWavePoolOffset;  // needed for comparison with the wave pool link table, thus the link to instruments
+            file_offset_t ullWavePoolOffset;  // needed for comparison with the wave pool link table, thus the link to instruments
 
-            Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset);
+            Sample(File* pFile, RIFF::List* waveList, file_offset_t WavePoolOffset);
             virtual ~Sample();
             void CopyAssignCore(const Sample* orig);
             friend class File;

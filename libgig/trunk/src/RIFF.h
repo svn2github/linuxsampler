@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2015 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2016 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -108,10 +108,9 @@ typedef unsigned __int64 uint64_t;
 
 #endif // WORDS_BIGENDIAN
 
-#define CHUNK_HEADER_SIZE	8
-#define LIST_HEADER_SIZE	12
-#define RIFF_HEADER_SIZE	12
-
+#define CHUNK_HEADER_SIZE(fileOffsetSize)   (4 + fileOffsetSize)
+#define LIST_HEADER_SIZE(fileOffsetSize)    (8 + fileOffsetSize)
+#define RIFF_HEADER_SIZE(fileOffsetSize)    (8 + fileOffsetSize)
 
 /**
  * @brief RIFF specific classes and definitions
@@ -140,6 +139,9 @@ namespace RIFF {
     class File;
 
     typedef std::string String;
+
+    /** Type used by libgig for handling file positioning during file I/O tasks. */
+    typedef uint64_t file_offset_t;
 
     /** Whether file stream is open in read or in read/write mode. */
     typedef enum {
@@ -170,10 +172,17 @@ namespace RIFF {
         endian_native = 2
     } endian_t;
 
-    /** General chunk structure of a file. */
+    /** General RIFF chunk structure of a RIFF file. */
     enum layout_t {
         layout_standard = 0, ///< Standard RIFF file layout: First chunk in file is a List chunk which contains all other chunks and there are no chunks outside the scope of that very first (List) chunk.
         layout_flat     = 1  ///< Not a "real" RIFF file: First chunk in file is an ordinary data chunk, not a List chunk, and there might be other chunks after that first chunk.
+    };
+
+    /** Size of RIFF file offsets used in all RIFF chunks' headers. @see File::GetFileOffsetSize() */
+    enum offset_size_t {
+        offset_size_auto  = 0, ///< Use 32 bit offsets for files smaller than 4 GB, use 64 bit offsets for files equal or larger than 4 GB.
+        offset_size_32bit = 4, ///< Always use 32 bit offsets (even for files larger than 4 GB).
+        offset_size_64bit = 8  ///< Always use 64 bit offsets (even for files smaller than 4 GB).
     };
 
     /**
@@ -204,25 +213,25 @@ namespace RIFF {
      */
     class Chunk {
         public:
-            Chunk(File* pFile, unsigned long StartPos, List* Parent);
-            String         GetChunkIDString();
-            uint32_t       GetChunkID() { return ChunkID; }             ///< Chunk ID in unsigned integer representation.
-            File*          GetFile()    { return pFile;   }             ///< Returns pointer to the chunk's File object.
-            List*          GetParent()  { return pParent; }             ///< Returns pointer to the chunk's parent list chunk.
-            unsigned long  GetSize() const { return CurrentChunkSize; } ///< Chunk size in bytes (without header, thus the chunk data body)
-            unsigned long  GetNewSize() { return NewChunkSize;     }    ///< New chunk size if it was modified with Resize().
-            unsigned long  GetPos()     { return ulPos; }               ///< Position within the chunk data body
-            unsigned long  GetFilePos() { return ulStartPos + ulPos; }  ///< Current, actual offset in file.
-            unsigned long  SetPos(unsigned long Where, stream_whence_t Whence = stream_start);
-            unsigned long  RemainingBytes();
-            stream_state_t GetState();
-            unsigned long  Read(void* pData, unsigned long WordCount, unsigned long WordSize);
-            unsigned long  ReadInt8(int8_t* pData,     unsigned long WordCount = 1);
-            unsigned long  ReadUint8(uint8_t* pData,   unsigned long WordCount = 1);
-            unsigned long  ReadInt16(int16_t* pData,   unsigned long WordCount = 1);
-            unsigned long  ReadUint16(uint16_t* pData, unsigned long WordCount = 1);
-            unsigned long  ReadInt32(int32_t* pData,   unsigned long WordCount = 1);
-            unsigned long  ReadUint32(uint32_t* pData, unsigned long WordCount = 1);
+            Chunk(File* pFile, file_offset_t StartPos, List* Parent);
+            String         GetChunkIDString() const;
+            uint32_t       GetChunkID() const { return ChunkID; }       ///< Chunk ID in unsigned integer representation.
+            File*          GetFile() const    { return pFile;   }       ///< Returns pointer to the chunk's File object.
+            List*          GetParent() const  { return pParent; }       ///< Returns pointer to the chunk's parent list chunk.
+            file_offset_t  GetSize() const { return ullCurrentChunkSize; } ///< Chunk size in bytes (without header, thus the chunk data body)
+            file_offset_t  GetNewSize() const { return ullNewChunkSize; } ///< New chunk size if it was modified with Resize(), otherwise value returned will be equal to GetSize().
+            file_offset_t  GetPos() const { return ullPos; }            ///< Position within the chunk data body (starting with 0).
+            file_offset_t  GetFilePos() const { return ullStartPos + ullPos; } ///< Current, actual offset of chunk data body start in file.
+            file_offset_t  SetPos(file_offset_t Where, stream_whence_t Whence = stream_start);
+            file_offset_t  RemainingBytes() const;
+            stream_state_t GetState() const;
+            file_offset_t  Read(void* pData, file_offset_t WordCount, file_offset_t WordSize);
+            file_offset_t  ReadInt8(int8_t* pData,     file_offset_t WordCount = 1);
+            file_offset_t  ReadUint8(uint8_t* pData,   file_offset_t WordCount = 1);
+            file_offset_t  ReadInt16(int16_t* pData,   file_offset_t WordCount = 1);
+            file_offset_t  ReadUint16(uint16_t* pData, file_offset_t WordCount = 1);
+            file_offset_t  ReadInt32(int32_t* pData,   file_offset_t WordCount = 1);
+            file_offset_t  ReadUint32(uint32_t* pData, file_offset_t WordCount = 1);
             int8_t         ReadInt8();
             uint8_t        ReadUint8();
             int16_t        ReadInt16();
@@ -230,56 +239,34 @@ namespace RIFF {
             int32_t        ReadInt32();
             uint32_t       ReadUint32();
             void           ReadString(String& s, int size);
-            unsigned long  Write(void* pData, unsigned long WordCount, unsigned long WordSize);
-            unsigned long  WriteInt8(int8_t* pData,     unsigned long WordCount = 1);
-            unsigned long  WriteUint8(uint8_t* pData,   unsigned long WordCount = 1);
-            unsigned long  WriteInt16(int16_t* pData,   unsigned long WordCount = 1);
-            unsigned long  WriteUint16(uint16_t* pData, unsigned long WordCount = 1);
-            unsigned long  WriteInt32(int32_t* pData,   unsigned long WordCount = 1);
-            unsigned long  WriteUint32(uint32_t* pData, unsigned long WordCount = 1);
+            file_offset_t  Write(void* pData, file_offset_t WordCount, file_offset_t WordSize);
+            file_offset_t  WriteInt8(int8_t* pData,     file_offset_t WordCount = 1);
+            file_offset_t  WriteUint8(uint8_t* pData,   file_offset_t WordCount = 1);
+            file_offset_t  WriteInt16(int16_t* pData,   file_offset_t WordCount = 1);
+            file_offset_t  WriteUint16(uint16_t* pData, file_offset_t WordCount = 1);
+            file_offset_t  WriteInt32(int32_t* pData,   file_offset_t WordCount = 1);
+            file_offset_t  WriteUint32(uint32_t* pData, file_offset_t WordCount = 1);
             void*          LoadChunkData();
             void           ReleaseChunkData();
-            void           Resize(int iNewSize);
+            void           Resize(file_offset_t NewSize);
             virtual ~Chunk();
         protected:
             uint32_t      ChunkID;
-            uint32_t      CurrentChunkSize;		/* in bytes */
-            uint32_t      NewChunkSize;			/* in bytes (if chunk was scheduled to be resized) */
+            file_offset_t ullCurrentChunkSize;		/* in bytes */
+            file_offset_t ullNewChunkSize;			/* in bytes (if chunk was scheduled to be resized) */
             List*         pParent;
             File*         pFile;
-            unsigned long ulStartPos;		/* actual position in file where chunk (without header) starts */
-            unsigned long ulPos; 		/* # of bytes from ulStartPos */
+            file_offset_t ullStartPos;  /* actual position in file where chunk data (without header) starts */
+            file_offset_t ullPos;       /* # of bytes from ulStartPos */
             uint8_t*      pChunkData;
-            unsigned long ulChunkDataSize;
+            file_offset_t ullChunkDataSize;
 
             Chunk(File* pFile);
-            Chunk(File* pFile, List* pParent, uint32_t uiChunkID, uint uiBodySize);
-            void          ReadHeader(unsigned long fPos);
-            void          WriteHeader(unsigned long fPos);
-            unsigned long ReadSceptical(void* pData, unsigned long WordCount, unsigned long WordSize);
-            inline void   swapBytes_16(void* Word) {
-                uint8_t byteCache = *((uint8_t*) Word);
-                *((uint8_t*) Word)     = *((uint8_t*) Word + 1);
-                *((uint8_t*) Word + 1) = byteCache;
-            }
-            inline void   swapBytes_32(void* Word) {
-                uint8_t byteCache = *((uint8_t*) Word);
-                *((uint8_t*) Word)     = *((uint8_t*) Word + 3);
-                *((uint8_t*) Word + 3) = byteCache;
-                byteCache = *((uint8_t*) Word + 1);
-                *((uint8_t*) Word + 1) = *((uint8_t*) Word + 2);
-                *((uint8_t*) Word + 2) = byteCache;
-            }
-            inline void   swapBytes(void* Word, unsigned long WordSize) {
-                uint8_t byteCache;
-                unsigned long lo = 0, hi = WordSize - 1;
-                for (; lo < hi; hi--, lo++) {
-                    byteCache = *((uint8_t*) Word + lo);
-                    *((uint8_t*) Word + lo) = *((uint8_t*) Word + hi);
-                    *((uint8_t*) Word + hi) = byteCache;
-                }
-            }
-            inline String convertToString(uint32_t word) {
+            Chunk(File* pFile, List* pParent, uint32_t uiChunkID, file_offset_t ullBodySize);
+            void ReadHeader(file_offset_t filePos);
+            void WriteHeader(file_offset_t filePos);
+            file_offset_t ReadSceptical(void* pData, file_offset_t WordCount, file_offset_t WordSize);
+            inline static String convertToString(uint32_t word) {
                 String result;
                 for (int i = 0; i < 4; i++) {
                     uint8_t byte = *((uint8_t*)(&word) + i);
@@ -288,7 +275,8 @@ namespace RIFF {
                 }
                 return result;
             }
-            virtual unsigned long WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset, progress_t* pProgress = NULL);
+            virtual file_offset_t RequiredPhysicalSize(int fileOffsetSize);
+            virtual file_offset_t WriteChunk(file_offset_t ullWritePos, file_offset_t ullCurrentDataOffset, progress_t* pProgress = NULL);
             virtual void __resetPos(); ///< Sets Chunk's read/write position to zero.
 
             friend class List;
@@ -301,9 +289,9 @@ namespace RIFF {
      */
     class List : public Chunk {
         public:
-            List(File* pFile, unsigned long StartPos, List* Parent);
-            String       GetListTypeString();
-            uint32_t     GetListType() { return ListType; }   ///< Returns unsigned integer representation of the list's ID
+            List(File* pFile, file_offset_t StartPos, List* Parent);
+            String       GetListTypeString() const;
+            uint32_t     GetListType() const { return ListType; } ///< Returns unsigned integer representation of the list's ID
             Chunk*       GetSubChunk(uint32_t ChunkID);
             List*        GetSubList(uint32_t ListType);
             Chunk*       GetFirstSubChunk();
@@ -314,7 +302,7 @@ namespace RIFF {
             unsigned int CountSubChunks(uint32_t ChunkID);
             unsigned int CountSubLists();
             unsigned int CountSubLists(uint32_t ListType);
-            Chunk*       AddSubChunk(uint32_t uiChunkID, uint uiBodySize);
+            Chunk*       AddSubChunk(uint32_t uiChunkID, file_offset_t ullBodySize);
             List*        AddSubList(uint32_t uiListType);
             void         DeleteSubChunk(Chunk* pSubChunk);
             void         MoveSubChunk(Chunk* pSrc, Chunk* pDst); // read API doc comments !!!
@@ -333,11 +321,12 @@ namespace RIFF {
 
             List(File* pFile);
             List(File* pFile, List* pParent, uint32_t uiListID);
-            void ReadHeader(unsigned long fPos);
-            void WriteHeader(unsigned long fPos);
+            void ReadHeader(file_offset_t filePos);
+            void WriteHeader(file_offset_t filePos);
             void LoadSubChunks(progress_t* pProgress = NULL);
             void LoadSubChunksRecursively(progress_t* pProgress = NULL);
-            virtual unsigned long WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset, progress_t* pProgress = NULL);
+            virtual file_offset_t RequiredPhysicalSize(int fileOffsetSize);
+            virtual file_offset_t WriteChunk(file_offset_t ullWritePos, file_offset_t ullCurrentDataOffset, progress_t* pProgress = NULL);
             virtual void __resetPos(); ///< Sets List Chunk's read/write position to zero and causes all sub chunks to do the same.
             void DeleteChunkList();
     };
@@ -352,14 +341,20 @@ namespace RIFF {
         public:
             File(uint32_t FileType);
             File(const String& path);
-            File(const String& path, uint32_t FileType, endian_t Endian, layout_t layout);
-            stream_mode_t GetMode();
+            File(const String& path, uint32_t FileType, endian_t Endian, layout_t layout, offset_size_t fileOffsetSize = offset_size_auto);
+            stream_mode_t GetMode() const;
             bool          SetMode(stream_mode_t NewMode);
             void SetByteOrder(endian_t Endian);
-            String GetFileName();
+            String GetFileName() const;
             void SetFileName(const String& path);
             bool IsNew() const;
             layout_t GetLayout() const;
+            file_offset_t GetCurrentFileSize() const;
+            file_offset_t GetRequiredFileSize();
+            file_offset_t GetRequiredFileSize(offset_size_t fileOffsetSize);
+            int GetFileOffsetSize() const;
+            int GetRequiredFileOffsetSize();
+
             virtual void Save(progress_t* pProgress = NULL);
             virtual void Save(const String& path, progress_t* pProgress = NULL);
             virtual ~File();
@@ -378,25 +373,24 @@ namespace RIFF {
             bool   bEndianNative;
             bool   bIsNewFile;
             layout_t Layout; ///< An ordinary RIFF file is always set to layout_standard.
+            offset_size_t FileOffsetPreference;
+            int FileOffsetSize; ///< Size of file offsets (in bytes) when this file was opened (or saved the last time).
 
-            void LogAsResized(Chunk* pResizedChunk);
-            void UnlogResized(Chunk* pResizedChunk);
             friend class Chunk;
             friend class List;
         private:
             stream_mode_t  Mode;
-            ChunkSet ResizedChunks; ///< All chunks which have been resized (enlarged / shortened).
 
             void __openExistingFile(const String& path, uint32_t* FileType = NULL);
-            unsigned long GetFileSize();
-            void ResizeFile(unsigned long ulNewSize);
+            void ResizeFile(file_offset_t ullNewSize);
             #if POSIX
-            unsigned long __GetFileSize(int hFile);
+            file_offset_t __GetFileSize(int hFile) const;
             #elif defined(WIN32)
-            unsigned long __GetFileSize(HANDLE hFile);
+            file_offset_t __GetFileSize(HANDLE hFile) const;
             #else
-            unsigned long __GetFileSize(FILE* hFile);
+            file_offset_t __GetFileSize(FILE* hFile) const;
             #endif
+            int FileOffsetSizeFor(file_offset_t fileSize) const;
             void Cleanup();
     };
 

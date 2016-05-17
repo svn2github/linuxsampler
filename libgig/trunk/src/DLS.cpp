@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2016 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -711,9 +711,9 @@ namespace DLS {
      * @param WavePoolOffset - offset of this sample data from wave pool
      *                         ('wvpl') list chunk
      */
-    Sample::Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset) : Resource(pFile, waveList) {
+    Sample::Sample(File* pFile, RIFF::List* waveList, file_offset_t WavePoolOffset) : Resource(pFile, waveList) {
         pWaveList = waveList;
-        ulWavePoolOffset = WavePoolOffset - LIST_HEADER_SIZE;
+        ullWavePoolOffset = WavePoolOffset - LIST_HEADER_SIZE(waveList->GetFile()->GetFileOffsetSize());
         pCkFormat = waveList->GetSubChunk(CHUNK_ID_FMT);
         pCkData   = waveList->GetSubChunk(CHUNK_ID_DATA);
         if (pCkFormat) {
@@ -793,11 +793,11 @@ namespace DLS {
         Resize(orig->GetSize());
         char* buf = (char*) LoadSampleData();
         Sample* pOrig = (Sample*) orig; //HACK: circumventing the constness here for now
-        const unsigned long restorePos = pOrig->pCkData->GetPos();
+        const file_offset_t restorePos = pOrig->pCkData->GetPos();
         pOrig->SetPos(0);
-        for (unsigned long todo = pOrig->GetSize(), i = 0; todo; ) {
+        for (file_offset_t todo = pOrig->GetSize(), i = 0; todo; ) {
             const int iReadAtOnce = 64*1024;
-            unsigned long n = (iReadAtOnce < todo) ? iReadAtOnce : todo;
+            file_offset_t n = (iReadAtOnce < todo) ? iReadAtOnce : todo;
             n = pOrig->Read(&buf[i], n);
             if (!n) break;
             todo -= n;
@@ -855,7 +855,7 @@ namespace DLS {
      * @returns number of sample points or 0 if FormatTag != DLS_WAVE_FORMAT_PCM
      * @see FrameSize, FormatTag
      */
-    unsigned long Sample::GetSize() const {
+    file_offset_t Sample::GetSize() const {
         if (FormatTag != DLS_WAVE_FORMAT_PCM) return 0;
         return (pCkData) ? pCkData->GetSize() / FrameSize : 0;
     }
@@ -913,11 +913,11 @@ namespace DLS {
      * @throws Exception if no data RIFF chunk was created for the sample yet
      * @see FrameSize, FormatTag
      */
-    unsigned long Sample::SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence) {
+    file_offset_t Sample::SetPos(file_offset_t SampleCount, RIFF::stream_whence_t Whence) {
         if (FormatTag != DLS_WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
         if (!pCkData) throw Exception("No data chunk created for sample yet, call Sample::Resize() to create one");
-        unsigned long orderedBytes = SampleCount * FrameSize;
-        unsigned long result = pCkData->SetPos(orderedBytes, Whence);
+        file_offset_t orderedBytes = SampleCount * FrameSize;
+        file_offset_t result = pCkData->SetPos(orderedBytes, Whence);
         return (result == orderedBytes) ? SampleCount
                                         : result / FrameSize;
     }
@@ -931,7 +931,7 @@ namespace DLS {
      * @param pBuffer      destination buffer
      * @param SampleCount  number of sample points to read
      */
-    unsigned long Sample::Read(void* pBuffer, unsigned long SampleCount) {
+    file_offset_t Sample::Read(void* pBuffer, file_offset_t SampleCount) {
         if (FormatTag != DLS_WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
         return pCkData->Read(pBuffer, SampleCount, FrameSize); // FIXME: channel inversion due to endian correction?
     }
@@ -951,7 +951,7 @@ namespace DLS {
      * @throws Exception if current sample size is too small
      * @see LoadSampleData()
      */
-    unsigned long Sample::Write(void* pBuffer, unsigned long SampleCount) {
+    file_offset_t Sample::Write(void* pBuffer, file_offset_t SampleCount) {
         if (FormatTag != DLS_WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
         if (GetSize() < SampleCount) throw Exception("Could not write sample data, current sample size to small");
         return pCkData->Write(pBuffer, SampleCount, FrameSize); // FIXME: channel inversion due to endian correction?
@@ -1047,10 +1047,10 @@ namespace DLS {
     Sample* Region::GetSample() {
         if (pSample) return pSample;
         File* file = (File*) GetParent()->GetParent();
-        unsigned long soughtoffset = file->pWavePoolTable[WavePoolTableIndex];
+        uint64_t soughtoffset = file->pWavePoolTable[WavePoolTableIndex];
         Sample* sample = file->GetFirstSample();
         while (sample) {
-            if (sample->ulWavePoolOffset == soughtoffset) return (pSample = sample);
+            if (sample->ullWavePoolOffset == soughtoffset) return (pSample = sample);
             sample = file->GetNextSample();
         }
         return NULL;
@@ -1526,11 +1526,11 @@ namespace DLS {
         if (!pSamples) pSamples = new SampleList;
         RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
         if (wvpl) {
-            unsigned long wvplFileOffset = wvpl->GetFilePos();
+            file_offset_t wvplFileOffset = wvpl->GetFilePos();
             RIFF::List* wave = wvpl->GetFirstSubList();
             while (wave) {
                 if (wave->GetListType() == LIST_TYPE_WAVE) {
-                    unsigned long waveFileOffset = wave->GetFilePos();
+                    file_offset_t waveFileOffset = wave->GetFilePos();
                     pSamples->push_back(new Sample(this, wave, waveFileOffset - wvplFileOffset));
                 }
                 wave = wvpl->GetNextSubList();
@@ -1539,11 +1539,11 @@ namespace DLS {
         else { // Seen a dwpl list chunk instead of a wvpl list chunk in some file (officially not DLS compliant)
             RIFF::List* dwpl = pRIFF->GetSubList(LIST_TYPE_DWPL);
             if (dwpl) {
-                unsigned long dwplFileOffset = dwpl->GetFilePos();
+                file_offset_t dwplFileOffset = dwpl->GetFilePos();
                 RIFF::List* wave = dwpl->GetFirstSubList();
                 while (wave) {
                     if (wave->GetListType() == LIST_TYPE_WAVE) {
-                        unsigned long waveFileOffset = wave->GetFilePos();
+                        file_offset_t waveFileOffset = wave->GetFilePos();
                         pSamples->push_back(new Sample(this, wave, waveFileOffset - dwplFileOffset));
                     }
                     wave = dwpl->GetNextSubList();
@@ -1737,10 +1737,10 @@ namespace DLS {
 
         // update 'ptbl' chunk
         const int iSamples = (pSamples) ? pSamples->size() : 0;
-        const int iPtblOffsetSize = (b64BitWavePoolOffsets) ? 8 : 4;
+        int iPtblOffsetSize = (b64BitWavePoolOffsets) ? 8 : 4;
         RIFF::Chunk* ptbl = pRIFF->GetSubChunk(CHUNK_ID_PTBL);
         if (!ptbl)   ptbl = pRIFF->AddSubChunk(CHUNK_ID_PTBL, 1 /*anything, we'll resize*/);
-        const int iPtblSize = WavePoolHeaderSize + iPtblOffsetSize * iSamples;
+        int iPtblSize = WavePoolHeaderSize + iPtblOffsetSize * iSamples;
         ptbl->Resize(iPtblSize);
         pData = (uint8_t*) ptbl->LoadChunkData();
         WavePoolCount = iSamples;
@@ -1766,6 +1766,19 @@ namespace DLS {
             }
 
             __notify_progress(&subprogress, 1.0); // notify subprogress done
+        }
+
+        // the RIFF file to be written might now been grown >= 4GB or might
+        // been shrunk < 4GB, so we might need to update the wave pool offset
+        // size and thus accordingly we would need to resize the wave pool
+        // chunk
+        const file_offset_t finalFileSize = pRIFF->GetRequiredFileSize();
+        const bool bRequires64Bit = (finalFileSize >> 32) != 0;
+        if (b64BitWavePoolOffsets != bRequires64Bit) {
+            b64BitWavePoolOffsets = bRequires64Bit;
+            iPtblOffsetSize = (b64BitWavePoolOffsets) ? 8 : 4;
+            iPtblSize = WavePoolHeaderSize + iPtblOffsetSize * iSamples;
+            ptbl->Resize(iPtblSize);
         }
 
         __notify_progress(pProgress, 1.0); // notify done
@@ -1883,10 +1896,10 @@ namespace DLS {
         const int iOffsetSize = (b64BitWavePoolOffsets) ? 8 : 4;
         // check if 'ptbl' chunk is large enough
         WavePoolCount = (pSamples) ? pSamples->size() : 0;
-        const unsigned long ulRequiredSize = WavePoolHeaderSize + iOffsetSize * WavePoolCount;
+        const file_offset_t ulRequiredSize = WavePoolHeaderSize + iOffsetSize * WavePoolCount;
         if (ptbl->GetSize() < ulRequiredSize) throw Exception("Fatal error, 'ptbl' chunk too small");
         // save the 'ptbl' chunk's current read/write position
-        unsigned long ulOriginalPos = ptbl->GetPos();
+        file_offset_t ullOriginalPos = ptbl->GetPos();
         // update headers
         ptbl->SetPos(0);
         uint32_t tmp = WavePoolHeaderSize;
@@ -1909,7 +1922,7 @@ namespace DLS {
             }
         }
         // restore 'ptbl' chunk's original read/write position
-        ptbl->SetPos(ulOriginalPos);
+        ptbl->SetPos(ullOriginalPos);
     }
 
     /**
@@ -1932,8 +1945,8 @@ namespace DLS {
             SampleList::iterator iter = pSamples->begin();
             SampleList::iterator end  = pSamples->end();
             for (int i = 0 ; iter != end ; ++iter, i++) {
-                uint64_t _64BitOffset = (*iter)->pWaveList->GetFilePos() - wvplFileOffset - LIST_HEADER_SIZE;
-                (*iter)->ulWavePoolOffset = _64BitOffset;
+                uint64_t _64BitOffset = (*iter)->pWaveList->GetFilePos() - wvplFileOffset - LIST_HEADER_SIZE(pRIFF->GetFileOffsetSize());
+                (*iter)->ullWavePoolOffset = _64BitOffset;
                 pWavePoolTableHi[i] = (uint32_t) (_64BitOffset >> 32);
                 pWavePoolTable[i]   = (uint32_t) _64BitOffset;
             }
@@ -1941,8 +1954,8 @@ namespace DLS {
             SampleList::iterator iter = pSamples->begin();
             SampleList::iterator end  = pSamples->end();
             for (int i = 0 ; iter != end ; ++iter, i++) {
-                uint64_t _64BitOffset = (*iter)->pWaveList->GetFilePos() - wvplFileOffset - LIST_HEADER_SIZE;
-                (*iter)->ulWavePoolOffset = _64BitOffset;
+                uint64_t _64BitOffset = (*iter)->pWaveList->GetFilePos() - wvplFileOffset - LIST_HEADER_SIZE(pRIFF->GetFileOffsetSize());
+                (*iter)->ullWavePoolOffset = _64BitOffset;
                 pWavePoolTable[i] = (uint32_t) _64BitOffset;
             }
         }

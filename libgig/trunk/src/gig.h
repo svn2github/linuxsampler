@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2015 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2016 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -45,6 +45,7 @@
 # define CHUNK_ID_SCRI  0x53637269 // own gig format extension
 # define CHUNK_ID_LSNM  0x4c534e4d // own gig format extension
 # define CHUNK_ID_SCSL  0x5343534c // own gig format extension
+# define CHUNK_ID_FFMT  0x46466D74 // own gig format extension
 #else  // little endian
 # define LIST_TYPE_3PRG	0x67727033
 # define LIST_TYPE_3EWL	0x6C776533
@@ -63,6 +64,7 @@
 # define CHUNK_ID_SCRI  0x69726353 // own gig format extension
 # define CHUNK_ID_LSNM  0x4d4e534c // own gig format extension
 # define CHUNK_ID_SCSL  0x4c534353 // own gig format extension
+# define CHUNK_ID_FFMT  0x746D4646 // own gig format extension
 #endif // WORDS_BIGENDIAN
 
 /** Gigasampler/GigaStudio specific classes and definitions */
@@ -70,6 +72,7 @@ namespace gig {
 
     typedef std::string String;
     typedef RIFF::progress_t progress_t;
+    typedef RIFF::file_offset_t file_offset_t;
 
     /** Lower and upper limit of a range. */
     struct range_t {
@@ -80,8 +83,8 @@ namespace gig {
     /** Pointer address and size of a buffer. */
     struct buffer_t {
         void*         pStart;            ///< Points to the beginning of the buffer.
-        unsigned long Size;              ///< Size of the actual data in the buffer in bytes.
-        unsigned long NullExtensionSize; ///< The buffer might be bigger than the actual data, if that's the case that unused space at the end of the buffer is filled with NULLs and NullExtensionSize reflects that unused buffer space in bytes. Those NULL extensions are mandatory for differential algorithms that have to take the following data words into account, thus have to access past the buffer's boundary. If you don't know what I'm talking about, just forget this variable. :)
+        file_offset_t Size;              ///< Size of the actual data in the buffer in bytes.
+        file_offset_t NullExtensionSize; ///< The buffer might be bigger than the actual data, if that's the case that unused space at the end of the buffer is filled with NULLs and NullExtensionSize reflects that unused buffer space in bytes. Those NULL extensions are mandatory for differential algorithms that have to take the following data words into account, thus have to access past the buffer's boundary. If you don't know what I'm talking about, just forget this variable. :)
         buffer_t() {
             pStart            = NULL;
             Size              = 0;
@@ -307,9 +310,9 @@ namespace gig {
 
     /** Reflects the current playback state for a sample. */
     struct playback_state_t {
-        unsigned long position;          ///< Current position within the sample.
+        file_offset_t position;          ///< Current position within the sample.
         bool          reverse;           ///< If playback direction is currently backwards (in case there is a pingpong or reverse loop defined).
-        unsigned long loop_cycles_left;  ///< How many times the loop has still to be passed, this value will be decremented with each loop cycle.
+        file_offset_t loop_cycles_left;  ///< How many times the loop has still to be passed, this value will be decremented with each loop cycle.
     };
 
     // just symbol prototyping
@@ -651,21 +654,21 @@ namespace gig {
 
             // own methods
             buffer_t      LoadSampleData();
-            buffer_t      LoadSampleData(unsigned long SampleCount);
+            buffer_t      LoadSampleData(file_offset_t SampleCount);
             buffer_t      LoadSampleDataWithNullSamplesExtension(uint NullSamplesCount);
-            buffer_t      LoadSampleDataWithNullSamplesExtension(unsigned long SampleCount, uint NullSamplesCount);
+            buffer_t      LoadSampleDataWithNullSamplesExtension(file_offset_t SampleCount, uint NullSamplesCount);
             buffer_t      GetCache();
             // own static methods
-            static buffer_t CreateDecompressionBuffer(unsigned long MaxReadSize);
+            static buffer_t CreateDecompressionBuffer(file_offset_t MaxReadSize);
             static void     DestroyDecompressionBuffer(buffer_t& DecompressionBuffer);
             // overridden methods
             void          ReleaseSampleData();
             void          Resize(int iNewSize);
-            unsigned long SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
-            unsigned long GetPos() const;
-            unsigned long Read(void* pBuffer, unsigned long SampleCount, buffer_t* pExternalDecompressionBuffer = NULL);
-            unsigned long ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState, DimensionRegion* pDimRgn, buffer_t* pExternalDecompressionBuffer = NULL);
-            unsigned long Write(void* pBuffer, unsigned long SampleCount);
+            file_offset_t SetPos(file_offset_t SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
+            file_offset_t GetPos() const;
+            file_offset_t Read(void* pBuffer, file_offset_t SampleCount, buffer_t* pExternalDecompressionBuffer = NULL);
+            file_offset_t ReadAndLoop(void* pBuffer, file_offset_t SampleCount, playback_state_t* pPlaybackState, DimensionRegion* pDimRgn, buffer_t* pExternalDecompressionBuffer = NULL);
+            file_offset_t Write(void* pBuffer, file_offset_t SampleCount);
             Group*        GetGroup() const;
             virtual void  UpdateChunks(progress_t* pProgress);
             void CopyAssignMeta(const Sample* orig);
@@ -674,30 +677,30 @@ namespace gig {
             static unsigned int  Instances;               ///< Number of instances of class Sample.
             static buffer_t      InternalDecompressionBuffer; ///< Buffer used for decompression as well as for truncation of 24 Bit -> 16 Bit samples.
             Group*               pGroup;                  ///< pointer to the Group this sample belongs to (always not-NULL)
-            unsigned long        FrameOffset;             ///< Current offset (sample points) in current sample frame (for decompression only).
-            unsigned long*       FrameTable;              ///< For positioning within compressed samples only: stores the offset values for each frame.
-            unsigned long        SamplePos;               ///< For compressed samples only: stores the current position (in sample points).
-            unsigned long        SamplesInLastFrame;      ///< For compressed samples only: length of the last sample frame.
-            unsigned long        WorstCaseFrameSize;      ///< For compressed samples only: size (in bytes) of the largest possible sample frame.
-            unsigned long        SamplesPerFrame;         ///< For compressed samples only: number of samples in a full sample frame.
+            file_offset_t        FrameOffset;             ///< Current offset (sample points) in current sample frame (for decompression only).
+            file_offset_t*       FrameTable;              ///< For positioning within compressed samples only: stores the offset values for each frame.
+            file_offset_t        SamplePos;               ///< For compressed samples only: stores the current position (in sample points).
+            file_offset_t        SamplesInLastFrame;      ///< For compressed samples only: length of the last sample frame.
+            file_offset_t        WorstCaseFrameSize;      ///< For compressed samples only: size (in bytes) of the largest possible sample frame.
+            file_offset_t        SamplesPerFrame;         ///< For compressed samples only: number of samples in a full sample frame.
             buffer_t             RAMCache;                ///< Buffers samples (already uncompressed) in RAM.
             unsigned long        FileNo;                  ///< File number (> 0 when sample is stored in an extension file, 0 when it's in the gig)
             RIFF::Chunk*         pCk3gix;
             RIFF::Chunk*         pCkSmpl;
             uint32_t             crc;                     ///< CRC-32 checksum of the raw sample data
 
-            Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset, unsigned long fileNo = 0);
+            Sample(File* pFile, RIFF::List* waveList, file_offset_t WavePoolOffset, unsigned long fileNo = 0);
            ~Sample();
 
             // Guess size (in bytes) of a compressed sample
-            inline unsigned long GuessSize(unsigned long samples) {
+            inline file_offset_t GuessSize(file_offset_t samples) {
                 // 16 bit: assume all frames are compressed - 1 byte
                 // per sample and 5 bytes header per 2048 samples
 
                 // 24 bit: assume next best compression rate - 1.5
                 // bytes per sample and 13 bytes header per 256
                 // samples
-                const unsigned long size =
+                const file_offset_t size =
                     BitDepth == 24 ? samples + (samples >> 1) + (samples >> 8) * 13
                                    : samples + (samples >> 10) * 5;
                 // Double for stereo and add one worst case sample
@@ -707,8 +710,8 @@ namespace gig {
 
             // Worst case amount of sample points that can be read with the
             // given decompression buffer.
-            inline unsigned long WorstCaseMaxSamples(buffer_t* pDecompressionBuffer) {
-                return (unsigned long) ((float)pDecompressionBuffer->Size / (float)WorstCaseFrameSize * (float)SamplesPerFrame);
+            inline file_offset_t WorstCaseMaxSamples(buffer_t* pDecompressionBuffer) {
+                return (file_offset_t) ((float)pDecompressionBuffer->Size / (float)WorstCaseFrameSize * (float)SamplesPerFrame);
             }
         private:
             void ScanCompressedSample();
@@ -1266,6 +1269,8 @@ namespace gig {
             virtual void LoadInstruments(progress_t* pProgress);
             virtual void LoadScriptGroups();
             void SetSampleChecksum(Sample* pSample, uint32_t crc);
+            uint GetFormatExtensionVersion() const;
+            bool HasMonolithicLargeFilePolicy() const;
             friend class Region;
             friend class Sample;
             friend class Instrument;
