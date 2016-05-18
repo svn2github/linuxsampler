@@ -318,7 +318,7 @@ namespace {
 // *************** Sample ***************
 // *
 
-    unsigned int Sample::Instances = 0;
+    size_t       Sample::Instances = 0;
     buffer_t     Sample::InternalDecompressionBuffer;
 
     /** @brief Constructor.
@@ -789,17 +789,17 @@ namespace {
      * FormatTag must be DLS_WAVE_FORMAT_PCM. Trying to resize samples with
      * other formats will fail!
      *
-     * @param iNewSize - new sample wave data size in sample points (must be
-     *                   greater than zero)
+     * @param NewSize - new sample wave data size in sample points (must be
+     *                  greater than zero)
      * @throws DLS::Excecption if FormatTag != DLS_WAVE_FORMAT_PCM
-     *                         or if \a iNewSize is less than 1
+     * @throws DLS::Exception if \a NewSize is less than 1 or unrealistic large
      * @throws gig::Exception if existing sample is compressed
      * @see DLS::Sample::GetSize(), DLS::Sample::FrameSize,
      *      DLS::Sample::FormatTag, File::Save()
      */
-    void Sample::Resize(int iNewSize) {
+    void Sample::Resize(file_offset_t NewSize) {
         if (Compressed) throw gig::Exception("There is no support for modifying compressed samples (yet)");
-        DLS::Sample::Resize(iNewSize);
+        DLS::Sample::Resize(NewSize);
     }
 
     /**
@@ -1357,7 +1357,7 @@ namespace {
 // *************** DimensionRegion ***************
 // *
 
-    uint                               DimensionRegion::Instances       = 0;
+    size_t                             DimensionRegion::Instances       = 0;
     DimensionRegion::VelocityTableMap* DimensionRegion::pVelocityTables = NULL;
 
     DimensionRegion::DimensionRegion(Region* pParent, RIFF::List* _3ewl) : DLS::Sampler(_3ewl) {

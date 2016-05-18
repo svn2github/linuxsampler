@@ -589,7 +589,7 @@ namespace gig {
             } _lev_ctrl_t;
             typedef std::map<uint32_t, double*> VelocityTableMap;
 
-            static uint              Instances;                  ///< Number of DimensionRegion instances.
+            static size_t            Instances;                  ///< Number of DimensionRegion instances.
             static VelocityTableMap* pVelocityTables;            ///< Contains the tables corresponding to the various velocity parameters (VelocityResponseCurve and VelocityResponseDepth).
             double*                  pVelocityAttenuationTable;  ///< Points to the velocity table corresponding to the velocity parameters of this DimensionRegion.
             double*                  pVelocityReleaseTable;      ///< Points to the velocity table corresponding to the release velocity parameters of this DimensionRegion
@@ -661,7 +661,7 @@ namespace gig {
             static void     DestroyDecompressionBuffer(buffer_t& DecompressionBuffer);
             // overridden methods
             void          ReleaseSampleData();
-            void          Resize(int iNewSize);
+            void          Resize(file_offset_t NewSize);
             file_offset_t SetPos(file_offset_t SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
             file_offset_t GetPos() const;
             file_offset_t Read(void* pBuffer, file_offset_t SampleCount, buffer_t* pExternalDecompressionBuffer = NULL);
@@ -672,7 +672,7 @@ namespace gig {
             void CopyAssignMeta(const Sample* orig);
             void CopyAssignWave(const Sample* orig);
         protected:
-            static unsigned int  Instances;               ///< Number of instances of class Sample.
+            static size_t        Instances;               ///< Number of instances of class Sample.
             static buffer_t      InternalDecompressionBuffer; ///< Buffer used for decompression as well as for truncation of 24 Bit -> 16 Bit samples.
             Group*               pGroup;                  ///< pointer to the Group this sample belongs to (always not-NULL)
             file_offset_t        FrameOffset;             ///< Current offset (sample points) in current sample frame (for decompression only).

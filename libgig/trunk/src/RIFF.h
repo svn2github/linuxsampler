@@ -301,10 +301,10 @@ namespace RIFF {
             Chunk*       GetNextSubChunk();
             List*        GetFirstSubList();
             List*        GetNextSubList();
-            unsigned int CountSubChunks();
-            unsigned int CountSubChunks(uint32_t ChunkID);
-            unsigned int CountSubLists();
-            unsigned int CountSubLists(uint32_t ListType);
+            size_t       CountSubChunks();
+            size_t       CountSubChunks(uint32_t ChunkID);
+            size_t       CountSubLists();
+            size_t       CountSubLists(uint32_t ListType);
             Chunk*       AddSubChunk(uint32_t uiChunkID, file_offset_t ullBodySize);
             List*        AddSubList(uint32_t uiListType);
             void         DeleteSubChunk(Chunk* pSubChunk);

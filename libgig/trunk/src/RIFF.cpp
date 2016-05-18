@@ -874,7 +874,7 @@ namespace RIFF {
      * boundary!
      *
      * @param NewSize - new chunk body size in bytes (must be greater than zero)
-     * @throws RIFF::Exception  if \a NewSize is less than 1 or Unrealistic large
+     * @throws RIFF::Exception  if \a NewSize is less than 1 or unrealistic large
      * @see File::Save()
      */
     void Chunk::Resize(file_offset_t NewSize) {
@@ -1079,7 +1079,7 @@ namespace RIFF {
     /**
      *  Returns sublist chunk with list type <i>\a ListType</i> within this
      *  chunk list. Use this method if you expect only one sublist chunk of
-     *  that type in the list. It there are more than one, it's undetermined
+     *  that type in the list. If there are more than one, it's undetermined
      *  which one of them will be returned! If there are no sublists with
      *  that desired list type, NULL will be returned.
      *
@@ -1105,7 +1105,8 @@ namespace RIFF {
     }
 
     /**
-     *  Returns the first subchunk within the list. You have to call this
+     *  Returns the first subchunk within the list (which may be an ordinary
+     *  chunk as well as a list chunk). You have to call this
      *  method before you can call GetNextSubChunk(). Recall it when you want
      *  to start from the beginning of the list again.
      *
@@ -1122,7 +1123,8 @@ namespace RIFF {
     }
 
     /**
-     *  Returns the next subchunk within the list. You have to call
+     *  Returns the next subchunk within the list (which may be an ordinary
+     *  chunk as well as a list chunk). You have to call
      *  GetFirstSubChunk() before you can use this method!
      *
      *  @returns  pointer to the next subchunk within the list or NULL if
@@ -1184,9 +1186,9 @@ namespace RIFF {
     }
 
     /**
-     *  Returns number of subchunks within the list.
+     *  Returns number of subchunks within the list (including list chunks).
      */
-    unsigned int List::CountSubChunks() {
+    size_t List::CountSubChunks() {
         if (!pSubChunks) LoadSubChunks();
         return pSubChunks->size();
     }
@@ -1195,8 +1197,8 @@ namespace RIFF {
      *  Returns number of subchunks within the list with chunk ID
      *  <i>\a ChunkId</i>.
      */
-    unsigned int List::CountSubChunks(uint32_t ChunkID) {
-        unsigned int result = 0;
+    size_t List::CountSubChunks(uint32_t ChunkID) {
+        size_t result = 0;
         if (!pSubChunks) LoadSubChunks();
         ChunkList::iterator iter = pSubChunks->begin();
         ChunkList::iterator end  = pSubChunks->end();
@@ -1212,7 +1214,7 @@ namespace RIFF {
     /**
      *  Returns number of sublists within the list.
      */
-    unsigned int List::CountSubLists() {
+    size_t List::CountSubLists() {
         return CountSubChunks(CHUNK_ID_LIST);
     }
 
@@ -1220,8 +1222,8 @@ namespace RIFF {
      *  Returns number of sublists within the list with list type
      *  <i>\a ListType</i>
      */
-    unsigned int List::CountSubLists(uint32_t ListType) {
-        unsigned int result = 0;
+    size_t List::CountSubLists(uint32_t ListType) {
+        size_t result = 0;
         if (!pSubChunks) LoadSubChunks();
         ChunkList::iterator iter = pSubChunks->begin();
         ChunkList::iterator end  = pSubChunks->end();
@@ -1495,8 +1497,8 @@ namespace RIFF {
 
         // write all subchunks (including sub list chunks) recursively
         if (pSubChunks) {
-            int i = 0;
-            const int n = pSubChunks->size();
+            size_t i = 0;
+            const size_t n = pSubChunks->size();
             for (ChunkList::iterator iter = pSubChunks->begin(), end = pSubChunks->end(); iter != end; ++iter, ++i) {
                 // divide local progress into subprogress for loading current Instrument
                 progress_t subprogress;
@@ -1908,7 +1910,7 @@ namespace RIFF {
             #if defined(WIN32)
             DWORD iBytesMoved = 1; // we have to pass it via pointer to the Windows API, thus the correct size must be ensured
             #else
-            int iBytesMoved = 1;
+            ssize_t iBytesMoved = 1;
             #endif
             for (file_offset_t ullPos = workingFileSize, iNotif = 0; iBytesMoved > 0; ++iNotif) {
                 iBytesMoved = (ullPos < 4096) ? ullPos : 4096;

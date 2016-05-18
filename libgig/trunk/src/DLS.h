@@ -407,7 +407,7 @@ namespace DLS {
             void*         LoadSampleData();
             void          ReleaseSampleData();
             file_offset_t GetSize() const;
-            void          Resize(int iNewSize);
+            void          Resize(file_offset_t NewSize);
             file_offset_t SetPos(file_offset_t SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
             file_offset_t Read(void* pBuffer, file_offset_t SampleCount);
             file_offset_t Write(void* pBuffer, file_offset_t SampleCount);

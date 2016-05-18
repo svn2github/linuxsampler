@@ -882,19 +882,21 @@ namespace DLS {
      * FormatTag must be DLS_WAVE_FORMAT_PCM. Trying to resize samples with
      * other formats will fail!
      *
-     * @param iNewSize - new sample wave data size in sample points (must be
-     *                   greater than zero)
-     * @throws Excecption if FormatTag != DLS_WAVE_FORMAT_PCM
-     * @throws Exception if \a iNewSize is less than 1
+     * @param NewSize - new sample wave data size in sample points (must be
+     *                  greater than zero)
+     * @throws Exception if FormatTag != DLS_WAVE_FORMAT_PCM
+     * @throws Exception if \a NewSize is less than 1 or unrealistic large
      * @see File::Save(), FrameSize, FormatTag
      */
-    void Sample::Resize(int iNewSize) {
+    void Sample::Resize(file_offset_t NewSize) {
         if (FormatTag != DLS_WAVE_FORMAT_PCM) throw Exception("Sample's format is not DLS_WAVE_FORMAT_PCM");
-        if (iNewSize < 1) throw Exception("Sample size must be at least one sample point");
-        const int iSizeInBytes = iNewSize * FrameSize;
+        if (NewSize < 1) throw Exception("Sample size must be at least one sample point");
+        if ((NewSize >> 48) != 0)
+            throw Exception("Unrealistic high DLS sample size detected");
+        const file_offset_t sizeInBytes = NewSize * FrameSize;
         pCkData = pWaveList->GetSubChunk(CHUNK_ID_DATA);
-        if (pCkData) pCkData->Resize(iSizeInBytes);
-        else pCkData = pWaveList->AddSubChunk(CHUNK_ID_DATA, iSizeInBytes);
+        if (pCkData) pCkData->Resize(sizeInBytes);
+        else pCkData = pWaveList->AddSubChunk(CHUNK_ID_DATA, sizeInBytes);
     }
 
     /**
