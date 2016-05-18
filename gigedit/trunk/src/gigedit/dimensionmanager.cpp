@@ -401,9 +401,13 @@ void DimensionManager::onColumnClicked() {
         ignoreColumnClicked = false;
         return;
     }
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 18) || GTKMM_MAJOR_VERSION > 2
     // prevents app to crash if this dialog is closed
     if (!get_visible())
         return;
+#else
+# warning Your GTKMM version is too old; dimension manager dialog might crash when changing a dimension type !
+#endif
 
     Gtk::TreeModel::Path path;
     Gtk::TreeViewColumn* focus_column;
