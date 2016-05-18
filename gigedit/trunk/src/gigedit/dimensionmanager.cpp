@@ -392,11 +392,18 @@ void DimensionManager::set_region(gig::Region* region) {
 }
 
 void DimensionManager::onColumnClicked() {
+    printf("DimensionManager::onColumnClicked()\n");
+
+    //FIXME: BUG: this method is currently very unreliably called, it should actually be called when the user selects another column, it is ATM however also called when the table content changed programmatically causing the dialog below to popup at undesired times !
+
     //HACK: Prevents that onColumnClicked() gets called multiple times or at times where it is not desired
     if (ignoreColumnClicked) {
         ignoreColumnClicked = false;
         return;
     }
+    // prevents app to crash if this dialog is closed
+    if (!get_visible())
+        return;
 
     Gtk::TreeModel::Path path;
     Gtk::TreeViewColumn* focus_column;
@@ -438,6 +445,7 @@ void DimensionManager::onColumnClicked() {
         comboDimType.set_active(oldTypeIndex);
 
         if (!dialog.run()) { // OK selected ...
+            ignoreColumnClicked = true;
             Gtk::TreeModel::iterator iterType = comboDimType.get_active();
             if (!iterType) return;
             Gtk::TreeModel::Row rowType = *iterType;
@@ -446,7 +454,6 @@ void DimensionManager::onColumnClicked() {
             gig::dimension_t newType = static_cast<gig::dimension_t>(iTypeID);
             if (newType == oldType) return;
             //printf("change 0x%x -> 0x%x\n", oldType, newType);
-            ignoreColumnClicked = true;
 
             // assemble the list of regions where the selected dimension type
             // shall be changed

@@ -32,6 +32,8 @@ Version SVN HEAD (?)
     altered and applied with the script editor.
   * Added setting to main menu "View" -> "Auto Restore Window Dimension"
     (disabled by default since it causes issues on some machines).
+  * Fixed crash after changing a dimension type with the dimension manager
+    dialog.
 
 Version 1.0.0 (2015-07-17)
 
