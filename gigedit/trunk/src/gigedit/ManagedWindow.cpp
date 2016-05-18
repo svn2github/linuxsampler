@@ -15,6 +15,9 @@
 
 ManagedWindow::ManagedWindow() : m_listenOnConfigureEvents(false)
 {
+    if (!Settings::singleton()->autoRestoreWindowDimension)
+        return;
+
     Glib::signal_idle().connect_once( // timeout starts given amount of ms after the main loop became idle again ...
         sigc::mem_fun(*this, &ManagedWindow::restoreWindowDimensions),
         0
@@ -101,6 +104,9 @@ ManagedDialog::ManagedDialog(const Glib::ustring& title, Gtk::Window& parent, bo
 // }
 
 void ManagedDialog::initManagedDialog() {
+    if (!Settings::singleton()->autoRestoreWindowDimension)
+        return;
+
     Glib::signal_idle().connect_once( // timeout starts given amount of ms after the main loop became idle again ...
         sigc::mem_fun(*this, &ManagedDialog::restoreWindowDimensions),
         0
@@ -137,7 +143,7 @@ bool ManagedDialog::on_configure_event(GdkEventConfigure* e) {
         );
         m_eventThrottleTimer->attach(Glib::MainContext::get_default());
     }
-    return Gtk::Window::on_configure_event(e);
+    return Gtk::Dialog::on_configure_event(e);
 }
 
 bool ManagedDialog::saveWindowDimensions(int x, int y, int w, int h) {

@@ -383,6 +383,7 @@ protected:
     void show_midi_rules();
     void show_script_slots();
     void on_action_view_status_bar();
+    void on_auto_restore_win_dim();
     void on_action_refresh_all();
     void on_action_warn_user_on_extensions();
     void on_action_sync_sampler_instrument_selection();

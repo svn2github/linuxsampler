@@ -192,6 +192,14 @@ MainWindow::MainWindow() :
     actionGroup->add(toggle_action,
                      sigc::mem_fun(
                          *this, &MainWindow::on_action_view_status_bar));
+
+    toggle_action =
+        Gtk::ToggleAction::create("AutoRestoreWinDim", _("_Auto Restore Window Dimension"));
+    toggle_action->set_active(Settings::singleton()->autoRestoreWindowDimension);
+    actionGroup->add(toggle_action,
+                     sigc::mem_fun(
+                         *this, &MainWindow::on_auto_restore_win_dim));
+
     actionGroup->add(
         Gtk::Action::create("RefreshAll", _("_Refresh All")),
         sigc::mem_fun(*this, &MainWindow::on_action_refresh_all)
@@ -364,6 +372,7 @@ MainWindow::MainWindow() :
         "    </menu>"
         "    <menu action='MenuView'>"
         "      <menuitem action='Statusbar'/>"
+        "      <menuitem action='AutoRestoreWinDim'/>"
         "      <separator/>"
         "      <menuitem action='RefreshAll'/>"
         "    </menu>"
@@ -459,6 +468,11 @@ MainWindow::MainWindow() :
         Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
             uiManager->get_widget("/MenuBar/MenuView/RefreshAll"));
         item->set_tooltip_text(_("Reloads the currently open gig file and updates the entire graphical user interface."));
+    }
+    {
+        Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
+            uiManager->get_widget("/MenuBar/MenuView/AutoRestoreWinDim"));
+        item->set_tooltip_text(_("If checked, size and position of all windows will be saved and automatically restored next time."));
     }
     {
         Gtk::MenuItem* item = dynamic_cast<Gtk::MenuItem*>(
@@ -1916,6 +1930,16 @@ void MainWindow::on_action_view_status_bar() {
     }
     if (item->get_active()) m_StatusBar.show();
     else                    m_StatusBar.hide();
+}
+
+void MainWindow::on_auto_restore_win_dim() {
+    Gtk::CheckMenuItem* item =
+        dynamic_cast<Gtk::CheckMenuItem*>(uiManager->get_widget("/MenuBar/MenuView/AutoRestoreWinDim"));
+    if (!item) {
+        std::cerr << "/MenuBar/MenuView/AutoRestoreWinDim == NULL\n";
+        return;
+    }
+    Settings::singleton()->autoRestoreWindowDimension = item->get_active();
 }
 
 bool MainWindow::is_copy_samples_unity_note_enabled() const {

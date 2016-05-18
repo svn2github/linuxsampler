@@ -30,6 +30,8 @@ Version SVN HEAD (?)
   * Script Editor: if editor is used in live-mode, inform the sampler that
     it needs to automatically reload the script after the script has been
     altered and applied with the script editor.
+  * Added setting to main menu "View" -> "Auto Restore Window Dimension"
+    (disabled by default since it causes issues on some machines).
 
 Version 1.0.0 (2015-07-17)
 

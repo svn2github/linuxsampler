@@ -121,6 +121,7 @@ public:
     Property<bool> warnUserOnExtensions; ///< if enabled, the user shall he be warned if he is trying to use a gig format extension that will not work with Gigasampler/GigaStudio
     Property<bool> syncSamplerInstrumentSelection; ///< if enabled, the sampler's current instrument will automatically be switched whenever another instrument was selected in gigedit
     Property<bool> moveRootNoteWithRegionMoved; ///< if enabled, the root note(s) of regions are automatically moving when the user drags a region around at the virtual keyboard
+    Property<bool> autoRestoreWindowDimension;
 
     // settings of "MainWindow" group
     Property<int> mainWindowX;
