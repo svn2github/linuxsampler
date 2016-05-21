@@ -3106,12 +3106,13 @@ namespace {
         int step = 1;
         for (int i = 0 ; i < veldim ; i++) step <<= pDimensionDefinitions[i].bits;
         int skipveldim = (step << pDimensionDefinitions[veldim].bits) - step;
-        int end = step * pDimensionDefinitions[veldim].zones;
 
         // loop through all dimension regions for all dimensions except the velocity dimension
         int dim[8] = { 0 };
         for (int i = 0 ; i < DimensionRegions ; i++) {
+            const int end = i + step * pDimensionDefinitions[veldim].zones;
 
+            // create a velocity table for all cases where the velocity zone is zero
             if (pDimensionRegions[i]->DimensionUpperLimits[veldim] ||
                 pDimensionRegions[i]->VelocityUpperLimit) {
                 // create the velocity table
@@ -3142,6 +3143,7 @@ namespace {
                 }
             }
 
+            // jump to the next case where the velocity zone is zero
             int j;
             int shift = 0;
             for (j = 0 ; j < Dimensions ; j++) {

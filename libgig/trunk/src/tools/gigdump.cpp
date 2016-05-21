@@ -377,6 +377,15 @@ void PrintRegions(gig::Instrument* instr) {
     }
 }
 
+template<typename T_int>
+static void printIntArray(T_int* array, int size) {
+    printf("{");
+    for (int i = 0; i < size; ++i)
+        printf("[%d]=%d,", i, array[i]);
+    printf("}");
+    fflush(stdout);
+}
+
 void PrintDimensionRegions(gig::Region* rgn) {
     int dimensionRegions = 0;
     gig::DimensionRegion* pDimensionRegion;
@@ -420,6 +429,16 @@ void PrintDimensionRegions(gig::Region* rgn) {
                 cout << "UNKNOWN - please report this !";
         }
         cout << ", VelocityResponseDepth=" << (int) pDimensionRegion->VelocityResponseDepth << ", VelocityResponseCurveScaling=" << (int) pDimensionRegion->VelocityResponseCurveScaling << endl;
+        cout << "                VelocityUpperLimit=" << (int) pDimensionRegion->VelocityUpperLimit << " DimensionUpperLimits[]=" << flush;
+        printIntArray(pDimensionRegion->DimensionUpperLimits, 8);
+        cout << endl;
+#if 0 // requires access to protected member VelocityTable, so commented out for now
+        if (pDimensionRegion->VelocityTable) {
+            cout << "                VelocityTable[]=" << flush;
+            printIntArray(pDimensionRegion->VelocityTable, 127);
+            cout << endl;
+        }
+#endif
         cout << "                Pan=" << (int) pDimensionRegion->Pan << endl;
 
         dimensionRegions++;
