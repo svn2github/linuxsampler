@@ -1303,7 +1303,7 @@ bool DimRegionEdit::set_sample(gig::Sample* sample, bool copy_sample_unity, bool
 
 bool DimRegionEdit::set_sample(gig::DimensionRegion* dimreg, gig::Sample* sample, bool copy_sample_unity, bool copy_sample_tune, bool copy_sample_loop)
 {
-    if (dimregion) {
+    if (dimreg) {
         //TODO: we should better move the code from MainWindow::on_sample_label_drop_drag_data_received() here
 
         // currently commented because we're sending a similar signal in MainWindow::on_sample_label_drop_drag_data_received()
@@ -1312,9 +1312,9 @@ bool DimRegionEdit::set_sample(gig::DimensionRegion* dimreg, gig::Sample* sample
         // make sure stereo samples always are the same in both
         // dimregs in the samplechannel dimension
         int nbDimregs = 1;
-        gig::DimensionRegion* d[2] = { dimregion, 0 };
+        gig::DimensionRegion* d[2] = { dimreg, 0 };
         if (sample->Channels == 2) {
-            gig::Region* region = dimregion->GetParent();
+            gig::Region* region = dimreg->GetParent();
 
             int bitcount = 0;
             int stereo_bit = 0;
@@ -1329,7 +1329,7 @@ bool DimRegionEdit::set_sample(gig::DimensionRegion* dimreg, gig::Sample* sample
             if (stereo_bit) {
                 int dimregno;
                 for (dimregno = 0 ; dimregno < region->DimensionRegions ; dimregno++) {
-                    if (region->pDimensionRegions[dimregno] == dimregion) {
+                    if (region->pDimensionRegions[dimregno] == dimreg) {
                         break;
                     }
                 }
@@ -1339,7 +1339,7 @@ bool DimRegionEdit::set_sample(gig::DimensionRegion* dimreg, gig::Sample* sample
             }
         }
 
-        gig::Sample* oldref = dimregion->pSample;
+        gig::Sample* oldref = dimreg->pSample;
 
         for (int i = 0 ; i < nbDimregs ; i++) {
             d[i]->pSample = sample;
@@ -1369,16 +1369,16 @@ bool DimRegionEdit::set_sample(gig::DimensionRegion* dimreg, gig::Sample* sample
 
         // update ui
         update_model++;
-        wSample->set_text(gig_to_utf8(dimregion->pSample->pInfo->Name));
-        eUnityNote.set_value(dimregion->UnityNote);
-        eFineTune.set_value(dimregion->FineTune);
-        eSampleLoopEnabled.set_value(dimregion->SampleLoops);
+        wSample->set_text(gig_to_utf8(dimreg->pSample->pInfo->Name));
+        eUnityNote.set_value(dimreg->UnityNote);
+        eFineTune.set_value(dimreg->FineTune);
+        eSampleLoopEnabled.set_value(dimreg->SampleLoops);
         update_loop_elements();
         update_model--;
 
         sample_ref_changed_signal.emit(oldref, sample);
         // currently commented because we're sending a similar signal in MainWindow::on_sample_label_drop_drag_data_received()
-        //dimreg_changed_signal.emit(dimregion);
+        //dimreg_changed_signal.emit(dimreg);
         return true;
     }
     return false;
