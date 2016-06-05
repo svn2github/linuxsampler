@@ -77,6 +77,7 @@ public:
     virtual ~DimRegionEdit();
     void set_dim_region(gig::DimensionRegion* d);
     bool set_sample(gig::Sample* sample, bool copy_sample_unity, bool copy_sample_tune, bool copy_sample_loop);
+    bool set_sample(gig::DimensionRegion* dimreg, gig::Sample* sample, bool copy_sample_unity, bool copy_sample_tune, bool copy_sample_loop);
     Gtk::Entry* wSample;
     Gtk::Button* buttonNullSampleReference;
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_to_be_changed();
@@ -274,7 +275,7 @@ protected:
                           sigc::mem_fun(widget, &C::get_value)));
     }
 
-    // loop through all dimregions being edited ant set a value in
+    // loop through all dimregions being edited and set a value in
     // each of them
     template<typename T>
     void set_many(T value,

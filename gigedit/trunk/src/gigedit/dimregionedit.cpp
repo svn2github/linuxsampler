@@ -1294,6 +1294,15 @@ void DimRegionEdit::loop_infinite_toggled() {
 
 bool DimRegionEdit::set_sample(gig::Sample* sample, bool copy_sample_unity, bool copy_sample_tune, bool copy_sample_loop)
 {
+    for (std::set<gig::DimensionRegion*>::iterator itDimReg = dimregs.begin();
+         itDimReg != dimregs.end(); ++itDimReg)
+    {
+        set_sample(*itDimReg, sample, copy_sample_unity, copy_sample_tune, copy_sample_loop);
+    }
+}
+
+bool DimRegionEdit::set_sample(gig::DimensionRegion* dimreg, gig::Sample* sample, bool copy_sample_unity, bool copy_sample_tune, bool copy_sample_loop)
+{
     if (dimregion) {
         //TODO: we should better move the code from MainWindow::on_sample_label_drop_drag_data_received() here
 
