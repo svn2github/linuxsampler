@@ -142,6 +142,8 @@ namespace LinuxSampler {
         int                   SostenutoKeyCount;
         uint32_t              RoundRobinIndexes[128];
         int8_t                KeyDown[128]; ///< True if the respective key is currently pressed down. Currently only used as built-in instrument script array variable %KEY_DOWN. It is currently not used by the sampler for any other purpose.
+
+        virtual void ProcessReleaseTrigger(RTList<Event>::Iterator& itEvent) = 0;
     };
 
     template <class V>
@@ -682,10 +684,37 @@ namespace LinuxSampler {
                         if (itNewEvent) {
                             *itNewEvent = *itEvent; // copy event to the key's own event list
                             itNewEvent->Type = Event::type_release; // transform event type
+                            itNewEvent->Param.Note.Key = *iuiKey;
+                            itNewEvent->Param.Note.Velocity = 127;
+                            if (!SostenutoActiveOnKey(*iuiKey)) {
+                                //HACK: set sustain CC (64) as "pressed down" for a short moment, so that release trigger voices can distinguish between note off and sustain pedal up cases
+                                AbstractEngineChannel* pChannel = (AbstractEngineChannel*) itEvent->pEngineChannel;
+                                const int8_t CC64Value = pChannel->ControllerTable[64];
+                                pChannel->ControllerTable[64] = 127;
+
+                                // now spawn release trigger voices (if required)
+                                ProcessReleaseTrigger(itNewEvent);
+
+                                //HACK: reset sustain pedal CC value to old one (see comment above)
+                                pChannel->ControllerTable[64] = CC64Value;
+                            }
                         }
                         else dmsg(1,("Event pool emtpy!\n"));
                     }
                 }
+            }
+
+            /**
+             * Whether @a key is still kept active due to sostenuto pedal usage.
+             *
+             * @param key - note number of key
+             */
+            inline bool SostenutoActiveOnKey(int key) const {
+                if (SostenutoPedal) {
+                    for (int i = 0; i < SostenutoKeyCount; i++)
+                        if (key == SostenutoKeys[i]) return true;
+                }
+                return false;
             }
 
             /**
@@ -697,12 +726,7 @@ namespace LinuxSampler {
              */
             bool ShouldReleaseVoice(int Key) {
                 if (SustainPedal) return false;
-
-                if (SostenutoPedal) {
-                    for (int i = 0; i < SostenutoKeyCount; i++)
-                        if (Key == SostenutoKeys[i]) return false;
-                }
-
+                if (SostenutoActiveOnKey(Key)) return false;
                 return true;
             }
 

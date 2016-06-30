@@ -351,6 +351,8 @@ namespace LinuxSampler { namespace gig {
 
         // no need to continue if sample is silent
         if (!pDimRgn->pSample || !pDimRgn->pSample->SamplesTotal) return Pool<Voice>::Iterator();
+        
+        dmsg(2,("sample -> \"%s\"\n", pDimRgn->pSample->pInfo->Name.c_str()));
 
         // allocate a new voice for the key
         Pool<Voice>::Iterator itNewVoice = GetVoicePool()->allocAppend();

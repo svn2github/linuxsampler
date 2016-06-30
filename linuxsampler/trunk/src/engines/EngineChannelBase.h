@@ -292,6 +292,18 @@ namespace LinuxSampler {
                 bStatusChanged = true; // status of engine has changed, so set notify flag
             }
 
+            /**
+             * Called on sustain pedal up events to check and if required,
+             * launch release trigger voices on the respective active key.
+             *
+             * @param pEngineChannel - engine channel on which this event occurred on
+             * @param itEvent - release trigger event (contains note number)
+             */
+            virtual void ProcessReleaseTrigger(RTList<Event>::Iterator& itEvent) OVERRIDE {
+                if (!pEngine) return;
+                pEngine->ProcessReleaseTrigger(this, itEvent);
+            }
+
             void RenderActiveVoices(uint Samples) {
                 RenderVoicesHandler handler(this, Samples);
                 this->ProcessActiveVoices(&handler);

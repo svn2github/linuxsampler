@@ -20,6 +20,10 @@ Version SVN trunk (?)
       being directly assigned to a keyboard key. This allows more fine graded
       processing of voices, which is i.e. required for certain instrument
       script features.
+    - Fix: Release trigger voices were not spawned on sustain pedal up
+      (CC #64) events.
+    - Fix: Release trigger voices can now also distinguish correctly between
+      note-off and sustain pedal up events.
 
   * packaging changes:
     - removed unnecessary dependency to libuuid

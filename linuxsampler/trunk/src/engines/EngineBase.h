@@ -1787,16 +1787,8 @@ namespace LinuxSampler {
                 // if no solo mode (the usual case) or if solo mode and no other key pressed, then release voices on this key if needed
                 if (bShouldRelease) {
                     itNoteOffEventOnKeyList->Type = Event::type_release; // transform event type
-
                     // spawn release triggered voice(s) if needed
-                    if (pKey->ReleaseTrigger && pChannel->pInstrument) {
-                        // assign a new note to this release event
-                        if (LaunchNewNote(pChannel, &*itNoteOffEventOnKeyList)) {
-                            // allocate and trigger new release voice(s)
-                            TriggerReleaseVoices(pChannel, itNoteOffEventOnKeyList);
-                        }
-                        pKey->ReleaseTrigger = false;
-                    }
+                    ProcessReleaseTrigger(pChannel, itNoteOffEventOnKeyList, pKey);
                 }
 
                 // if neither a voice was spawned or postponed on this key then remove note off event from key again
@@ -1804,6 +1796,45 @@ namespace LinuxSampler {
                     pKey->pEvents->free(itNoteOffEventOnKeyList);
 
                 pChannel->listeners.PostProcessNoteOff(iKey, vel);
+            }
+
+            /**
+             * Called on sustain pedal up events to check and if required,
+             * launch release trigger voices on the respective active key.
+             *
+             * @param pEngineChannel - engine channel on which this event occurred on
+             * @param itEvent - release trigger event (contains note number)
+             */
+            virtual void ProcessReleaseTrigger(EngineChannel* pEngineChannel, RTList<Event>::Iterator& itEvent) OVERRIDE {
+                EngineChannelBase<V, R, I>* pChannel = static_cast<EngineChannelBase<V, R, I>*>(pEngineChannel);
+
+                const int iKey = itEvent->Param.Note.Key;
+                if (iKey < 0 || iKey > 127) return; // ignore event, key outside allowed key range
+
+                MidiKey* pKey = &pChannel->pMIDIKeyInfo[iKey];
+
+                ProcessReleaseTrigger(pChannel, itEvent, pKey);
+            }
+
+            /**
+             * Called on note-off and sustain pedal up events to check and if
+             * required, launch release trigger voices on the respective active
+             * key.
+             *
+             * @param pEngineChannel - engine channel on which this event occurred on
+             * @param itEvent - note off event / release trigger event
+             * @param pKey - key on which the release trigger voices shall be spawned
+             */
+            inline void ProcessReleaseTrigger(EngineChannelBase<V, R, I>* pChannel, RTList<Event>::Iterator& itEvent, MidiKey* pKey) {
+                // spawn release triggered voice(s) if needed
+                if (pKey->ReleaseTrigger && pChannel->pInstrument) {
+                    // assign a new note to this release event
+                    if (LaunchNewNote(pChannel, &*itEvent)) {
+                        // allocate and trigger new release voice(s)
+                        TriggerReleaseVoices(pChannel, itEvent);
+                    }
+                    pKey->ReleaseTrigger = false;
+                }
             }
 
             /**
