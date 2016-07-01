@@ -34,6 +34,8 @@ Version SVN HEAD (?)
     (disabled by default since it causes issues on some machines).
   * Fixed crash after changing a dimension type with the dimension manager
     dialog.
+  * Script Editor: Fixed editor which did not appear on some systems due
+    to missing icons (using now lists of alternative icon names).
 
 Version 1.0.0 (2015-07-17)
 

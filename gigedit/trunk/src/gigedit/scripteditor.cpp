@@ -41,11 +41,21 @@ static Glib::RefPtr<Gdk::Pixbuf> createIcon(std::string name, const Glib::RefPtr
     int w = 0;
     int h = 0; // ignored
     Gtk::IconSize::lookup(Gtk::ICON_SIZE_SMALL_TOOLBAR, w, h);
+    if (!theme->has_icon(name))
+        return Glib::RefPtr<Gdk::Pixbuf>();
     Glib::RefPtr<Gdk::Pixbuf> pixbuf = theme->load_icon(name, w, Gtk::ICON_LOOKUP_GENERIC_FALLBACK);
     if (pixbuf->get_height() != targetH) {
         pixbuf = pixbuf->scale_simple(targetH, targetH, Gdk::INTERP_BILINEAR);
     }
     return pixbuf;
+}
+
+static Glib::RefPtr<Gdk::Pixbuf> createIcon(std::vector<std::string> alternativeNames, const Glib::RefPtr<Gdk::Screen>& screen) {
+    for (int i = 0; i < alternativeNames.size(); ++i) {
+        Glib::RefPtr<Gdk::Pixbuf> buf = createIcon(alternativeNames[i], screen);
+        if (buf) return buf;
+    }
+    return Glib::RefPtr<Gdk::Pixbuf>();
 }
 
 ScriptEditor::ScriptEditor() :
@@ -58,9 +68,30 @@ ScriptEditor::ScriptEditor() :
     m_vm = NULL;
 #endif
 
-    m_errorIcon = createIcon("dialog-error", get_screen());
-    m_warningIcon = createIcon("dialog-warning-symbolic", get_screen());
-    m_successIcon = createIcon("emblem-default", get_screen());
+    // depending on GTK version and installed themes, there may be different
+    // icons, and different names for them, so for each type of icon we use,
+    // we provide a list of possible icon names, the first one found to be
+    // installed on the local system from the list will be used and loaded for
+    // the respective purpose (so order matters in those lists)
+    //
+    // (see https://developer.gnome.org/gtkmm/stable/namespaceGtk_1_1Stock.html for
+    // available icon names)
+    std::vector<std::string> errorIconNames;
+    errorIconNames.push_back("dialog-error");
+    errorIconNames.push_back("media-record");
+    errorIconNames.push_back("process-stop");
+
+    std::vector<std::string> warningIconNames;
+    warningIconNames.push_back("dialog-warning-symbolic");
+    warningIconNames.push_back("dialog-warning");
+
+    std::vector<std::string> successIconNames;
+    successIconNames.push_back("emblem-default");
+    successIconNames.push_back("tools-check-spelling");
+
+    m_errorIcon = createIcon(errorIconNames, get_screen());
+    m_warningIcon = createIcon(warningIconNames, get_screen());
+    m_successIcon = createIcon(successIconNames, get_screen());
 
     add(m_vbox);
 
