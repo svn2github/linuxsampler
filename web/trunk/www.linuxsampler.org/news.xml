@@ -1,5 +1,17 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2016-07-06">
+    <link ref="http://bb.linuxsampler.org">Web Forum</link> and
+    <link ref="http://bugs.linuxsampler.org">Bug Tracker</link>
+    are back online: As you might have noticed, our
+    <link ref="http://bb.linuxsampler.org">Web Forum</link> as well as our
+    <link ref="http://bugs.linuxsampler.org">Bug Tracker</link> were partly
+    unavailable for quite a while. It was possible to read them, but especially
+    registration of new user accounts were disabled (i.e. due to numerous
+    spam bot attacks we suffered in the past). Those issues have been
+    resolved and so both sites are back available and should now work entirely
+    as expected.
+  </entry>
   <entry date="2016-05-04">
     There is some progress regarding Gigedit's integrated
     <link ref="http://doc.linuxsampler.org/Instrument_Scripts/NKSP_Language/">NKSP</link>
