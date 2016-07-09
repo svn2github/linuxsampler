@@ -233,6 +233,9 @@ namespace LinuxSampler {
         InstrumentScriptVMFunction_set_event_mark m_fnSetEventMark;
         InstrumentScriptVMFunction_delete_event_mark m_fnDeleteEventMark;
         InstrumentScriptVMFunction_by_marks m_fnByMarks;
+        InstrumentScriptVMFunction_change_vol m_fnChangeVol;
+        InstrumentScriptVMFunction_change_tune m_fnChangeTune;
+        InstrumentScriptVMFunction_change_pan m_fnChangePan;
 
         friend class InstrumentScriptVMFunction_play_note;
         friend class InstrumentScriptVMFunction_set_controller;
@@ -242,6 +245,9 @@ namespace LinuxSampler {
         friend class InstrumentScriptVMFunction_set_event_mark;
         friend class InstrumentScriptVMFunction_delete_event_mark;
         friend class InstrumentScriptVMFunction_by_marks;
+        friend class InstrumentScriptVMFunction_change_vol;
+        friend class InstrumentScriptVMFunction_change_tune;
+        friend class InstrumentScriptVMFunction_change_pan;
     };
 
 } // namespace LinuxSampler

@@ -101,6 +101,8 @@ namespace LinuxSampler {
             static const FloatTable PanCurve;       ///< Table that maps pan control change values 0..128 to right channel amplitude. Unity gain is at 64 (center).
             static const FloatTable CrossfadeCurve; ///< Table that maps crossfade control change values 0..127 to amplitude. Unity gain is at 127.
 
+            static float PanCurveValueNorm(float pan, int channel);
+
             AudioOutputDevice* pAudioOutputDevice;
             
             //TODO: should be protected

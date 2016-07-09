@@ -28,6 +28,13 @@ namespace LinuxSampler {
         RTList<note_id_t>* pChildNotes; ///< Note ID list of "child" notes of this note. These are special notes that must be released once this note gets released.
         Event cause; ///< Copy of the original event (usually a note-on event) which caused this note.
         event_id_t eventID; ///< Unique ID of the actual original @c Event which caused this note.
+        /// Optional synthesis parameters that might be overridden (by calling real-time instrument script functions like change_vol(), change_pitch(), etc.).
+        struct  _Override {
+            float Volume;       ///< as linear amplification ratio (1.0 being neutral)
+            float Pitch;        ///< as linear frequency ratio (1.0 being neutral)
+            float Pan;          ///< between -1.0 (most left) and +1.0 (most right) and 0.0 being neutral.
+            int64_t PanSources; ///< Might be used for calculating an average pan value in differential way: amount of times the Pan value had been changed and shall be calculated relatively upon.
+        } Override;
         /// Sampler format specific informations and variables.
         union _Format {
             /// Gigasampler/GigaStudio format specifics.
@@ -38,6 +45,10 @@ namespace LinuxSampler {
         } Format;
     protected:
         NoteBase() : hostKey(0), parentNoteID(0), pChildNotes(NULL) {
+            Override.Volume     = 1.f;
+            Override.Pitch      = 1.f;
+            Override.Pan        = 0.f;
+            Override.PanSources = 0;
             Format = _Format();
         }
     };
@@ -72,6 +83,10 @@ namespace LinuxSampler {
                 pChildNotes->clear();
             cause = Event();
             eventID = 0;
+            Override.Volume     = 1.f;
+            Override.Pitch      = 1.f;
+            Override.Pan        = 0.f;
+            Override.PanSources = 0;
             Format = _Format();
             if (pActiveVoices) {
                 typename RTList<V>::Iterator itVoice = pActiveVoices->first();

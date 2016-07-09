@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -93,6 +93,34 @@ class RTMathBase {
          */
         static double FreqRatioToCents(double FreqRatio) {
             return log(FreqRatio) / log(TWELVEHUNDREDTH_ROOT_OF_TWO);
+        }
+
+        /**
+         * Calculates the line ratio value representation (linear scale)
+         * of the @a decibel value provided (exponential scale).
+         *
+         * The context of audio acoustic sound pressure levels is assumed, and
+         * hence the field version of the dB unit is used here (which uses a
+         * linear factor of 20). This function is a bit slow, so it should
+         * not be called too frequently.
+         *
+         * @param decibel - sound pressure level in dB
+         * @returns linear ratio of the supplied dB value
+         */
+        static float DecibelToLinRatio(float decibel) {
+            return powf(10.f, decibel / 20.f);
+        }
+
+        /**
+         * Calculates the relatively summed average of a set of values.
+         *
+         * @param current - the current avaerage value of all previously summed values
+         * @param sample - new value to be applied as summed average to the existing values
+         * @param n - amount of sample values applied so far
+         * @returns new average value of all summed values (including the new @a sample)
+         */
+        inline static float RelativeSummedAvg(float current, float sample, int n) {
+            return current + (sample - current) / float(n);
         }
 
     private:

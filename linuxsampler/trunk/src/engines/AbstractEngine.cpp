@@ -655,4 +655,18 @@ namespace LinuxSampler {
         return y;
     }
 
+    /**
+     * Returns the volume factor to be used for the requested signed,
+     * normalized @a pan value and audio @a channel index.
+     *
+     * @param pan - between -1.0 (most left) and +1.0 (most right)
+     * @param channel - 0: return value for left channel, 1: return value for right channel
+     * @returns final volume factor for the requested audio channel to be applied
+     */
+    float AbstractEngine::PanCurveValueNorm(float pan, int channel) {
+        float pan128 = (pan + 1.f) / 2.f * 128.f;
+        if (channel == 0) pan128 = 128 - pan128;
+        return PanCurve[pan128]; //TODO: interpolation should be done here (float type "pan" argument here allows a much more fine graded result value than those 129 steps of the PanCurve)
+    }
+
 } // namespace LinuxSampler

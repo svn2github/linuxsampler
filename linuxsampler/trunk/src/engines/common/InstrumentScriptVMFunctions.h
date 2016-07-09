@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck
+ * Copyright (c) 2014 - 2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -127,6 +127,42 @@ namespace LinuxSampler {
 
         VMFnResult* errorResult();
         VMFnResult* successResult(EventGroup* eventGroup);
+    };
+
+    class InstrumentScriptVMFunction_change_vol : public VMEmptyResultFunction {
+    public:
+        InstrumentScriptVMFunction_change_vol(InstrumentScriptVM* parent);
+        int minRequiredArgs() const { return 2; }
+        int maxAllowedArgs() const { return 3; }
+        bool acceptsArgType(int iArg, ExprType_t type) const;
+        ExprType_t argType(int iArg) const { return INT_EXPR; }
+        VMFnResult* exec(VMFnArgs* args);
+    protected:
+        InstrumentScriptVM* m_vm;
+    };
+
+    class InstrumentScriptVMFunction_change_tune : public VMEmptyResultFunction {
+    public:
+        InstrumentScriptVMFunction_change_tune(InstrumentScriptVM* parent);
+        int minRequiredArgs() const { return 2; }
+        int maxAllowedArgs() const { return 3; }
+        bool acceptsArgType(int iArg, ExprType_t type) const;
+        ExprType_t argType(int iArg) const { return INT_EXPR; }
+        VMFnResult* exec(VMFnArgs* args);
+    protected:
+        InstrumentScriptVM* m_vm;
+    };
+
+    class InstrumentScriptVMFunction_change_pan : public VMEmptyResultFunction {
+    public:
+        InstrumentScriptVMFunction_change_pan(InstrumentScriptVM* parent);
+        int minRequiredArgs() const { return 2; }
+        int maxAllowedArgs() const { return 3; }
+        bool acceptsArgType(int iArg, ExprType_t type) const;
+        ExprType_t argType(int iArg) const { return INT_EXPR; }
+        VMFnResult* exec(VMFnArgs* args);
+    protected:
+        InstrumentScriptVM* m_vm;
     };
 
 } // namespace LinuxSampler

@@ -145,13 +145,17 @@ namespace LinuxSampler {
 
             double                      Pos;                ///< Current playback position in sample
             PitchInfo                   Pitch;
+            float                       NotePitch;          ///< Updated by calls to built-in instrument script function change_tune() (defaults to 1.0, that is neutral).
             float                       CutoffBase;         ///< Cutoff frequency before control change, EG and LFO are applied
             float                       VolumeLeft;         ///< Left channel volume. This factor is calculated when the voice is triggered and doesn't change after that.
             float                       VolumeRight;        ///< Right channel volume. This factor is calculated when the voice is triggered and doesn't change after that.
+            float                       NotePanLeft;        ///< Updated by calls to built-in instrument script function change_pan() (defaults to 1.0, that is neutral).
+            float                       NotePanRight;       ///< Updated by calls to built-in instrument script function change_pan() (defaults to 1.0, that is neutral).
             gig::SmoothVolume           CrossfadeSmoother;  ///< Crossfade volume, updated by crossfade CC events
             gig::SmoothVolume           VolumeSmoother;     ///< Volume, updated by CC 7 (volume) events
-            gig::SmoothVolume           PanLeftSmoother;    ///< Left channel volume, updated by CC 10 (pan) events
-            gig::SmoothVolume           PanRightSmoother;   ///< Right channel volume, updated by CC 10 (pan) events
+            gig::SmoothVolume           PanLeftSmoother;    ///< Left channel volume, updated by CC 10 (pan) events and change_pan() real-time instrument script calls.
+            gig::SmoothVolume           PanRightSmoother;   ///< Right channel volume, updated by CC 10 (pan) events and change_pan() real-time instrument script calls.
+            gig::SmoothVolume           NoteVolumeSmoother; ///< Note's global volume, updated by change_vol() real-time instrument script calls.
             bool                        DiskVoice;          ///< If the sample is very short it completely fits into the RAM cache and doesn't need to be streamed from disk, in that case this flag is set to false
             bool                        RAMLoop;            ///< If this voice has a loop defined which completely fits into the cached RAM part of the sample, in this case we handle the looping within the voice class, else if the loop is located in the disk stream part, we let the disk stream handle the looping
             unsigned long               MaxRAMPos;          ///< The upper allowed limit (not actually the end) in the RAM sample cache, after that point it's not safe to chase the interpolator another time over over the current cache position, instead we switch to disk then.

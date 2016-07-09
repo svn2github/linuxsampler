@@ -59,6 +59,9 @@ Version SVN trunk (?)
       editor.
     - NKSP language grammar correction: allow empty event handler bodies
       like "on note end on".
+    - Implemented built-in script function "change_vol()".
+    - Implemented built-in script function "change_tune()".
+    - Implemented built-in script function "change_pan()".
 
 Version 2.0.0 (15 July 2015)
 

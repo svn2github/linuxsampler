@@ -873,6 +873,10 @@ namespace LinuxSampler {
                                 dmsg(5,("Engine: Pitchbend received\n"));
                                 ProcessPitchbend(static_cast<AbstractEngineChannel*>(itEvent->pEngineChannel), itEvent);
                                 break;
+                            case Event::type_note_synth_param:
+                                dmsg(5,("Engine: Note Synth Param received\n"));
+                                ProcessNoteSynthParam(itEvent->pEngineChannel, itEvent);
+                                break;
                         }
                     }
                 }
@@ -1835,6 +1839,63 @@ namespace LinuxSampler {
                     }
                     pKey->ReleaseTrigger = false;
                 }
+            }
+
+            /**
+             * Called on note synthesis parameter change events. These are
+             * internal events caused by calling built-in real-time instrument
+             * script functions like change_vol(), change_pitch(), etc.
+             *
+             * This method performs two tasks:
+             *
+             * - It converts the event's relative values changes (Deltas) to
+             *   the respective final new synthesis parameter value (AbsValue),
+             *   for that particular moment of the event that is.
+             *
+             * - It moves the individual events to the Note's own event list
+             *   (or actually to the event list of the MIDI key), so that
+             *   voices can process those events sample accurately.
+             *
+             * @param pEngineChannel - engine channel on which this event occurred on
+             * @param itEvent - note synthesis parameter change event
+             */
+            virtual void ProcessNoteSynthParam(EngineChannel* pEngineChannel, RTList<Event>::Iterator& itEvent) OVERRIDE {
+                EngineChannelBase<V, R, I>* pChannel = static_cast<EngineChannelBase<V, R, I>*>(pEngineChannel);
+
+                NoteBase* pNote = pChannel->pEngine->NoteByID( itEvent->Param.NoteSynthParam.NoteID );
+                if (!pNote || pNote->hostKey < 0 || pNote->hostKey >= 128) return;
+
+                const bool& relative = itEvent->Param.NoteSynthParam.Relative;
+
+                switch (itEvent->Param.NoteSynthParam.Type) {
+                    case Event::synth_param_volume:
+                        if (relative)
+                            pNote->Override.Volume *= itEvent->Param.NoteSynthParam.Delta;
+                        else
+                            pNote->Override.Volume = itEvent->Param.NoteSynthParam.Delta;
+                        itEvent->Param.NoteSynthParam.AbsValue = pNote->Override.Volume;
+                        break;
+                    case Event::synth_param_pitch:
+                        if (relative)
+                            pNote->Override.Pitch *= itEvent->Param.NoteSynthParam.Delta;
+                        else
+                            pNote->Override.Pitch = itEvent->Param.NoteSynthParam.Delta;
+                        itEvent->Param.NoteSynthParam.AbsValue = pNote->Override.Pitch;
+                        break;
+                    case Event::synth_param_pan:
+                        if (relative) {
+                            pNote->Override.Pan = RTMath::RelativeSummedAvg(pNote->Override.Pan, itEvent->Param.NoteSynthParam.Delta, ++pNote->Override.PanSources);
+                        } else {
+                            pNote->Override.Pan = itEvent->Param.NoteSynthParam.Delta;
+                            pNote->Override.PanSources = 1; // only relevant on subsequent change_pan() instrument script calls on same note with 'relative' argument being set
+                        }
+                        itEvent->Param.NoteSynthParam.AbsValue = pNote->Override.Pan;
+                        break;
+                }
+
+                // move note parameter event to its MIDI key
+                MidiKey* pKey = &pChannel->pMIDIKeyInfo[pNote->hostKey];
+                itEvent.moveToEndOf(pKey->pEvents);
             }
 
             /**

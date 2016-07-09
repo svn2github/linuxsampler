@@ -143,7 +143,13 @@ namespace LinuxSampler {
                 type_release,         ///< transformed either from a note-off or sustain-pedal-up event
                 type_channel_pressure, ///< a.k.a. aftertouch
                 type_note_pressure, ///< polyphonic key pressure (aftertouch)
+                type_note_synth_param, ///< change a note's synthesis parameters (upon real-time instrument script function calls)
             } Type;
+            enum synth_param_t {
+                synth_param_volume,
+                synth_param_pitch,
+                synth_param_pan,
+            };
             union {
                 /// Note-on and note-off event specifics
                 struct _Note {
@@ -183,6 +189,14 @@ namespace LinuxSampler {
                     uint8_t Key;     ///< MIDI note number where key pressure (polyphonic aftertouch) changed.
                     uint8_t Value;   ///< New pressure value for note.
                 } NotePressure;
+                ///< Note synthesis parameter change event's specifics (used for real-time instrument script built-in functions which may alter synthesis parameters on note level).
+                struct _NoteSynthParam {
+                    note_id_t     NoteID;   ///< ID of Note whose voices shall be modified.
+                    synth_param_t Type;     ///< Synthesis parameter which is to be changed.
+                    float         Delta;    ///< The value change that should be applied against the note's current synthesis parameter value.
+                    bool          Relative; ///< Whether @c Delta should be applied relatively against the note's current synthesis parameter value (false means the paramter's current value is simply replaced by Delta).
+                    float         AbsValue; ///< New current absolute value of synthesis parameter (that is after @c Delta being applied).
+                } NoteSynthParam;
             } Param;
             EngineChannel* pEngineChannel; ///< Pointer to the EngineChannel where this event occured on, NULL means Engine global event (e.g. SysEx message).
             MidiInputPort* pMidiInputPort; ///< Pointer to the MIDI input port on which this event occured (NOTE: currently only for global events, that is SysEx messages)
@@ -190,6 +204,7 @@ namespace LinuxSampler {
             inline void Init() {
                 Param.Note.ID = 0;
                 Param.Note.ParentNoteID = 0;
+                Param.NoteSynthParam.NoteID = 0;
             }
             inline int32_t FragmentPos() {
                 if (iFragmentPos >= 0) return iFragmentPos;

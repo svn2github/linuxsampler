@@ -12,6 +12,8 @@
 #include "../AbstractEngineChannel.h"
 
 namespace LinuxSampler {
+    
+    // play_note() function
 
     InstrumentScriptVMFunction_play_note::InstrumentScriptVMFunction_play_note(InstrumentScriptVM* parent)
         : m_vm(parent)
@@ -79,6 +81,8 @@ namespace LinuxSampler {
         return successResult( ScriptID::fromNoteID(id) );
     }
 
+    // set_controller() function
+
     InstrumentScriptVMFunction_set_controller::InstrumentScriptVMFunction_set_controller(InstrumentScriptVM* parent)
         : m_vm(parent)
     {
@@ -114,7 +118,9 @@ namespace LinuxSampler {
         // would abort the script, and under heavy load it may be considerable
         // that ScheduleEventMicroSec() fails above, so simply ignore that
         return successResult( ScriptID::fromEventID(id) );
-    }    
+    }
+
+    // ignore_event() function
 
     InstrumentScriptVMFunction_ignore_event::InstrumentScriptVMFunction_ignore_event(InstrumentScriptVM* parent)
         : m_vm(parent)
@@ -148,6 +154,8 @@ namespace LinuxSampler {
         return successResult();
     }
 
+    // ignore_controller() function
+
     InstrumentScriptVMFunction_ignore_controller::InstrumentScriptVMFunction_ignore_controller(InstrumentScriptVM* parent)
         : m_vm(parent)
     {
@@ -167,6 +175,8 @@ namespace LinuxSampler {
 
         return successResult();
     }
+
+    // note_off() function
 
     InstrumentScriptVMFunction_note_off::InstrumentScriptVMFunction_note_off(InstrumentScriptVM* parent)
         : m_vm(parent)
@@ -230,6 +240,8 @@ namespace LinuxSampler {
         return successResult();
     }
 
+    // set_event_mark() function
+
     InstrumentScriptVMFunction_set_event_mark::InstrumentScriptVMFunction_set_event_mark(InstrumentScriptVM* parent)
         : m_vm(parent)
     {
@@ -266,6 +278,8 @@ namespace LinuxSampler {
         return successResult();
     }
 
+    // delete_event_mark() function
+
     InstrumentScriptVMFunction_delete_event_mark::InstrumentScriptVMFunction_delete_event_mark(InstrumentScriptVM* parent)
         : m_vm(parent)
     {
@@ -287,6 +301,8 @@ namespace LinuxSampler {
 
         return successResult();
     }
+
+    // by_marks() function
 
     InstrumentScriptVMFunction_by_marks::InstrumentScriptVMFunction_by_marks(InstrumentScriptVM* parent)
         : m_vm(parent)
@@ -325,6 +341,264 @@ namespace LinuxSampler {
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
 
         return successResult( &pEngineChannel->pScript->eventGroups[groupID] );
+    }
+
+    // change_vol() function
+
+    InstrumentScriptVMFunction_change_vol::InstrumentScriptVMFunction_change_vol(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    bool InstrumentScriptVMFunction_change_vol::acceptsArgType(int iArg, ExprType_t type) const {
+        if (iArg == 0)
+            return type == INT_EXPR || type == INT_ARR_EXPR;
+        else
+            return INT_EXPR;
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_change_vol::exec(VMFnArgs* args) {
+        int volume = args->arg(1)->asInt()->evalInt(); // volume change in milli dB
+        bool relative = (args->argsCount() >= 3) ? (args->arg(2)->asInt()->evalInt() & 1) : false;
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        if (args->arg(0)->exprType() == INT_EXPR) {
+            const ScriptID id = args->arg(0)->asInt()->evalInt();
+            if (!id) {
+                wrnMsg("change_vol(): note ID for argument 1 may not be zero");
+                return successResult();
+            }
+            if (!id.isNoteID()) {
+                wrnMsg("change_vol(): argument 1 is not a note ID");
+                return successResult();
+            }
+
+            NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+            if (!pNote) return successResult();
+
+            const float fVolumeLin = RTMath::DecibelToLinRatio(float(volume) / 1000.f);
+            // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
+            /*if (relative)
+                pNote->Override.Volume *= fVolumeLin;
+            else
+                pNote->Override.Volume = fVolumeLin;*/
+
+            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+            e.Init(); // clear IDs
+            e.Type = Event::type_note_synth_param;
+            e.Param.NoteSynthParam.NoteID   = id.noteID();
+            e.Param.NoteSynthParam.Type     = Event::synth_param_volume;
+            e.Param.NoteSynthParam.Delta    = fVolumeLin;
+            e.Param.NoteSynthParam.Relative = relative;
+
+            pEngineChannel->ScheduleEventMicroSec(&e, 0);
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                const float fVolumeLin = RTMath::DecibelToLinRatio(float(volume) / 1000.f);
+                // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
+                /*if (relative)
+                    pNote->Override.Volume *= fVolumeLin;
+                else
+                    pNote->Override.Volume = fVolumeLin;*/
+
+                Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                e.Init(); // clear IDs
+                e.Type = Event::type_note_synth_param;
+                e.Param.NoteSynthParam.NoteID   = id.noteID();
+                e.Param.NoteSynthParam.Type     = Event::synth_param_volume;
+                e.Param.NoteSynthParam.Delta    = fVolumeLin;
+                e.Param.NoteSynthParam.Relative = relative;
+
+                pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        }
+
+        return successResult();
+    }
+
+    // change_tune() function
+
+    InstrumentScriptVMFunction_change_tune::InstrumentScriptVMFunction_change_tune(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    bool InstrumentScriptVMFunction_change_tune::acceptsArgType(int iArg, ExprType_t type) const {
+        if (iArg == 0)
+            return type == INT_EXPR || type == INT_ARR_EXPR;
+        else
+            return INT_EXPR;
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_change_tune::exec(VMFnArgs* args) {
+        int tune = args->arg(1)->asInt()->evalInt(); // tuning change in milli cents
+        bool relative = (args->argsCount() >= 3) ? (args->arg(2)->asInt()->evalInt() & 1) : false;
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        if (args->arg(0)->exprType() == INT_EXPR) {
+            const ScriptID id = args->arg(0)->asInt()->evalInt();
+            if (!id) {
+                wrnMsg("change_tune(): note ID for argument 1 may not be zero");
+                return successResult();
+            }
+            if (!id.isNoteID()) {
+                wrnMsg("change_tune(): argument 1 is not a note ID");
+                return successResult();
+            }
+
+            NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+            if (!pNote) return successResult();
+
+            const float fFreqRatio = RTMath::CentsToFreqRatioUnlimited(float(tune) / 1000.f);
+            // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
+            /*if (relative) 
+                pNote->Override.Pitch *= fFreqRatio;
+            else
+                pNote->Override.Pitch = fFreqRatio;*/
+
+            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+            e.Init(); // clear IDs
+            e.Type = Event::type_note_synth_param;
+            e.Param.NoteSynthParam.NoteID   = id.noteID();
+            e.Param.NoteSynthParam.Type     = Event::synth_param_pitch;
+            e.Param.NoteSynthParam.Delta    = fFreqRatio;
+            e.Param.NoteSynthParam.Relative = relative;
+
+            pEngineChannel->ScheduleEventMicroSec(&e, 0);
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                const float fFreqRatio = RTMath::CentsToFreqRatioUnlimited(float(tune) / 1000.f);
+                // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
+                /*if (relative) 
+                    pNote->Override.Pitch *= fFreqRatio;
+                else
+                    pNote->Override.Pitch = fFreqRatio;*/
+
+                Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                e.Init(); // clear IDs
+                e.Type = Event::type_note_synth_param;
+                e.Param.NoteSynthParam.NoteID   = id.noteID();
+                e.Param.NoteSynthParam.Type     = Event::synth_param_pitch;
+                e.Param.NoteSynthParam.Delta    = fFreqRatio;
+                e.Param.NoteSynthParam.Relative = relative;
+
+                pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        }
+
+        return successResult();
+    }
+
+    // change_pan() function
+
+    InstrumentScriptVMFunction_change_pan::InstrumentScriptVMFunction_change_pan(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    bool InstrumentScriptVMFunction_change_pan::acceptsArgType(int iArg, ExprType_t type) const {
+        if (iArg == 0)
+            return type == INT_EXPR || type == INT_ARR_EXPR;
+        else
+            return INT_EXPR;
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_change_pan::exec(VMFnArgs* args) {
+        int pan = args->arg(1)->asInt()->evalInt();
+        bool relative = (args->argsCount() >= 3) ? (args->arg(2)->asInt()->evalInt() & 1) : false;
+
+        if (pan > 1000) {
+            wrnMsg("change_pan(): argument 2 may not be larger than 1000");
+            pan = 1000;
+        } else if (pan < -1000) {
+            wrnMsg("change_pan(): argument 2 may not be smaller than -1000");
+            pan = -1000;
+        }
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        if (args->arg(0)->exprType() == INT_EXPR) {
+            const ScriptID id = args->arg(0)->asInt()->evalInt();
+            if (!id) {
+                wrnMsg("change_pan(): note ID for argument 1 may not be zero");
+                return successResult();
+            }
+            if (!id.isNoteID()) {
+                wrnMsg("change_pan(): argument 1 is not a note ID");
+                return successResult();
+            }
+
+            NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+            if (!pNote) return successResult();
+
+            const float fPan = float(pan) / 1000.f;
+            // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
+            /*if (relative) {
+                pNote->Override.Pan = RTMath::RelativeSummedAvg(pNote->Override.Pan, fPan, ++pNote->Override.PanSources);
+            } else {
+                pNote->Override.Pan = fPan;
+                pNote->Override.PanSources = 1; // only relevant on subsequent change_pan() calls on same note with 'relative' being set
+            }*/
+
+            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+            e.Init(); // clear IDs
+            e.Type = Event::type_note_synth_param;
+            e.Param.NoteSynthParam.NoteID   = id.noteID();
+            e.Param.NoteSynthParam.Type     = Event::synth_param_pan;
+            e.Param.NoteSynthParam.Delta    = fPan;
+            e.Param.NoteSynthParam.Relative = relative;
+
+            pEngineChannel->ScheduleEventMicroSec(&e, 0);
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                const float fPan = float(pan) / 1000.f;
+                // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
+                /*if (relative) {
+                    pNote->Override.Pan = RTMath::RelativeSummedAvg(pNote->Override.Pan, fPan, ++pNote->Override.PanSources);
+                } else {
+                    pNote->Override.Pan = fPan;
+                    pNote->Override.PanSources = 1; // only relevant on subsequent change_pan() calls on same note with 'relative' being set
+                }*/
+
+                Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                e.Init(); // clear IDs
+                e.Type = Event::type_note_synth_param;
+                e.Param.NoteSynthParam.NoteID   = id.noteID();
+                e.Param.NoteSynthParam.Type     = Event::synth_param_pan;
+                e.Param.NoteSynthParam.Delta    = fPan;
+                e.Param.NoteSynthParam.Relative = relative;
+
+                pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        }
+
+        return successResult();
     }
 
 } // namespace LinuxSampler
