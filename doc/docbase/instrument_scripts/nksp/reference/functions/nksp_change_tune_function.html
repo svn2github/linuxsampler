@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>change_tune() function</title>
+    <meta name="description" content="Modifies the tuning of voices of a particular note.">
+  </head>
+  <body>
+    <h1>change_tune()</h1>
+    <p>
+      This function can be used to modify the tuning of active voices during
+      their entire life time. So you may for example implement very sophisticated
+      pitch envelopes by script by using this function. You need to pass the
+      note ID of the voices you want to alter. This function will change the
+      tuning of all active voices associated with the requested note. So if you
+      are using a layered instrument patch, then it will change the tuning of
+      all layers.
+    </p>
+    <p>
+      The tuning changes set by calling function are always applied relatively to
+      the tuning/pitch calculated by the synthesis model and sampler format. That means
+      the various sources of tuning/pitch factors like MIDI pitch bend wheel, Pitch Envelopes,
+      Pitch LFOs and other tuning factors that may be defined by the
+      instrument patch, are always processed and calculated for the voices first,
+      and the final pitch applied is always a relative combination of all those
+      factors and the one set with this function call. This does also not change
+      when you pass <code>1</code> for argument <code>??relative??</code>.
+      Or in other words: you cannot replace the tuning/pitch set by other synthesis
+      sources with this function.
+    </p>
+
+    <note class="important">
+    Release Trigger Samples: In case the affected voices cause release trigger
+    samples to be spawned later on, the tuning of those release trigger voices
+    will not be affected by this function at all. So if you need to control the
+    tuning of release trigger samples by script, then you might rather also trigger
+    those release trigger samples by script with <code lang="nksp">play_note()</code>
+    instead of using the sampler format's internal support for release trigger samples.
+    </note>
+
+    <h3>Function Prototype</h3>
+    <p/>
+    <code lang="nksp">
+change_tune(??note??, ??tuning??, [??relative??])
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??note??</code></td>
+        <td>Note ID Number</td>
+        <td>All voices of this note will be modified.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??tuning??</code></td>
+        <td>Integer Number</td>
+        <td>Tuning change in milli cents.
+            A positive value increases the tuning,
+            a negative value decreases the tuning.</td>
+      </tr>
+      <tr>
+        <td><code>??relative??</code></td>
+        <td>Integer Number</td>
+        <td>Whether change_tune() calls should be relative to each other.<br>
+            0: A call to <code>change_tune()</code> upon the same note will
+               replace the tuning change value set by previous
+               <code>change_tune()</code> calls upon the same note.<br>
+            1: Successive calls to <code>change_tune()</code> upon the same
+               note will be relatively applied against each other.<br>
+            [optional, default: 0]</td>
+      </tr>
+    </table>
+
+    <h3>Return Value</h3>
+    <p>None.</p>
+
+    <h3>Examples</h3>
+    <p>None yet.<p>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0.svn11.<p>
+
+  </body>
+</html>
