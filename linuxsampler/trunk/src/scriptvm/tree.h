@@ -518,6 +518,14 @@ public:
 };
 typedef Ref<Or,Node> OrRef;
 
+class BitwiseOr : virtual public BinaryOp, virtual public IntExpr {
+public:
+    BitwiseOr(IntExprRef lhs, IntExprRef rhs) : BinaryOp(lhs,rhs) {}
+    int evalInt();
+    void dump(int level = 0);
+};
+typedef Ref<BitwiseOr,Node> BitwiseOrRef;
+
 class And : virtual public BinaryOp, virtual public IntExpr {
 public:
     And(IntExprRef lhs, IntExprRef rhs) : BinaryOp(lhs,rhs) {}
@@ -525,6 +533,14 @@ public:
     void dump(int level = 0);
 };
 typedef Ref<And,Node> AndRef;
+
+class BitwiseAnd : virtual public BinaryOp, virtual public IntExpr {
+public:
+    BitwiseAnd(IntExprRef lhs, IntExprRef rhs) : BinaryOp(lhs,rhs) {}
+    int evalInt();
+    void dump(int level = 0);
+};
+typedef Ref<BitwiseAnd,Node> BitwiseAndRef;
 
 class Not : virtual public IntExpr {
     IntExprRef expr;
@@ -536,6 +552,17 @@ public:
     bool isPolyphonic() const { return expr->isPolyphonic(); }
 };
 typedef Ref<Not,Node> NotRef;
+
+class BitwiseNot : virtual public IntExpr {
+    IntExprRef expr;
+public:
+    BitwiseNot(IntExprRef expr) : expr(expr) {}
+    int evalInt() { return ~expr->evalInt(); }
+    void dump(int level = 0);
+    bool isConstExpr() const { return expr->isConstExpr(); }
+    bool isPolyphonic() const { return expr->isPolyphonic(); }
+};
+typedef Ref<BitwiseNot,Node> BitwiseNotRef;
 
 class ParserContext : public VMParserContext {
 public:

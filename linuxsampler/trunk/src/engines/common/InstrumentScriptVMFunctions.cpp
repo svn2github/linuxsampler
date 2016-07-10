@@ -601,4 +601,187 @@ namespace LinuxSampler {
         return successResult();
     }
 
+    #define VM_FILTER_PAR_MAX_VALUE 1000000
+
+    // change_cutoff() function
+
+    InstrumentScriptVMFunction_change_cutoff::InstrumentScriptVMFunction_change_cutoff(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    bool InstrumentScriptVMFunction_change_cutoff::acceptsArgType(int iArg, ExprType_t type) const {
+        if (iArg == 0)
+            return type == INT_EXPR || type == INT_ARR_EXPR;
+        else
+            return INT_EXPR;
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_change_cutoff::exec(VMFnArgs* args) {
+        int cutoff = args->arg(1)->asInt()->evalInt();
+        if (cutoff > VM_FILTER_PAR_MAX_VALUE) {
+            wrnMsg("change_cutoff(): argument 2 may not be larger than 1000000");
+            cutoff = VM_FILTER_PAR_MAX_VALUE;
+        } else if (cutoff < 0) {
+            wrnMsg("change_cutoff(): argument 2 may not be negative");
+            cutoff = 0;
+        }
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        if (args->arg(0)->exprType() == INT_EXPR) {
+            const ScriptID id = args->arg(0)->asInt()->evalInt();
+            if (!id) {
+                wrnMsg("change_cutoff(): note ID for argument 1 may not be zero");
+                return successResult();
+            }
+            if (!id.isNoteID()) {
+                wrnMsg("change_cutoff(): argument 1 is not a note ID");
+                return successResult();
+            }
+
+            NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+            if (!pNote) return successResult();
+
+            const float fCutoff = float(cutoff) / float(VM_FILTER_PAR_MAX_VALUE);
+
+            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+            e.Init(); // clear IDs
+            e.Type = Event::type_note_synth_param;
+            e.Param.NoteSynthParam.NoteID   = id.noteID();
+            e.Param.NoteSynthParam.Type     = Event::synth_param_cutoff;
+            e.Param.NoteSynthParam.Delta    = fCutoff;
+            e.Param.NoteSynthParam.Relative = false;
+
+            pEngineChannel->ScheduleEventMicroSec(&e, 0);
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                const float fCutoff = float(cutoff) / float(VM_FILTER_PAR_MAX_VALUE);
+
+                Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                e.Init(); // clear IDs
+                e.Type = Event::type_note_synth_param;
+                e.Param.NoteSynthParam.NoteID   = id.noteID();
+                e.Param.NoteSynthParam.Type     = Event::synth_param_cutoff;
+                e.Param.NoteSynthParam.Delta    = fCutoff;
+                e.Param.NoteSynthParam.Relative = false;
+
+                pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        }
+
+        return successResult();
+    }
+
+    // change_reso() function
+    
+    InstrumentScriptVMFunction_change_reso::InstrumentScriptVMFunction_change_reso(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    bool InstrumentScriptVMFunction_change_reso::acceptsArgType(int iArg, ExprType_t type) const {
+        if (iArg == 0)
+            return type == INT_EXPR || type == INT_ARR_EXPR;
+        else
+            return INT_EXPR;
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_change_reso::exec(VMFnArgs* args) {
+        int resonance = args->arg(1)->asInt()->evalInt();
+        if (resonance > VM_FILTER_PAR_MAX_VALUE) {
+            wrnMsg("change_reso(): argument 2 may not be larger than 1000000");
+            resonance = VM_FILTER_PAR_MAX_VALUE;
+        } else if (resonance < 0) {
+            wrnMsg("change_reso(): argument 2 may not be negative");
+            resonance = 0;
+        }
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        if (args->arg(0)->exprType() == INT_EXPR) {
+            const ScriptID id = args->arg(0)->asInt()->evalInt();
+            if (!id) {
+                wrnMsg("change_reso(): note ID for argument 1 may not be zero");
+                return successResult();
+            }
+            if (!id.isNoteID()) {
+                wrnMsg("change_reso(): argument 1 is not a note ID");
+                return successResult();
+            }
+
+            NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+            if (!pNote) return successResult();
+
+            const float fResonance = float(resonance) / float(VM_FILTER_PAR_MAX_VALUE);
+
+            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+            e.Init(); // clear IDs
+            e.Type = Event::type_note_synth_param;
+            e.Param.NoteSynthParam.NoteID   = id.noteID();
+            e.Param.NoteSynthParam.Type     = Event::synth_param_resonance;
+            e.Param.NoteSynthParam.Delta    = fResonance;
+            e.Param.NoteSynthParam.Relative = false;
+
+            pEngineChannel->ScheduleEventMicroSec(&e, 0);
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                const float fResonance = float(resonance) / float(VM_FILTER_PAR_MAX_VALUE);
+
+                Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                e.Init(); // clear IDs
+                e.Type = Event::type_note_synth_param;
+                e.Param.NoteSynthParam.NoteID   = id.noteID();
+                e.Param.NoteSynthParam.Type     = Event::synth_param_resonance;
+                e.Param.NoteSynthParam.Delta    = fResonance;
+                e.Param.NoteSynthParam.Relative = false;
+
+                pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        }
+
+        return successResult();
+    }
+
+    // event_status() function
+
+    InstrumentScriptVMFunction_event_status::InstrumentScriptVMFunction_event_status(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_event_status::exec(VMFnArgs* args) {
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        const ScriptID id = args->arg(0)->asInt()->evalInt();
+        if (!id) {
+            wrnMsg("event_status(): note ID for argument 1 may not be zero");
+            return successResult(EVENT_STATUS_INACTIVE);
+        }
+        if (!id.isNoteID()) {
+            wrnMsg("event_status(): argument 1 is not a note ID");
+            return successResult(EVENT_STATUS_INACTIVE);
+        }
+
+        NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+        return successResult(pNote ? EVENT_STATUS_NOTE_QUEUE : EVENT_STATUS_INACTIVE);
+    }
+
 } // namespace LinuxSampler

@@ -34,6 +34,8 @@ namespace LinuxSampler {
             float Pitch;        ///< as linear frequency ratio (1.0 being neutral)
             float Pan;          ///< between -1.0 (most left) and +1.0 (most right) and 0.0 being neutral.
             int64_t PanSources; ///< Might be used for calculating an average pan value in differential way: amount of times the Pan value had been changed and shall be calculated relatively upon.
+            float Cutoff;       ///< between 0.0 and 1.0
+            float Resonance;    ///< between 0.0 and 1.0
         } Override;
         /// Sampler format specific informations and variables.
         union _Format {
@@ -49,6 +51,8 @@ namespace LinuxSampler {
             Override.Pitch      = 1.f;
             Override.Pan        = 0.f;
             Override.PanSources = 0;
+            Override.Cutoff     = 1.f;
+            Override.Resonance  = 1.f;
             Format = _Format();
         }
     };
@@ -87,6 +91,8 @@ namespace LinuxSampler {
             Override.Pitch      = 1.f;
             Override.Pan        = 0.f;
             Override.PanSources = 0;
+            Override.Cutoff     = 1.f;
+            Override.Resonance  = 1.f;
             Format = _Format();
             if (pActiveVoices) {
                 typename RTList<V>::Iterator itVoice = pActiveVoices->first();

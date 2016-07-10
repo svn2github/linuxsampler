@@ -187,6 +187,8 @@ namespace LinuxSampler {
 
         Pitch = CalculatePitchInfo(PitchBend);
         NotePitch = (pNote) ? pNote->Override.Pitch : 1.0f;
+        NoteCutoff = (pNote) ? pNote->Override.Cutoff : 1.0f;
+        NoteResonance = (pNote) ? pNote->Override.Resonance : 1.0f;
 
         // the length of the decay and release curves are dependent on the velocity
         const double velrelease = 1 / GetVelocityRelease(itNoteOnEvent->Param.Note.Velocity);
@@ -522,7 +524,10 @@ namespace LinuxSampler {
                     pSignalUnitRack->GetEndpointUnit()->CalculatePitch(finalSynthesisParameters.fFinalPitch);
                     
             }
-            
+
+            fFinalCutoff    *= NoteCutoff;
+            fFinalResonance *= NoteResonance;
+
             // limit the pitch so we don't read outside the buffer
             finalSynthesisParameters.fFinalPitch = RTMath::Min(finalSynthesisParameters.fFinalPitch, float(1 << CONFIG_MAX_PITCH));
 
@@ -716,6 +721,12 @@ namespace LinuxSampler {
                     case Event::synth_param_pan:
                         NotePanLeft  = AbstractEngine::PanCurveValueNorm(itEvent->Param.NoteSynthParam.AbsValue, 0 /*left*/);
                         NotePanRight = AbstractEngine::PanCurveValueNorm(itEvent->Param.NoteSynthParam.AbsValue, 1 /*right*/);
+                        break;
+                    case Event::synth_param_cutoff:
+                        NoteCutoff = itEvent->Param.NoteSynthParam.AbsValue;
+                        break;
+                    case Event::synth_param_resonance:
+                        NoteResonance = itEvent->Param.NoteSynthParam.AbsValue;
                         break;
                 }
             }

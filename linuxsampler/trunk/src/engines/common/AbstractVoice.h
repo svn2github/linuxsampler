@@ -151,6 +151,8 @@ namespace LinuxSampler {
             float                       VolumeRight;        ///< Right channel volume. This factor is calculated when the voice is triggered and doesn't change after that.
             float                       NotePanLeft;        ///< Updated by calls to built-in instrument script function change_pan() (defaults to 1.0, that is neutral).
             float                       NotePanRight;       ///< Updated by calls to built-in instrument script function change_pan() (defaults to 1.0, that is neutral).
+            float                       NoteCutoff;         ///< Updated by calls to built-in instrument script function change_cutoff() (defaults to 1.0, that is neutral).
+            float                       NoteResonance;      ///< Updated by calls to built-in instrument script function change_reso() (defaults to 1.0, that is neutral).
             gig::SmoothVolume           CrossfadeSmoother;  ///< Crossfade volume, updated by crossfade CC events
             gig::SmoothVolume           VolumeSmoother;     ///< Volume, updated by CC 7 (volume) events
             gig::SmoothVolume           PanLeftSmoother;    ///< Left channel volume, updated by CC 10 (pan) events and change_pan() real-time instrument script calls.

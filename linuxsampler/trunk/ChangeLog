@@ -62,6 +62,17 @@ Version SVN trunk (?)
     - Implemented built-in script function "change_vol()".
     - Implemented built-in script function "change_tune()".
     - Implemented built-in script function "change_pan()".
+    - Implemented built-in script function "change_cutoff()".
+    - Implemented built-in script function "change_reso()".
+    - Implemented built-in script function "event_status()".
+    - Added built-in script constants "$EVENT_STATUS_INACTIVE" and
+      "$EVENT_STATUS_NOTE_QUEUE" both for being used as flags for
+      "event_status()" function.
+    - NKSP language: Added support for bitwise operators ".or.", ".and."
+      and ".not.".
+    - NKSP language scanner: Fixed IDs matching to require at least one
+      character (i.e. when matching function names or variable names).
+    - NKSP language scanner: disabled unusued rules.
 
 Version 2.0.0 (15 July 2015)
 

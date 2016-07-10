@@ -1891,6 +1891,12 @@ namespace LinuxSampler {
                         }
                         itEvent->Param.NoteSynthParam.AbsValue = pNote->Override.Pan;
                         break;
+                    case Event::synth_param_cutoff:
+                        pNote->Override.Cutoff = itEvent->Param.NoteSynthParam.AbsValue = itEvent->Param.NoteSynthParam.Delta;
+                        break;
+                    case Event::synth_param_resonance:
+                        pNote->Override.Resonance = itEvent->Param.NoteSynthParam.AbsValue = itEvent->Param.NoteSynthParam.Delta;
+                        break;
                 }
 
                 // move note parameter event to its MIDI key

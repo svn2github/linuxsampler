@@ -149,6 +149,8 @@ namespace LinuxSampler {
                 synth_param_volume,
                 synth_param_pitch,
                 synth_param_pan,
+                synth_param_cutoff,
+                synth_param_resonance,
             };
             union {
                 /// Note-on and note-off event specifics

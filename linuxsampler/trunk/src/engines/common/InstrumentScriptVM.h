@@ -35,6 +35,9 @@
 
 #define INSTR_SCRIPT_EVENT_GROUPS 28
 
+#define EVENT_STATUS_INACTIVE 0
+#define EVENT_STATUS_NOTE_QUEUE 1
+
 namespace LinuxSampler {
 
     class AbstractEngineChannel;
@@ -236,6 +239,9 @@ namespace LinuxSampler {
         InstrumentScriptVMFunction_change_vol m_fnChangeVol;
         InstrumentScriptVMFunction_change_tune m_fnChangeTune;
         InstrumentScriptVMFunction_change_pan m_fnChangePan;
+        InstrumentScriptVMFunction_change_cutoff m_fnChangeCutoff;
+        InstrumentScriptVMFunction_change_reso m_fnChangeReso;
+        InstrumentScriptVMFunction_event_status m_fnEventStatus;
 
         friend class InstrumentScriptVMFunction_play_note;
         friend class InstrumentScriptVMFunction_set_controller;
@@ -248,6 +254,9 @@ namespace LinuxSampler {
         friend class InstrumentScriptVMFunction_change_vol;
         friend class InstrumentScriptVMFunction_change_tune;
         friend class InstrumentScriptVMFunction_change_pan;
+        friend class InstrumentScriptVMFunction_change_cutoff;
+        friend class InstrumentScriptVMFunction_change_reso;
+        friend class InstrumentScriptVMFunction_event_status;
     };
 
 } // namespace LinuxSampler

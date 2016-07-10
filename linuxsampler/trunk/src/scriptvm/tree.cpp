@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck and Andreas Persson
+ * Copyright (c) 2014 - 2016 Christian Schoenebeck and Andreas Persson
  *
  * http://www.linuxsampler.org
  *
@@ -769,6 +769,23 @@ void Or::dump(int level) {
     printf(")\n");
 }
 
+int BitwiseOr::evalInt() {
+    IntExpr* pLHS = dynamic_cast<IntExpr*>(&*lhs);
+    IntExpr* pRHS = dynamic_cast<IntExpr*>(&*rhs);
+    return pLHS->evalInt() | pRHS->evalInt();
+}
+
+void BitwiseOr::dump(int level) {
+    printIndents(level);
+    printf("BitwiseOr(\n");
+    lhs->dump(level+1);
+    printIndents(level);
+    printf(",\n");
+    rhs->dump(level+1);
+    printIndents(level);
+    printf(")\n");
+}
+
 int And::evalInt() {
     IntExpr* pLHS = dynamic_cast<IntExpr*>(&*lhs);
     if (!pLHS->evalInt()) return 0;
@@ -787,9 +804,34 @@ void And::dump(int level) {
     printf(")\n");
 }
 
+int BitwiseAnd::evalInt() {
+    IntExpr* pLHS = dynamic_cast<IntExpr*>(&*lhs);
+    IntExpr* pRHS = dynamic_cast<IntExpr*>(&*rhs);
+    return pLHS->evalInt() & pRHS->evalInt();
+}
+
+void BitwiseAnd::dump(int level) {
+    printIndents(level);
+    printf("BitwiseAnd(\n");
+    lhs->dump(level+1);
+    printIndents(level);
+    printf(",\n");
+    rhs->dump(level+1);
+    printIndents(level);
+    printf(")\n");
+}
+
 void Not::dump(int level) {
     printIndents(level);
     printf("Not(\n");
+    expr->dump(level+1);
+    printIndents(level);
+    printf(")\n");
+}
+
+void BitwiseNot::dump(int level) {
+    printIndents(level);
+    printf("BitwiseNot(\n");
     expr->dump(level+1);
     printIndents(level);
     printf(")\n");

@@ -39,6 +39,7 @@
 %token <sValue> IDENTIFIER
 %token <sValue> VARIABLE
 %token ON END INIT NOTE DECLARE ASSIGNMENT WHILE IF OR RELEASE AND ELSE
+%token BITWISE_OR BITWISE_AND BITWISE_NOT
 %token CONTROLLER SELECT CASE TO NOT CONST_ POLYPHONIC MOD
 %token LE GE
 
@@ -48,7 +49,7 @@
 %type <nStatement> statement assignment
 %type <nFunctionCall> functioncall
 %type <nArgs> args
-%type <nExpression> arg expr or_expr and_expr rel_expr add_expr mul_expr unary_expr concat_expr
+%type <nExpression> arg expr logical_or_expr logical_and_expr bitwise_or_expr bitwise_and_expr rel_expr add_expr mul_expr unary_expr concat_expr
 %type <nCaseBranch> caseclause
 %type <nCaseBranches> caseclauses
 
@@ -475,6 +476,14 @@ unary_expr:
     | '-' unary_expr  {
         $$ = new Neg($2);
     }
+    | BITWISE_NOT unary_expr  {
+        if ($2->exprType() != INT_EXPR) {
+            PARSE_ERR(@2, (String("Right operand of bitwise operator '.not.' must be an integer expression, is ") + typeStr($2->exprType()) + " though.").c_str());
+            $$ = new IntLiteral(0);
+        } else {
+            $$ = new BitwiseNot($2);
+        }
+    }
     | NOT unary_expr  {
         if ($2->exprType() != INT_EXPR) {
             PARSE_ERR(@2, (String("Right operand of operator 'not' must be an integer expression, is ") + typeStr($2->exprType()) + " though.").c_str());
@@ -488,8 +497,8 @@ expr:
     concat_expr
 
 concat_expr:
-    or_expr
-    | concat_expr '&' or_expr  {
+    logical_or_expr
+    | concat_expr '&' logical_or_expr  {
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->isConstExpr() && rhs->isConstExpr()) {
@@ -501,9 +510,9 @@ concat_expr:
         }
     }
 
-or_expr:
-    and_expr
-    | or_expr OR and_expr  {
+logical_or_expr:
+    logical_and_expr
+    | logical_or_expr OR logical_and_expr  {
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
@@ -517,11 +526,11 @@ or_expr:
         }
     }
 
-and_expr:
-    rel_expr  {
+logical_and_expr:
+    bitwise_or_expr  {
         $$ = $1;
     }
-    | and_expr AND rel_expr  {
+    | logical_and_expr AND bitwise_or_expr  {
         ExpressionRef lhs = $1;
         ExpressionRef rhs = $3;
         if (lhs->exprType() != INT_EXPR) {
@@ -532,6 +541,40 @@ and_expr:
             $$ = new IntLiteral(0);
         } else {
             $$ = new And(lhs, rhs);
+        }
+    }
+
+bitwise_or_expr:
+    bitwise_and_expr
+    | bitwise_or_expr BITWISE_OR bitwise_and_expr  {
+        ExpressionRef lhs = $1;
+        ExpressionRef rhs = $3;
+        if (lhs->exprType() != INT_EXPR) {
+            PARSE_ERR(@1, (String("Left operand of bitwise operator '.or.' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            $$ = new IntLiteral(0);
+        } else if (rhs->exprType() != INT_EXPR) {
+            PARSE_ERR(@3, (String("Right operand of bitwise operator '.or.' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            $$ = new IntLiteral(0);
+        } else {
+            $$ = new BitwiseOr(lhs, rhs);
+        }
+    }
+
+bitwise_and_expr:
+    rel_expr  {
+        $$ = $1;
+    }
+    | bitwise_and_expr BITWISE_AND rel_expr  {
+        ExpressionRef lhs = $1;
+        ExpressionRef rhs = $3;
+        if (lhs->exprType() != INT_EXPR) {
+            PARSE_ERR(@1, (String("Left operand of bitwise operator '.and.' must be an integer expression, is ") + typeStr(lhs->exprType()) + " though.").c_str());
+            $$ = new IntLiteral(0);
+        } else if (rhs->exprType() != INT_EXPR) {
+            PARSE_ERR(@3, (String("Right operand of bitwise operator '.and.' must be an integer expression, is ") + typeStr(rhs->exprType()) + " though.").c_str());
+            $$ = new IntLiteral(0);
+        } else {
+            $$ = new BitwiseAnd(lhs, rhs);
         }
     }
 

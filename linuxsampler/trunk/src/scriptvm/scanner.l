@@ -96,7 +96,7 @@ static int countCharsPastLastNewLine(const char* txt) {
 %x PREPROC_SET_COND PREPROC_RESET_COND PREPROC_IF PREPROC_IF_NOT PREPROC_BODY_EAT PREPROC_PRE_BODY_USE PREPROC_PRE_BODY_EAT
 
 DIGIT    [0-9]
-ID       [a-zA-Z0-9_]*
+ID       [a-zA-Z0-9_]+
 
 %%
 
@@ -111,9 +111,10 @@ ID       [a-zA-Z0-9_]*
     return INTEGER;
 }
 
-{DIGIT}+"."{DIGIT}* {
+ /* there is currently no support for floating point numbers in NKSP yet */
+ /*{DIGIT}+"."{DIGIT}* {
     printf("A float: %s (%g)\n", yytext, atof(yytext));
-}
+ }*/
 
 
  /* Preprocessor statement:  SET_CONDITION(name) */
@@ -223,9 +224,12 @@ ID       [a-zA-Z0-9_]*
 "declare" return DECLARE;
 "while" return WHILE;
 "if" return IF;
+".or." return BITWISE_OR;
 "or" return OR;
 "release" return RELEASE;
+".and." return BITWISE_AND;
 "and" return AND;
+".not." return BITWISE_NOT;
 "not" return NOT;
 "else" return ELSE;
 "controller" return CONTROLLER;
@@ -238,18 +242,11 @@ ID       [a-zA-Z0-9_]*
 "polyphonic" return POLYPHONIC;
 "mod" return MOD;
 
-on|end|note|init|declare|if|then|begin|end|procedure|function {
-    printf("A keyword: %s\n", yytext);
+[&,()[\]<>=*+#/-] {
+    return *yytext;
 }
 
-[&,()[\]<>=*+#/-] { return *yytext; }
-
-("$"|"@"){ID} {
-    yylval->sValue = strdup(yytext);
-    return VARIABLE;
-}
-
-"%"{ID} {
+("$"|"@"|"%"){ID} {
     yylval->sValue = strdup(yytext);
     return VARIABLE;
 }
@@ -274,9 +271,7 @@ on|end|note|init|declare|if|then|begin|end|procedure|function {
 
 [ \t\r]+ /* eat up whitespace */
 
-"..." /* eat up */
-
-. printf( "Unrecognized character: %s\n", yytext );
+. printf( "Unrecognized character: '%s' (line %d, column %d\n", yytext, yylineno, yycolumn);
 
 %%
 

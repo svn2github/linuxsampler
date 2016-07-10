@@ -222,7 +222,8 @@ namespace LinuxSampler {
         m_event(NULL), m_fnPlayNote(this), m_fnSetController(this),
         m_fnIgnoreEvent(this), m_fnIgnoreController(this), m_fnNoteOff(this),
         m_fnSetEventMark(this), m_fnDeleteEventMark(this), m_fnByMarks(this),
-        m_fnChangeVol(this), m_fnChangeTune(this), m_fnChangePan(this)
+        m_fnChangeVol(this), m_fnChangeTune(this), m_fnChangePan(this),
+        m_fnChangeCutoff(this), m_fnChangeReso(this), m_fnEventStatus(this)
     {
         m_CC.size = _MEMBER_SIZEOF(AbstractEngineChannel, ControllerTable);
         m_CC_NUM = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.CC.Controller);
@@ -305,6 +306,8 @@ namespace LinuxSampler {
         // first get buil-in integer variables of derived VM class
         std::map<String,int> m = ScriptVM::builtInConstIntVariables();
 
+        m["$EVENT_STATUS_INACTIVE"] = EVENT_STATUS_INACTIVE;
+        m["$EVENT_STATUS_NOTE_QUEUE"] = EVENT_STATUS_NOTE_QUEUE;
         m["$VCC_MONO_AT"] = CTRL_TABLE_IDX_AFTERTOUCH;
         m["$VCC_PITCH_BEND"] = CTRL_TABLE_IDX_PITCHBEND;
         for (int i = 0; i < INSTR_SCRIPT_EVENT_GROUPS; ++i) {
@@ -327,6 +330,9 @@ namespace LinuxSampler {
         else if (name == "change_vol") return &m_fnChangeVol;
         else if (name == "change_tune") return &m_fnChangeTune;
         else if (name == "change_pan") return &m_fnChangePan;
+        else if (name == "change_cutoff") return &m_fnChangeCutoff;
+        else if (name == "change_reso") return &m_fnChangeReso;
+        else if (name == "event_status") return &m_fnEventStatus;
 
         // built-in script functions of derived VM class
         return ScriptVM::functionByName(name);

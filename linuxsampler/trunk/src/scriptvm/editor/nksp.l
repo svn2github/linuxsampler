@@ -59,7 +59,7 @@ static int countNewLineChars(const char* txt) {
 %x PREPROC_SET_COND PREPROC_RESET_COND PREPROC_IF PREPROC_IF_NOT PREPROC_BODY_EAT PREPROC_PRE_BODY_USE PREPROC_PRE_BODY_EAT PREPROC_EVENT_NAME PREPROC_END_NAME
 
 DIGIT    [0-9]
-ID       [a-zA-Z0-9_]*
+ID       [a-zA-Z0-9_]+
 
 %%
 
@@ -73,10 +73,11 @@ ID       [a-zA-Z0-9_]*
     return yyextra->token.baseType;
 }
 
-{DIGIT}+"."{DIGIT}* {
+ /* there is currently no support for floating point numbers in NKSP yet */
+ /*{DIGIT}+"."{DIGIT}* {
     yyextra->token = NumberLiteralToken(yytext);
     return yyextra->token.baseType;
-}
+ }*/
 
 
  /* Preprocessor statement:  SET_CONDITION(name) */
@@ -215,6 +216,11 @@ end {
 
 <PREPROC_END_NAME>[ \t]*{ID} {
     yy_pop_state(yyscanner);
+    yyextra->token = KeywordToken(yytext);
+    return yyextra->token.baseType;
+}
+
+".or."|".and."|".not." {
     yyextra->token = KeywordToken(yytext);
     return yyextra->token.baseType;
 }
