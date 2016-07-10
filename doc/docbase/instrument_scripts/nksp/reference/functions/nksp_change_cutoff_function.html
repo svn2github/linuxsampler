@@ -1,0 +1,85 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>change_cutoff() function</title>
+    <meta name="description" content="Modifies the filter cutoff frequency of voices of a particular note.">
+  </head>
+  <body>
+    <h1>change_cutoff()</h1>
+    <p>
+      This function can be used to modify the filter cutoff frequency of active
+      voices during their entire life time. You need to pass the
+      note ID of the voices you want to alter. This function will change the
+      cutoff frequency of all active voices associated with the requested note. So if you
+      are using a layered instrument patch, then it will change the cutoff frequency of
+      all layers.
+    </p>
+    <p>
+      The cutoff frequency changes set by calling this function are always applied relatively to
+      the cutoff frequency calculated by the synthesis model and sampler format. That means
+      the various sources of cutoff frequency factors like Filter Envelopes,
+      Filter LFOs and other cutoff frequency factors that may be defined by the
+      instrument patch, are always processed and calculated for the voices first,
+      and the final cutoff frequency applied is always a relative combination of all those
+      factors and the one set with this function call.
+      Or in other words: you cannot replace the cutoff frequency set by other synthesis
+      sources with this function.
+    </p>
+    
+    <note class="important">
+    There will only be audible changes with this function if a filter is
+    actually already turned on (i.e. by enabling it in the instrument patch)
+    and only if the filter is not closed by other sources (i.e. cutoff frequency
+    should be set open in the instrument patch).
+    </note>
+
+    <note>
+    Release Trigger Samples: In case the affected voices cause release trigger
+    samples to be spawned later on, the cutoff frequency of those release trigger voices
+    will not be affected by this function at all. So if you need to control the
+    cutoff frequency of release trigger samples by script, then you might rather also trigger
+    those release trigger samples by script with <code lang="nksp">play_note()</code>
+    instead of using the sampler format's internal support for release trigger samples.
+    </note>
+
+    <h3>Function Prototype</h3>
+    <p/>
+    <code lang="nksp">
+change_cutoff(??note??, ??cutoff??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??note??</code></td>
+        <td>Note ID Number</td>
+        <td>All voices of this note will be modified.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??cutoff??</code></td>
+        <td>Integer Number</td>
+        <td>New Cutoff Frequency (abstract absolute value between 0 and 1000000).<br>
+            [required]</td>
+      </tr>
+    </table>
+
+    <h3>Return Value</h3>
+    <p>None.</p>
+
+    <h3>Examples</h3>
+    <p>None yet.<p>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0.svn12.<p>
+
+    <note>
+    This function exists only with NKSP, it is not available with KSP, because
+    KSP does not allow to change filter parameters on note level.
+    </note>
+
+  </body>
+</html>

@@ -79,6 +79,18 @@
         <td>Changes the volume of voices.</td>
       </tr>
       <tr>
+        <td><code>change_cutoff()</code></td>
+        <td>Changes filter cutoff frequency of voices.</td>
+      </tr>
+      <tr>
+        <td><code>change_reso()</code></td>
+        <td>Changes filter resonance of voices.</td>
+      </tr>
+      <tr>
+        <td><code>event_status()</code></td>
+        <td>Checks and returns whether a particular note is still alive.</td>
+      </tr>
+      <tr>
         <td><code>set_controller()</code></td>
         <td>Creates a MIDI control change event.</td>
       </tr>
@@ -175,7 +187,7 @@
         <td><code>%KEY_DOWN[]</code></td>
         <td>This can be used in any context to check whether a certain MIDI
             key is currently pressed down. Use the respective MIDI note number
-            as index to this array variable.</td>
+            as index to this array variable (see also <code>event_status()</code>).</td>
       </tr>
       <tr>
         <td><code>$VCC_MONO_AT</code></td>
@@ -195,7 +207,7 @@
             This is somewhat different than in the MIDI standard. With
             NKSP pitch bend is handled like an additional "regular" MIDI CC controller.
             Therefore use
-            <code>%CC[$VCC_PITCH_BEND]</code> to obtain the current aftertouch value
+            <code>%CC[$VCC_PITCH_BEND]</code> to obtain the current pitch bend wheel value
             in the context of a <code>controller</code> event handler.</td>
       </tr>
       <tr>

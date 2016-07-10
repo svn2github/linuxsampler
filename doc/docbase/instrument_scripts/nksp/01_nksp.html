@@ -958,7 +958,7 @@ end on
     <h3>Boolean Operators</h3>
     <p>
       To perform logical transformations of <i>boolean</i> data, you may use the
-      following boolean operators:
+      following logical operators:
     </p>
     <code>
 on init
@@ -971,10 +971,37 @@ on init
 end on
     </code>
     <p>
-      Remember that with boolean operations, all integer values other than <code>0</code>
+      Keep in mind that with logical operators shown above,
+      all integer values other than <code>0</code>
       are interpreted as boolean <i>true</i> while an integer value of
       precisely <code>0</code> is interpreted of being boolean <i>false</i>.
     </p>
+    <p>
+      So the logical operators shown above always look at numbers at a whole.
+      Sometimes however you might rather need to process numbers bit by bit. For
+      that purpose the following bitwise operators exist.
+    </p>
+    <code>
+on init
+  message("1 .and. 1 is " & 1 .and. 1)  { bitwise "and" }
+  message("1 .and. 0 is " & 1 .and. 0)  { bitwise "and" }
+  message("1 .or. 1 is " & 1 .or. 1)    { bitwise "or" }
+  message("1 .or. 0 is " & 1 .or. 0)    { bitwise "or" }
+  message(".not. 1 is " & .not. 1)      { bitwise "not" }
+  message(".not. 0 is " & .not. 0)      { bitwise "not" }
+end on
+    </code>
+    <p>
+      Bitwise operators work essentially like logical operators, with the
+      difference that bitwise operators compare each bit independently.
+      So a bitwise <code>.and.</code> operator for instance takes the 1st bit
+      of the left hand's side value, the 1st bit of the right hand's side value,
+      compares the two bits logically and then stores that result as 1st bit of
+      the final result value, then it takes the 2nd bit of the left hand's side value
+      and the 2nd bit of the right hand's side value, compares those two bits logically
+      and then stores that result as 2nd bit of the final result value, and so on.
+    </p>
+
     
     <h3>Comparison Operators</h3>
     <p>

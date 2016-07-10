@@ -1,0 +1,89 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>event_status() function</title>
+    <meta name="description" content="Returns the current status of a note.">
+  </head>
+  <body>
+    <h1>event_status()</h1>
+    <p>
+      Checks and returns the current status of the requested note. You can use
+      this function to check if a note is still "alive". A note is considered
+      "alive" as long as there are still active voices associated with it, which
+      might for example still be the case even long time after the respective
+      note's key had been released by the musician (i.e. because the voice uses
+      a very long release envelope stage).
+    </p>
+    <p>
+      If you are rather just interested whether a certain note key is currently
+      pressed down, then you can read the built-in array variable
+      <code lang="nksp">%KEY_DOWN[]</code> instead.
+    </p>
+
+    <h3>Function Prototype</h3>
+    <p/>
+    <code lang="nksp">
+event_status(??note??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??note??</code></td>
+        <td>Note ID Number</td>
+        <td>Status of this note will be checked.<br>
+            [required]</td>
+      </tr>
+    </table>
+
+    <h3>Return Value</h3>
+    <p>
+      Returns either <code>$EVENT_STATUS_INACTIVE</code> if the requested note
+      is already dead and gone, or <code>$EVENT_STATUS_NOTE_QUEUE</code> if
+      the note is still alive.
+    </p>
+    <note>
+      Even though there are currently just two possible return values,
+      <code>$EVENT_STATUS_NOTE_QUEUE</code> is defined as bit flag though, and since
+      other bit flags might be added in future you should only compare bitwise with
+      <code>$EVENT_STATUS_NOTE_QUEUE</code>. See example below.
+    </note>
+
+    <h3>Examples</h3>
+    <p>
+      The following example shows a simple stuttering effect. The script
+      runs in an endless loop and turns down and up the volume all 200ms.
+      To stop the endless loop once the respective note died, the return
+      value of <code>event_status()</code> is compared bitwise with built-in constant bit flag
+      <code>$EVENT_STATUS_NOTE_QUEUE</code>.
+    </p>
+    <code>
+on note
+  while (1)
+    wait(200000)
+    if (not (event_status($EVENT_ID) .and. $EVENT_STATUS_NOTE_QUEUE))
+      exit()
+    end if
+    change_vol($EVENT_ID, -20000)  { Reduce volume by 20 dB. }
+
+    wait(200000)
+    if (not (event_status($EVENT_ID) .and. $EVENT_STATUS_NOTE_QUEUE))
+      exit()
+    end if
+    change_vol($EVENT_ID, 0)  { Increase volume to 0 dB. }
+  end while
+end on
+    </code>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0.svn12.<p>
+
+    <note>
+      LinuxSampler does currently not support KSP's <code>$EVENT_STATUS_MIDI_QUEUE</code> flag as return value.
+    </note>
+
+  </body>
+</html>
