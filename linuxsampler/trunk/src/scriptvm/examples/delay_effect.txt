@@ -6,9 +6,9 @@ on init
     { Convert BPM to microseconds (duration between the notes) }
     declare const $delayMicroSeconds := 60 * 1000000 / $bpm
     { Just a working variable for being used with the while loop below }
-    declare $i
+    declare polyphonic $i
     { For each successive note we trigger, we will reduce the velocity a bit}
-    declare $velocity
+    declare polyphonic $velocity
 end on
 
 on note
