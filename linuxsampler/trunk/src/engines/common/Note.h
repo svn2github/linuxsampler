@@ -59,7 +59,23 @@ namespace LinuxSampler {
 
     /**
      * Contains the voices caused by one specific note, as well as basic
-     * informations about the note itself.
+     * informations about the note itself. You can see a Note object as one
+     * specific event in time where one or more voices were spawned at the same
+     * time and all those voices due to the same cause.
+     *
+     * For example when you press down and hold the sustain pedal, and then
+     * trigger the same note on the keyboard multiple times, for each key
+     * strokes a separate Note instance is created.
+     *
+     * If your instrument contains a real-time instrument script, then that
+     * script might also trigger additional voices programmatically (by
+     * calling the built-in script function play_note()). Each time the script
+     * calls play_note() a new Note instance is created and the script may then
+     * further control the voices of specific notes independently from each
+     * other. For example for each key stroke on your keyboard the instrument
+     * script might trigger 3 additional notes programmatically and assign a
+     * different tuning filter parameters for each one of the 3 notes
+     * independently.
      */
     template<class V>
     class Note : public NoteBase {

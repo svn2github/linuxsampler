@@ -134,16 +134,19 @@ namespace LinuxSampler {
         public:
             Event(){}
             enum type_t {
-                type_note_on,
-                type_note_off,
-                type_pitchbend,
-                type_control_change,
+                type_note_on, ///< (real) MIDI note-on event
+                type_note_off, ///< (real) MIDI note-off event
+                type_pitchbend, ///< MIDI pitch bend wheel change event
+                type_control_change, ///< MIDI CC event
                 type_sysex,           ///< MIDI system exclusive message
-                type_cancel_release,  ///< transformed either from a note-on or sustain-pedal-down event
-                type_release,         ///< transformed either from a note-off or sustain-pedal-up event
+                type_cancel_release_key, ///< transformed either from a (real) MIDI note-on or sustain-pedal-down event
+                type_release_key,     ///< transformed either from a (real) MIDI note-off or sustain-pedal-up event
+                type_release_note,    ///< transformed from a type_stop_note event
                 type_channel_pressure, ///< a.k.a. aftertouch
                 type_note_pressure, ///< polyphonic key pressure (aftertouch)
-                type_note_synth_param, ///< change a note's synthesis parameters (upon real-time instrument script function calls)
+                type_play_note, ///< caused by a call to built-in instrument script function play_note()
+                type_stop_note, ///< caused by a call to built-in instrument script function note_off()
+                type_note_synth_param, ///< change a note's synthesis parameters (upon real-time instrument script function calls, i.e. change_vol(), change_tune(), change_pan(), etc.)
             } Type;
             enum synth_param_t {
                 synth_param_volume,
@@ -160,7 +163,7 @@ namespace LinuxSampler {
                     uint8_t Velocity;    ///< Trigger or release velocity of note-on / note-off event.
                     int8_t  Layer;       ///< Layer index (usually only used if a note-on event has to be postponed, e.g. due to shortage of free voices).
                     int8_t  ReleaseTrigger; ///< If new voice should be a release triggered voice (actually boolean field and usually only used if a note-on event has to be postponed, e.g. due to shortage of free voices).
-                    note_id_t ID;        ///< Unique numeric ID of the @c Note object associated with this note (on) event.
+                    note_id_t ID;        ///< Unique numeric ID of the @c Note object associated with this note event.
                     note_id_t ParentNoteID; ///< If not zero: Unique numeric ID of the parent @c Note object that shall become parent of resulting new Note object of this Event. So this is used to associate a new note with a previous note, i.e. to release the new note once the parent note was released.
                     void*   pRegion;     ///< Engine specific pointer to instrument region
                 } Note;

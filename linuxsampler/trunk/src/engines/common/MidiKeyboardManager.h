@@ -525,7 +525,7 @@ namespace LinuxSampler {
                     RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
                     if (itNewEvent) {
                         *itNewEvent = *itReleaseEvent; // copy original event (to the key's event list)
-                        itNewEvent->Type = Event::type_release; // transform event type
+                        itNewEvent->Type = Event::type_release_key; // transform event type
                     }
                     else dmsg(1,("Event pool emtpy!\n"));
                 }
@@ -667,7 +667,7 @@ namespace LinuxSampler {
                         RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
                         if (itNewEvent) {
                             *itNewEvent = *itEvent; // copy event to the key's own event list
-                            itNewEvent->Type = Event::type_cancel_release; // transform event type
+                            itNewEvent->Type = Event::type_cancel_release_key; // transform event type
                         }
                         else dmsg(1,("Event pool emtpy!\n"));
                     }
@@ -683,7 +683,7 @@ namespace LinuxSampler {
                         RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
                         if (itNewEvent) {
                             *itNewEvent = *itEvent; // copy event to the key's own event list
-                            itNewEvent->Type = Event::type_release; // transform event type
+                            itNewEvent->Type = Event::type_release_key; // transform event type
                             itNewEvent->Param.Note.Key = *iuiKey;
                             itNewEvent->Param.Note.Velocity = 127;
                             if (!SostenutoActiveOnKey(*iuiKey)) {
@@ -748,7 +748,7 @@ namespace LinuxSampler {
                         RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
                         if (itNewEvent) {
                             *itNewEvent = *itEvent; // copy event to the key's own event list
-                            itNewEvent->Type = Event::type_release; // transform event type
+                            itNewEvent->Type = Event::type_release_key; // transform event type
                         }
                         else dmsg(1,("Event pool emtpy!\n"));
                     }

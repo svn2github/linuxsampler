@@ -853,8 +853,16 @@ namespace LinuxSampler {
                                 dmsg(5,("Engine: Note on received\n"));
                                 ProcessNoteOn((EngineChannel*)itEvent->pEngineChannel, itEvent);
                                 break;
+                            case Event::type_play_note:
+                                dmsg(5,("Engine: Play Note received\n"));
+                                ProcessNoteOn((EngineChannel*)itEvent->pEngineChannel, itEvent);
+                                break;
                             case Event::type_note_off:
                                 dmsg(5,("Engine: Note off received\n"));
+                                ProcessNoteOff((EngineChannel*)itEvent->pEngineChannel, itEvent);
+                                break;
+                            case Event::type_stop_note:
+                                dmsg(5,("Engine: Stop Note received\n"));
                                 ProcessNoteOff((EngineChannel*)itEvent->pEngineChannel, itEvent);
                                 break;
                             case Event::type_control_change:
@@ -1603,16 +1611,27 @@ namespace LinuxSampler {
 
                 MidiKey* pKey = &pChannel->pMIDIKeyInfo[key];
 
-                pChannel->listeners.PreProcessNoteOn(key, vel);
+                // There are real MIDI note-on events (Event::type_note_on) and
+                // programmatically spawned notes (Event::type_play_note). We have
+                // to distinguish between them, since certain processing below
+                // must only be done on real MIDI note-on events (i.e. for
+                // correctly updating which MIDI keys are currently pressed down).
+                const bool isRealMIDINoteOnEvent = itNoteOnEvent->Type == Event::type_note_on;
+
+                if (isRealMIDINoteOnEvent)
+                    pChannel->listeners.PreProcessNoteOn(key, vel);
+
                 #if !CONFIG_PROCESS_MUTED_CHANNELS
                 if (pEngineChannel->GetMute()) { // skip if sampler channel is muted
-                    pChannel->listeners.PostProcessNoteOn(key, vel);
+                    if (isRealMIDINoteOnEvent)
+                        pChannel->listeners.PostProcessNoteOn(key, vel);
                     return;
                 }
                 #endif
 
                 if (!pChannel->pInstrument) {
-                    pChannel->listeners.PostProcessNoteOn(key, vel);
+                    if (isRealMIDINoteOnEvent)
+                        pChannel->listeners.PostProcessNoteOn(key, vel);
                     return; // ignore if no instrument loaded
                 }
 
@@ -1620,7 +1639,7 @@ namespace LinuxSampler {
                 RTList<Event>::Iterator itNoteOnEventOnKeyList = itNoteOnEvent.moveToEndOf(pKey->pEvents);
 
                 // if Solo Mode then kill all already active voices
-                if (pChannel->SoloMode) {
+                if (pChannel->SoloMode && isRealMIDINoteOnEvent) {
                     Pool<uint>::Iterator itYoungestKey = pChannel->pActiveKeys->last();
                     if (itYoungestKey) {
                         const int iYoungestKey = *itYoungestKey;
@@ -1649,19 +1668,21 @@ namespace LinuxSampler {
                     pChannel->SoloKey = key;
                 }
 
-                pChannel->ProcessKeySwitchChange(key);
+                if (isRealMIDINoteOnEvent) {
+                    pChannel->ProcessKeySwitchChange(key);
 
-                pKey->KeyPressed = true; // the MIDI key was now pressed down
-                pChannel->KeyDown[key] = true; // just used as built-in %KEY_DOWN script variable
-                pKey->Velocity   = itNoteOnEventOnKeyList->Param.Note.Velocity;
-                pKey->NoteOnTime = FrameTime + itNoteOnEventOnKeyList->FragmentPos(); // will be used to calculate note length
+                    pKey->KeyPressed = true; // the MIDI key was now pressed down
+                    pChannel->KeyDown[key] = true; // just used as built-in %KEY_DOWN script variable
+                    pKey->Velocity   = itNoteOnEventOnKeyList->Param.Note.Velocity;
+                    pKey->NoteOnTime = FrameTime + itNoteOnEventOnKeyList->FragmentPos(); // will be used to calculate note length
+                }
 
                 // cancel release process of voices on this key if needed
-                if (pKey->Active && !pChannel->SustainPedal) {
+                if (pKey->Active && !pChannel->SustainPedal && isRealMIDINoteOnEvent) {
                     RTList<Event>::Iterator itCancelReleaseEvent = pKey->pEvents->allocAppend();
                     if (itCancelReleaseEvent) {
                         *itCancelReleaseEvent = *itNoteOnEventOnKeyList;         // copy event
-                        itCancelReleaseEvent->Type = Event::type_cancel_release; // transform event type
+                        itCancelReleaseEvent->Type = Event::type_cancel_release_key; // transform event type
                     }
                     else dmsg(1,("Event pool emtpy!\n"));
                 }
@@ -1672,12 +1693,17 @@ namespace LinuxSampler {
                 if (!pKey->Active && !pKey->VoiceTheftsQueued)
                     pKey->pEvents->free(itNoteOnEventOnKeyList);
 
-                if (!pChannel->SoloMode || pChannel->PortamentoPos < 0.0f) pChannel->PortamentoPos = (float) key;
+                if (isRealMIDINoteOnEvent && (!pChannel->SoloMode || pChannel->PortamentoPos < 0.0f))
+                    pChannel->PortamentoPos = (float) key;
+
+                //NOTE: Hmm, I guess its a matter of taste whether round robin should be advanced only on real MIDI note-on events, isn't it?
                 if (pKey->pRoundRobinIndex) {
                     (*pKey->pRoundRobinIndex)++; // counter specific for the key or region
                     pChannel->RoundRobinIndex++; // common counter for the channel
                 }
-                pChannel->listeners.PostProcessNoteOn(key, vel);
+
+                if (isRealMIDINoteOnEvent)
+                    pChannel->listeners.PostProcessNoteOn(key, vel);
             }
 
             /**
@@ -1715,91 +1741,120 @@ namespace LinuxSampler {
 
                 MidiKey* pKey = &pChannel->pMIDIKeyInfo[iKey];
 
-                pChannel->listeners.PreProcessNoteOff(iKey, vel);
+                // There are real MIDI note-off events (Event::type_note_off) and
+                // programmatically spawned notes (Event::type_stop_note). We have
+                // to distinguish between them, since certain processing below
+                // must only be done on real MIDI note-off events (i.e. for
+                // correctly updating which MIDI keys are currently pressed down),
+                // plus a stop-note event just releases voices of one particular
+                // note, whereas a note-off event releases all voices on a
+                // particular MIDI key instead.
+                const bool isRealMIDINoteOffEvent = itNoteOffEvent->Type == Event::type_note_off;
+
+                if (isRealMIDINoteOffEvent)
+                    pChannel->listeners.PreProcessNoteOff(iKey, vel);
 
                 #if !CONFIG_PROCESS_MUTED_CHANNELS
                 if (pEngineChannel->GetMute()) { // skip if sampler channel is muted
-                    pChannel->listeners.PostProcessNoteOff(iKey, vel);
+                    if (isRealMIDINoteOffEvent)
+                        pChannel->listeners.PostProcessNoteOff(iKey, vel);
                     return;
                 }
                 #endif
 
-                pKey->KeyPressed = false; // the MIDI key was now released
-                pChannel->KeyDown[iKey] = false; // just used as built-in %KEY_DOWN script variable
+                if (isRealMIDINoteOffEvent) {
+                    pKey->KeyPressed = false; // the MIDI key was now released
+                    pChannel->KeyDown[iKey] = false; // just used as built-in %KEY_DOWN script variable
+                }
 
                 // move event to the key's own event list
                 RTList<Event>::Iterator itNoteOffEventOnKeyList = itNoteOffEvent.moveToEndOf(pKey->pEvents);
 
-                bool bShouldRelease = pKey->Active && pChannel->ShouldReleaseVoice(itNoteOffEventOnKeyList->Param.Note.Key);
+                if (isRealMIDINoteOffEvent) {
+                    bool bShouldRelease = pKey->Active && pChannel->ShouldReleaseVoice(itNoteOffEventOnKeyList->Param.Note.Key);
 
-                // in case Solo Mode is enabled, kill all voices on this key and respawn a voice on the highest pressed key (if any)
-                if (pChannel->SoloMode && pChannel->pInstrument) { //TODO: this feels like too much code just for handling solo mode :P
-                    bool bOtherKeysPressed = false;
-                    if (iKey == pChannel->SoloKey) {
-                        pChannel->SoloKey = -1;
-                        // if there's still a key pressed down, respawn a voice (group) on the highest key
-                        for (int i = 127; i > 0; i--) {
-                            MidiKey* pOtherKey = &pChannel->pMIDIKeyInfo[i];
-                            if (pOtherKey->KeyPressed) {
-                                bOtherKeysPressed = true;
-                                // make the other key the new 'currently active solo key'
-                                pChannel->SoloKey = i;
-                                // get final portamento position of currently active voice
-                                if (pChannel->PortamentoMode) {
-                                    NoteIterator itNote = pKey->pActiveNotes->first();
-                                    VoiceIterator itVoice = itNote->pActiveVoices->first();
-                                    if (itVoice) itVoice->UpdatePortamentoPos(itNoteOffEventOnKeyList);
-                                }
-                                // create a pseudo note on event
-                                RTList<Event>::Iterator itPseudoNoteOnEvent = pOtherKey->pEvents->allocAppend();
-                                if (itPseudoNoteOnEvent) {
-                                    // copy event
-                                    *itPseudoNoteOnEvent = *itNoteOffEventOnKeyList;
-                                    // transform event to a note on event
-                                    itPseudoNoteOnEvent->Type                = Event::type_note_on;
-                                    itPseudoNoteOnEvent->Param.Note.Key      = i;
-                                    itPseudoNoteOnEvent->Param.Note.Velocity = pOtherKey->Velocity;
-                                    // assign a new note to this note-on event
-                                    if (LaunchNewNote(pChannel, &*itPseudoNoteOnEvent)) {
-                                        // allocate and trigger new voice(s) for the other key
-                                        TriggerNewVoices(pChannel, itPseudoNoteOnEvent, false);
+                    // in case Solo Mode is enabled, kill all voices on this key and respawn a voice on the highest pressed key (if any)
+                    if (pChannel->SoloMode && pChannel->pInstrument) { //TODO: this feels like too much code just for handling solo mode :P
+                        bool bOtherKeysPressed = false;
+                        if (iKey == pChannel->SoloKey) {
+                            pChannel->SoloKey = -1;
+                            // if there's still a key pressed down, respawn a voice (group) on the highest key
+                            for (int i = 127; i > 0; i--) {
+                                MidiKey* pOtherKey = &pChannel->pMIDIKeyInfo[i];
+                                if (pOtherKey->KeyPressed) {
+                                    bOtherKeysPressed = true;
+                                    // make the other key the new 'currently active solo key'
+                                    pChannel->SoloKey = i;
+                                    // get final portamento position of currently active voice
+                                    if (pChannel->PortamentoMode) {
+                                        NoteIterator itNote = pKey->pActiveNotes->first();
+                                        VoiceIterator itVoice = itNote->pActiveVoices->first();
+                                        if (itVoice) itVoice->UpdatePortamentoPos(itNoteOffEventOnKeyList);
                                     }
-                                    // if neither a voice was spawned or postponed then remove note on event from key again
-                                    if (!pOtherKey->Active && !pOtherKey->VoiceTheftsQueued)
-                                        pOtherKey->pEvents->free(itPseudoNoteOnEvent);
+                                    // create a pseudo note on event
+                                    RTList<Event>::Iterator itPseudoNoteOnEvent = pOtherKey->pEvents->allocAppend();
+                                    if (itPseudoNoteOnEvent) {
+                                        // copy event
+                                        *itPseudoNoteOnEvent = *itNoteOffEventOnKeyList;
+                                        // transform event to a note on event
+                                        itPseudoNoteOnEvent->Type                = Event::type_note_on; //FIXME: should probably use Event::type_play_note instead (to avoid i.e. hanging notes)
+                                        itPseudoNoteOnEvent->Param.Note.Key      = i;
+                                        itPseudoNoteOnEvent->Param.Note.Velocity = pOtherKey->Velocity;
+                                        // assign a new note to this note-on event
+                                        if (LaunchNewNote(pChannel, &*itPseudoNoteOnEvent)) {
+                                            // allocate and trigger new voice(s) for the other key
+                                            TriggerNewVoices(pChannel, itPseudoNoteOnEvent, false);
+                                        }
+                                        // if neither a voice was spawned or postponed then remove note on event from key again
+                                        if (!pOtherKey->Active && !pOtherKey->VoiceTheftsQueued)
+                                            pOtherKey->pEvents->free(itPseudoNoteOnEvent);
 
-                                } else dmsg(1,("Could not respawn voice, no free event left\n"));
-                                break; // done
-                            }
-                        }
-                    }
-                    if (bOtherKeysPressed) {
-                        if (pKey->Active) { // kill all voices on this key
-                            bShouldRelease = false; // no need to release, as we kill it here
-                            for (NoteIterator itNote = pKey->pActiveNotes->first(); itNote; ++itNote) {
-                                VoiceIterator itVoiceToBeKilled = itNote->pActiveVoices->first();
-                                VoiceIterator end               = itNote->pActiveVoices->end();
-                                for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
-                                    if (!(itVoiceToBeKilled->Type & Voice::type_release_trigger))
-                                        itVoiceToBeKilled->Kill(itNoteOffEventOnKeyList);
+                                    } else dmsg(1,("Could not respawn voice, no free event left\n"));
+                                    break; // done
                                 }
                             }
                         }
-                    } else pChannel->PortamentoPos = -1.0f;
-                }
+                        if (bOtherKeysPressed) {
+                            if (pKey->Active) { // kill all voices on this key
+                                bShouldRelease = false; // no need to release, as we kill it here
+                                for (NoteIterator itNote = pKey->pActiveNotes->first(); itNote; ++itNote) {
+                                    VoiceIterator itVoiceToBeKilled = itNote->pActiveVoices->first();
+                                    VoiceIterator end               = itNote->pActiveVoices->end();
+                                    for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
+                                        if (!(itVoiceToBeKilled->Type & Voice::type_release_trigger))
+                                            itVoiceToBeKilled->Kill(itNoteOffEventOnKeyList);
+                                    }
+                                }
+                            }
+                        } else pChannel->PortamentoPos = -1.0f;
+                    }
 
-                // if no solo mode (the usual case) or if solo mode and no other key pressed, then release voices on this key if needed
-                if (bShouldRelease) {
-                    itNoteOffEventOnKeyList->Type = Event::type_release; // transform event type
-                    // spawn release triggered voice(s) if needed
-                    ProcessReleaseTrigger(pChannel, itNoteOffEventOnKeyList, pKey);
+                    // if no solo mode (the usual case) or if solo mode and no other key pressed, then release voices on this key if needed
+                    if (bShouldRelease) {
+                        itNoteOffEventOnKeyList->Type = Event::type_release_key; // transform event type
+                        // spawn release triggered voice(s) if needed
+                        ProcessReleaseTrigger(pChannel, itNoteOffEventOnKeyList, pKey);
+                    }
+                } else if (itNoteOffEventOnKeyList->Type == Event::type_stop_note) {
+                    // This programmatically caused event is caused by a call to
+                    // the built-in instrument script function note_off(). In
+                    // contrast to a real MIDI note-off event the stop-note
+                    // event just intends to release voices of one particular note.
+                    NoteBase* pNote = pChannel->pEngine->NoteByID( itNoteOffEventOnKeyList->Param.Note.ID );
+                    if (pNote) { // the requested note is still alive ...
+                        itNoteOffEventOnKeyList->Type = Event::type_release_note; // transform event type
+                    } else { // note is dead and gone ..
+                        pKey->pEvents->free(itNoteOffEventOnKeyList); // remove stop-note event from key again
+                        return; // prevent event to be removed a 2nd time below
+                    }
                 }
 
                 // if neither a voice was spawned or postponed on this key then remove note off event from key again
                 if (!pKey->Active && !pKey->VoiceTheftsQueued)
                     pKey->pEvents->free(itNoteOffEventOnKeyList);
 
-                pChannel->listeners.PostProcessNoteOff(iKey, vel);
+                if (isRealMIDINoteOffEvent)
+                    pChannel->listeners.PostProcessNoteOff(iKey, vel);
             }
 
             /**

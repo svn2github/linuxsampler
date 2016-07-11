@@ -73,6 +73,9 @@ Version SVN trunk (?)
     - NKSP language scanner: Fixed IDs matching to require at least one
       character (i.e. when matching function names or variable names).
     - NKSP language scanner: disabled unusued rules.
+    - Fixed behavior of play_note() and note_off() functions which must
+      be distinguished engine internally from "real" MIDI note on/off
+      events in order to avoid misbehaviors like hanging notes.
 
 Version 2.0.0 (15 July 2015)
 

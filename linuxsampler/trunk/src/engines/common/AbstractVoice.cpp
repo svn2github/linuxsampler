@@ -696,9 +696,9 @@ namespace LinuxSampler {
         for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
             // some voice types ignore note off 
             if (!(Type & (Voice::type_one_shot | Voice::type_release_trigger | Voice::type_controller_triggered))) {
-                if (itEvent->Type == Event::type_release) {
+                if (itEvent->Type == Event::type_release_key) {
                     EnterReleaseStage();
-                } else if (itEvent->Type == Event::type_cancel_release) {
+                } else if (itEvent->Type == Event::type_cancel_release_key) {
                     if (pSignalUnitRack == NULL) {
                         pEG1->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                         pEG2->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
@@ -706,6 +706,12 @@ namespace LinuxSampler {
                         pSignalUnitRack->CancelRelease();
                     }
                 }
+            }
+            // process stop-note events (caused by built-in instrument script function note_off())
+            if (itEvent->Type == Event::type_release_note && pNote &&
+                pEngineChannel->pEngine->NoteByID( itEvent->Param.Note.ID ) == pNote)
+            {
+                EnterReleaseStage();
             }
             // process synthesis parameter events (caused by built-in realt-time instrument script functions)
             if (itEvent->Type == Event::type_note_synth_param && pNote &&

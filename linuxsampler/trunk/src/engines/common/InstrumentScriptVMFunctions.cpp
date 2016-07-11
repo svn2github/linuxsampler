@@ -53,7 +53,7 @@ namespace LinuxSampler {
 
         Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
         e.Init(); // clear IDs
-        e.Type = Event::type_note_on;
+        e.Type = Event::type_play_note;
         e.Param.Note.Key = note;
         e.Param.Note.Velocity = velocity;
         // make this new note dependent to the life time of the original note
@@ -67,10 +67,11 @@ namespace LinuxSampler {
 
         const note_id_t id = pEngineChannel->ScheduleNoteMicroSec(&e, 0);
 
-        // if a duration is supplied (and note-on event was scheduled
-        // successfully above), then schedule a subsequent note-off event
+        // if a duration is supplied (and play-note event was scheduled
+        // successfully above), then schedule a subsequent stop-note event
         if (id && duration > 0) {
-            e.Type = Event::type_note_off;
+            e.Type = Event::type_stop_note;
+            e.Param.Note.ID = id;
             e.Param.Note.Velocity = 127;
             pEngineChannel->ScheduleEventMicroSec(&e, duration);
         }
@@ -214,7 +215,9 @@ namespace LinuxSampler {
             Event e = pNote->cause;
             e.Init(); // clear IDs
             e.CopyTimeFrom(m_vm->m_event->cause); // set fragment time for "now"
-            e.Type = Event::type_note_off;
+            e.Type = Event::type_stop_note;
+            e.Param.Note.ID = id.noteID();
+            e.Param.Note.Key = pNote->hostKey;
             e.Param.Note.Velocity = velocity;
 
             pEngineChannel->ScheduleEventMicroSec(&e, 0);
@@ -230,7 +233,9 @@ namespace LinuxSampler {
                 Event e = pNote->cause;
                 e.Init(); // clear IDs
                 e.CopyTimeFrom(m_vm->m_event->cause); // set fragment time for "now"
-                e.Type = Event::type_note_off;
+                e.Type = Event::type_stop_note;
+                e.Param.Note.ID = id.noteID();
+                e.Param.Note.Key = pNote->hostKey;
                 e.Param.Note.Velocity = velocity;
 
                 pEngineChannel->ScheduleEventMicroSec(&e, 0);
