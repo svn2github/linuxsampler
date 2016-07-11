@@ -184,6 +184,18 @@
             <code>note</code> or <code>release</code> handler).</td>
       </tr>
       <tr>
+        <td><code>$EVENT_STATUS_INACTIVE</code></td>
+        <td>Constant bit flag used as possible return value by
+            <code>event_status()</code> in case the requested
+            note is not "alive".</td>
+      </tr>
+      <tr>
+        <td><code>$EVENT_STATUS_NOTE_QUEUE</code></td>
+        <td>Constant bit flag used as possible return value by
+            <code>event_status()</code> in case the requested
+            note is still "alive".</td>
+      </tr>
+      <tr>
         <td><code>%KEY_DOWN[]</code></td>
         <td>This can be used in any context to check whether a certain MIDI
             key is currently pressed down. Use the respective MIDI note number
