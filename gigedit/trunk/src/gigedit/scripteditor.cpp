@@ -169,7 +169,7 @@ ScriptEditor::ScriptEditor() :
         Pango::FontDescription fdesc;
         fdesc.set_family("monospace");
 #if defined(__APPLE__)
-        fdesc.set_size(12 * PANGO_SCALE);
+        fdesc.set_size(14 * PANGO_SCALE);
 #else
         fdesc.set_size(10 * PANGO_SCALE);
 #endif
