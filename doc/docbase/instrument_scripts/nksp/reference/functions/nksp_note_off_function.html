@@ -9,17 +9,11 @@
     <p>
       Releases a note by passing the note's event ID to this function.
       This is almost like sending a MIDI note off event programmatically, however
-      a call to this function will only affect one single note instead.
-    </p>
-    <p>
-      The argument this function takes is optional. If you omit passing an
-      argument to this function, then the controller event ID will be used that
-      caused this current <code lang="nksp">controller</code> event handler to be executed.
-    </p>
-    <p>
-      There is also an <code>ignore_event()</code> function. With
-      NKSP the two functions are both doing the same thing though.
-      The two exist merely due to compatibility reasons with KSP.
+      a call to this function will only release one single note instead,
+      a call to this function does not cause a <code>release</code>
+      event handler to be executed, nor will any MIDI specific note-off handling
+      be done (i.e. it will have no effect on the status of built-in array variable
+      <code>%KEY_DOWN[]</code>).
     </p>
 
     <h3>Function Prototype</h3>
@@ -36,7 +30,7 @@ note_off(??event-id??, [??velocity??])
       <tr>
         <td><code>??event-id??</code></td>
         <td>Event ID Number or Event ID Array</td>
-        <td>Event ID(s) of the note(s) to be released.<br>
+        <td>Note ID(s) of the note(s) to be released.<br>
             [required]</td>
       </tr>
       <tr>
