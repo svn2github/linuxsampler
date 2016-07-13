@@ -140,7 +140,92 @@
       These are the built-in variables and built-in constants available with the
       NKSP realt-time instrument script language.
     </p>
-    
+
+    <h3>Core Language Variables</h3>
+    <p>
+      Most fundamental NKSP built-in variables, independent from any purpose of
+      being used in a sampler.
+    </p>
+    <table>
+      <tr>
+        <th>Variable</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>$KSP_TIMER</code></td>
+        <td>Preserved for compatiblity reasons with KSP, returns the same value
+           as <code>$NKSP_REAL_TIMER</code> (refer to the latter for details).
+           Note that KSP's <code>reset_ksp_timer()</code> function is not available with
+           NKSP. However when calculating time differences between two time
+           stamps taken with <code>$NKSP_REAL_TIMER</code>, calling such a reset
+           function is not required, because the underlying clock does not stop
+           when it reached its value limit (which happens every 71 minutes), instead the clock
+           will automatically restart from zero and the calculated time difference
+           even between such transitions will reflect correct durations.</td>
+      </tr>
+      <tr>
+        <td><code>$NKSP_PERF_TIMER</code></td>
+        <td>Returns the current performance time stamp (in microseconds) of the
+            script running. You may read this variable from time to time to take
+            time stamps which can be used to calculate the time difference
+            (in microseconds) which elapsed between them. A performance time
+            stamp is based on the script's actual CPU execution time. So the
+            internal clock which is used for generating such time stamps is only
+            running forward if the respective script is actually executed by the
+            CPU. Whenever your script is not really executed by the CPU (i.e. because
+            your script got suspended by a wait() call or got forcely suspended due to
+            real-time constraints, or when the entire sampler application got suspended
+            by the OS for other applications or OS tasks) then the underlying internal
+            clock is paused as well.
+            <note class="important">
+              You should only use this built-in variable for script development
+              purposes (i.e. for bench marking the performance of your script).
+              You should <b>not</b> use it with your final production sounds!
+              It is not appropriate for being used in a musical context, because
+              when an offline bounce is performed for instance, the musical timing
+              will be completely unrelated to the CPU execution time. Plus using
+              this variable may cause audio drop outs on some systems. In a musical
+              context you should use <code>$ENGINE_UPTIME</code> instead, which is
+              also safe for offline bounces.
+            </note>
+            <note>
+              On some systems <code>$NKSP_REAL_TIMER</code> and
+              <code>$NKSP_PERF_TIMER</code> will actually return the same value. So the
+              difference between them is not implemented for all systems at the moment.
+            </note>
+        </td>
+      </tr>
+      <tr>
+        <td><code>$NKSP_REAL_TIMER</code></td>
+        <td>Returns the current time stamp in reality (in microseconds). You may
+            read this variable from time to time to take
+            time stamps which can be used to calculate the time difference
+            (in microseconds) which elapsed between them. A "real" time
+            stamp is based on an internal clock which constantly proceeds, so this
+            internal clock also continues counting while your script is either suspended
+            (i.e. because your script got suspended by a wait() call or got forcely
+            suspended due to real-time constraints) and it also continues counting
+            even if the entire sampler application got suspended by the OS (i.e. to
+            execute other applications for multi-tasking or to perform OS tasks).
+            <note class="important">
+              You should only use this built-in variable for script development
+              purposes (i.e. for bench marking the performance of your script).
+              You should <b>not</b> use it with your final production sounds!
+              It is not appropriate for being used in a musical context, because
+              when an offline bounce is performed for instance, the musical timing
+              will be completely unrelated to the CPU execution time. Plus using
+              this variable may cause audio drop outs on some systems. In a musical
+              context you should use <code>$ENGINE_UPTIME</code> instead, which is
+              also safe for offline bounces.
+            </note>
+            <note>
+              On some systems <code>$NKSP_REAL_TIMER</code> and
+              <code>$NKSP_PERF_TIMER</code> will actually return the same value. So the
+              difference between them is not implemented for all systems at the moment.
+            </note>
+        </td>
+      </tr>
+    </table>
+
     <h3>Common Sampler Variables</h3>
     <p>
       Basic sampler related built-in variables and constants, independent from a
@@ -226,6 +311,18 @@
         <td><code>$MARK_1</code> to <code>$MARK_28</code></td>
         <td>Used to select one of the available 28 event groups.
         See <code>set_event_mark()</code> for details.</td>
+      </tr>
+      <tr>
+        <td><code>$ENGINE_UPTIME</code></td>
+        <td>Returns the current time stamp (in milliseconds) for being
+            used in a musical context. You may read this variable from time to time
+            to take time stamps which can be used to calculate the time difference
+            (in milliseconds) which elapsed between them. These timing values are
+            based on the internal sample rate and thus it can safely be used to
+            perform musical timing related tasks in your scripts. Especially
+            your script will also continue to behave correctly when an offline bounce
+            of a song is performed.
+        </td>
       </tr>
     </table>
 
