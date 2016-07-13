@@ -88,7 +88,7 @@ RTMathBase::usecs_t RTMathBase::unsafeMicroSeconds(clock_source_t source) {
     LARGE_INTEGER f;
     QueryPerformanceCounter(&t);
     if (!QueryPerformanceFrequency(&f)) return 0;
-    return usecs_t( double(t) / double(f) * 1000000.0 );
+    return usecs_t( double(t.QuadPart) / double(f.QuadPart) * 1000000.0 );
     #elif defined(__APPLE__)
     static mach_timebase_info_data_t tb;
     double t = mach_absolute_time();
