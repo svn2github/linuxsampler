@@ -23,6 +23,11 @@
 
 #include "RTMath.h"
 
+// for unsafeMicroSeconds() implementation
+#if !defined(WIN32) && !defined(__APPLE__)
+# include <time.h>
+#endif
+
 static float CentsToFreqTable[CONFIG_MAX_PITCH * 1200 * 2 + 1]; // +-1200 cents per octave
 
 float* RTMathBase::pCentsToFreqTable(InitCentsToFreqTable());
@@ -74,6 +79,34 @@ RTMathBase::time_stamp_t RTMathBase::CreateTimeStamp() {
     #else // we don't want to use a slow generic solution
     #  error "Sorry, LinuxSampler lacks time stamp code for your system."
     #  error "Please report this error and the CPU you are using to the LinuxSampler developers mailing list!"
+    #endif
+}
+
+RTMathBase::usecs_t RTMathBase::unsafeMicroSeconds(clock_source_t source) {
+    #if defined(WIN32)
+    LARGE_INTEGER t;
+    LARGE_INTEGER f;
+    QueryPerformanceCounter(&t);
+    if (!QueryPerformanceFrequency(&f)) return 0;
+    return usecs_t( double(t) / double(f) * 1000000.0 );
+    #elif defined(__APPLE__)
+    static mach_timebase_info_data_t tb;
+    double t = mach_absolute_time();
+    // if this method is run for the first time, get the internal time base
+    if (!tb.denom) mach_timebase_info(&tb); // get nanoseconds per tick
+    // convert from internal (abstract) time value to microseconds
+    return usecs_t( t * double(tb.numer) / double(tb.denom) / 1000.0 );
+    #else
+    timespec t;
+    clockid_t cid;
+    switch (source) {
+        case process_clock: cid = CLOCK_PROCESS_CPUTIME_ID; break;
+        case thread_clock:  cid = CLOCK_THREAD_CPUTIME_ID; break;
+        case real_clock:    cid = CLOCK_MONOTONIC; break;
+        default:            return 0;
+    }
+    clock_gettime(cid, &t);
+    return usecs_t( (double(t.tv_sec) * 1000000000.0 + double(t.tv_nsec)) / 1000.0 );
     #endif
 }
 

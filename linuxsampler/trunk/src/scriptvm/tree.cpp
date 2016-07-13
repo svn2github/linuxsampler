@@ -243,6 +243,37 @@ bool Statements::isPolyphonic() const {
     return false;
 }
 
+DynamicVariableCall::DynamicVariableCall(const String& name, ParserContext* ctx, VMDynVar* v)
+    : Variable(ctx, 0, false), dynVar(v), varName(name)
+{
+}
+
+int DynamicVariableCall::evalInt() {
+    VMIntExpr* expr = dynamic_cast<VMIntExpr*>(dynVar);
+    if (!expr) return 0;
+    return expr->evalInt();
+}
+
+String DynamicVariableCall::evalStr() {
+    VMStringExpr* expr = dynamic_cast<VMStringExpr*>(dynVar);
+    if (!expr) return "";
+    return expr->evalStr();
+}
+
+String DynamicVariableCall::evalCastToStr() {
+    if (dynVar->exprType() == STRING_EXPR) {
+        return evalStr();
+    } else {
+        VMIntExpr* intExpr = dynamic_cast<VMIntExpr*>(dynVar);
+        return intExpr ? ToString(intExpr->evalInt()) : "";
+    }
+}
+
+void DynamicVariableCall::dump(int level) {
+    printIndents(level);
+    printf("Dynamic Variable '%s'\n", varName.c_str());
+}
+
 void FunctionCall::dump(int level) {
     printIndents(level);
     printf("FunctionCall '%s' args={\n", functionName.c_str());
@@ -958,6 +989,15 @@ void ParserContext::registerBuiltInIntArrayVariables(const std::map<String,VMInt
          it != vars.end(); ++it)
     {
         BuiltInIntArrayVariableRef ref = new BuiltInIntArrayVariable(it->first, it->second);
+        vartable[it->first] = ref;
+    }
+}
+
+void ParserContext::registerBuiltInDynVariables(const std::map<String,VMDynVar*>& vars) {
+    for (std::map<String,VMDynVar*>::const_iterator it = vars.begin();
+         it != vars.end(); ++it)
+    {
+        DynamicVariableCallRef ref = new DynamicVariableCall(it->first, this, it->second);
         vartable[it->first] = ref;
     }
 }

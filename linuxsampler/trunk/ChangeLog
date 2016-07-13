@@ -76,6 +76,10 @@ Version SVN trunk (?)
     - Fixed behavior of play_note() and note_off() functions which must
       be distinguished engine internally from "real" MIDI note on/off
       events in order to avoid misbehaviors like hanging notes.
+    - Implemented built-in script variable "$KSP_TIMER".
+    - Implemented built-in script variable "$NKSP_REAL_TIMER".
+    - Implemented built-in script variable "$NKSP_PERF_TIMER".
+    - Implemented built-in script variable "$ENGINE_UPTIME".
 
 Version 2.0.0 (15 July 2015)
 

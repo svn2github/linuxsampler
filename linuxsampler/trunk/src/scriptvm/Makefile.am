@@ -21,6 +21,7 @@ liblinuxsamplerscriptvm_la_SOURCES = \
 	parser.h parser.cpp \
 	tree.h tree.cpp \
 	CoreVMFunctions.h CoreVMFunctions.cpp \
+	CoreVMDynVars.h CoreVMDynVars.cpp \
 	ScriptVM.h ScriptVM.cpp \
 	ScriptVMFactory.h ScriptVMFactory.cpp
 

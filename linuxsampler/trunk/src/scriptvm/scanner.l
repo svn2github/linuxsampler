@@ -271,7 +271,7 @@ ID       [a-zA-Z0-9_]+
 
 [ \t\r]+ /* eat up whitespace */
 
-. printf( "Unrecognized character: '%s' (line %d, column %d\n", yytext, yylineno, yycolumn);
+. printf( "Unrecognized character: '%s' (line %d, column %d)\n", yytext, yylineno, yycolumn);
 
 %%
 

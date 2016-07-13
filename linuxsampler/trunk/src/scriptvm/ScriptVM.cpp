@@ -14,6 +14,7 @@
 #include "../common/global_private.h"
 #include "tree.h"
 #include "CoreVMFunctions.h"
+#include "CoreVMDynVars.h"
 #include "editor/NkspScanner.h"
 
 #define DEBUG_SCRIPTVM_CORE 0
@@ -98,6 +99,8 @@ namespace LinuxSampler {
         m_fnAbs = new CoreVMFunction_abs;
         m_fnRandom = new CoreVMFunction_random;
         m_fnNumElements = new CoreVMFunction_num_elements;
+        m_varRealTimer = new CoreVMDynVar_NKSP_REAL_TIMER;
+        m_varPerfTimer = new CoreVMDynVar_NKSP_PERF_TIMER;
     }
 
     ScriptVM::~ScriptVM() {
@@ -107,6 +110,8 @@ namespace LinuxSampler {
         delete m_fnAbs;
         delete m_fnRandom;
         delete m_fnNumElements;
+        delete m_varRealTimer;
+        delete m_varPerfTimer;
     }
 
     VMParserContext* ScriptVM::loadScript(const String& s) {
@@ -121,6 +126,7 @@ namespace LinuxSampler {
         context->registerBuiltInConstIntVariables( builtInConstIntVariables() );
         context->registerBuiltInIntVariables( builtInIntVariables() );
         context->registerBuiltInIntArrayVariables( builtInIntArrayVariables() );
+        context->registerBuiltInDynVariables( builtInDynamicVariables() );
 
         context->createScanner(is);
 
@@ -212,6 +218,16 @@ namespace LinuxSampler {
 
     std::map<String,VMInt8Array*> ScriptVM::builtInIntArrayVariables() {
         return std::map<String,VMInt8Array*>();
+    }
+
+    std::map<String,VMDynVar*> ScriptVM::builtInDynamicVariables() {
+        std::map<String,VMDynVar*> m;
+
+        m["$NKSP_PERF_TIMER"] = m_varPerfTimer;
+        m["$NKSP_REAL_TIMER"] = m_varRealTimer;
+        m["$KSP_TIMER"] = m_varRealTimer;
+
+        return m;
     }
 
     std::map<String,int> ScriptVM::builtInConstIntVariables() {

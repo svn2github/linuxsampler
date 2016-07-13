@@ -44,15 +44,19 @@ enum implementation_t {
 class RTMathBase {
     public:
         /**
-         * Highly accurate time stamp.
+         * High resolution time stamp.
          */
         typedef uint32_t time_stamp_t;
+
+        typedef uint64_t usecs_t;
 
         /**
          * We read the processor's cycle count register as a reference
          * for the real time. These are of course only abstract values
          * with arbitrary time entity, but that's not a problem as long
          * as we calculate relatively.
+         *
+         * @see unsafeMicroSeconds()
          */
         static time_stamp_t CreateTimeStamp();
 
@@ -122,6 +126,40 @@ class RTMathBase {
         inline static float RelativeSummedAvg(float current, float sample, int n) {
             return current + (sample - current) / float(n);
         }
+
+        /**
+         * Clock source to use for getting the current time.
+         */
+        enum clock_source_t {
+            real_clock,    ///< Use this to measure time that passed in reality (no matter if process got suspended).
+            process_clock, ///< Use this to measure only the CPU execution time of the current process (if the process got suspended, the clock is paused as well).
+            thread_clock,  ///< Use this to measure only the CPU execution time of the current thread (if the process got suspended or another thread is executed, the clock is paused as well).
+        };
+
+        /**
+         * Returns a time stamp of the current time in microseconds (in
+         * probably real-time @b unsafe way). There is no guarantee about
+         * what the returned amount of microseconds relates to (i.e.
+         * microseconds since epoch, microseconds since system uptime, ...).
+         * So you should only use it to calculate time differences between
+         * values taken with this method.
+         *
+         * @b CAUTION: This method may not @b NOT be real-time safe! On some
+         * systems it could be RT safe, but there is no guarantee whatsoever!
+         * So this method should only be used for debugging, benchmarking and
+         * other developing purposes !
+         *
+         * For creating time stamps in real-time context, use
+         * CreateTimeStamp() instead.
+         *
+         * @param source - the actual clock to use for getting the current
+         *                 time, note that the various clock sources may not
+         *                 be implemented on all systems
+         * @returns time stamp in microseconds
+         *
+         * @see CreateTimeStamp()
+         */
+        static usecs_t unsafeMicroSeconds(clock_source_t source);
 
     private:
         static float* pCentsToFreqTable;

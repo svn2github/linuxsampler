@@ -20,12 +20,6 @@ namespace LinuxSampler {
 
     class ParserContext;
     class ExecContext;
-    class CoreVMFunction_message;
-    class CoreVMFunction_exit;
-    class CoreVMFunction_wait;
-    class CoreVMFunction_abs;
-    class CoreVMFunction_random;
-    class CoreVMFunction_num_elements;
 
     /** @brief Core virtual machine for real-time instrument scripts.
      *
@@ -216,6 +210,18 @@ namespace LinuxSampler {
          */
         std::map<String,int> builtInConstIntVariables() OVERRIDE;
 
+        /**
+         * Returns all built-in dynamic variables. This method returns a STL
+         * map, where the map's key is the dynamic variable's name and the
+         * map's value is the pointer to the actual object implementing the
+         * behavior which is actually generating the content of the dynamic
+         * variable.
+         *
+         * This method is re-implemented by deriving classes to add more use
+         * case specific built-in dynamic variables.
+         */
+        std::map<String,VMDynVar*> builtInDynamicVariables() OVERRIDE;
+
         VMEventHandler* currentVMEventHandler(); //TODO: should be protected (only usable during exec() calls, intended only for VMFunctions)
         VMParserContext* currentVMParserContext(); //TODO: should be protected (only usable during exec() calls, intended only for VMFunctions)
         VMExecContext* currentVMExecContext(); //TODO: should be protected (only usable during exec() calls, intended only for VMFunctions)
@@ -223,12 +229,14 @@ namespace LinuxSampler {
     protected:
         VMEventHandler* m_eventHandler;
         ParserContext* m_parserContext;
-        CoreVMFunction_message* m_fnMessage;
-        CoreVMFunction_exit* m_fnExit;
-        CoreVMFunction_wait* m_fnWait;
-        CoreVMFunction_abs* m_fnAbs;
-        CoreVMFunction_random* m_fnRandom;
-        CoreVMFunction_num_elements* m_fnNumElements;
+        class CoreVMFunction_message* m_fnMessage;
+        class CoreVMFunction_exit* m_fnExit;
+        class CoreVMFunction_wait* m_fnWait;
+        class CoreVMFunction_abs* m_fnAbs;
+        class CoreVMFunction_random* m_fnRandom;
+        class CoreVMFunction_num_elements* m_fnNumElements;
+        class CoreVMDynVar_NKSP_REAL_TIMER* m_varRealTimer;
+        class CoreVMDynVar_NKSP_PERF_TIMER* m_varPerfTimer;
     };
 
 } // namespace LinuxSampler

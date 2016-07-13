@@ -223,7 +223,8 @@ namespace LinuxSampler {
         m_fnIgnoreEvent(this), m_fnIgnoreController(this), m_fnNoteOff(this),
         m_fnSetEventMark(this), m_fnDeleteEventMark(this), m_fnByMarks(this),
         m_fnChangeVol(this), m_fnChangeTune(this), m_fnChangePan(this),
-        m_fnChangeCutoff(this), m_fnChangeReso(this), m_fnEventStatus(this)
+        m_fnChangeCutoff(this), m_fnChangeReso(this), m_fnEventStatus(this),
+        m_varEngineUptime(this)
     {
         m_CC.size = _MEMBER_SIZEOF(AbstractEngineChannel, ControllerTable);
         m_CC_NUM = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.CC.Controller);
@@ -277,7 +278,7 @@ namespace LinuxSampler {
     }
 
     std::map<String,VMIntRelPtr*> InstrumentScriptVM::builtInIntVariables() {
-        // first get buil-in integer variables of derived VM class
+        // first get built-in integer variables of derived VM class
         std::map<String,VMIntRelPtr*> m = ScriptVM::builtInIntVariables();
 
         // now add own built-in variables
@@ -291,7 +292,7 @@ namespace LinuxSampler {
     }
 
     std::map<String,VMInt8Array*> InstrumentScriptVM::builtInIntArrayVariables() {
-        // first get buil-in integer array variables of derived VM class
+        // first get built-in integer array variables of derived VM class
         std::map<String,VMInt8Array*> m = ScriptVM::builtInIntArrayVariables();
 
         // now add own built-in variables
@@ -303,7 +304,7 @@ namespace LinuxSampler {
     }
 
     std::map<String,int> InstrumentScriptVM::builtInConstIntVariables() {
-        // first get buil-in integer variables of derived VM class
+        // first get built-in integer variables of derived VM class
         std::map<String,int> m = ScriptVM::builtInConstIntVariables();
 
         m["$EVENT_STATUS_INACTIVE"] = EVENT_STATUS_INACTIVE;
@@ -313,6 +314,15 @@ namespace LinuxSampler {
         for (int i = 0; i < INSTR_SCRIPT_EVENT_GROUPS; ++i) {
             m["$MARK_" + ToString(i+1)] = i;
         }
+
+        return m;
+    }
+
+    std::map<String,VMDynVar*> InstrumentScriptVM::builtInDynamicVariables() {
+        // first get built-in dynamic variables of derived VM class
+        std::map<String,VMDynVar*> m = ScriptVM::builtInDynamicVariables();
+
+        m["$ENGINE_UPTIME"] = &m_varEngineUptime;
 
         return m;
     }

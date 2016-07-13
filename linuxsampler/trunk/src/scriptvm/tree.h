@@ -107,6 +107,7 @@ typedef Ref<Args,Node> ArgsRef;
 class Variable : virtual public Expression {
 public:
     virtual bool isConstExpr() const { return bConst; }
+    virtual bool isAssignable() const { return !bConst; }
     virtual void assign(Expression* expr) = 0;
 protected:
     Variable(ParserContext* ctx, int _memPos, bool _bConst)
@@ -319,6 +320,23 @@ public:
     virtual int evalBranch() = 0;
     virtual Statements* branch(uint i) const = 0;
 };
+
+class DynamicVariableCall : public Variable, virtual public IntExpr, virtual public StringExpr {
+    VMDynVar* dynVar;
+    String varName;
+public:
+    DynamicVariableCall(const String& name, ParserContext* ctx, VMDynVar* v);
+    ExprType_t exprType() const OVERRIDE { return dynVar->exprType(); }
+    bool isConstExpr() const OVERRIDE { return dynVar->isConstExpr(); }
+    bool isAssignable() const OVERRIDE { return dynVar->isAssignable(); }
+    bool isPolyphonic() const OVERRIDE { return false; }
+    void assign(Expression* expr) OVERRIDE { dynVar->assign(expr); }
+    int evalInt() OVERRIDE;
+    String evalStr() OVERRIDE;
+    String evalCastToStr() OVERRIDE;
+    void dump(int level = 0) OVERRIDE;
+};
+typedef Ref<DynamicVariableCall,Node> DynamicVariableCallRef;
 
 class FunctionCall : virtual public LeafStatement, virtual public IntExpr, virtual public StringExpr {
     String functionName;
@@ -628,6 +646,7 @@ public:
     void registerBuiltInConstIntVariables(const std::map<String,int>& vars);
     void registerBuiltInIntVariables(const std::map<String,VMIntRelPtr*>& vars);
     void registerBuiltInIntArrayVariables(const std::map<String,VMInt8Array*>& vars);
+    void registerBuiltInDynVariables(const std::map<String,VMDynVar*>& vars);
 };
 
 class ExecContext : public VMExecContext {

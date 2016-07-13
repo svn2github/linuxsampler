@@ -415,6 +415,8 @@ assignment:
             PARSE_ERR(@1, (String("Variable assignment: No variable declared with name '") + name + "'.").c_str());
         else if (var->isConstExpr())
             PARSE_ERR(@2, (String("Variable assignment: Cannot modify const variable '") + name + "'.").c_str());
+        else if (!var->isAssignable())
+            PARSE_ERR(@2, (String("Variable assignment: Variable '") + name + "' is not assignable.").c_str());
         else if (var->exprType() != $3->exprType())
             PARSE_ERR(@3, (String("Variable assignment: Variable '") + name + "' is of type " + typeStr(var->exprType()) + ", assignment is of type " + typeStr($3->exprType()) + " though.").c_str());
         $$ = new Assignment(var, $3);

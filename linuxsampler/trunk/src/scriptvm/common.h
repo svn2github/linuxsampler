@@ -553,6 +553,97 @@ namespace LinuxSampler {
         VMInt8Array() : data(NULL), size(0) {}
     };
 
+    /** @brief Dynamically executed variable (abstract base class).
+     *
+     * Interface for the implementation of a dynamically generated content of
+     * a built-in script variable. Most built-in variables are simply pointers
+     * to some native location in memory. So when a script reads them, the
+     * memory location is simply read to get the value of the variable. A
+     * dynamic variable however is not simply a memory location. For each access
+     * to a dynamic variable some native code is executed to actually generate
+     * and provide the content (value) of this type of variable.
+     */
+    class VMDynVar : virtual public VMExpr {
+    public:
+        /**
+         * Whether a script may modify the content of this dynamic variable by
+         * assigning a new value to it.
+         *
+         * @see isConstExpr(), assign()
+         */
+        virtual bool isAssignable() const = 0;
+
+        /**
+         * Returns true in case this dynamic variable can be considered to be a
+         * constant expression. A constant expression will retain the same value
+         * throughout the entire life time of a script and the expression's
+         * constant value may be evaluated already at script parse time, which
+         * may result in performance benefits during script runtime.
+         *
+         * However due to the "dynamic" behavior of dynamic variables, almost
+         * all dynamic variables are probably not constant expressions. That's
+         * why this method returns @c false by default. If you are really sure
+         * that your dynamic variable implementation can be considered a
+         * constant expression then you may override this method and return
+         * @c true instead. Note that when you return @c true here, your
+         * dynamic variable will really just be executed once; and exectly
+         * already when the script is loaded!
+         *
+         * As an example you may implement a "constant" built-in dynamic
+         * variable that checks for a certain operating system feature and
+         * returns the result of that OS feature check as content (value) of
+         * this dynamic variable. Since the respective OS feature might become
+         * available/unavailable after OS updates, software migration, etc. the
+         * OS feature check should at least be performed once each time the
+         * application is launched. And since the OS feature check might take a
+         * certain amount of execution time, it might make sense to only
+         * perform the check if the respective variable name is actually
+         * referenced at all in the script to be loaded. Note that the dynamic
+         * variable will still be evaluated again though if the script is
+         * loaded again. So it is up to you to probably cache the result in the
+         * implementation of your dynamic variable.
+         *
+         * On doubt, please rather consider to use a constant built-in script
+         * variable instead of implementing a "constant" dynamic variable, due
+         * to the runtime overhead a dynamic variable may cause.
+         *
+         * @see isAssignable()
+         */
+        virtual bool isConstExpr() const { return false; }
+
+        /**
+         * In case this dynamic variable is assignable, the new value (content)
+         * to be assigned to this dynamic variable.
+         *
+         * By default this method does nothing. Override and implement this
+         * method in your subclass in case your dynamic variable allows to
+         * assign a new value by script.
+         *
+         * @param expr - new value to be assigned to this variable
+         */
+        virtual void assign(VMExpr* expr) {}
+    };
+
+    /** @brief Dynamically executed variable (of integer data type).
+     *
+     * This is the base class for all built-in integer script variables whose
+     * variable content needs to be provided dynamically by executable native
+     * code on each script variable access.
+     */
+    class VMDynIntVar : virtual public VMDynVar, virtual public VMIntExpr {
+    public:
+    };
+
+    /** @brief Dynamically executed variable (of string data type).
+     *
+     * This is the base class for all built-in string script variables whose
+     * variable content needs to be provided dynamically by executable native
+     * code on each script variable access.
+     */
+    class VMDynStringVar : virtual public VMDynVar, virtual public VMStringExpr {
+    public:
+    };
+
     /** @brief Provider for built-in script functions and variables.
      *
      * Abstract base class defining the high-level interface for all classes
@@ -587,6 +678,13 @@ namespace LinuxSampler {
          * variables, which never change their value at runtime.
          */
         virtual std::map<String,int> builtInConstIntVariables() = 0;
+
+        /**
+         * Returns a variable name indexed map of all built-in dynamic variables,
+         * which are not simply data stores, rather each one of them executes
+         * natively to provide or alter the respective script variable data.
+         */
+        virtual std::map<String,VMDynVar*> builtInDynamicVariables() = 0;
     };
 
     /** @brief Execution state of a virtual machine.

@@ -22,6 +22,7 @@ liblinuxsamplercommonengine_la_SOURCES = \
 	AbstractInstrumentManager.h AbstractInstrumentManager.cpp \
 	InstrumentScriptVM.h InstrumentScriptVM.cpp \
 	InstrumentScriptVMFunctions.h InstrumentScriptVMFunctions.cpp \
+	InstrumentScriptVMDynVars.h InstrumentScriptVMDynVars.cpp \
 	EG.h EG.cpp
 liblinuxsamplercommonengine_la_LIBADD = $(SNDFILE_LIBS)
 liblinuxsamplercommonengine_la_LDFLAGS = $(SNDFILE_CFLAGS)

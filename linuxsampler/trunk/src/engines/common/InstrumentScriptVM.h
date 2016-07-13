@@ -16,6 +16,7 @@
 #include "Event.h"
 #include "../../common/Pool.h"
 #include "InstrumentScriptVMFunctions.h"
+#include "InstrumentScriptVMDynVars.h"
 
 /**
  * Amount of bits on the left hand side of all pool_element_id_t numbers (i.e.
@@ -214,6 +215,7 @@ namespace LinuxSampler {
         std::map<String,VMIntRelPtr*> builtInIntVariables() OVERRIDE;
         std::map<String,VMInt8Array*> builtInIntArrayVariables() OVERRIDE;
         std::map<String,int> builtInConstIntVariables() OVERRIDE;
+        std::map<String,VMDynVar*> builtInDynamicVariables() OVERRIDE;
     protected:
         ScriptEvent* m_event; ///< The event currently executed by exec().
 
@@ -242,6 +244,7 @@ namespace LinuxSampler {
         InstrumentScriptVMFunction_change_cutoff m_fnChangeCutoff;
         InstrumentScriptVMFunction_change_reso m_fnChangeReso;
         InstrumentScriptVMFunction_event_status m_fnEventStatus;
+        InstrumentScriptVMDynVar_ENGINE_UPTIME m_varEngineUptime;
 
         friend class InstrumentScriptVMFunction_play_note;
         friend class InstrumentScriptVMFunction_set_controller;
@@ -257,6 +260,7 @@ namespace LinuxSampler {
         friend class InstrumentScriptVMFunction_change_cutoff;
         friend class InstrumentScriptVMFunction_change_reso;
         friend class InstrumentScriptVMFunction_event_status;
+        friend class InstrumentScriptVMDynVar_ENGINE_UPTIME;
     };
 
 } // namespace LinuxSampler
