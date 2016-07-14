@@ -85,6 +85,8 @@ Version SVN trunk (?)
     - NKSP language fix: division expressions were evaluated too often.
     - NKSP language fix: string concatenation operator was right
       associative instead of left (to right).
+    - NKSP language correction: allow empty statements in entire language
+      (i.e. "if end if").
 
 Version 2.0.0 (15 July 2015)
 

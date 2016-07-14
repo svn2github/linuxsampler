@@ -45,7 +45,7 @@
 
 %type <nEventHandlers> script eventhandlers
 %type <nEventHandler> eventhandler
-%type <nStatements> statements body
+%type <nStatements> statements opt_statements
 %type <nStatement> statement assignment
 %type <nFunctionCall> functioncall
 %type <nArgs> args
@@ -73,32 +73,32 @@ eventhandlers:
     }
 
 eventhandler:
-    ON NOTE body END ON  {
+    ON NOTE opt_statements END ON  {
         if (context->onNote)
             PARSE_ERR(@2, "Redeclaration of 'note' event handler.");
         context->onNote = new OnNote($3);
         $$ = context->onNote;
     }
-    | ON INIT body END ON  {
+    | ON INIT opt_statements END ON  {
         if (context->onInit)
             PARSE_ERR(@2, "Redeclaration of 'init' event handler.");
         context->onInit = new OnInit($3);
         $$ = context->onInit;
     }
-    | ON RELEASE body END ON  {
+    | ON RELEASE opt_statements END ON  {
         if (context->onRelease)
             PARSE_ERR(@2, "Redeclaration of 'release' event handler.");
         context->onRelease = new OnRelease($3);
         $$ = context->onRelease;
     }
-    | ON CONTROLLER body END ON  {
+    | ON CONTROLLER opt_statements END ON  {
         if (context->onController)
             PARSE_ERR(@2, "Redeclaration of 'controller' event handler.");
         context->onController = new OnController($3);
         $$ = context->onController;
     }
 
-body:
+opt_statements:
     /* epsilon (empty argument) */  {
         $$ = new Statements();
     }
@@ -289,7 +289,7 @@ statement:
     | assignment  {
         $$ = $1;
     }
-    | WHILE '(' expr ')' statements END WHILE  {
+    | WHILE '(' expr ')' opt_statements END WHILE  {
         if ($3->exprType() == INT_EXPR) {
             $$ = new While($3, $5);
         } else {
@@ -297,10 +297,10 @@ statement:
             $$ = new While(new IntLiteral(0), $5);
         }
     }
-    | IF '(' expr ')' statements ELSE statements END IF  {
+    | IF '(' expr ')' opt_statements ELSE opt_statements END IF  {
         $$ = new If($3, $5, $7);
     }
-    | IF '(' expr ')' statements END IF  {
+    | IF '(' expr ')' opt_statements END IF  {
         $$ = new If($3, $5);
     }
     | SELECT expr caseclauses END SELECT  {
@@ -323,12 +323,12 @@ caseclauses:
     }
 
 caseclause:
-    CASE INTEGER statements  {
+    CASE INTEGER opt_statements  {
         $$ = CaseBranch();
         $$.from = new IntLiteral($2);
         $$.statements = $3;
     }
-    | CASE INTEGER TO INTEGER statements  {
+    | CASE INTEGER TO INTEGER opt_statements  {
         $$ = CaseBranch();
         $$.from = new IntLiteral($2);
         $$.to   = new IntLiteral($4);
