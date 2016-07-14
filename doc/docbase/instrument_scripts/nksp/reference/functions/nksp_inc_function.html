@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>inc() function</title>
+    <meta name="description" content="Increments the passed integer variable by one.">
+  </head>
+  <body>
+    <h1>inc()</h1>
+    <p>
+      Increments the passed integer variable by one and returns the incremented value.
+      Accordingly you may only pass script variables of type integer which are allowed
+      to modified (i.e. they may not be declared as <code lang="nksp">const</code>).
+    </p>
+    
+    <h3>Function Prototype</h3>
+    <p/>
+    <code lang="nksp">
+inc(??variable??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??variable??</code></td>
+        <td>Integer Variable</td>
+        <td>The integer variable to be incremented by one.<br>
+            [required]</td>
+      </tr>
+    </table>
+    
+    <h3>Return Value</h3>
+    <table>
+      <tr>
+        <th>Description</th> <th>Data Type</th>
+      </tr>
+      <tr>
+        <td>Value of the passed variable after the incrementation.</td>
+        <td>Integer Number</td>
+      </tr>
+    </table>
+    
+    <note>
+      The return value of this function is an extension by NKSP to allow
+      inline incrementation (like shown in the example below). However if
+      you want to preserve compatibility with KSP then you should not rely
+      on having a return value.
+    </note>
+    
+    <h3>Examples</h3>
+    <p/>
+    <code>
+on init
+  declare $i
+
+  message("inc(" & $i & ") = " & inc($i))
+  message("inc(" & $i & ") = " & inc($i))
+  message("inc(" & $i & ") = " & inc($i))
+
+  message("dec(" & $i & ") = " & dec($i))
+  message("dec(" & $i & ") = " & dec($i))
+  message("dec(" & $i & ") = " & dec($i))
+
+end on
+    </code>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0.svn15.<p>
+
+  </body>
+</html>
