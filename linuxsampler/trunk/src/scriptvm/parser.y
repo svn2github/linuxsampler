@@ -357,6 +357,10 @@ functioncall:
                     PARSE_ERR(@3, (String("Argument ") + ToString(i+1) + " of built-in function '" + name + "' expects " + typeStr(fn->argType(i)) + " type, but type " + typeStr(args->arg(i)->exprType()) + " was given instead.").c_str());
                     argsOK = false;
                     break;
+                } else if (fn->modifiesArg(i) && !args->arg(i)->isModifyable()) {
+                    PARSE_ERR(@3, (String("Argument ") + ToString(i+1) + " of built-in function '" + name + "' expects an assignable variable.").c_str());
+                    argsOK = false;
+                    break;
                 }
             }
             $$ = new FunctionCall(name, args, argsOK ? fn : NULL);

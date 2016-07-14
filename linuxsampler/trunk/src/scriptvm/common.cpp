@@ -25,6 +25,11 @@ namespace LinuxSampler {
         return const_cast<VMIntArrayExpr*>( dynamic_cast<const VMIntArrayExpr*>(this) );
     }
 
+    bool VMExpr::isModifyable() const {
+        const VMVariable* var = dynamic_cast<const VMVariable*>(this);
+        return (!var) ? false : var->isAssignable();
+    }
+
     void VMFunction::wrnMsg(const String& txt) {
         std::cout << "[ScriptVM] " << txt << std::endl;
     }

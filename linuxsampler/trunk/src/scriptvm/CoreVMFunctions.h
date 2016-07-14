@@ -32,6 +32,7 @@ public:
     ExprType_t exprType() const { return EMPTY_EXPR; }
     VMExpr* resultValue() { return this; }
     StmtFlags_t resultFlags() { return flags; }
+    bool isConstExpr() const OVERRIDE { return false; }
 };
 
 /**
@@ -47,6 +48,7 @@ public:
     int evalInt() { return value; }
     VMExpr* resultValue() { return this; }
     StmtFlags_t resultFlags() { return flags; }
+    bool isConstExpr() const OVERRIDE { return false; }
 };
 
 /**
@@ -62,6 +64,7 @@ public:
     String evalStr() { return value; }
     VMExpr* resultValue() { return this; }
     StmtFlags_t resultFlags() { return flags; }
+    bool isConstExpr() const OVERRIDE { return false; }
 };
 
 /**
@@ -73,6 +76,7 @@ protected:
     ExprType_t returnType() { return EMPTY_EXPR; }
     VMFnResult* errorResult();
     VMFnResult* successResult();
+    bool modifiesArg(int iArg) const OVERRIDE { return false; }
 protected:
     VMEmptyResult result;
 };
@@ -86,6 +90,7 @@ protected:
     ExprType_t returnType() { return INT_EXPR; }
     VMFnResult* errorResult(int i = 0);
     VMFnResult* successResult(int i = 0);
+    bool modifiesArg(int iArg) const OVERRIDE { return false; }
 protected:
     VMIntResult result;
 };
@@ -99,6 +104,7 @@ protected:
     ExprType_t returnType() { return STRING_EXPR; }
     VMFnResult* errorResult(const String& s = "");
     VMFnResult* successResult(const String& s = "");
+    bool modifiesArg(int iArg) const OVERRIDE { return false; }
 protected:
     VMStringResult result;
 };
@@ -179,6 +185,32 @@ public:
     int maxAllowedArgs() const { return 1; }
     bool acceptsArgType(int iArg, ExprType_t type) const;
     ExprType_t argType(int iArg) const { return INT_ARR_EXPR; }
+    VMFnResult* exec(VMFnArgs* args);
+};
+
+/**
+ * Implements the built-in inc() script function.
+ */
+class CoreVMFunction_inc : public VMIntResultFunction {
+public:
+    int minRequiredArgs() const { return 1; }
+    int maxAllowedArgs() const { return 1; }
+    bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR; }
+    ExprType_t argType(int iArg) const { return INT_EXPR; }
+    bool modifiesArg(int iArg) const { return true; }
+    VMFnResult* exec(VMFnArgs* args);
+};
+
+/**
+ * Implements the built-in dec() script function.
+ */
+class CoreVMFunction_dec : public VMIntResultFunction {
+public:
+    int minRequiredArgs() const { return 1; }
+    int maxAllowedArgs() const { return 1; }
+    bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR; }
+    ExprType_t argType(int iArg) const { return INT_EXPR; }
+    bool modifiesArg(int iArg) const { return true; }
     VMFnResult* exec(VMFnArgs* args);
 };
 

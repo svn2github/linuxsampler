@@ -108,6 +108,7 @@ namespace LinuxSampler {
         int minRequiredArgs() const { return 1; }
         int maxAllowedArgs() const { return 1; }
         bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR;}
+        bool modifiesArg(int iArg) const OVERRIDE { return false; }
         ExprType_t argType(int iArg) const { return INT_EXPR; }
         ExprType_t returnType() { return INT_ARR_EXPR; }
         VMFnResult* exec(VMFnArgs* args);
@@ -123,6 +124,7 @@ namespace LinuxSampler {
             void assignIntElement(uint i, int value) OVERRIDE {} // ignore assignment
             VMExpr* resultValue() OVERRIDE { return this; }
             StmtFlags_t resultFlags() { return flags; }
+            bool isConstExpr() const OVERRIDE { return false; }
         } m_result;
 
         VMFnResult* errorResult();

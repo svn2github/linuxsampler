@@ -80,6 +80,11 @@ Version SVN trunk (?)
     - Implemented built-in script variable "$NKSP_REAL_TIMER".
     - Implemented built-in script variable "$NKSP_PERF_TIMER".
     - Implemented built-in script variable "$ENGINE_UPTIME".
+    - Implemented built-in script function "inc()".
+    - Implemented built-in script function "dec()".
+    - NKSP language fix: division expressions were evaluated too often.
+    - NKSP language fix: string concatenation operator was right
+      associative instead of left (to right).
 
 Version 2.0.0 (15 July 2015)
 

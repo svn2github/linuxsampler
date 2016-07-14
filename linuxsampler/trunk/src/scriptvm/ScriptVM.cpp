@@ -99,6 +99,8 @@ namespace LinuxSampler {
         m_fnAbs = new CoreVMFunction_abs;
         m_fnRandom = new CoreVMFunction_random;
         m_fnNumElements = new CoreVMFunction_num_elements;
+        m_fnInc = new CoreVMFunction_inc;
+        m_fnDec = new CoreVMFunction_dec;
         m_varRealTimer = new CoreVMDynVar_NKSP_REAL_TIMER;
         m_varPerfTimer = new CoreVMDynVar_NKSP_PERF_TIMER;
     }
@@ -110,6 +112,8 @@ namespace LinuxSampler {
         delete m_fnAbs;
         delete m_fnRandom;
         delete m_fnNumElements;
+        delete m_fnInc;
+        delete m_fnDec;
         delete m_varRealTimer;
         delete m_varPerfTimer;
     }
@@ -209,6 +213,8 @@ namespace LinuxSampler {
         else if (name == "abs") return m_fnAbs;
         else if (name == "random") return m_fnRandom;
         else if (name == "num_elements") return m_fnNumElements;
+        else if (name == "inc") return m_fnInc;
+        else if (name == "dec") return m_fnDec;
         return NULL;
     }
 

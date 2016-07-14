@@ -160,6 +160,18 @@ namespace LinuxSampler {
          * @see exprType()
          */
         VMIntArrayExpr* asIntArray() const;
+
+        /**
+         * Returns true in case this expression can be considered to be a
+         * constant expression. A constant expression will retain the same
+         * value throughout the entire life time of a script and the
+         * expression's constant value may be evaluated already at script
+         * parse time, which may result in performance benefits during script
+         * runtime.
+         */
+        virtual bool isConstExpr() const = 0;
+
+        bool isModifyable() const;
     };
 
     /** @brief Virtual machine integer expression
@@ -366,7 +378,7 @@ namespace LinuxSampler {
         virtual ExprType_t argType(int iArg) const = 0;
 
         /**
-         * This function is called by the parser to check whether arguments
+         * This method is called by the parser to check whether arguments
          * passed in scripts to this function are accepted by this function. If
          * a script calls this function with an argument's data type not
          * accepted by this function, the parser will throw a parser error. On
@@ -382,6 +394,21 @@ namespace LinuxSampler {
          *         respective function argument by the function
          */
         virtual bool acceptsArgType(int iArg, ExprType_t type) const = 0;
+
+        /**
+         * This method is called by the parser to check whether some arguments
+         * (and if yes which ones) passed to this script function will be
+         * modified by this script function. Most script functions simply use
+         * their arguments as inputs, that is they only read the argument's
+         * values. However some script function may also use passed
+         * argument(s) as output variables. In this case the function
+         * implementation must return @c true for the respective argument
+         * index here.
+         *
+         * @param iArg - index of the function argument in question
+         *               (must be between 0 .. maxAllowedArgs() - 1)
+         */
+        virtual bool modifiesArg(int iArg) const = 0;
 
         /**
          * Implements the actual function execution. This exec() method is
@@ -553,6 +580,30 @@ namespace LinuxSampler {
         VMInt8Array() : data(NULL), size(0) {}
     };
 
+    /** @brief Virtual machine script variable.
+     *
+     * Common interface for all variables accessed in scripts.
+     */
+    class VMVariable : virtual public VMExpr {
+    public:
+        /**
+         * Whether a script may modify the content of this variable by
+         * assigning a new value to it.
+         *
+         * @see isConstExpr(), assign()
+         */
+        virtual bool isAssignable() const = 0;
+
+        /**
+         * In case this variable is assignable, this method will be called to
+         * perform the value assignment to this variable with @a expr
+         * reflecting the new value to be assigned.
+         *
+         * @param expr - new value to be assigned to this variable
+         */
+        virtual void assignExpr(VMExpr* expr) = 0;
+    };
+    
     /** @brief Dynamically executed variable (abstract base class).
      *
      * Interface for the implementation of a dynamically generated content of
@@ -563,16 +614,8 @@ namespace LinuxSampler {
      * to a dynamic variable some native code is executed to actually generate
      * and provide the content (value) of this type of variable.
      */
-    class VMDynVar : virtual public VMExpr {
+    class VMDynVar : public VMVariable {
     public:
-        /**
-         * Whether a script may modify the content of this dynamic variable by
-         * assigning a new value to it.
-         *
-         * @see isConstExpr(), assign()
-         */
-        virtual bool isAssignable() const = 0;
-
         /**
          * Returns true in case this dynamic variable can be considered to be a
          * constant expression. A constant expression will retain the same value
@@ -609,7 +652,7 @@ namespace LinuxSampler {
          *
          * @see isAssignable()
          */
-        virtual bool isConstExpr() const { return false; }
+        bool isConstExpr() const OVERRIDE { return false; }
 
         /**
          * In case this dynamic variable is assignable, the new value (content)
@@ -621,7 +664,7 @@ namespace LinuxSampler {
          *
          * @param expr - new value to be assigned to this variable
          */
-        virtual void assign(VMExpr* expr) {}
+        void assignExpr(VMExpr* expr) OVERRIDE {}
     };
 
     /** @brief Dynamically executed variable (of integer data type).

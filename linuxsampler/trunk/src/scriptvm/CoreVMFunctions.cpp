@@ -142,4 +142,32 @@ VMFnResult* CoreVMFunction_num_elements::exec(VMFnArgs* args) {
     return successResult( args->arg(0)->asIntArray()->arraySize() );
 }
 
+///////////////////////////////////////////////////////////////////////////
+// built-in script function:  inc()
+
+VMFnResult* CoreVMFunction_inc::exec(VMFnArgs* args) {
+    VMExpr* arg = args->arg(0);
+    VMIntExpr* in = dynamic_cast<VMIntExpr*>(arg);
+    VMVariable* out = dynamic_cast<VMVariable*>(arg);
+    if (!in || !out) successResult(0);
+    int i = in->evalInt() + 1;
+    IntLiteral tmp(i);
+    out->assignExpr(&tmp);
+    return successResult(i);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// built-in script function:  dec()
+
+VMFnResult* CoreVMFunction_dec::exec(VMFnArgs* args) {
+    VMExpr* arg = args->arg(0);
+    VMIntExpr* in = dynamic_cast<VMIntExpr*>(arg);
+    VMVariable* out = dynamic_cast<VMVariable*>(arg);
+    if (!in || !out) successResult(0);
+    int i = in->evalInt() - 1;
+    IntLiteral tmp(i);
+    out->assignExpr(&tmp);
+    return successResult(i);
+}
+
 } // namespace LinuxSampler

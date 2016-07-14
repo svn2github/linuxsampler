@@ -1,4 +1,5 @@
 on init
+  declare $i
   declare @s := "foo" & " bar"
   message(@s)
 
@@ -38,6 +39,13 @@ on init
   message("Bitwise operation .not. -1 = " & .not. -1)
 
   message("abs(-3) = " & abs(-3))
+
+  message("inc(" & $i & ") = " & inc($i))
+  message("inc(" & $i & ") = " & inc($i))
+  message("inc(" & $i & ") = " & inc($i))
+  message("dec(" & $i & ") = " & dec($i))
+  message("dec(" & $i & ") = " & dec($i))
+  message("dec(" & $i & ") = " & dec($i))
 
   message("random(-5,5) = " & random(-5,5))
   message("random(-5,5) = " & random(-5,5))

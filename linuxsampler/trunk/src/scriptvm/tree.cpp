@@ -102,8 +102,12 @@ void Mul::dump(int level) {
 
 int Div::evalInt() {
     IntExpr* pLHS = dynamic_cast<IntExpr*>(&*lhs);
-    IntExpr* pRHS = dynamic_cast<IntExpr*>(&*rhs);;
-    return (pLHS && pRHS) ? pRHS->evalInt() == 0 ? 0 : pLHS->evalInt() / pRHS->evalInt() : 0;
+    IntExpr* pRHS = dynamic_cast<IntExpr*>(&*rhs);
+    if (!pLHS || !pRHS) return 0;
+    int l = pLHS->evalInt();
+    int r = pRHS->evalInt();
+    if (r == 0) return 0;
+    return l / r;
 }
 
 void Div::dump(int level) {
@@ -373,6 +377,7 @@ int IntVariable::evalInt() {
 
 void IntVariable::dump(int level) {
     printIndents(level);
+    printf("IntVariable\n");
     //printf("IntVariable memPos=%d\n", memPos);
 }
 
@@ -706,7 +711,10 @@ void Neg::dump(int level) {
 }
 
 String ConcatString::evalStr() {
-    return lhs->evalCastToStr() + rhs->evalCastToStr();
+    // temporaries required here to enforce the associative left (to right) order
+    String l = lhs->evalCastToStr();
+    String r = rhs->evalCastToStr();
+    return l + r;
 }
 
 void ConcatString::dump(int level) {

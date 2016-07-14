@@ -104,11 +104,12 @@ public:
 };
 typedef Ref<Args,Node> ArgsRef;
 
-class Variable : virtual public Expression {
+class Variable : virtual public VMVariable, virtual public Expression {
 public:
-    virtual bool isConstExpr() const { return bConst; }
-    virtual bool isAssignable() const { return !bConst; }
+    bool isConstExpr() const OVERRIDE { return bConst; }
+    bool isAssignable() const OVERRIDE { return !bConst; }
     virtual void assign(Expression* expr) = 0;
+    void assignExpr(VMExpr* expr) OVERRIDE { Expression* e = dynamic_cast<Expression*>(expr); if (e) assign(e); }
 protected:
     Variable(ParserContext* ctx, int _memPos, bool _bConst)
         : context(ctx), memPos(_memPos), bConst(_bConst) {}
@@ -330,7 +331,7 @@ public:
     bool isConstExpr() const OVERRIDE { return dynVar->isConstExpr(); }
     bool isAssignable() const OVERRIDE { return dynVar->isAssignable(); }
     bool isPolyphonic() const OVERRIDE { return false; }
-    void assign(Expression* expr) OVERRIDE { dynVar->assign(expr); }
+    void assign(Expression* expr) OVERRIDE { dynVar->assignExpr(expr); }
     int evalInt() OVERRIDE;
     String evalStr() OVERRIDE;
     String evalCastToStr() OVERRIDE;
