@@ -87,6 +87,16 @@ Version SVN trunk (?)
       associative instead of left (to right).
     - NKSP language correction: allow empty statements in entire language
       (i.e. "if end if").
+    - Implemented built-in script function "stop_wait()".
+    - Implemented built-in script variable "$NI_CALLBACK_ID".
+    - Implemented built-in script variable "$NI_CALLBACK_TYPE".
+    - Implemented built-in script variable "$NKSP_IGNORE_WAIT".
+    - Added support for read-only built-in variables (respectively
+      handled by the script parser).
+    - Added built-in script constant "$NI_CB_TYPE_INIT".
+    - Added built-in script constant "$NI_CB_TYPE_NOTE".
+    - Added built-in script constant "$NI_CB_TYPE_RELEASE".
+    - Added built-in script constant "$NI_CB_TYPE_CONTROLLER".
 
 Version 2.0.0 (15 July 2015)
 

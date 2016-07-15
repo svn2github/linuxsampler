@@ -27,4 +27,12 @@ namespace LinuxSampler {
                     double(pEngine->SampleRate) * 1000.0 );
     }
 
+    int InstrumentScriptVMDynVar_NI_CALLBACK_ID::evalInt() {
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        return pEngineChannel->GetScriptCallbackID(m_vm->m_event);
+    }
+
 } // namespace LinuxSampler

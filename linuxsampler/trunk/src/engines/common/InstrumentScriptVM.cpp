@@ -125,6 +125,13 @@ namespace LinuxSampler {
             pEvents = new Pool<ScriptEvent>(CONFIG_MAX_EVENTS_PER_FRAGMENT);
             for (int i = 0; i < 128; ++i)
                 pKeyEvents[i] = new RTList<ScriptEvent>(pEvents);
+            // reset RTAVLNode's tree node member variables after nodes are allocated
+            // (since we can't use a constructor right now, we do that initialization here)
+            while (!pEvents->poolIsEmpty()) {
+                RTList<ScriptEvent>::Iterator it = pEvents->allocAppend();
+                it->reset();
+            }
+            pEvents->clear();
         }
 
         // create new VM execution contexts for new script
@@ -224,14 +231,17 @@ namespace LinuxSampler {
         m_fnSetEventMark(this), m_fnDeleteEventMark(this), m_fnByMarks(this),
         m_fnChangeVol(this), m_fnChangeTune(this), m_fnChangePan(this),
         m_fnChangeCutoff(this), m_fnChangeReso(this), m_fnEventStatus(this),
-        m_varEngineUptime(this)
+        m_fnWait2(this), m_fnStopWait(this),
+        m_varEngineUptime(this), m_varCallbackID(this)
     {
         m_CC.size = _MEMBER_SIZEOF(AbstractEngineChannel, ControllerTable);
         m_CC_NUM = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.CC.Controller);
-        m_EVENT_ID = DECLARE_VMINT(m_event, class ScriptEvent, id);
+        m_EVENT_ID = DECLARE_VMINT_READONLY(m_event, class ScriptEvent, id);
         m_EVENT_NOTE = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.Note.Key);
         m_EVENT_VELOCITY = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.Note.Velocity);
         m_KEY_DOWN.size = 128;
+        m_NI_CALLBACK_TYPE = DECLARE_VMINT_READONLY(m_event, class ScriptEvent, handlerType);
+        m_NKSP_IGNORE_WAIT = DECLARE_VMINT(m_event, class ScriptEvent, ignoreAllWaitCalls);
     }
 
     VMExecStatus_t InstrumentScriptVM::exec(VMParserContext* parserCtx, ScriptEvent* event) {
@@ -287,6 +297,8 @@ namespace LinuxSampler {
         m["$EVENT_NOTE"] = &m_EVENT_NOTE;
         m["$EVENT_VELOCITY"] = &m_EVENT_VELOCITY;
 //         m["$POLY_AT_NUM"] = &m_POLY_AT_NUM;
+        m["$NI_CALLBACK_TYPE"] = &m_NI_CALLBACK_TYPE;
+        m["$NKSP_IGNORE_WAIT"] = &m_NKSP_IGNORE_WAIT;
 
         return m;
     }
@@ -323,6 +335,7 @@ namespace LinuxSampler {
         std::map<String,VMDynVar*> m = ScriptVM::builtInDynamicVariables();
 
         m["$ENGINE_UPTIME"] = &m_varEngineUptime;
+        m["$NI_CALLBACK_ID"] = &m_varCallbackID;
 
         return m;
     }
@@ -343,6 +356,8 @@ namespace LinuxSampler {
         else if (name == "change_cutoff") return &m_fnChangeCutoff;
         else if (name == "change_reso") return &m_fnChangeReso;
         else if (name == "event_status") return &m_fnEventStatus;
+        else if (name == "wait") return &m_fnWait2; // override wait() core implementation
+        else if (name == "stop_wait") return &m_fnStopWait;
 
         // built-in script functions of derived VM class
         return ScriptVM::functionByName(name);

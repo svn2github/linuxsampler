@@ -237,7 +237,14 @@ namespace LinuxSampler {
     }
 
     std::map<String,int> ScriptVM::builtInConstIntVariables() {
-        return std::map<String,int>();
+        std::map<String,int> m;
+
+        m["$NI_CB_TYPE_INIT"] = VM_EVENT_HANDLER_INIT;
+        m["$NI_CB_TYPE_NOTE"] = VM_EVENT_HANDLER_NOTE;
+        m["$NI_CB_TYPE_RELEASE"] = VM_EVENT_HANDLER_RELEASE;
+        m["$NI_CB_TYPE_CONTROLLER"] = VM_EVENT_HANDLER_CONTROLLER;
+
+        return m;
     }
 
     VMEventHandler* ScriptVM::currentVMEventHandler() {

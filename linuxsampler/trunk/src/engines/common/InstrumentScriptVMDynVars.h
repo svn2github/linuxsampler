@@ -29,6 +29,18 @@ namespace LinuxSampler {
         InstrumentScriptVM* m_vm;
     };
 
+    /**
+     * Implements the built-in $NI_CALLBACK_ID script variable.
+     */
+    class InstrumentScriptVMDynVar_NI_CALLBACK_ID : public VMDynIntVar {
+    public:
+        InstrumentScriptVMDynVar_NI_CALLBACK_ID(InstrumentScriptVM* parent) : m_vm(parent) {}
+        bool isAssignable() const OVERRIDE { return false; }
+        int evalInt() OVERRIDE;
+    protected:
+        InstrumentScriptVM* m_vm;
+    };
+
 } // namespace LinuxSampler
 
 #endif // LS_INSTRSCRIPTVMDYNVARS_H

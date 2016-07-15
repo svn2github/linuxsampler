@@ -194,19 +194,27 @@ namespace LinuxSampler {
         std::map<String,VMInt8Array*> builtInIntArrayVariables() OVERRIDE;
 
         /**
-         * Returns all built-in constant integer script variables, which can
-         * only be read, but not be altered by scripts. This method returns a
-         * STL map, where the map's key is the variable name and the map's value
-         * is the native pointer to the actual built-in constant variable.
+         * Returns all built-in constant integer script variables, which are
+         * constant and their final data is already available at parser time
+         * and won't change during runtime. Providing your built-in constants
+         * this way may lead to performance benefits compared to using other
+         * ways of providing built-in variables, because the script parser
+         * can perform optimizations when the script is refering to such
+         * constants.
+         *
+         * This type of built-in variable can only be read, but not be altered
+         * by scripts. This method returns a STL map, where the map's key is
+         * the variable name and the map's value is the final constant data.
          *
          * This method is re-implemented by deriving classes to add more use
          * case specific built-in constant integers.
          *
-         * @b Note: the term "constant" is a bit misleading here, since
-         * built-in constant integer variables may indeed change, i.e. for
-         * built-in constant integers which i.e. reflect some kind of status of
-         * the sampler. So rather see them as "read only" variables, not as
-         * being actually consistent in time.
+         * @b Note: In case your built-in variable should be read-only but its
+         * value is not already available at parser time (i.e. because its
+         * value may change at runtime), then you should add it to
+         * builtInIntVariables() instead and use the macro
+         * DECLARE_VMINT_READONLY() to define the variable for read-only
+         * access by scripts.
          */
         std::map<String,int> builtInConstIntVariables() OVERRIDE;
 

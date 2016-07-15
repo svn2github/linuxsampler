@@ -450,6 +450,7 @@ namespace LinuxSampler {
     struct VMRelPtr {
         void** base; ///< Base pointer.
         int offset;  ///< Offset (in bytes) relative to base pointer.
+        bool readonly; ///< Whether the pointed data may be modified or just be read.
     };
 
     /** @brief Pointer to built-in VM integer variable (of C/C++ type int).
@@ -477,10 +478,12 @@ namespace LinuxSampler {
         VMIntRelPtr() {
             base   = NULL;
             offset = 0;
+            readonly = false;
         }
         VMIntRelPtr(const VMRelPtr& data) {
             base   = data.base;
             offset = data.offset;
+            readonly = false;
         }
         virtual int evalInt() { return *(int*)&(*(uint8_t**)base)[offset]; }
         virtual void assign(int i) { *(int*)&(*(uint8_t**)base)[offset] = i; }
@@ -563,9 +566,31 @@ namespace LinuxSampler {
     #define DECLARE_VMINT(basePtr, T_struct, T_member) ( \
         (VMRelPtr) {                                     \
             (void**) &basePtr,                           \
-            offsetof(T_struct, T_member)                 \
+            offsetof(T_struct, T_member),                \
+            false                                        \
         }                                                \
     )                                                    \
+
+    /**
+     * Same as DECLARE_VMINT(), but this one defines the VMIntRelPtr and
+     * VMInt8RelPtr structures to be of read-only type. That means the script
+     * parser will abort any script at parser time if the script is trying to
+     * modify such a read-only built-in variable.
+     *
+     * @b NOTE: this is only intended for built-in read-only variables that
+     * may change during runtime! If your built-in variable's data is rather
+     * already available at parser time and won't change during runtime, then
+     * you should rather register a built-in constant in your VM class instead!
+     *
+     * @see ScriptVM::builtInConstIntVariables()
+     */
+    #define DECLARE_VMINT_READONLY(basePtr, T_struct, T_member) ( \
+        (VMRelPtr) {                                          \
+            (void**) &basePtr,                                \
+            offsetof(T_struct, T_member),                     \
+            true                                              \
+        }                                                     \
+    )                                                         \
 
     /** @brief Built-in VM 8 bit integer array variable.
      *

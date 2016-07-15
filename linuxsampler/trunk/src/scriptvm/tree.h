@@ -150,6 +150,7 @@ class BuiltInIntVariable : public IntVariable {
     VMIntRelPtr* ptr;
 public:
     BuiltInIntVariable(const String& name, VMIntRelPtr* ptr);
+    bool isAssignable() const OVERRIDE { return !ptr->readonly; }
     void assign(Expression* expr);
     int evalInt();
     void dump(int level = 0);

@@ -29,6 +29,7 @@
 #include "../../common/RTAVLTree.h"
 #include "../../common/Pool.h"
 #include "../EngineChannel.h"
+#include "../../scriptvm/common.h"
 
 namespace LinuxSampler {
 
@@ -65,6 +66,14 @@ namespace LinuxSampler {
 
             RTList<ScheduledEvent>::Iterator popNextScheduledEvent(RTAVLTree<ScheduledEvent>& queue, Pool<ScheduledEvent>& pool, sched_time_t end);
             RTList<ScriptEvent>::Iterator popNextScheduledScriptEvent(RTAVLTree<ScriptEvent>& queue, Pool<ScriptEvent>& pool, sched_time_t end);
+
+            /**
+             * Returns the scheduler time for the first sample point of the
+             * current audio fragment cycle.
+             */
+            sched_time_t schedTimeAtCurrentFragmentStart() const {
+                return uiTotalSamplesProcessed;
+            }
 
             /**
              * Returns the scheduler time for the first sample point of the next
@@ -122,6 +131,17 @@ namespace LinuxSampler {
      * depending on the duration of the voice's release stages etc.).
      */
     typedef pool_element_id_t note_id_t;
+
+    /**
+     * Unique numeric ID of a script callback ID instance which can be used to
+     * retrieve access to the actual @c ScriptEvent object. Once the script
+     * callback instance associated with a certain ID stopped its execution
+     * (that is completely stopped, not just suspended) then this numeric ID
+     * becomes invalid and Pool< ScriptEvent >::fromID() will detect this
+     * circumstance and will return an invalid Iterator, and thus will prevent
+     * you from misusing a script callback instance which no longer "exists".
+     */
+    typedef pool_element_id_t script_callback_id_t;
 
     /**
      * Events are usually caused by a MIDI source or an internal modulation
@@ -224,6 +244,9 @@ namespace LinuxSampler {
                 TimeStamp = other.TimeStamp;
                 iFragmentPos = other.iFragmentPos;
             }
+            inline sched_time_t SchedTime() {
+                return pEventGenerator->schedTimeAtCurrentFragmentStart() + FragmentPos();
+            }
         protected:
             typedef EventGenerator::time_stamp_t time_stamp_t;
             Event(EventGenerator* pGenerator, EventGenerator::time_stamp_t Time);
@@ -242,6 +265,8 @@ namespace LinuxSampler {
      */
     class SchedulerNode : public RTAVLNode {
     public:
+        using RTAVLNode::reset; // make reset() method public
+
         sched_time_t scheduleTime; ///< Time ahead in future (in sample points) when this object shall be processed. This value is compared with EventGenerator's uiTotalSamplesProcessed member variable.
 
         /// Required operator implementation for RTAVLTree class.
@@ -253,6 +278,9 @@ namespace LinuxSampler {
         inline bool operator<(const SchedulerNode& other) const {
             return this->scheduleTime < other.scheduleTime;
         }
+
+        /// This is actually just for code readability.
+        inline RTAVLTreeBase* currentSchedulerQueue() const { return rtavlTree(); }
     };
 
     /**
@@ -289,6 +317,8 @@ namespace LinuxSampler {
         VMExecContext* execCtx; ///< Script's current execution state (polyphonic variables and execution stack).
         int currentHandler; ///< Current index in 'handlers' list above.
         int executionSlices; ///< Amount of times this script event has been executed by the ScriptVM runner class.
+        bool ignoreAllWaitCalls; ///< If true: calling any built-in wait*() script function should be ignored (this variable may be set with the 2nd argument of built-in script function stop_wait()).
+        VMEventHandlerType_t handlerType; ///< Native representation of built-in script variable $NI_CALLBACK_TYPE, reflecting the script event type of this script event.
     };
 
     /**

@@ -712,6 +712,12 @@ void Neg::dump(int level) {
 
 String ConcatString::evalStr() {
     // temporaries required here to enforce the associative left (to right) order
+    // ( required for GCC and Visual Studio, see:
+    //   http://stackoverflow.com/questions/25842902/why-stdstring-concatenation-operator-works-like-right-associative-one
+    //   Personally I am not convinced that this is "not a bug" of the
+    //   compiler/STL implementation and the allegedly underlying "function call"
+    //   nature causing this is IMO no profound reason that the C++ language's
+    //   "+" operator's left associativity is ignored. -- Christian, 2016-07-14 )
     String l = lhs->evalCastToStr();
     String r = rhs->evalCastToStr();
     return l + r;

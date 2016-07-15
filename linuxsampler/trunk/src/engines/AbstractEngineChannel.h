@@ -101,6 +101,16 @@ namespace LinuxSampler {
 
             AudioOutputDevice* GetAudioOutputDeviceSafe();
 
+            script_callback_id_t GetScriptCallbackID(const ScriptEvent* e) const {
+                return pScript->pEvents->getID(e);
+            }
+
+            RTList<ScriptEvent>::Iterator ScriptCallbackByID(script_callback_id_t id) const {
+                return pScript->pEvents->fromID(id);
+            }
+
+            void ScheduleResumeOfScriptCallback(RTList<ScriptEvent>::Iterator& itCallback, sched_time_t now, bool forever);
+
             friend class AbstractVoice;
             friend class AbstractEngine;
             template<class TV, class TRR, class TR, class TD, class TIM, class TI> friend class EngineBase;

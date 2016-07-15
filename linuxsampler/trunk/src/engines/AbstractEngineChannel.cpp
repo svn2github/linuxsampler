@@ -909,6 +909,39 @@ namespace LinuxSampler {
         }
     }
 
+    /** @brief Order resuming of script execution instance "now".
+     *
+     * Called by real-time instrument script function stop_wait() to resume a
+     * script callback currently being suspended (i.e. due to a wait() script
+     * function call).
+     *
+     * @param itCallback - suspended script callback to be resumed
+     * @param now - current scheduler time to be "now"
+     * @param forever - whether this particulare script callback should ignore
+     *                  all subsequent wait*() script function calls
+     */
+    void AbstractEngineChannel::ScheduleResumeOfScriptCallback(RTList<ScriptEvent>::Iterator& itCallback, sched_time_t now, bool forever) {
+        // ignore if invalid iterator was passed
+        if (!itCallback) return;
+
+        ScriptEvent* pCallback = &*itCallback;
+
+        // mark this callback to ignore all subsequent built-in wait*() script function calls
+        if (forever) pCallback->ignoreAllWaitCalls = true;
+
+        // ignore if callback is not in the scheduler queue
+        if (pCallback->currentSchedulerQueue() != &pScript->suspendedEvents) return;
+
+        // ignore if callback is already scheduled to be resumed "now"
+        if (pCallback->scheduleTime <= now) return;
+
+        // take it out from the scheduler queue and re-insert callback
+        // to schedule the script callback for resuming execution "now"
+        pScript->suspendedEvents.erase(*pCallback);
+        pCallback->scheduleTime = now + 1;
+        pScript->suspendedEvents.insert(*pCallback);
+    }
+
     FxSend* AbstractEngineChannel::AddFxSend(uint8_t MidiCtrl, String Name) throw (Exception) {
         if (pEngine) pEngine->DisableAndLock();
         FxSend* pFxSend = new FxSend(this, MidiCtrl, Name);

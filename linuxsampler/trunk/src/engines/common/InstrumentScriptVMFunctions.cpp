@@ -789,4 +789,50 @@ namespace LinuxSampler {
         return successResult(pNote ? EVENT_STATUS_NOTE_QUEUE : EVENT_STATUS_INACTIVE);
     }
 
+    // wait() function (overrides core wait() implementation)
+
+    InstrumentScriptVMFunction_wait::InstrumentScriptVMFunction_wait(InstrumentScriptVM* parent)
+        : CoreVMFunction_wait(parent)
+    {    
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_wait::exec(VMFnArgs* args) {
+        InstrumentScriptVM* m_vm = (InstrumentScriptVM*) vm;
+
+        // this might be set by passing 1 with the 2nd argument of built-in stop_wait() function
+        if (m_vm->m_event->ignoreAllWaitCalls) return successResult();
+
+        return CoreVMFunction_wait::exec(args);
+    }
+
+    // stop_wait() function
+
+    InstrumentScriptVMFunction_stop_wait::InstrumentScriptVMFunction_stop_wait(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {    
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_stop_wait::exec(VMFnArgs* args) {
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        const script_callback_id_t id = args->arg(0)->asInt()->evalInt();
+        if (!id) {
+            wrnMsg("stop_wait(): callback ID for argument 1 may not be zero");
+            return successResult();
+        }
+
+        RTList<ScriptEvent>::Iterator itCallback = pEngineChannel->ScriptCallbackByID(id);
+        if (!itCallback) return successResult(); // ignore if callback is i.e. not alive anymore
+
+        const bool disableWaitForever =
+            (args->argsCount() >= 2) ? (args->arg(1)->asInt()->evalInt() == 1) : false;
+
+        pEngineChannel->ScheduleResumeOfScriptCallback(
+            itCallback, m_vm->m_event->cause.SchedTime(), disableWaitForever
+        );
+
+        return successResult();
+    }
+
 } // namespace LinuxSampler

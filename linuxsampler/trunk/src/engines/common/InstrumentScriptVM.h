@@ -30,9 +30,34 @@
 #define INSTR_SCRIPT_EVENT_ID_RESERVED_BITS 1
 
 /**
- * Used to mark IDs (in script scope) to actually be a note ID.
+ * Used by InstrScriptIDType_T to initialize its constants at compile time.
+ *
+ * This macro is already ready to initialize additional members for
+ * InstrScriptIDType_T (that is more than the currently two enum constants).
+ * Just keep in mind that you also have to increase
+ * INSTR_SCRIPT_EVENT_ID_RESERVED_BITS when you add more!
+ *
+ * @param x - sequential consecutive number (starting with zero)
  */
-#define INSTR_SCRIPT_NOTE_ID_FLAG   (1 << (sizeof(pool_element_id_t) * 8 - 1))
+#define INSTR_SCRIPT_ID_TYPE_FLAG(x) \
+    (x << (sizeof(pool_element_id_t) * 8 - INSTR_SCRIPT_EVENT_ID_RESERVED_BITS))
+
+/**
+ * These flags are used to distinguish the individual ID Types in script scope
+ * from each other. They are added as most left bit(s) to each ID in script
+ * scope.
+ */
+enum InstrScriptIDType_T {
+    /**
+     * Used to mark IDs (in script scope) to actually be a MIDI event ID.
+     */
+    INSTR_SCRIPT_EVENT_ID_FLAG = INSTR_SCRIPT_ID_TYPE_FLAG(0),
+
+    /**
+     * Used to mark IDs (in script scope) to actually be a note ID.
+     */
+    INSTR_SCRIPT_NOTE_ID_FLAG = INSTR_SCRIPT_ID_TYPE_FLAG(1),
+};
 
 #define INSTR_SCRIPT_EVENT_GROUPS 28
 
@@ -57,9 +82,12 @@ namespace LinuxSampler {
      * event_id_t (engine internal scope) -> int (script scope)
      * note_id_t (engine internal scope)  -> int (script scope)
      * @endcode
-     * This is required because engine internally notes and regular events are
-     * using their own, separate ID generating pool, and their ID number set
-     * may thus overlap.
+     * This is required because engine internally i.e. notes and regular events
+     * are using their own, separate ID generating pool, and their ID number
+     * set may thus overlap and historically there were built-in script
+     * functions in KSP which allow to pass both regular MIDI event IDs, as well
+     * as Note IDs. So we must be able to distinguish between them in our
+     * built-in script function implementations. 
      *
      * @see INSTR_SCRIPT_EVENT_ID_RESERVED_BITS
      */
@@ -80,7 +108,7 @@ namespace LinuxSampler {
          * internal scope.
          */
         inline static ScriptID fromEventID(event_id_t id) {
-            return ScriptID(id);
+            return ScriptID(INSTR_SCRIPT_EVENT_ID_FLAG | id);
         }
 
         /**
@@ -228,6 +256,8 @@ namespace LinuxSampler {
         VMInt8Array  m_KEY_DOWN;
         //VMIntArray m_POLY_AT; //TODO: ...
         //int m_POLY_AT_NUM; //TODO: ...
+        VMIntRelPtr  m_NI_CALLBACK_TYPE;
+        VMIntRelPtr  m_NKSP_IGNORE_WAIT;
 
         // buil-in script functions
         InstrumentScriptVMFunction_play_note m_fnPlayNote;
@@ -244,7 +274,10 @@ namespace LinuxSampler {
         InstrumentScriptVMFunction_change_cutoff m_fnChangeCutoff;
         InstrumentScriptVMFunction_change_reso m_fnChangeReso;
         InstrumentScriptVMFunction_event_status m_fnEventStatus;
+        InstrumentScriptVMFunction_wait m_fnWait2;
+        InstrumentScriptVMFunction_stop_wait m_fnStopWait;
         InstrumentScriptVMDynVar_ENGINE_UPTIME m_varEngineUptime;
+        InstrumentScriptVMDynVar_NI_CALLBACK_ID m_varCallbackID;
 
         friend class InstrumentScriptVMFunction_play_note;
         friend class InstrumentScriptVMFunction_set_controller;
@@ -260,7 +293,10 @@ namespace LinuxSampler {
         friend class InstrumentScriptVMFunction_change_cutoff;
         friend class InstrumentScriptVMFunction_change_reso;
         friend class InstrumentScriptVMFunction_event_status;
+        friend class InstrumentScriptVMFunction_wait;
+        friend class InstrumentScriptVMFunction_stop_wait;
         friend class InstrumentScriptVMDynVar_ENGINE_UPTIME;
+        friend class InstrumentScriptVMDynVar_NI_CALLBACK_ID;
     };
 
 } // namespace LinuxSampler

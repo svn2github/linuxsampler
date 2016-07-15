@@ -987,6 +987,8 @@ namespace LinuxSampler {
                 itScriptEvent->cause = *itEvent;
                 itScriptEvent->currentHandler = 0;
                 itScriptEvent->executionSlices = 0;
+                itScriptEvent->ignoreAllWaitCalls = false;
+                itScriptEvent->handlerType = pEventHandler->eventHandlerType();
                 // this is the native representation of the $EVENT_ID script variable
                 itScriptEvent->id =
                     (itEvent->Type == Event::type_note_on)

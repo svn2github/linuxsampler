@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Christian Schoenebeck
+ * Copyright (c) 2015-2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -14,6 +14,8 @@
 #include <string>
 
 #include "RTMath.h"
+
+class RTAVLTreeBase;
 
 /**
  * @brief Base class of RTAVLTree elements.
@@ -38,6 +40,16 @@
  * terminal.
  */
 class RTAVLNode {
+public:
+    /**
+     * Returns the current RTAVLTree this node is a member of.
+     *
+     * @b CAUTION: This method must only be used if RTAVLTree's template
+     * parameter was set to T_SAFE = true. Using the result of this method call
+     * with T_SAFE = false may result in undefined behavior!
+     */
+    RTAVLTreeBase* rtavlTree() const { return tree; }
+
 protected:
     /**
      * Initialize the members of this node. It is not necessearily required to
@@ -53,6 +65,7 @@ protected:
         prevTwin = nextTwin = this;
         balance = 0;
         twinHead = true;
+        tree = NULL;
     }
 
     /**
@@ -77,7 +90,16 @@ protected:
     RTAVLNode* nextTwin;
     int balance;
     bool twinHead;
-    template<class T_node> friend class RTAVLTree;
+    RTAVLTreeBase* tree; ///< This is only used by RTAVLTree if T_SAFE = true
+    template<class T_node, bool T_SAFE> friend class RTAVLTree;
+};
+
+/**
+ * Abstract base class for deriving tempalte class RTAVLTree. This is just
+ * needed for the "tree" pointer member variable in RTAVLNode.
+ */
+class RTAVLTreeBase {
+public:
 };
 
 /**
@@ -98,12 +120,25 @@ protected:
  * implementations, this implementation of an AVL tree provides
  * constant time average complexity for erase operations.
  *
+ * @c T_SAFE: this boolean template class parameter defines whether the tree's
+ * algorithm should be more safe but a bit slower or rather fast and less safe.
+ * If T_SAFE = true then additional checks and measures will be performed when
+ * calling insert() or erase(). The latter methods will then check whether the
+ * passed node is already part of the tree and act accordingly to avoid
+ * undefined behavior which could happen if T_SAFE = false. So if you decide to
+ * set T_SAFE = false then it is your responsibility to only insert() elements
+ * to this tree which are not yet members of the tree and to only erase()
+ * nodes which are really members of the tree. The only real performance
+ * penalty that comes with T_SAFE = true is the efficiency of the clear() method
+ * which will be much slower than with T_SAFE = false. See the description of the
+ * clear() method for the precise performance differences regarding T_SAFE.
+ *
  * @b IMPORTANT: some of the methods of this class are only intended for unit
  * tests and debugging purposes and are not real-time safe! Those methods are
  * explicitly marked as such and must not be used in a real-time context!
  */
-template<class T_node>
-class RTAVLTree {
+template<class T_node, bool T_SAFE = true>
+class RTAVLTree : public RTAVLTreeBase {
 public:
     enum Dir_t {
         LEFT,
@@ -140,9 +175,10 @@ public:
      * some non-unique keys).
      *
      * Trying to insert an item that is already part of the tree will be
-     * detected and ignored. Note however, that this detection is limited to
-     * unique elements! So better take care to only insert a new element that
-     * is not yet member of the tree.
+     * detected and ignored. Note however, that if T_SAFE = false then this
+     * detection is limited to unique elements! So if T_SAFE = false then better
+     * take care to only insert a new element that is not yet member of the
+     * tree.
      *
      * This method is real-time safe.
      *
@@ -151,8 +187,11 @@ public:
      * @param item - new element to be inserted into the tree
      */
     void insert(T_node& item) {
+        if (T_SAFE && item.tree == this) return;
+
         if (!root) {
             item.reset();
+            if (T_SAFE) item.tree = this;
             root = &item;
             ++nodesCount;
             return;
@@ -170,6 +209,7 @@ public:
                     // it is the same key, but different item, so insert the
                     // passed item to this twin ring
                     item.reset();
+                    if (T_SAFE) item.tree = this;
                     node->prevTwin->nextTwin = &item;
                     item.prevTwin = node->prevTwin;
                     item.nextTwin = node;
@@ -184,6 +224,7 @@ public:
                     node = node->children[dir];
                 } else {
                     item.reset();
+                    if (T_SAFE) item.tree = this;
                     node->children[dir] = &item;
                     item.parent = node;
                     node = &item;
@@ -207,14 +248,19 @@ public:
     }
 
     /**
-     * Removes the existing element @a item from the tree. It is assumed that
-     * the passed @a item is really a member of this tree when this method is
-     * called. There are some checks which abort the erase operation if the
+     * Removes the existing element @a item from the tree.
+     *
+     * If T_SAFE = true then calling erase() with a node that is not part of
+     * this tree will simply be ignored.
+     *
+     * If T_SAFE = false then it is assumed that the passed @a item is really
+     * a member of this tree when this method is called. There are some checks
+     * even if T_SAFE = false which abort the erase operation if the
      * passed element is detected not being part of the tree, however these
      * checks do not cover all possible cases and they also require that
      * RTAVLNode::reset() was called after the element was allocated. So better
-     * don't rely on those checks and only call erase() for elements which are
-     * really a member of this tree at that point.
+     * don't rely on those checks if T_SAFE = flase and only call erase() in this
+     * case for elements which are really a member of this tree at that point.
      *
      * This method is real-time safe.
      *
@@ -223,6 +269,8 @@ public:
      * @param item - element of the tree to be removed from the tree
      */
     void erase(T_node& item) {
+        if (T_SAFE && item.tree != this) return;
+
         if (!root) {
             item.reset();
             return;
@@ -484,18 +532,35 @@ public:
      * Removes all elements from this tree. That is size() will return @c 0
      * after calling this method.
      *
-     * @b IMPORTANT: Note that the current implementation does not reset the
+     * @b IMPORTANT: For the precise behavior and efficiency of this method, as
+     * well as saftety of subsequent other method calls, it is important which
+     * value you assigned for template class parameter @c T_SAFE :
+     *
+     * If @c T_SAFE @c = @c false then this method does not reset the
      * invidual element nodes (for performance reasons). Due to this, after
      * calling clear(), you @b must @b not pass any of those elements to the
      * erase() method of this class, nor to any static method of this class.
      * Doing so would lead to undefined behavior. Re-inserting the elements to
-     * this or to any other tree with insert() is safe though.
+     * this or to any other tree with insert() is safe though. The advantage on
+     * the other hand is that clear() is extremely fast if T_SAFE = false
+     * (see algorithm complexity below).
+     *
+     * If @c T_SAFE @c = @c true then this method will reset() @b each node of
+     * this tree before removing the nodes and thus clearing the tree. The
+     * advantage is that with T_SAFE = true subsequent method calls on
+     * this tree are way more safe, because guaranteed checks can be performed
+     * whether the respective node is already member of the tree. This safety
+     * comes with the price that clear() calls will be much slower (see
+     * algorithm complexity below).
      *
      * This method is real-time safe.
      *
-     * Complexity: Theta(1).
+     * Complexity: Theta(1) if T_SAFE = false, or n log n if T_SAFE = true.
      */
     inline void clear() {
+        if (T_SAFE) {
+            while (root) erase(*(T_node*)root);
+        }
         root = NULL;
         nodesCount = 0;
     }

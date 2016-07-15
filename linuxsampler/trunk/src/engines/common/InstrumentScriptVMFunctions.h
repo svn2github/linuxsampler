@@ -203,6 +203,25 @@ namespace LinuxSampler {
         InstrumentScriptVM* m_vm;
     };
 
+    // overrides core wait() implementation
+    class InstrumentScriptVMFunction_wait : public CoreVMFunction_wait {
+    public:
+        InstrumentScriptVMFunction_wait(InstrumentScriptVM* parent);
+        VMFnResult* exec(VMFnArgs* args);
+    };
+
+    class InstrumentScriptVMFunction_stop_wait : public VMEmptyResultFunction {
+    public:
+        InstrumentScriptVMFunction_stop_wait(InstrumentScriptVM* parent);
+        int minRequiredArgs() const { return 1; }
+        int maxAllowedArgs() const { return 2; }
+        bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR;}
+        ExprType_t argType(int iArg) const { return INT_EXPR; }
+        VMFnResult* exec(VMFnArgs* args);
+    protected:
+        InstrumentScriptVM* m_vm;
+    };
+
 } // namespace LinuxSampler
 
 #endif // LS_INSTRSCRIPTVMFUNCTIONS_H
