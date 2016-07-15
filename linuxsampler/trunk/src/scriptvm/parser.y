@@ -38,14 +38,14 @@
 %token <sValue> STRING
 %token <sValue> IDENTIFIER
 %token <sValue> VARIABLE
-%token ON END INIT NOTE DECLARE ASSIGNMENT WHILE IF OR RELEASE AND ELSE
+%token ON END INIT NOTE DECLARE ASSIGNMENT WHILE IF OR RELEASE AND ELSE FUNCTION CALL
 %token BITWISE_OR BITWISE_AND BITWISE_NOT
 %token CONTROLLER SELECT CASE TO NOT CONST_ POLYPHONIC MOD
 %token LE GE
 
-%type <nEventHandlers> script eventhandlers
-%type <nEventHandler> eventhandler
-%type <nStatements> statements opt_statements
+%type <nEventHandlers> script sections
+%type <nEventHandler> section eventhandler
+%type <nStatements> statements opt_statements userfunctioncall
 %type <nStatement> statement assignment
 %type <nFunctionCall> functioncall
 %type <nArgs> args
@@ -58,18 +58,26 @@
 %%
 
 script:
-    eventhandlers  {
+    sections  {
         $$ = context->handlers = $1;
     }
 
-eventhandlers:
-    eventhandler  {
+sections:
+    section  {
         $$ = new EventHandlers();
-        $$->add($1);
+        if ($1) $$->add($1);
     }
-    | eventhandlers eventhandler  {
+    | sections section  {
         $$ = $1;
-        $$->add($2);
+        if ($2) $$->add($2);
+    }
+
+section:
+    function_declaration  {
+        $$ = EventHandlerRef();
+    }
+    | eventhandler  {
+        $$ = $1;
     }
 
 eventhandler:
@@ -98,6 +106,18 @@ eventhandler:
         $$ = context->onController;
     }
 
+function_declaration:
+    FUNCTION IDENTIFIER opt_statements END FUNCTION  {
+        const char* name = $2;
+        if (context->functionProvider->functionByName(name)) {
+            PARSE_ERR(@2, (String("There is already a built-in function with name '") + name + "'.").c_str());
+        } else if (context->userFunctionByName(name)) {
+            PARSE_ERR(@2, (String("There is already a user defined function with name '") + name + "'.").c_str());
+        } else {
+            context->userFnTable[name] = $3;
+        }
+    }
+
 opt_statements:
     /* epsilon (empty argument) */  {
         $$ = new Statements();
@@ -124,6 +144,9 @@ statements:
 
 statement:
     functioncall  {
+        $$ = $1;
+    }
+    | userfunctioncall  {
         $$ = $1;
     }
     | DECLARE VARIABLE  {
@@ -335,13 +358,31 @@ caseclause:
         $$.statements = $5;
     }
 
+userfunctioncall:
+    CALL IDENTIFIER  {
+        const char* name = $2;
+        StatementsRef fn = context->userFunctionByName(name);
+        if (context->functionProvider->functionByName(name)) {
+            PARSE_ERR(@1, (String("Keyword 'call' must only be used for user defined functions, not for any built-in function like '") + name + "'.").c_str());
+            $$ = StatementsRef();
+        } else if (!fn) {
+            PARSE_ERR(@2, (String("No user defined function with name '") + name + "'.").c_str());
+            $$ = StatementsRef();
+        } else {
+            $$ = fn;
+        }
+    }
+
 functioncall:
     IDENTIFIER '(' args ')'  {
         const char* name = $1;
         //printf("function call of '%s' with args\n", name);
         ArgsRef args = $3;
         VMFunction* fn = context->functionProvider->functionByName(name);
-        if (!fn) {
+        if (context->userFunctionByName(name)) {
+            PARSE_ERR(@1, (String("Missing 'call' keyword before user defined function name '") + name + "'.").c_str());
+            $$ = new FunctionCall(name, args, NULL);
+        } else if (!fn) {
             PARSE_ERR(@1, (String("No built-in function with name '") + name + "'.").c_str());
             $$ = new FunctionCall(name, args, NULL);
         } else if (args->argsCount() < fn->minRequiredArgs()) {
@@ -371,7 +412,10 @@ functioncall:
         //printf("function call of '%s' (with empty args)\n", name);
         ArgsRef args = new Args;
         VMFunction* fn = context->functionProvider->functionByName(name);
-        if (!fn) {
+        if (context->userFunctionByName(name)) {
+            PARSE_ERR(@1, (String("Missing 'call' keyword before user defined function name '") + name + "'.").c_str());
+            $$ = new FunctionCall(name, args, NULL);
+        } else if (!fn) {
             PARSE_ERR(@1, (String("No built-in function with name '") + name + "'.").c_str());
             $$ = new FunctionCall(name, args, NULL);
         } else if (fn->minRequiredArgs() > 0) {
@@ -386,7 +430,10 @@ functioncall:
         //printf("function call of '%s' (without args)\n", name);
         ArgsRef args = new Args;
         VMFunction* fn = context->functionProvider->functionByName(name);
-        if (!fn) {
+        if (context->userFunctionByName(name)) {
+            PARSE_ERR(@1, (String("Missing 'call' keyword before user defined function name '") + name + "'.").c_str());
+            $$ = new FunctionCall(name, args, NULL);
+        } else if (!fn) {
             PARSE_ERR(@1, (String("No built-in function with name '") + name + "'.").c_str());
             $$ = new FunctionCall(name, args, NULL);
         } else if (fn->minRequiredArgs() > 0) {

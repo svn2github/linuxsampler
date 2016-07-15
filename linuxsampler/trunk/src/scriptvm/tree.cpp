@@ -882,6 +882,13 @@ void BitwiseNot::dump(int level) {
     printf(")\n");
 }
 
+StatementsRef ParserContext::userFunctionByName(const String& name) {
+    if (!userFnTable.count(name)) {
+        return StatementsRef();
+    }
+    return userFnTable.find(name)->second;
+}
+
 VariableRef ParserContext::variableByName(const String& name) {
     if (!vartable.count(name)) {
         return VariableRef();

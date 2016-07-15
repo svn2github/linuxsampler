@@ -97,6 +97,7 @@ Version SVN trunk (?)
     - Added built-in script constant "$NI_CB_TYPE_NOTE".
     - Added built-in script constant "$NI_CB_TYPE_RELEASE".
     - Added built-in script constant "$NI_CB_TYPE_CONTROLLER".
+    - NKSP Language: Added support for user defined script functions.
 
 Version 2.0.0 (15 July 2015)
 

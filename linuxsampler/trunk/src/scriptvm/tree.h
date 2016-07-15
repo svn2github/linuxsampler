@@ -602,6 +602,7 @@ public:
     std::set<String> userPreprocessorConditions;
 
     std::map<String,VariableRef> vartable;
+    std::map<String,StatementsRef> userFnTable;
     int globalIntVarCount;
     int globalStrVarCount;
     int polyphonicIntVarCount;
@@ -633,6 +634,7 @@ public:
     IntVariableRef globalIntVar(const String& name);
     StringVariableRef globalStrVar(const String& name);
     VariableRef variableByName(const String& name);
+    StatementsRef userFunctionByName(const String& name);
     void addErr(int firstLine, int lastLine, int firstColumn, int lastColumn, const char* txt);
     void addWrn(int firstLine, int lastLine, int firstColumn, int lastColumn, const char* txt);
     void createScanner(std::istream* is);

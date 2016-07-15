@@ -241,6 +241,8 @@ ID       [a-zA-Z0-9_]+
 "const" return CONST_; // note: "CONST" is already defined for C/C++ compilers on Windows by default
 "polyphonic" return POLYPHONIC;
 "mod" return MOD;
+"function" return FUNCTION;
+"call" return CALL;
 
 [&,()[\]<>=*+#/-] {
     return *yytext;
