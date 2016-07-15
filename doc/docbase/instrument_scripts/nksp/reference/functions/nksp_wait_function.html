@@ -7,10 +7,18 @@
   <body>
     <h1>wait()</h1>
     <p>
-      Suspends / pauses the current event handler instance for the requested
-      amount of microseconds.
+      Suspends / pauses execution of the current event handler instance for the requested
+      amount of microseconds. The paused event handler instance can also be resumed before
+      the requested amount times elapsed by calling <code>stop_wait()</code> from another
+      event handler instance.
     </p>
-    
+    <note>
+      If the even handler instance's built-in variable <code>$NKSP_IGNORE_WAIT</code>
+      reflects <code>1</code> then all calls to <code>wait()</code> will be ignored.
+      This might for example be the case when <code>stop_wait()</code> with
+      <code>1</code> being passed to the 2nd argument of that function.
+    </note>
+
     <h3>Function Prototype</h3>
     <p/>
     <code lang="nksp">

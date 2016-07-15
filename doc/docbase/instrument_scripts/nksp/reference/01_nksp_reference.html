@@ -48,6 +48,10 @@
         <td>Pauses execution for a certain amount of time.</td>
       </tr>
       <tr>
+        <td><code>stop_wait()</code></td>
+        <td>Resumes execution of a suspended script callback.</td>
+      </tr>
+      <tr>
         <td><code>abs()</code></td>
         <td>Calculates the absolute value of a given value.</td>
       </tr>
@@ -231,6 +235,45 @@
               difference between them is not implemented for all systems at the moment.
             </note>
         </td>
+      </tr>
+      <tr>
+        <td><code>$NI_CALLBACK_ID</code></td>
+        <td>Reflects the current event handler instance's unique callback ID.
+            For the same event type there may be more than
+            one event handler instances running. Each one of them has
+            its own callback ID. You can get the current event handler
+            instance's callback ID by reading this built-in variable.</td>
+      </tr>
+      <tr>
+        <td><code>$NI_CALLBACK_TYPE</code></td>
+        <td>Reflects the event type of the current event handler. This variable
+            may reflect one of the following built-in constants:
+            <code>$NI_CB_TYPE_INIT</code>, <code>$NI_CB_TYPE_NOTE</code>,
+            <code>$NI_CB_TYPE_RELEASE</code>, <code>$NI_CB_TYPE_CONTROLLER</code>.</td>
+      </tr>
+      <tr>
+        <td><code>$NI_CB_TYPE_INIT</code></td>
+        <td>Built-in constant reflecting an <code>init</code> event handler type.</td>
+      </tr>
+      <tr>
+        <td><code>$NI_CB_TYPE_NOTE</code></td>
+        <td>Built-in constant reflecting a <code>note</code> event handler type.</td>
+      </tr>
+      <tr>
+        <td><code>$NI_CB_TYPE_RELEASE</code></td>
+        <td>Built-in constant reflecting a <code>release</code> event handler type.</td>
+      </tr>
+      <tr>
+        <td><code>$NI_CB_TYPE_CONTROLLER</code></td>
+        <td>Built-in constant reflecting a <code>controller</code> event handler type.</td>
+      </tr>
+      <tr>
+        <td><code>$NKSP_IGNORE_WAIT</code></td>
+        <td>If this boolean built-in variable is <code>1</code> then all calls of your
+            event handler instance to function <code>wait()</code> will be ignored.
+            This may for example be the case if another event handler instance
+            resumed your paused script by calling <code>stop_wait()</code> and
+            passing <code>1</code> to the 2nd argument of that function.</td>
       </tr>
     </table>
 

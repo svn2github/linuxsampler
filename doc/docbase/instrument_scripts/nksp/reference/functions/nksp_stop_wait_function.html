@@ -1,0 +1,62 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>stop_wait() function</title>
+    <meta name="description" content="Resumes execution of a suspended script callback.">
+  </head>
+  <body>
+    <h1>stop_wait()</h1>
+    <p>
+      Resumes execution of a script event handler instance currently being
+      paused due to a <code lang="nksp">wait()</code> call. You need to
+      pass the callback ID of the event handler instance to be resumed to
+      this function. For the same event type there may be more than
+      one event handler instances running. Each one of them has its own
+      callback ID. You can get the current event handler instance's callback
+      ID by reading the built-in variable <code>$NI_CALLBACK_ID</code>.
+    </p>
+    
+    <h3>Function Prototype</h3>
+    <p/>
+    <code lang="nksp">
+stop_wait(??callback-id??, [??flags??])
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??callback-id??</code></td>
+        <td>Callback ID</td>
+        <td>Event handler instance to be resumed.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??flags??</code></td>
+        <td>Integer Number</td>
+        <td>Additional options:<br>
+            0: No additional option. Just resume the requested currently
+               suspended event handler instance.<br>
+            1: Not only resume the currently suspended event handler
+               instance, but also let it ignore all subsequent
+               <code>wait()</code> calls. Be very careful when using this option!
+               The resumed handler's built-in variable <code>$NKSP_IGNORE_WAIT</code>
+               will reflect <code>1</code> after this call. So the resumed script
+               may read this variable to act accordingly.<br>
+            [optional, default: 0]</td>
+      </tr>
+    </table>
+    
+    <h3>Return Value</h3>
+    <p>None.</p>
+    
+    <h3>Examples</h3>
+    <p>None yet.</p>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0.svn17.<p>
+
+  </body>
+</html>
