@@ -1,0 +1,76 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>change_release() function</title>
+    <meta name="description" content="Modifies the release time of voices of a particular note.">
+  </head>
+  <body>
+    <h1>change_release()</h1>
+    <p>
+      This function can be used to modify the release time of active voices of a
+      particular note. 
+      In contrast to other synthesis parameter related functions,
+      this function only allows to change the release time when the respective note
+      is new, that is either i.e. at the beginning of a <code lang="nksp">note</code>
+      event handler or right after calling <code>play_note()</code>. So you should
+      perform the release value change as soon as possible, especially before calling any
+      <code>wait()</code> function and before entering a loop which might take a
+      long time to execute (which might cause your script to get
+      forcely suspended by the script engine due to real-time constraints).
+    </p>
+    <p>
+      The release time changes set by calling this function are always applied relatively to
+      the release time calculated by the synthesis model and sampler format. That means
+      the various sources of volume factors like MIDI CCs and other release parameter
+      factors that may be defined by the instrument patch, are always processed and
+      calculated for the voices first, and the final release time applied is always
+      a relative combination of all those factors and the one set with this function call.
+      Or in other words: you cannot replace the volume set by other synthesis
+      sources with this function.
+    </p>
+
+    <note class="important">
+    Release Trigger Samples: In case the affected voices cause release trigger
+    samples to be spawned later on, the release time of those release trigger voices
+    will not be affected by this function at all. So if you need to control the
+    release time of release trigger samples by script, then you might rather also trigger
+    those release trigger samples by script with <code lang="nksp">play_note()</code>
+    instead of using the sampler format's internal support for release trigger samples.
+    </note>
+
+    <h3>Function Prototype</h3>
+    <p/>
+    <code lang="nksp">
+change_release(??note??, ??time??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??note??</code></td>
+        <td>Note ID Number or Note ID Array</td>
+        <td>All voices of this note will be modified.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??time??</code></td>
+        <td>Integer Number</td>
+        <td>Attack Time Value (abstract absolute value between 0 for shortest time and 1000000 for longest time).<br>
+            [required]</td>
+      </tr>
+    </table>
+
+    <h3>Return Value</h3>
+    <p>None.</p>
+
+    <h3>Examples</h3>
+    <p>None yet.<p>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0.svn19.<p>
+
+  </body>
+</html>
