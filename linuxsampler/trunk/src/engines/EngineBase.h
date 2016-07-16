@@ -1916,7 +1916,7 @@ namespace LinuxSampler {
              * @param pEngineChannel - engine channel on which this event occurred on
              * @param itEvent - note synthesis parameter change event
              */
-            virtual void ProcessNoteSynthParam(EngineChannel* pEngineChannel, RTList<Event>::Iterator& itEvent) OVERRIDE {
+            virtual void ProcessNoteSynthParam(EngineChannel* pEngineChannel, RTList<Event>::Iterator& itEvent) {
                 EngineChannelBase<V, R, I>* pChannel = static_cast<EngineChannelBase<V, R, I>*>(pEngineChannel);
 
                 NoteBase* pNote = pChannel->pEngine->NoteByID( itEvent->Param.NoteSynthParam.NoteID );
