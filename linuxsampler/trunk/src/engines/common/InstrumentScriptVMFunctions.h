@@ -190,6 +190,42 @@ namespace LinuxSampler {
     protected:
         InstrumentScriptVM* m_vm;
     };
+    
+    class InstrumentScriptVMFunction_change_attack : public VMEmptyResultFunction {
+    public:
+        InstrumentScriptVMFunction_change_attack(InstrumentScriptVM* parent);
+        int minRequiredArgs() const { return 2; }
+        int maxAllowedArgs() const { return 2; }
+        bool acceptsArgType(int iArg, ExprType_t type) const;
+        ExprType_t argType(int iArg) const { return INT_EXPR; }
+        VMFnResult* exec(VMFnArgs* args);
+    protected:
+        InstrumentScriptVM* m_vm;
+    };
+
+    class InstrumentScriptVMFunction_change_decay : public VMEmptyResultFunction {
+    public:
+        InstrumentScriptVMFunction_change_decay(InstrumentScriptVM* parent);
+        int minRequiredArgs() const { return 2; }
+        int maxAllowedArgs() const { return 2; }
+        bool acceptsArgType(int iArg, ExprType_t type) const;
+        ExprType_t argType(int iArg) const { return INT_EXPR; }
+        VMFnResult* exec(VMFnArgs* args);
+    protected:
+        InstrumentScriptVM* m_vm;
+    };
+    
+    class InstrumentScriptVMFunction_change_release : public VMEmptyResultFunction {
+    public:
+        InstrumentScriptVMFunction_change_release(InstrumentScriptVM* parent);
+        int minRequiredArgs() const { return 2; }
+        int maxAllowedArgs() const { return 2; }
+        bool acceptsArgType(int iArg, ExprType_t type) const;
+        ExprType_t argType(int iArg) const { return INT_EXPR; }
+        VMFnResult* exec(VMFnArgs* args);
+    protected:
+        InstrumentScriptVM* m_vm;
+    };
 
     class InstrumentScriptVMFunction_event_status : public VMIntResultFunction {
     public:

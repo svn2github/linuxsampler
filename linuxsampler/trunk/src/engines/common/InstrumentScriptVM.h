@@ -273,6 +273,9 @@ namespace LinuxSampler {
         InstrumentScriptVMFunction_change_pan m_fnChangePan;
         InstrumentScriptVMFunction_change_cutoff m_fnChangeCutoff;
         InstrumentScriptVMFunction_change_reso m_fnChangeReso;
+        InstrumentScriptVMFunction_change_attack m_fnChangeAttack;
+        InstrumentScriptVMFunction_change_decay m_fnChangeDecay;
+        InstrumentScriptVMFunction_change_release m_fnChangeRelease;
         InstrumentScriptVMFunction_event_status m_fnEventStatus;
         InstrumentScriptVMFunction_wait m_fnWait2;
         InstrumentScriptVMFunction_stop_wait m_fnStopWait;
@@ -292,6 +295,9 @@ namespace LinuxSampler {
         friend class InstrumentScriptVMFunction_change_pan;
         friend class InstrumentScriptVMFunction_change_cutoff;
         friend class InstrumentScriptVMFunction_change_reso;
+        friend class InstrumentScriptVMFunction_change_attack;
+        friend class InstrumentScriptVMFunction_change_decay;
+        friend class InstrumentScriptVMFunction_change_release;
         friend class InstrumentScriptVMFunction_event_status;
         friend class InstrumentScriptVMFunction_wait;
         friend class InstrumentScriptVMFunction_stop_wait;

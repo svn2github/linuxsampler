@@ -230,7 +230,8 @@ namespace LinuxSampler {
         m_fnIgnoreEvent(this), m_fnIgnoreController(this), m_fnNoteOff(this),
         m_fnSetEventMark(this), m_fnDeleteEventMark(this), m_fnByMarks(this),
         m_fnChangeVol(this), m_fnChangeTune(this), m_fnChangePan(this),
-        m_fnChangeCutoff(this), m_fnChangeReso(this), m_fnEventStatus(this),
+        m_fnChangeCutoff(this), m_fnChangeReso(this),  m_fnChangeAttack(this),
+        m_fnChangeDecay(this), m_fnChangeRelease(this), m_fnEventStatus(this),
         m_fnWait2(this), m_fnStopWait(this),
         m_varEngineUptime(this), m_varCallbackID(this)
     {
@@ -355,6 +356,9 @@ namespace LinuxSampler {
         else if (name == "change_pan") return &m_fnChangePan;
         else if (name == "change_cutoff") return &m_fnChangeCutoff;
         else if (name == "change_reso") return &m_fnChangeReso;
+        else if (name == "change_attack") return &m_fnChangeAttack;
+        else if (name == "change_decay") return &m_fnChangeDecay;
+        else if (name == "change_release") return &m_fnChangeRelease;
         else if (name == "event_status") return &m_fnEventStatus;
         else if (name == "wait") return &m_fnWait2; // override wait() core implementation
         else if (name == "stop_wait") return &m_fnStopWait;

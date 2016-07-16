@@ -607,6 +607,7 @@ namespace LinuxSampler {
     }
 
     #define VM_FILTER_PAR_MAX_VALUE 1000000
+    #define VM_EG_PAR_MAX_VALUE 1000000
 
     // change_cutoff() function
 
@@ -755,6 +756,231 @@ namespace LinuxSampler {
                 e.Param.NoteSynthParam.NoteID   = id.noteID();
                 e.Param.NoteSynthParam.Type     = Event::synth_param_resonance;
                 e.Param.NoteSynthParam.Delta    = fResonance;
+                e.Param.NoteSynthParam.Relative = false;
+
+                pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        }
+
+        return successResult();
+    }
+    
+    // change_attack() function
+
+    InstrumentScriptVMFunction_change_attack::InstrumentScriptVMFunction_change_attack(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    bool InstrumentScriptVMFunction_change_attack::acceptsArgType(int iArg, ExprType_t type) const {
+        if (iArg == 0)
+            return type == INT_EXPR || type == INT_ARR_EXPR;
+        else
+            return INT_EXPR;
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_change_attack::exec(VMFnArgs* args) {
+        int attack = args->arg(1)->asInt()->evalInt();
+        if (attack > VM_EG_PAR_MAX_VALUE) {
+            wrnMsg("change_attack(): argument 2 may not be larger than 1000000");
+            attack = VM_EG_PAR_MAX_VALUE;
+        } else if (attack < 0) {
+            wrnMsg("change_attack(): argument 2 may not be negative");
+            attack = 0;
+        }
+        const float fAttack = float(attack) / float(VM_EG_PAR_MAX_VALUE);
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        if (args->arg(0)->exprType() == INT_EXPR) {
+            const ScriptID id = args->arg(0)->asInt()->evalInt();
+            if (!id) {
+                wrnMsg("change_attack(): note ID for argument 1 may not be zero");
+                return successResult();
+            }
+            if (!id.isNoteID()) {
+                wrnMsg("change_attack(): argument 1 is not a note ID");
+                return successResult();
+            }
+
+            NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+            if (!pNote) return successResult();            
+
+            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+            e.Init(); // clear IDs
+            e.Type = Event::type_note_synth_param;
+            e.Param.NoteSynthParam.NoteID   = id.noteID();
+            e.Param.NoteSynthParam.Type     = Event::synth_param_attack;
+            e.Param.NoteSynthParam.Delta    = fAttack;
+            e.Param.NoteSynthParam.Relative = false;
+
+            pEngineChannel->ScheduleEventMicroSec(&e, 0);
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                e.Init(); // clear IDs
+                e.Type = Event::type_note_synth_param;
+                e.Param.NoteSynthParam.NoteID   = id.noteID();
+                e.Param.NoteSynthParam.Type     = Event::synth_param_attack;
+                e.Param.NoteSynthParam.Delta    = fAttack;
+                e.Param.NoteSynthParam.Relative = false;
+
+                pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        }
+
+        return successResult();
+    }
+
+    // change_decay() function
+    
+    InstrumentScriptVMFunction_change_decay::InstrumentScriptVMFunction_change_decay(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    bool InstrumentScriptVMFunction_change_decay::acceptsArgType(int iArg, ExprType_t type) const {
+        if (iArg == 0)
+            return type == INT_EXPR || type == INT_ARR_EXPR;
+        else
+            return INT_EXPR;
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_change_decay::exec(VMFnArgs* args) {
+        int decay = args->arg(1)->asInt()->evalInt();
+        if (decay > VM_EG_PAR_MAX_VALUE) {
+            wrnMsg("change_decay(): argument 2 may not be larger than 1000000");
+            decay = VM_EG_PAR_MAX_VALUE;
+        } else if (decay < 0) {
+            wrnMsg("change_decay(): argument 2 may not be negative");
+            decay = 0;
+        }
+        const float fDecay = float(decay) / float(VM_EG_PAR_MAX_VALUE);
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        if (args->arg(0)->exprType() == INT_EXPR) {
+            const ScriptID id = args->arg(0)->asInt()->evalInt();
+            if (!id) {
+                wrnMsg("change_decay(): note ID for argument 1 may not be zero");
+                return successResult();
+            }
+            if (!id.isNoteID()) {
+                wrnMsg("change_decay(): argument 1 is not a note ID");
+                return successResult();
+            }
+
+            NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+            if (!pNote) return successResult();            
+
+            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+            e.Init(); // clear IDs
+            e.Type = Event::type_note_synth_param;
+            e.Param.NoteSynthParam.NoteID   = id.noteID();
+            e.Param.NoteSynthParam.Type     = Event::synth_param_decay;
+            e.Param.NoteSynthParam.Delta    = fDecay;
+            e.Param.NoteSynthParam.Relative = false;
+
+            pEngineChannel->ScheduleEventMicroSec(&e, 0);
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                e.Init(); // clear IDs
+                e.Type = Event::type_note_synth_param;
+                e.Param.NoteSynthParam.NoteID   = id.noteID();
+                e.Param.NoteSynthParam.Type     = Event::synth_param_decay;
+                e.Param.NoteSynthParam.Delta    = fDecay;
+                e.Param.NoteSynthParam.Relative = false;
+
+                pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        }
+
+        return successResult();
+    }
+
+    // change_release() function
+    
+    InstrumentScriptVMFunction_change_release::InstrumentScriptVMFunction_change_release(InstrumentScriptVM* parent)
+        : m_vm(parent)
+    {
+    }
+
+    bool InstrumentScriptVMFunction_change_release::acceptsArgType(int iArg, ExprType_t type) const {
+        if (iArg == 0)
+            return type == INT_EXPR || type == INT_ARR_EXPR;
+        else
+            return INT_EXPR;
+    }
+
+    VMFnResult* InstrumentScriptVMFunction_change_release::exec(VMFnArgs* args) {
+        int release = args->arg(1)->asInt()->evalInt();
+        if (release > VM_EG_PAR_MAX_VALUE) {
+            wrnMsg("change_release(): argument 2 may not be larger than 1000000");
+            release = VM_EG_PAR_MAX_VALUE;
+        } else if (release < 0) {
+            wrnMsg("change_release(): argument 2 may not be negative");
+            release = 0;
+        }
+        const float fRelease = float(release) / float(VM_EG_PAR_MAX_VALUE);
+
+        AbstractEngineChannel* pEngineChannel =
+            static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
+
+        if (args->arg(0)->exprType() == INT_EXPR) {
+            const ScriptID id = args->arg(0)->asInt()->evalInt();
+            if (!id) {
+                wrnMsg("change_release(): note ID for argument 1 may not be zero");
+                return successResult();
+            }
+            if (!id.isNoteID()) {
+                wrnMsg("change_release(): argument 1 is not a note ID");
+                return successResult();
+            }
+
+            NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+            if (!pNote) return successResult();            
+
+            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+            e.Init(); // clear IDs
+            e.Type = Event::type_note_synth_param;
+            e.Param.NoteSynthParam.NoteID   = id.noteID();
+            e.Param.NoteSynthParam.Type     = Event::synth_param_release;
+            e.Param.NoteSynthParam.Delta    = fRelease;
+            e.Param.NoteSynthParam.Relative = false;
+
+            pEngineChannel->ScheduleEventMicroSec(&e, 0);
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                e.Init(); // clear IDs
+                e.Type = Event::type_note_synth_param;
+                e.Param.NoteSynthParam.NoteID   = id.noteID();
+                e.Param.NoteSynthParam.Type     = Event::synth_param_release;
+                e.Param.NoteSynthParam.Delta    = fRelease;
                 e.Param.NoteSynthParam.Relative = false;
 
                 pEngineChannel->ScheduleEventMicroSec(&e, 0);

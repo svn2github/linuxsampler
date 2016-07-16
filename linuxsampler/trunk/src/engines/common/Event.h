@@ -174,6 +174,9 @@ namespace LinuxSampler {
                 synth_param_pan,
                 synth_param_cutoff,
                 synth_param_resonance,
+                synth_param_attack,
+                synth_param_decay,
+                synth_param_release,
             };
             union {
                 /// Note-on and note-off event specifics

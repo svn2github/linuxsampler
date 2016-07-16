@@ -1954,6 +1954,15 @@ namespace LinuxSampler {
                     case Event::synth_param_resonance:
                         pNote->Override.Resonance = itEvent->Param.NoteSynthParam.AbsValue = itEvent->Param.NoteSynthParam.Delta;
                         break;
+                    case Event::synth_param_attack:
+                        pNote->Override.Attack = itEvent->Param.NoteSynthParam.AbsValue = itEvent->Param.NoteSynthParam.Delta;
+                        break;
+                    case Event::synth_param_decay:
+                        pNote->Override.Decay = itEvent->Param.NoteSynthParam.AbsValue = itEvent->Param.NoteSynthParam.Delta;
+                        break;
+                    case Event::synth_param_release:
+                        pNote->Override.Release = itEvent->Param.NoteSynthParam.AbsValue = itEvent->Param.NoteSynthParam.Delta;
+                        break;
                 }
 
                 // move note parameter event to its MIDI key

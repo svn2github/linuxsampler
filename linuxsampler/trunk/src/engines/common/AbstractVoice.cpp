@@ -200,6 +200,12 @@ namespace LinuxSampler {
             // calculate influence of EG1 controller on EG1's parameters
             EGInfo egInfo = CalculateEG1ControllerInfluence(eg1controllervalue);
 
+            if (pNote) {
+                egInfo.Attack  *= pNote->Override.Attack;
+                egInfo.Decay   *= pNote->Override.Decay;
+                egInfo.Release *= pNote->Override.Release;
+            }
+
             TriggerEG1(egInfo, velrelease, velocityAttenuation, GetEngine()->SampleRate, itNoteOnEvent->Param.Note.Velocity);
         } else {
             pSignalUnitRack->Trigger();

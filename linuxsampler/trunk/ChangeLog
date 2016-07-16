@@ -98,6 +98,9 @@ Version SVN trunk (?)
     - Added built-in script constant "$NI_CB_TYPE_RELEASE".
     - Added built-in script constant "$NI_CB_TYPE_CONTROLLER".
     - NKSP Language: Added support for user defined script functions.
+    - Implemented built-in script function "change_attack()".
+    - Implemented built-in script function "change_decay()".
+    - Implemented built-in script function "change_release()".
 
 Version 2.0.0 (15 July 2015)
 
