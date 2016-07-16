@@ -318,6 +318,10 @@ body note {
     max-width:         calc(100% - 145px);
 }
 
+body td > note {
+    display:block; /*HACK: override "table" default value assigned above in the context of a table cell, otherwise padding will be ignored */
+}
+
 body note.important {
     border-left:solid 10px #ff4141;
 }
