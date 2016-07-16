@@ -134,6 +134,7 @@ public:
     Property<int> scriptEditorWindowY;
     Property<int> scriptEditorWindowW;
     Property<int> scriptEditorWindowH;
+    Property<int> scriptEditorFontSize;
 
     // settings of "DimensionManager" group
     Property<int> dimensionManagerWindowX;

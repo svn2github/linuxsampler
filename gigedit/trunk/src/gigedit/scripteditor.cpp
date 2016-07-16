@@ -148,6 +148,9 @@ ScriptEditor::ScriptEditor() :
     m_actionGroup->add(Gtk::Action::create("Close", _("_Close")),
                        Gtk::AccelKey("<control>q"),
                        sigc::mem_fun(*this, &ScriptEditor::onButtonCancel));
+    m_actionGroup->add(Gtk::Action::create("MenuEditor", _("_Editor")));
+    m_actionGroup->add(Gtk::Action::create("ChangeFont", _("_Font Size ...")),
+                       sigc::mem_fun(*this, &ScriptEditor::onMenuChangeFontSize));
     m_uiManager = Gtk::UIManager::create();
     m_uiManager->insert_action_group(m_actionGroup);
     add_accel_group(m_uiManager->get_accel_group());
@@ -159,26 +162,16 @@ ScriptEditor::ScriptEditor() :
         "      <separator/>"
         "      <menuitem action='Close'/>"
         "    </menu>"
+        "    <menu action='MenuEditor'>"
+        "      <menuitem action='ChangeFont'/>"
+        "    </menu>"
         "  </menubar>"
         "</ui>"
     );
 
     m_textBuffer = Gtk::TextBuffer::create(m_tagTable);
     m_textView.set_buffer(m_textBuffer);
-    {
-        Pango::FontDescription fdesc;
-        fdesc.set_family("monospace");
-#if defined(__APPLE__)
-        fdesc.set_size(14 * PANGO_SCALE);
-#else
-        fdesc.set_size(10 * PANGO_SCALE);
-#endif
-#if GTKMM_MAJOR_VERSION < 3
-        m_textView.modify_font(fdesc);
-#else
-        m_textView.override_font(fdesc);
-#endif
-    }
+    setFontSize(currentFontSize(), false);
     m_scrolledWindow.add(m_textView);
     m_scrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
@@ -245,6 +238,30 @@ ScriptEditor::~ScriptEditor() {
 #if USE_LS_SCRIPTVM
     if (m_vm) delete m_vm;
 #endif
+}
+
+int ScriptEditor::currentFontSize() const {
+#if defined(__APPLE__)
+    const int defaultFontSize = 14;
+#else
+    const int defaultFontSize = 10;
+#endif
+    const int settingFontSize = Settings::singleton()->scriptEditorFontSize;
+    const int fontSize = (settingFontSize > 0) ? settingFontSize : defaultFontSize;
+    return fontSize;
+}
+
+void ScriptEditor::setFontSize(int size, bool save) {
+    //printf("setFontSize(%d,%d)\n", size, save);
+    Pango::FontDescription fdesc;
+    fdesc.set_family("monospace");
+    fdesc.set_size(size * PANGO_SCALE);
+#if GTKMM_MAJOR_VERSION < 3
+    m_textView.modify_font(fdesc);
+#else
+    m_textView.override_font(fdesc);
+#endif
+    if (save) Settings::singleton()->scriptEditorFontSize = size;
 }
 
 void ScriptEditor::setScript(gig::Script* script) {
@@ -499,6 +516,34 @@ bool ScriptEditor::on_motion_notify_event(GdkEventMotion* e) {
     updateIssueTooltip(e);
 #endif
     return ManagedWindow::on_motion_notify_event(e);
+}
+
+void ScriptEditor::onMenuChangeFontSize() {
+    //TODO: for GTKMM >= 3.2 class Gtk::FontChooser could be used instead
+    Gtk::Dialog dialog(_("Font Size"), true /*modal*/);
+    Gtk::HBox hbox;
+    hbox.set_spacing(6);
+
+    Gtk::Label label(_("Editor's Font Size:"), Gtk::ALIGN_START);
+    hbox.pack_start(label, Gtk::PACK_SHRINK);
+
+    Gtk::SpinButton spinButton;
+    spinButton.set_range(4, 80);
+    spinButton.set_increments(1, 10);
+    spinButton.set_value(currentFontSize());
+    hbox.pack_start(spinButton);
+
+    dialog.get_vbox()->pack_start(hbox);
+    dialog.add_button(_("_OK"), 0);
+    dialog.add_button(_("_Cancel"), 1);
+
+    dialog.show_all_children();
+
+    if (!dialog.run()) { // OK selected ...
+        const int newFontSize = spinButton.get_value_as_int();
+        if (newFontSize >= 4)
+            setFontSize(newFontSize, true);
+    }
 }
 
 bool ScriptEditor::onWindowDelete(GdkEventAny* e) {

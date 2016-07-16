@@ -85,6 +85,7 @@ Settings::Settings() : Glib::ObjectBase(typeid(Settings)),
     scriptEditorWindowY(*this, SCRIPT_EDITOR, "y", -1),
     scriptEditorWindowW(*this, SCRIPT_EDITOR, "w", -1),
     scriptEditorWindowH(*this, SCRIPT_EDITOR, "h", -1),
+    scriptEditorFontSize(*this, SCRIPT_EDITOR, "fontSize", -1),
     dimensionManagerWindowX(*this, DIMENSION_MANAGER, "x", -1),
     dimensionManagerWindowY(*this, DIMENSION_MANAGER, "y", -1),
     dimensionManagerWindowW(*this, DIMENSION_MANAGER, "w", -1),
@@ -127,6 +128,7 @@ Settings::Settings() : Glib::ObjectBase(typeid(Settings)),
     m_intProps.push_back(&scriptEditorWindowY);
     m_intProps.push_back(&scriptEditorWindowW);
     m_intProps.push_back(&scriptEditorWindowH);
+    m_intProps.push_back(&scriptEditorFontSize);
     m_intProps.push_back(&dimensionManagerWindowX);
     m_intProps.push_back(&dimensionManagerWindowY);
     m_intProps.push_back(&dimensionManagerWindowW);

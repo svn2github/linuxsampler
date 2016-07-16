@@ -36,6 +36,7 @@ Version SVN HEAD (?)
     dialog.
   * Script Editor: Fixed editor which did not appear on some systems due
     to missing icons (using now lists of alternative icon names).
+  * Script Editor: Added "Font Size ..." selection to editor's menu.
 
 Version 1.0.0 (2015-07-17)
 

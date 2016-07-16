@@ -98,6 +98,9 @@ protected:
 #endif
     bool on_motion_notify_event(GdkEventMotion* e);
     bool onWindowDelete(GdkEventAny* e);
+    void onMenuChangeFontSize();
+    int  currentFontSize() const;
+    void setFontSize(int size, bool save);
 };
 
 #endif // GIGEDIT_SCRIPTEDITOR_H
