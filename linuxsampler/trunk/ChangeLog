@@ -101,6 +101,12 @@ Version SVN trunk (?)
     - Implemented built-in script function "change_attack()".
     - Implemented built-in script function "change_decay()".
     - Implemented built-in script function "change_release()".
+    - Fixed all change_*() built-in script functions to apply their
+      synthesis parameter changes immediately in case the respective note
+      was triggered at the same time, instead of scheduling the parameter
+      change, especially because it would cause some parameter types's
+      changes either to be ramped (i.e. change_vol()) or other types even
+      to have not effect at all (i.e. change_attack()).
 
 Version 2.0.0 (15 July 2015)
 

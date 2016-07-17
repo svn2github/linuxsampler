@@ -28,6 +28,7 @@ namespace LinuxSampler {
         RTList<note_id_t>* pChildNotes; ///< Note ID list of "child" notes of this note. These are special notes that must be released once this note gets released.
         Event cause; ///< Copy of the original event (usually a note-on event) which caused this note.
         event_id_t eventID; ///< Unique ID of the actual original @c Event which caused this note.
+        sched_time_t triggerSchedTime; ///< Engine's scheduler time when this note was launched.
         /// Optional synthesis parameters that might be overridden (by calling real-time instrument script functions like change_vol(), change_pitch(), etc.).
         struct  _Override {
             float Volume;       ///< as linear amplification ratio (1.0 being neutral)

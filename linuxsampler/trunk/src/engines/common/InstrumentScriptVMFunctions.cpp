@@ -365,6 +365,7 @@ namespace LinuxSampler {
     VMFnResult* InstrumentScriptVMFunction_change_vol::exec(VMFnArgs* args) {
         int volume = args->arg(1)->asInt()->evalInt(); // volume change in milli dB
         bool relative = (args->argsCount() >= 3) ? (args->arg(2)->asInt()->evalInt() & 1) : false;
+        const float fVolumeLin = RTMath::DecibelToLinRatio(float(volume) / 1000.f);
 
         AbstractEngineChannel* pEngineChannel =
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
@@ -383,38 +384,14 @@ namespace LinuxSampler {
             NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
             if (!pNote) return successResult();
 
-            const float fVolumeLin = RTMath::DecibelToLinRatio(float(volume) / 1000.f);
-            // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
-            /*if (relative)
-                pNote->Override.Volume *= fVolumeLin;
-            else
-                pNote->Override.Volume = fVolumeLin;*/
-
-            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
-            e.Init(); // clear IDs
-            e.Type = Event::type_note_synth_param;
-            e.Param.NoteSynthParam.NoteID   = id.noteID();
-            e.Param.NoteSynthParam.Type     = Event::synth_param_volume;
-            e.Param.NoteSynthParam.Delta    = fVolumeLin;
-            e.Param.NoteSynthParam.Relative = relative;
-
-            pEngineChannel->ScheduleEventMicroSec(&e, 0);
-        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
-            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
-            for (int i = 0; i < ids->arraySize(); ++i) {
-                const ScriptID id = ids->evalIntElement(i);
-                if (!id || !id.isNoteID()) continue;
-
-                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
-                if (!pNote) continue;
-
-                const float fVolumeLin = RTMath::DecibelToLinRatio(float(volume) / 1000.f);
-                // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
-                /*if (relative)
+            // if change_vol() was called immediately after note was triggered
+            // then immediately apply the volume to note object
+            if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                if (relative)
                     pNote->Override.Volume *= fVolumeLin;
                 else
-                    pNote->Override.Volume = fVolumeLin;*/
-
+                    pNote->Override.Volume = fVolumeLin;
+            } else { // otherwise schedule the volume change ...
                 Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
                 e.Init(); // clear IDs
                 e.Type = Event::type_note_synth_param;
@@ -424,6 +401,34 @@ namespace LinuxSampler {
                 e.Param.NoteSynthParam.Relative = relative;
 
                 pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                // if change_vol() was called immediately after note was triggered
+                // then immediately apply the volume to Note object
+                if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                    if (relative)
+                        pNote->Override.Volume *= fVolumeLin;
+                    else
+                        pNote->Override.Volume = fVolumeLin;
+                } else { // otherwise schedule the volume change ...
+                    Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                    e.Init(); // clear IDs
+                    e.Type = Event::type_note_synth_param;
+                    e.Param.NoteSynthParam.NoteID   = id.noteID();
+                    e.Param.NoteSynthParam.Type     = Event::synth_param_volume;
+                    e.Param.NoteSynthParam.Delta    = fVolumeLin;
+                    e.Param.NoteSynthParam.Relative = relative;
+
+                    pEngineChannel->ScheduleEventMicroSec(&e, 0);
+                }
             }
         }
 
@@ -447,6 +452,7 @@ namespace LinuxSampler {
     VMFnResult* InstrumentScriptVMFunction_change_tune::exec(VMFnArgs* args) {
         int tune = args->arg(1)->asInt()->evalInt(); // tuning change in milli cents
         bool relative = (args->argsCount() >= 3) ? (args->arg(2)->asInt()->evalInt() & 1) : false;
+        const float fFreqRatio = RTMath::CentsToFreqRatioUnlimited(float(tune) / 1000.f);
 
         AbstractEngineChannel* pEngineChannel =
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
@@ -465,38 +471,14 @@ namespace LinuxSampler {
             NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
             if (!pNote) return successResult();
 
-            const float fFreqRatio = RTMath::CentsToFreqRatioUnlimited(float(tune) / 1000.f);
-            // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
-            /*if (relative) 
-                pNote->Override.Pitch *= fFreqRatio;
-            else
-                pNote->Override.Pitch = fFreqRatio;*/
-
-            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
-            e.Init(); // clear IDs
-            e.Type = Event::type_note_synth_param;
-            e.Param.NoteSynthParam.NoteID   = id.noteID();
-            e.Param.NoteSynthParam.Type     = Event::synth_param_pitch;
-            e.Param.NoteSynthParam.Delta    = fFreqRatio;
-            e.Param.NoteSynthParam.Relative = relative;
-
-            pEngineChannel->ScheduleEventMicroSec(&e, 0);
-        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
-            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
-            for (int i = 0; i < ids->arraySize(); ++i) {
-                const ScriptID id = ids->evalIntElement(i);
-                if (!id || !id.isNoteID()) continue;
-
-                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
-                if (!pNote) continue;
-
-                const float fFreqRatio = RTMath::CentsToFreqRatioUnlimited(float(tune) / 1000.f);
-                // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
-                /*if (relative) 
+            // if change_tune() was called immediately after note was triggered
+            // then immediately apply the tuning to Note object
+            if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                if (relative) 
                     pNote->Override.Pitch *= fFreqRatio;
                 else
-                    pNote->Override.Pitch = fFreqRatio;*/
-
+                    pNote->Override.Pitch = fFreqRatio;
+            } else { // otherwise schedule tuning change ...
                 Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
                 e.Init(); // clear IDs
                 e.Type = Event::type_note_synth_param;
@@ -506,6 +488,34 @@ namespace LinuxSampler {
                 e.Param.NoteSynthParam.Relative = relative;
 
                 pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                // if change_tune() was called immediately after note was triggered
+                // then immediately apply the tuning to Note object
+                if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                    if (relative) 
+                        pNote->Override.Pitch *= fFreqRatio;
+                    else
+                        pNote->Override.Pitch = fFreqRatio;
+                } else { // otherwise schedule tuning change ...
+                    Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                    e.Init(); // clear IDs
+                    e.Type = Event::type_note_synth_param;
+                    e.Param.NoteSynthParam.NoteID   = id.noteID();
+                    e.Param.NoteSynthParam.Type     = Event::synth_param_pitch;
+                    e.Param.NoteSynthParam.Delta    = fFreqRatio;
+                    e.Param.NoteSynthParam.Relative = relative;
+
+                    pEngineChannel->ScheduleEventMicroSec(&e, 0);
+                }
             }
         }
 
@@ -537,6 +547,7 @@ namespace LinuxSampler {
             wrnMsg("change_pan(): argument 2 may not be smaller than -1000");
             pan = -1000;
         }
+        const float fPan = float(pan) / 1000.f;
 
         AbstractEngineChannel* pEngineChannel =
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
@@ -555,42 +566,16 @@ namespace LinuxSampler {
             NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
             if (!pNote) return successResult();
 
-            const float fPan = float(pan) / 1000.f;
-            // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
-            /*if (relative) {
-                pNote->Override.Pan = RTMath::RelativeSummedAvg(pNote->Override.Pan, fPan, ++pNote->Override.PanSources);
-            } else {
-                pNote->Override.Pan = fPan;
-                pNote->Override.PanSources = 1; // only relevant on subsequent change_pan() calls on same note with 'relative' being set
-            }*/
-
-            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
-            e.Init(); // clear IDs
-            e.Type = Event::type_note_synth_param;
-            e.Param.NoteSynthParam.NoteID   = id.noteID();
-            e.Param.NoteSynthParam.Type     = Event::synth_param_pan;
-            e.Param.NoteSynthParam.Delta    = fPan;
-            e.Param.NoteSynthParam.Relative = relative;
-
-            pEngineChannel->ScheduleEventMicroSec(&e, 0);
-        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
-            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
-            for (int i = 0; i < ids->arraySize(); ++i) {
-                const ScriptID id = ids->evalIntElement(i);
-                if (!id || !id.isNoteID()) continue;
-
-                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
-                if (!pNote) continue;
-
-                const float fPan = float(pan) / 1000.f;
-                // commented out, performed by EngineBase::ProcessNoteSynthParam() for time accuracy behavior
-                /*if (relative) {
+            // if change_pan() was called immediately after note was triggered
+            // then immediately apply the panning to Note object
+            if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                if (relative) {
                     pNote->Override.Pan = RTMath::RelativeSummedAvg(pNote->Override.Pan, fPan, ++pNote->Override.PanSources);
                 } else {
                     pNote->Override.Pan = fPan;
                     pNote->Override.PanSources = 1; // only relevant on subsequent change_pan() calls on same note with 'relative' being set
-                }*/
-
+                }
+            } else { // otherwise schedule panning change ...
                 Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
                 e.Init(); // clear IDs
                 e.Type = Event::type_note_synth_param;
@@ -600,6 +585,36 @@ namespace LinuxSampler {
                 e.Param.NoteSynthParam.Relative = relative;
 
                 pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                // if change_pan() was called immediately after note was triggered
+                // then immediately apply the panning to Note object
+                if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                    if (relative) {
+                        pNote->Override.Pan = RTMath::RelativeSummedAvg(pNote->Override.Pan, fPan, ++pNote->Override.PanSources);
+                    } else {
+                        pNote->Override.Pan = fPan;
+                        pNote->Override.PanSources = 1; // only relevant on subsequent change_pan() calls on same note with 'relative' being set
+                    }
+                } else { // otherwise schedule panning change ...
+                    Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                    e.Init(); // clear IDs
+                    e.Type = Event::type_note_synth_param;
+                    e.Param.NoteSynthParam.NoteID   = id.noteID();
+                    e.Param.NoteSynthParam.Type     = Event::synth_param_pan;
+                    e.Param.NoteSynthParam.Delta    = fPan;
+                    e.Param.NoteSynthParam.Relative = relative;
+
+                    pEngineChannel->ScheduleEventMicroSec(&e, 0);
+                }
             }
         }
 
@@ -632,6 +647,7 @@ namespace LinuxSampler {
             wrnMsg("change_cutoff(): argument 2 may not be negative");
             cutoff = 0;
         }
+        const float fCutoff = float(cutoff) / float(VM_FILTER_PAR_MAX_VALUE);
 
         AbstractEngineChannel* pEngineChannel =
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
@@ -650,28 +666,11 @@ namespace LinuxSampler {
             NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
             if (!pNote) return successResult();
 
-            const float fCutoff = float(cutoff) / float(VM_FILTER_PAR_MAX_VALUE);
-
-            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
-            e.Init(); // clear IDs
-            e.Type = Event::type_note_synth_param;
-            e.Param.NoteSynthParam.NoteID   = id.noteID();
-            e.Param.NoteSynthParam.Type     = Event::synth_param_cutoff;
-            e.Param.NoteSynthParam.Delta    = fCutoff;
-            e.Param.NoteSynthParam.Relative = false;
-
-            pEngineChannel->ScheduleEventMicroSec(&e, 0);
-        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
-            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
-            for (int i = 0; i < ids->arraySize(); ++i) {
-                const ScriptID id = ids->evalIntElement(i);
-                if (!id || !id.isNoteID()) continue;
-
-                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
-                if (!pNote) continue;
-
-                const float fCutoff = float(cutoff) / float(VM_FILTER_PAR_MAX_VALUE);
-
+            // if change_cutoff() was called immediately after note was triggered
+            // then immediately apply cutoff to Note object
+            if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                pNote->Override.Cutoff = fCutoff;
+            } else { // otherwise schedule cutoff change ...
                 Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
                 e.Init(); // clear IDs
                 e.Type = Event::type_note_synth_param;
@@ -681,6 +680,31 @@ namespace LinuxSampler {
                 e.Param.NoteSynthParam.Relative = false;
 
                 pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                // if change_cutoff() was called immediately after note was triggered
+                // then immediately apply cutoff to Note object
+                if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                    pNote->Override.Cutoff = fCutoff;
+                } else { // otherwise schedule cutoff change ...
+                    Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                    e.Init(); // clear IDs
+                    e.Type = Event::type_note_synth_param;
+                    e.Param.NoteSynthParam.NoteID   = id.noteID();
+                    e.Param.NoteSynthParam.Type     = Event::synth_param_cutoff;
+                    e.Param.NoteSynthParam.Delta    = fCutoff;
+                    e.Param.NoteSynthParam.Relative = false;
+
+                    pEngineChannel->ScheduleEventMicroSec(&e, 0);
+                }
             }
         }
 
@@ -710,6 +734,7 @@ namespace LinuxSampler {
             wrnMsg("change_reso(): argument 2 may not be negative");
             resonance = 0;
         }
+        const float fResonance = float(resonance) / float(VM_FILTER_PAR_MAX_VALUE);
 
         AbstractEngineChannel* pEngineChannel =
             static_cast<AbstractEngineChannel*>(m_vm->m_event->cause.pEngineChannel);
@@ -728,28 +753,11 @@ namespace LinuxSampler {
             NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
             if (!pNote) return successResult();
 
-            const float fResonance = float(resonance) / float(VM_FILTER_PAR_MAX_VALUE);
-
-            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
-            e.Init(); // clear IDs
-            e.Type = Event::type_note_synth_param;
-            e.Param.NoteSynthParam.NoteID   = id.noteID();
-            e.Param.NoteSynthParam.Type     = Event::synth_param_resonance;
-            e.Param.NoteSynthParam.Delta    = fResonance;
-            e.Param.NoteSynthParam.Relative = false;
-
-            pEngineChannel->ScheduleEventMicroSec(&e, 0);
-        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
-            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
-            for (int i = 0; i < ids->arraySize(); ++i) {
-                const ScriptID id = ids->evalIntElement(i);
-                if (!id || !id.isNoteID()) continue;
-
-                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
-                if (!pNote) continue;
-
-                const float fResonance = float(resonance) / float(VM_FILTER_PAR_MAX_VALUE);
-
+            // if change_reso() was called immediately after note was triggered
+            // then immediately apply resonance to Note object
+            if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                pNote->Override.Resonance = fResonance;
+            } else { // otherwise schedule resonance change ...
                 Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
                 e.Init(); // clear IDs
                 e.Type = Event::type_note_synth_param;
@@ -759,6 +767,31 @@ namespace LinuxSampler {
                 e.Param.NoteSynthParam.Relative = false;
 
                 pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                // if change_reso() was called immediately after note was triggered
+                // then immediately apply resonance to Note object
+                if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                    pNote->Override.Resonance = fResonance;
+                } else { // otherwise schedule resonance change ...
+                    Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                    e.Init(); // clear IDs
+                    e.Type = Event::type_note_synth_param;
+                    e.Param.NoteSynthParam.NoteID   = id.noteID();
+                    e.Param.NoteSynthParam.Type     = Event::synth_param_resonance;
+                    e.Param.NoteSynthParam.Delta    = fResonance;
+                    e.Param.NoteSynthParam.Relative = false;
+
+                    pEngineChannel->ScheduleEventMicroSec(&e, 0);
+                }
             }
         }
 
@@ -805,26 +838,13 @@ namespace LinuxSampler {
             }
 
             NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
-            if (!pNote) return successResult();            
+            if (!pNote) return successResult();
 
-            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
-            e.Init(); // clear IDs
-            e.Type = Event::type_note_synth_param;
-            e.Param.NoteSynthParam.NoteID   = id.noteID();
-            e.Param.NoteSynthParam.Type     = Event::synth_param_attack;
-            e.Param.NoteSynthParam.Delta    = fAttack;
-            e.Param.NoteSynthParam.Relative = false;
-
-            pEngineChannel->ScheduleEventMicroSec(&e, 0);
-        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
-            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
-            for (int i = 0; i < ids->arraySize(); ++i) {
-                const ScriptID id = ids->evalIntElement(i);
-                if (!id || !id.isNoteID()) continue;
-
-                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
-                if (!pNote) continue;
-
+            // if change_attack() was called immediately after note was triggered
+            // then immediately apply attack to Note object
+            if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                pNote->Override.Attack = fAttack;
+            } else { // otherwise schedule attack change ...
                 Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
                 e.Init(); // clear IDs
                 e.Type = Event::type_note_synth_param;
@@ -834,6 +854,31 @@ namespace LinuxSampler {
                 e.Param.NoteSynthParam.Relative = false;
 
                 pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                // if change_attack() was called immediately after note was triggered
+                // then immediately apply attack to Note object
+                if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                    pNote->Override.Attack = fAttack;
+                } else { // otherwise schedule attack change ...
+                    Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                    e.Init(); // clear IDs
+                    e.Type = Event::type_note_synth_param;
+                    e.Param.NoteSynthParam.NoteID   = id.noteID();
+                    e.Param.NoteSynthParam.Type     = Event::synth_param_attack;
+                    e.Param.NoteSynthParam.Delta    = fAttack;
+                    e.Param.NoteSynthParam.Relative = false;
+
+                    pEngineChannel->ScheduleEventMicroSec(&e, 0);
+                }
             }
         }
 
@@ -880,26 +925,13 @@ namespace LinuxSampler {
             }
 
             NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
-            if (!pNote) return successResult();            
+            if (!pNote) return successResult();
 
-            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
-            e.Init(); // clear IDs
-            e.Type = Event::type_note_synth_param;
-            e.Param.NoteSynthParam.NoteID   = id.noteID();
-            e.Param.NoteSynthParam.Type     = Event::synth_param_decay;
-            e.Param.NoteSynthParam.Delta    = fDecay;
-            e.Param.NoteSynthParam.Relative = false;
-
-            pEngineChannel->ScheduleEventMicroSec(&e, 0);
-        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
-            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
-            for (int i = 0; i < ids->arraySize(); ++i) {
-                const ScriptID id = ids->evalIntElement(i);
-                if (!id || !id.isNoteID()) continue;
-
-                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
-                if (!pNote) continue;
-
+            // if change_decay() was called immediately after note was triggered
+            // then immediately apply decay to Note object
+            if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                pNote->Override.Decay = fDecay;
+            } else { // otherwise schedule decay change ...
                 Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
                 e.Init(); // clear IDs
                 e.Type = Event::type_note_synth_param;
@@ -909,6 +941,31 @@ namespace LinuxSampler {
                 e.Param.NoteSynthParam.Relative = false;
 
                 pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                // if change_decay() was called immediately after note was triggered
+                // then immediately apply decay to Note object
+                if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                    pNote->Override.Decay = fDecay;
+                } else { // otherwise schedule decay change ...
+                    Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                    e.Init(); // clear IDs
+                    e.Type = Event::type_note_synth_param;
+                    e.Param.NoteSynthParam.NoteID   = id.noteID();
+                    e.Param.NoteSynthParam.Type     = Event::synth_param_decay;
+                    e.Param.NoteSynthParam.Delta    = fDecay;
+                    e.Param.NoteSynthParam.Relative = false;
+
+                    pEngineChannel->ScheduleEventMicroSec(&e, 0);
+                }
             }
         }
 
@@ -955,26 +1012,13 @@ namespace LinuxSampler {
             }
 
             NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
-            if (!pNote) return successResult();            
+            if (!pNote) return successResult();
 
-            Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
-            e.Init(); // clear IDs
-            e.Type = Event::type_note_synth_param;
-            e.Param.NoteSynthParam.NoteID   = id.noteID();
-            e.Param.NoteSynthParam.Type     = Event::synth_param_release;
-            e.Param.NoteSynthParam.Delta    = fRelease;
-            e.Param.NoteSynthParam.Relative = false;
-
-            pEngineChannel->ScheduleEventMicroSec(&e, 0);
-        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
-            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
-            for (int i = 0; i < ids->arraySize(); ++i) {
-                const ScriptID id = ids->evalIntElement(i);
-                if (!id || !id.isNoteID()) continue;
-
-                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
-                if (!pNote) continue;
-
+            // if change_release() was called immediately after note was triggered
+            // then immediately apply relase to Note object
+            if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                pNote->Override.Release = fRelease;
+            } else { // otherwise schedule release change ...
                 Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
                 e.Init(); // clear IDs
                 e.Type = Event::type_note_synth_param;
@@ -984,6 +1028,31 @@ namespace LinuxSampler {
                 e.Param.NoteSynthParam.Relative = false;
 
                 pEngineChannel->ScheduleEventMicroSec(&e, 0);
+            }
+        } else if (args->arg(0)->exprType() == INT_ARR_EXPR) {
+            VMIntArrayExpr* ids = args->arg(0)->asIntArray();
+            for (int i = 0; i < ids->arraySize(); ++i) {
+                const ScriptID id = ids->evalIntElement(i);
+                if (!id || !id.isNoteID()) continue;
+
+                NoteBase* pNote = pEngineChannel->pEngine->NoteByID( id.noteID() );
+                if (!pNote) continue;
+
+                // if change_release() was called immediately after note was triggered
+                // then immediately apply relase to Note object
+                if (m_vm->m_event->cause.SchedTime() == pNote->triggerSchedTime) {
+                    pNote->Override.Release = fRelease;
+                } else { // otherwise schedule release change ...
+                    Event e = m_vm->m_event->cause; // copy to get fragment time for "now"
+                    e.Init(); // clear IDs
+                    e.Type = Event::type_note_synth_param;
+                    e.Param.NoteSynthParam.NoteID   = id.noteID();
+                    e.Param.NoteSynthParam.Type     = Event::synth_param_release;
+                    e.Param.NoteSynthParam.Delta    = fRelease;
+                    e.Param.NoteSynthParam.Relative = false;
+
+                    pEngineChannel->ScheduleEventMicroSec(&e, 0);
+                }
             }
         }
 

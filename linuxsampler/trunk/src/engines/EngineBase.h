@@ -689,6 +689,9 @@ namespace LinuxSampler {
                 NoteIterator itNewNote = pNotePool->allocAppend();
                 const note_id_t newNoteID = pNotePool->getID(itNewNote);
 
+                // remember the engine's time when this note was triggered exactly
+                itNewNote->triggerSchedTime = pNoteOnEvent->SchedTime();
+
                 // usually the new note (and its subsequent voices) will be
                 // allocated on the key provided by the event's note number,
                 // however if this new note is requested not to be a regular

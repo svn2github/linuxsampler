@@ -126,7 +126,7 @@ namespace LinuxSampler {
             RingBuffer<uint8_t,false>* pSysexBuffer;          ///< Input buffer for MIDI system exclusive messages.
             uint                       SampleRate;            ///< Sample rate of the engines output audio signal (in Hz)
             uint                       MaxSamplesPerCycle;    ///< Size of each audio output buffer
-            unsigned long              FrameTime;             ///< Time in frames of the start of the current audio fragment
+            sched_time_t               FrameTime;             ///< Scheduler time of the 1st sample point of the current audio fragment cycle. This is a consecutive sample point counter for the engine which proceeds (beyond fragment boundaries) until the engine is explicitly reset for some reason.
             int                        ActiveVoiceCountMax;   ///< the maximum voice usage since application start
             atomic_t                   ActiveVoiceCount;      ///< number of currently active voices
             int                        VoiceSpawnsLeft;       ///< We only allow CONFIG_MAX_VOICES voices to be spawned per audio fragment, we use this variable to ensure this limit.
