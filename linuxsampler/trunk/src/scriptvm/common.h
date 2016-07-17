@@ -168,9 +168,27 @@ namespace LinuxSampler {
          * expression's constant value may be evaluated already at script
          * parse time, which may result in performance benefits during script
          * runtime.
+         *
+         * @b NOTE: A constant expression is per se always also non modifyable.
+         * But a non modifyable expression may not necessarily be a constant
+         * expression!
+         *
+         * @see isModifyable()
          */
         virtual bool isConstExpr() const = 0;
 
+        /**
+         * Returns true in case this expression is allowed to be modified.
+         * If this method returns @c false then this expression must be handled
+         * as read-only expression, which means that assigning a new value to it
+         * is either not possible or not allowed.
+         *
+         * @b NOTE: A constant expression is per se always also non modifyable.
+         * But a non modifyable expression may not necessarily be a constant
+         * expression!
+         *
+         * @see isConstExpr()
+         */
         bool isModifyable() const;
     };
 
