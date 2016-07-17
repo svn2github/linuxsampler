@@ -242,7 +242,7 @@ ScriptEditor::~ScriptEditor() {
 
 int ScriptEditor::currentFontSize() const {
 #if defined(__APPLE__)
-    const int defaultFontSize = 14;
+    const int defaultFontSize = 13;
 #else
     const int defaultFontSize = 10;
 #endif
