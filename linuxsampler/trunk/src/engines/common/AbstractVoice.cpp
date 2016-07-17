@@ -143,10 +143,14 @@ namespace LinuxSampler {
         VolumeLeft  = volume * pKeyInfo->PanLeft;
         VolumeRight = volume * pKeyInfo->PanRight;
 
-        float subfragmentRate = GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
+        // this rate is used for rather mellow volume fades
+        const float subfragmentRate = GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
+        // this rate is used for very fast volume fades
+        const float quickRampRate = RTMath::Min(subfragmentRate, GetEngine()->SampleRate * 0.001f /* 1ms */);
         CrossfadeSmoother.trigger(crossfadeVolume, subfragmentRate);
+
         VolumeSmoother.trigger(pEngineChannel->MidiVolume, subfragmentRate);
-        NoteVolumeSmoother.trigger(pNote ? pNote->Override.Volume : 1.f, subfragmentRate);
+        NoteVolumeSmoother.trigger(pNote ? pNote->Override.Volume : 1.f, quickRampRate);
 
         // Check if the sample needs disk streaming or is too short for that
         long cachedsamples = GetSampleCacheSize() / SmplInfo.FrameSize;
@@ -216,11 +220,11 @@ namespace LinuxSampler {
         NotePanRight = (pNote) ? AbstractEngine::PanCurveValueNorm(pNote->Override.Pan, 1 /*right*/) : 1.f;
         PanLeftSmoother.trigger(
             AbstractEngine::PanCurve[128 - pan] * NotePanLeft,
-            subfragmentRate
+            quickRampRate //NOTE: maybe we should have 2 separate pan smoothers, one for MIDI CC10 (with slow rate) and one for instrument script change_pan() calls (with fast rate)
         );
         PanRightSmoother.trigger(
             AbstractEngine::PanCurve[pan] * NotePanRight,
-            subfragmentRate
+            quickRampRate //NOTE: maybe we should have 2 separate pan smoothers, one for MIDI CC10 (with slow rate) and one for instrument script change_pan() calls (with fast rate)
         );
 
 #ifdef CONFIG_INTERPOLATE_VOLUME

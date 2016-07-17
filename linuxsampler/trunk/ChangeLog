@@ -24,6 +24,9 @@ Version SVN trunk (?)
       (CC #64) events.
     - Fix: Release trigger voices can now also distinguish correctly between
       note-off and sustain pedal up events.
+    - All engines: Increased ramp speed of volume smoother and pan smoother
+      (while slow rate of crossfade smoother is preserved) to allow quick
+      volume and pan changes by instrument scripts for instance.
 
   * packaging changes:
     - removed unnecessary dependency to libuuid
