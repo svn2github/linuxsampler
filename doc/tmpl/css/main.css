@@ -551,6 +551,13 @@ article p {
     clear:both;
 }
 
+/* automatically center the 1st paragraph (block) directly after a h1 type header (since that header type is centered as well) */
+article h1 + p {
+    display:table; /*HACK: "block" would stretch the entire page width */
+    margin-left:auto;
+    margin-right:auto;
+}
+
 article a {
     font-weight:400;
     color:#1ba1dd;
