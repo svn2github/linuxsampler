@@ -122,6 +122,7 @@ public:
     Property<bool> syncSamplerInstrumentSelection; ///< if enabled, the sampler's current instrument will automatically be switched whenever another instrument was selected in gigedit
     Property<bool> moveRootNoteWithRegionMoved; ///< if enabled, the root note(s) of regions are automatically moving when the user drags a region around at the virtual keyboard
     Property<bool> autoRestoreWindowDimension;
+    Property<bool> saveWithTemporaryFile; ///< If enabled and the user selects "Save" from the main menu, then the file is first saved as separate temporary file and after the save operation completed the temporary file is moved over the original file.
 
     // settings of "MainWindow" group
     Property<int> mainWindowX;

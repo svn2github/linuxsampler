@@ -24,6 +24,11 @@
 # include <config.h>
 #endif
 
+#if !defined(WIN32)
+# include <unistd.h>
+# include <errno.h>
+#endif
+
 #include <sstream>
 
 //FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?

@@ -200,6 +200,13 @@ MainWindow::MainWindow() :
                      sigc::mem_fun(
                          *this, &MainWindow::on_auto_restore_win_dim));
 
+    toggle_action =
+        Gtk::ToggleAction::create("SaveWithTemporaryFile", _("Save with _temporary file"));
+    toggle_action->set_active(Settings::singleton()->saveWithTemporaryFile);
+    actionGroup->add(toggle_action,
+                     sigc::mem_fun(
+                         *this, &MainWindow::on_save_with_temporary_file));
+
     actionGroup->add(
         Gtk::Action::create("RefreshAll", _("_Refresh All")),
         sigc::mem_fun(*this, &MainWindow::on_action_refresh_all)
@@ -384,6 +391,7 @@ MainWindow::MainWindow() :
         "      <menuitem action='WarnUserOnExtensions'/>"
         "      <menuitem action='SyncSamplerInstrumentSelection'/>"
         "      <menuitem action='MoveRootNoteWithRegionMoved'/>"
+        "      <menuitem action='SaveWithTemporaryFile'/>"
         "    </menu>"
         "    <menu action='MenuHelp'>"
         "      <menuitem action='About'/>"
@@ -903,7 +911,34 @@ void Saver::thread_function()
 
         // if no filename was provided, that means "save", if filename was provided means "save as"
         if (filename.empty()) {
-            gig->Save(&progress);
+            if (!Settings::singleton()->saveWithTemporaryFile) {
+                // save directly over the existing .gig file
+                // (requires less disk space than solution below
+                // but may be slower)
+                gig->Save(&progress);
+            } else {
+                // save the file as separate temporary file first,
+                // then move the saved file over the old file
+                // (may result in performance speedup during save)
+                String tmpname = filename + ".TMP";
+                gig->Save(tmpname, &progress);
+                #if defined(WIN32)
+                if (!DeleteFile(filename.c_str()) {
+                    throw RIFF::Exception("Could not replace original file with temporary file (unable to remove original file).");
+                }
+                #else // POSIX ...
+                if (unlink(filename.c_str())) {
+                    throw RIFF::Exception("Could not replace original file with temporary file (unable to remove original file): " + String(strerror(errno)));
+                }
+                #endif
+                if (rename(tmpname.c_str(), filename.c_str())) {
+                    #if defined(WIN32)
+                    throw RIFF::Exception("Could not replace original file with temporary file (unable to rename temp file).");
+                    #else
+                    throw RIFF::Exception("Could not replace original file with temporary file (unable to rename temp file): " + String(strerror(errno)));
+                    #endif
+                }
+            }
         } else {
             gig->Save(filename, &progress);
         }
@@ -1940,6 +1975,16 @@ void MainWindow::on_auto_restore_win_dim() {
         return;
     }
     Settings::singleton()->autoRestoreWindowDimension = item->get_active();
+}
+
+void MainWindow::on_save_with_temporary_file() {
+    Gtk::CheckMenuItem* item =
+        dynamic_cast<Gtk::CheckMenuItem*>(uiManager->get_widget("/MenuBar/MenuSettings/SaveWithTemporaryFile"));
+    if (!item) {
+        std::cerr << "/MenuBar/MenuSettings/SaveWithTemporaryFile == NULL\n";
+        return;
+    }
+    Settings::singleton()->saveWithTemporaryFile = item->get_active();
 }
 
 bool MainWindow::is_copy_samples_unity_note_enabled() const {

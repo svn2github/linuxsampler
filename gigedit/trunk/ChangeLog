@@ -159,6 +159,9 @@ Version 1.0.0 (2015-07-17)
   * Region Chooser: when moving a region around automatically move the
     keyboard position dependent pitch accordingly (can be turned off with
     "Settings"->"Move root key with region moved").
+  * Added option to main menu for performing "Save" operation with a
+    tempoary file (may perform faster than directly modifying existing
+    .gig file).
 
 Version 0.2.0 (2009-07-31)
 
