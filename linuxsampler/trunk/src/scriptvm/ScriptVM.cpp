@@ -103,6 +103,8 @@ namespace LinuxSampler {
         m_fnDec = new CoreVMFunction_dec;
         m_varRealTimer = new CoreVMDynVar_NKSP_REAL_TIMER;
         m_varPerfTimer = new CoreVMDynVar_NKSP_PERF_TIMER;
+        m_fnShLeft = new CoreVMFunction_sh_left;
+        m_fnShRight = new CoreVMFunction_sh_right;
     }
 
     ScriptVM::~ScriptVM() {
@@ -114,6 +116,8 @@ namespace LinuxSampler {
         delete m_fnNumElements;
         delete m_fnInc;
         delete m_fnDec;
+        delete m_fnShLeft;
+        delete m_fnShRight;
         delete m_varRealTimer;
         delete m_varPerfTimer;
     }
@@ -215,6 +219,8 @@ namespace LinuxSampler {
         else if (name == "num_elements") return m_fnNumElements;
         else if (name == "inc") return m_fnInc;
         else if (name == "dec") return m_fnDec;
+        else if (name == "sh_left") return m_fnShLeft;
+        else if (name == "sh_right") return m_fnShRight;
         return NULL;
     }
 

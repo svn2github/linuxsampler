@@ -38,6 +38,17 @@ on init
   message("Bitwise operation .not. 0 = " & .not. 0)
   message("Bitwise operation .not. -1 = " & .not. -1)
 
+  message("sh_left(1,0) = " & sh_left(1,0))
+  message("sh_left(1,1) = " & sh_left(1,1))
+  message("sh_left(1,2) = " & sh_left(1,2))
+  message("sh_left(1,3) = " & sh_left(1,3))
+  message("sh_left(1,4) = " & sh_left(1,4))
+
+  message("sh_right(128,0) = " & sh_right(128,0))
+  message("sh_right(128,1) = " & sh_right(128,1))
+  message("sh_right(128,2) = " & sh_right(128,2))
+  message("sh_right(128,3) = " & sh_right(128,3))
+
   message("abs(-3) = " & abs(-3))
 
   message("inc(" & $i & ") = " & inc($i))

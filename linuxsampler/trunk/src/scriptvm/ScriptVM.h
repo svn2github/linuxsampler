@@ -245,6 +245,8 @@ namespace LinuxSampler {
         class CoreVMFunction_num_elements* m_fnNumElements;
         class CoreVMFunction_inc* m_fnInc;
         class CoreVMFunction_dec* m_fnDec;
+        class CoreVMFunction_sh_left* m_fnShLeft;
+        class CoreVMFunction_sh_right* m_fnShRight;
         class CoreVMDynVar_NKSP_REAL_TIMER* m_varRealTimer;
         class CoreVMDynVar_NKSP_PERF_TIMER* m_varPerfTimer;
     };

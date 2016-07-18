@@ -214,6 +214,30 @@ public:
     VMFnResult* exec(VMFnArgs* args);
 };
 
+/**
+ * Implements the built-in sh_left() script function.
+ */
+class CoreVMFunction_sh_left : public VMIntResultFunction {
+public:
+    int minRequiredArgs() const { return 2; }
+    int maxAllowedArgs() const { return 2; }
+    bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR; }
+    ExprType_t argType(int iArg) const { return INT_EXPR; }
+    VMFnResult* exec(VMFnArgs* args);
+};
+
+/**
+ * Implements the built-in sh_right() script function.
+ */
+class CoreVMFunction_sh_right : public VMIntResultFunction {
+public:
+    int minRequiredArgs() const { return 2; }
+    int maxAllowedArgs() const { return 2; }
+    bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR; }
+    ExprType_t argType(int iArg) const { return INT_EXPR; }
+    VMFnResult* exec(VMFnArgs* args);
+};
+
 } // namespace LinuxSampler
 
 #endif // LS_COREVMFUNCTIONS_H
