@@ -1,0 +1,67 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>sh_right() function</title>
+    <meta name="description" content="Calculates a right bit shifted value.">
+  </head>
+  <body>
+    <h1>sh_right()</h1>
+    <p>
+      Calculates right bit shifted values.
+      The original value of the 1st argument is bit shifted to the right as
+      many times as requested by the 2nd argument and the result of this
+      bit shift operation is returned by this function.
+    </p>
+
+    <h3>Function Prototype</h3>
+    <p/>
+    <code lang="nksp">
+sh_right(??number??, ??shifts??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??number??</code></td>
+        <td>Integer Number</td>
+        <td>Original input value to be shifted.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??shifts??</code></td>
+        <td>Integer Number</td>
+        <td>Amount of times the original value should be shifted to the right.<br>
+            [required]</td>
+      </tr>
+    </table>
+    
+    <h3>Return Value</h3>
+    <table>
+      <tr>
+        <th>Description</th> <th>Data Type</th>
+      </tr>
+      <tr>
+        <td>Bit shifted result.</td>
+        <td>Integer Number</td>
+      </tr>
+    </table>
+    
+    <h3>Examples</h3>
+    <p/>
+    <code>
+on init
+  message("sh_right(128,0) = " & sh_right(128,0))
+  message("sh_right(128,1) = " & sh_right(128,1))
+  message("sh_right(128,2) = " & sh_right(128,2))
+  message("sh_right(128,3) = " & sh_right(128,3))
+end on
+    </code>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0.svn22.<p>
+
+  </body>
+</html>
