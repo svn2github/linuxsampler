@@ -923,7 +923,7 @@ void Saver::thread_function()
                 String tmpname = filename + ".TMP";
                 gig->Save(tmpname, &progress);
                 #if defined(WIN32)
-                if (!DeleteFile(filename.c_str()) {
+                if (!DeleteFile(filename.c_str())) {
                     throw RIFF::Exception("Could not replace original file with temporary file (unable to remove original file).");
                 }
                 #else // POSIX ...
