@@ -1,0 +1,68 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>min() function</title>
+    <meta name="description" content="Calculates the minimum value of two given values.">
+  </head>
+  <body>
+    <h1>min()</h1>
+    <p>
+      Returns the minimum value of the passed two value arguments.
+      That means, it compares the two passed values with each other and
+      returns the one which is smaller.
+    </p>
+    
+    <h3>Function Prototype</h3>
+    <p/>
+    <code lang="nksp">
+min(??number1??,??number2??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??number1??</code></td>
+        <td>Integer Number</td>
+        <td>One of the two numbers to compare with.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??number2??</code></td>
+        <td>Integer Number</td>
+        <td>One of the two numbers to compare with.<br>
+            [required]</td>
+      </tr>
+    </table>
+
+    <h3>Return Value</h3>
+    <table>
+      <tr>
+        <th>Description</th> <th>Data Type</th>
+      </tr>
+      <tr>
+        <td>Smallest number of the passed two values.</td>
+        <td>Integer Number</td>
+      </tr>
+    </table>
+    
+    <h3>Examples</h3>
+    <p>
+      The following example prints the result of some example argument
+      values to the terminal as soon as the script is loaded.
+    <p/>
+    <code>
+on init
+  message("min(2,3) = " & min(2,3))
+  message("min(1,11) = " & min(1,11))
+  message("min(-30,4) = " & min(-30,4))
+end on
+    </code>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0.svn23.<p>
+
+  </body>
+</html>
