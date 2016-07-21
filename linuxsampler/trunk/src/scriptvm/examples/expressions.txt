@@ -51,6 +51,14 @@ on init
 
   message("abs(-3) = " & abs(-3))
 
+  message("min(2,3) = " & min(2,3))
+  message("min(1,11) = " & min(1,11))
+  message("min(-30,4) = " & min(-30,4))
+
+  message("max(2,3) = " & max(2,3))
+  message("max(1,11) = " & max(1,11))
+  message("max(-30,4) = " & max(-30,4))
+
   message("inc(" & $i & ") = " & inc($i))
   message("inc(" & $i & ") = " & inc($i))
   message("inc(" & $i & ") = " & inc($i))

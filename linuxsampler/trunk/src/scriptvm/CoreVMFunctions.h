@@ -238,6 +238,30 @@ public:
     VMFnResult* exec(VMFnArgs* args);
 };
 
+/**
+ * Implements the built-in min() script function.
+ */
+class CoreVMFunction_min : public VMIntResultFunction {
+public:
+    int minRequiredArgs() const { return 2; }
+    int maxAllowedArgs() const { return 2; }
+    bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR; }
+    ExprType_t argType(int iArg) const { return INT_EXPR; }
+    VMFnResult* exec(VMFnArgs* args);
+};
+
+/**
+ * Implements the built-in max() script function.
+ */
+class CoreVMFunction_max : public VMIntResultFunction {
+public:
+    int minRequiredArgs() const { return 2; }
+    int maxAllowedArgs() const { return 2; }
+    bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR; }
+    ExprType_t argType(int iArg) const { return INT_EXPR; }
+    VMFnResult* exec(VMFnArgs* args);
+};
+
 } // namespace LinuxSampler
 
 #endif // LS_COREVMFUNCTIONS_H

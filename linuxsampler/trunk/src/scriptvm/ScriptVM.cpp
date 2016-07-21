@@ -105,6 +105,8 @@ namespace LinuxSampler {
         m_varPerfTimer = new CoreVMDynVar_NKSP_PERF_TIMER;
         m_fnShLeft = new CoreVMFunction_sh_left;
         m_fnShRight = new CoreVMFunction_sh_right;
+        m_fnMin = new CoreVMFunction_min;
+        m_fnMax = new CoreVMFunction_max;
     }
 
     ScriptVM::~ScriptVM() {
@@ -118,6 +120,8 @@ namespace LinuxSampler {
         delete m_fnDec;
         delete m_fnShLeft;
         delete m_fnShRight;
+        delete m_fnMin;
+        delete m_fnMax;
         delete m_varRealTimer;
         delete m_varPerfTimer;
     }
@@ -221,6 +225,8 @@ namespace LinuxSampler {
         else if (name == "dec") return m_fnDec;
         else if (name == "sh_left") return m_fnShLeft;
         else if (name == "sh_right") return m_fnShRight;
+        else if (name == "min") return m_fnMin;
+        else if (name == "max") return m_fnMax;
         return NULL;
     }
 

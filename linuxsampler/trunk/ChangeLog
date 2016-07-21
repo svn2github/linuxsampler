@@ -112,6 +112,8 @@ Version SVN trunk (?)
       to have not effect at all (i.e. change_attack()).
     - Implemented built-in script function "sh_left()".
     - Implemented built-in script function "sh_right()".
+    - Implemented built-in script function "min()".
+    - Implemented built-in script function "max()".
 
 Version 2.0.0 (15 July 2015)
 

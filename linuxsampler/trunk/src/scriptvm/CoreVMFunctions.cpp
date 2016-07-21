@@ -188,4 +188,22 @@ VMFnResult* CoreVMFunction_sh_right::exec(VMFnArgs* args) {
     return successResult(i >> n);
 }
 
+///////////////////////////////////////////////////////////////////////////
+// built-in script function:  min()
+
+VMFnResult* CoreVMFunction_min::exec(VMFnArgs* args) {
+    int l = args->arg(0)->asInt()->evalInt();
+    int r = args->arg(1)->asInt()->evalInt();
+    return successResult(l < r ? l : r);
+}
+
+///////////////////////////////////////////////////////////////////////////
+// built-in script function:  max()
+
+VMFnResult* CoreVMFunction_max::exec(VMFnArgs* args) {
+    int l = args->arg(0)->asInt()->evalInt();
+    int r = args->arg(1)->asInt()->evalInt();
+    return successResult(l > r ? l : r);
+}
+
 } // namespace LinuxSampler
