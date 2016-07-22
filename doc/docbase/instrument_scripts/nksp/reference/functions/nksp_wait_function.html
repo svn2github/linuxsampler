@@ -12,6 +12,12 @@
       the requested amount times elapsed by calling <code lang="nksp">stop_wait()</code> from another
       event handler instance.
     </p>
+    <p>
+      The <code>??duration-us??</code> argument must neither
+      be negative nor zero, otherwise script execution will be aborted, because this
+      is a common indication of bugs in scripts which could potentially lead to
+      real-time instability or worse scenarios otherwise.
+    </p>
     <note>
       If the even handler instance's built-in variable <code>$NKSP_IGNORE_WAIT</code>
       reflects <code>1</code> then all calls to <code>wait()</code> will be ignored.
@@ -33,7 +39,7 @@ wait(??duration-us??)
       <tr>
         <td><code>??duration-us??</code></td>
         <td>Integer Number</td>
-        <td>Amount of microseconds to pause execution.<br>
+        <td>Positive (non zero) amount of microseconds to pause execution.<br>
             [required]</td>
       </tr>
     </table>
