@@ -19,6 +19,43 @@
 
 #define DEBUG_SCRIPTVM_CORE 0
 
+/**
+ * Maximum amount of VM instructions to be executed per ScriptVM::exec() call
+ * in case loops are involved, before the script got automatically suspended
+ * for a certain amount of time to avoid any RT instability issues.
+ *
+ * The following value takes a max. execution time of 300 microseconds as aimed
+ * target, assuming an execution time of approximately 5 microseconds per
+ * instruction this leads to the very approximate value set below.
+ */
+#define SCRIPTVM_MAX_INSTR_PER_CYCLE_SOFT 70
+
+/**
+ * Absolute maximum amount of VM instructions to be executed per
+ * ScriptVM::exec() call (even if no loops are involved), before the script got
+ * automatically suspended for a certain amount of time to avoid any RT
+ * instability issues.
+ *
+ * A distinction between "soft" and "hard" limit is done here ATM because a
+ * script author typically expects that his script might be interrupted
+ * automatically if he is using while() loops, however he might not be
+ * prepared that his script might also be interrupted if no loop is involved
+ * (i.e. on very large scripts).
+ *
+ * The following value takes a max. execution time of 1000 microseconds as
+ * aimed target, assuming an execution time of approximately 5 microseconds per
+ * instruction this leads to the very approximate value set below.
+ */
+#define SCRIPTVM_MAX_INSTR_PER_CYCLE_HARD 210
+
+/**
+ * In case either SCRIPTVM_MAX_INSTR_PER_CYCLE_SOFT or
+ * SCRIPTVM_MAX_INSTR_PER_CYCLE_HARD was exceeded when calling
+ * ScriptVM::exec() : the amount of microseconds the respective script
+ * execution instance should be automatically suspended by the VM.
+ */
+#define SCRIPT_VM_FORCE_SUSPENSION_MICROSECONDS 1000
+
 int InstrScript_parse(LinuxSampler::ParserContext*);
 
 namespace LinuxSampler {
@@ -92,7 +129,7 @@ namespace LinuxSampler {
         return max;
     }
 
-    ScriptVM::ScriptVM() : m_eventHandler(NULL), m_parserContext(NULL) {
+    ScriptVM::ScriptVM() : m_eventHandler(NULL), m_parserContext(NULL), m_autoSuspend(true) {
         m_fnMessage = new CoreVMFunction_message;
         m_fnExit = new CoreVMFunction_exit;
         m_fnWait = new CoreVMFunction_wait(this);
@@ -272,6 +309,14 @@ namespace LinuxSampler {
         return m_parserContext->execContext;
     }
 
+    void ScriptVM::setAutoSuspendEnabled(bool b) {
+        m_autoSuspend = b;
+    }
+
+    bool ScriptVM::isAutoSuspendEnabled() const {
+        return m_autoSuspend;
+    }
+
     VMExecStatus_t ScriptVM::exec(VMParserContext* parserContext, VMExecContext* execContex, VMEventHandler* handler) {
         m_parserContext = dynamic_cast<ParserContext*>(parserContext);
         if (!m_parserContext) {
@@ -295,6 +340,7 @@ namespace LinuxSampler {
 
         ctx->status = VM_EXEC_RUNNING;
         StmtFlags_t flags = STMT_SUCCESS;
+        int instructionsCounter = 0;
 
         int& frameIdx = ctx->stackFrame;
         if (frameIdx < 0) { // start condition ...
@@ -371,9 +417,25 @@ namespace LinuxSampler {
                         ctx->pushStack(
                             whileStmt->statements()
                         );
+                        if (flags == STMT_SUCCESS && m_autoSuspend &&
+                            instructionsCounter > SCRIPTVM_MAX_INSTR_PER_CYCLE_SOFT)
+                        {
+                            flags = StmtFlags_t(STMT_SUSPEND_SIGNALLED);
+                            ctx->suspendMicroseconds = SCRIPT_VM_FORCE_SUSPENSION_MICROSECONDS;
+                        }
                     } else ctx->popStack();
+                    break;
                 }
             }
+
+            if (flags == STMT_SUCCESS && m_autoSuspend &&
+                instructionsCounter > SCRIPTVM_MAX_INSTR_PER_CYCLE_HARD)
+            {
+                flags = StmtFlags_t(STMT_SUSPEND_SIGNALLED);
+                ctx->suspendMicroseconds = SCRIPT_VM_FORCE_SUSPENSION_MICROSECONDS;
+            }
+
+            ++instructionsCounter;
         }
 
         if (flags & STMT_SUSPEND_SIGNALLED) {

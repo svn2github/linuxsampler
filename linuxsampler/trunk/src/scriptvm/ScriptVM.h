@@ -230,6 +230,32 @@ namespace LinuxSampler {
          */
         std::map<String,VMDynVar*> builtInDynamicVariables() OVERRIDE;
 
+        /**
+         * Enables or disables automatic suspension of scripts by the VM.
+         * If automatic suspension is enabled then scripts are monitored
+         * regarding their execution time and in case they are execution
+         * for too long, then they are automatically suspended by the VM for
+         * a certain amount of time in order to avoid any RT instablity
+         * issues caused by bugs in the script, i.e. endless while() loops
+         * or very large scripts.
+         *
+         * Automatic suspension is enabled by default due to the aimed
+         * real-time context of this virtual machine.
+         *
+         * @param b - true: enable auto suspension [default],
+         *            false: disable auto suspension
+         */
+        void setAutoSuspendEnabled(bool b = true);
+
+        /**
+         * Returns true in case automatic suspension of scripts by the VM is
+         * enabled. See setAutoSuspendEnabled() for details.
+         *
+         * Automatic suspension is enabled by default due to the aimed
+         * real-time context of this virtual machine.
+         */
+        bool isAutoSuspendEnabled() const;
+
         VMEventHandler* currentVMEventHandler(); //TODO: should be protected (only usable during exec() calls, intended only for VMFunctions)
         VMParserContext* currentVMParserContext(); //TODO: should be protected (only usable during exec() calls, intended only for VMFunctions)
         VMExecContext* currentVMExecContext(); //TODO: should be protected (only usable during exec() calls, intended only for VMFunctions)
@@ -237,6 +263,7 @@ namespace LinuxSampler {
     protected:
         VMEventHandler* m_eventHandler;
         ParserContext* m_parserContext;
+        bool m_autoSuspend;
         class CoreVMFunction_message* m_fnMessage;
         class CoreVMFunction_exit* m_fnExit;
         class CoreVMFunction_wait* m_fnWait;

@@ -120,6 +120,8 @@ Version SVN trunk (?)
       a negative or zero wait time was passed as argument (since this is
       a common indication of a bug either of the script or even of the
       engine, which could lead to RT instability or even worse).
+    - ScriptVM: Implemented automatic suspension of RT safety
+      threatening scripts.
 
 Version 2.0.0 (15 July 2015)
 

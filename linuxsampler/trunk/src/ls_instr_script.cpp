@@ -51,6 +51,12 @@ static void printUsage() {
     cout << "            highlighting backend) of the parsed script to stdout and exits" << endl;
     cout << "            immediately." << endl;
     cout << endl;
+    cout << "        --auto-suspend" << endl;
+    cout << "            In contrast to the real sampler, this command line program " << endl;
+    cout << "            disables automatic suspension by the VM by default to ease " << endl;
+    cout << "            i.e. bench marking tasks and the like. By providing this " << endl;
+    cout << "            argument auto suspension will be enabled." << endl;
+    cout << endl;
     cout << "If you pass \"core\" as argument, only the core language built-in" << endl;
     cout << "variables and functions are available. However in this particular" << endl;
     cout << "mode the program will not just parse the given script, but also" << endl;
@@ -85,6 +91,7 @@ int main(int argc, char *argv[]) {
         printUsage();
         return -1;
     }
+    vm->setAutoSuspendEnabled(false);
 
     // validate & parse arguments provided to this program
     for (int iArg = 2; iArg < argc; ++iArg) {
@@ -101,6 +108,8 @@ int main(int argc, char *argv[]) {
         } else if (opt == "-ds" || opt == "--debug-syntax") {
             dumpSyntaxHighlighting(vm);
             return 0;
+        } else if (opt == "--auto-suspend") {
+            vm->setAutoSuspendEnabled(true);
         } else {
             cerr << "Unknown option '" << opt << "'" << endl;
             cerr << endl;
