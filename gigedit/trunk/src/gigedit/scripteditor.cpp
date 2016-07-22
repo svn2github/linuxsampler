@@ -367,6 +367,7 @@ static void applyCodeTag(Glib::RefPtr<Gtk::TextBuffer>& txtbuf, const LinuxSampl
 void ScriptEditor::updateSyntaxHighlightingByVM() {
     GetScriptVM();
     const std::string s = m_textBuffer->get_text();
+    if (s.empty()) return;
     std::vector<LinuxSampler::VMSourceToken> tokens = m_vm->syntaxHighlighting(s);
 
     for (int i = 0; i < tokens.size(); ++i) {
@@ -403,13 +404,15 @@ void ScriptEditor::updateParserIssuesByVM() {
     m_errors = parserContext->errors();
     m_warnings = parserContext->warnings();
 
-    for (int i = 0; i < m_issues.size(); ++i) {
-        const LinuxSampler::ParserIssue& issue = m_issues[i];
+    if (!s.empty()) {
+        for (int i = 0; i < m_issues.size(); ++i) {
+            const LinuxSampler::ParserIssue& issue = m_issues[i];
 
-        if (issue.isErr()) {
-            applyCodeTag(m_textBuffer, issue, m_errorTag);
-        } else if (issue.isWrn()) {
-            applyCodeTag(m_textBuffer, issue, m_warningTag);
+            if (issue.isErr()) {
+                applyCodeTag(m_textBuffer, issue, m_errorTag);
+            } else if (issue.isWrn()) {
+                applyCodeTag(m_textBuffer, issue, m_warningTag);
+            }
         }
     }
 

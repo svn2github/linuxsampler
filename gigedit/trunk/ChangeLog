@@ -37,6 +37,7 @@ Version SVN HEAD (?)
   * Script Editor: Fixed editor which did not appear on some systems due
     to missing icons (using now lists of alternative icon names).
   * Script Editor: Added "Font Size ..." selection to editor's menu.
+  * Script Editor: Fixed crash on Ctrl + A, followed by Del.
 
 Version 1.0.0 (2015-07-17)
 
