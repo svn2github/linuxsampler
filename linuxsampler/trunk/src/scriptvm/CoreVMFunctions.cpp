@@ -99,8 +99,17 @@ VMFnResult* CoreVMFunction_exit::exec(VMFnArgs* args) {
 VMFnResult* CoreVMFunction_wait::exec(VMFnArgs* args) {
     ExecContext* ctx = dynamic_cast<ExecContext*>(vm->currentVMExecContext());
     VMIntExpr* expr = dynamic_cast<VMIntExpr*>(args->arg(0));
-    ctx->suspendMicroseconds = expr->evalInt();
-    this->result.flags = STMT_SUSPEND_SIGNALLED;
+    int us = expr->evalInt();
+    if (us < 0) {
+        wrnMsg("wait(): argument may not be negative! Aborting script!");
+        this->result.flags = STMT_ABORT_SIGNALLED;
+    } else if (us == 0) {
+        wrnMsg("wait(): argument may not be zero! Aborting script!");
+        this->result.flags = STMT_ABORT_SIGNALLED;
+    } else {
+        ctx->suspendMicroseconds = us;
+        this->result.flags = STMT_SUSPEND_SIGNALLED;
+    }
     return &result;
 }
 

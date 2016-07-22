@@ -1259,12 +1259,17 @@ namespace LinuxSampler {
                         // the script's "init" event handler is only executed
                         // once (when the script is loaded or reloaded)
                         if (pEngineChannel->pScript && pEngineChannel->pScript->handlerInit) {
+                            dmsg(5,("Engine: exec handlerInit %p\n", pEngineChannel->pScript->handlerInit));
                             RTList<ScriptEvent>::Iterator itScriptEvent =
                                 pEngineChannel->pScript->pEvents->allocAppend();
 
                             itScriptEvent->cause.pEngineChannel = pEngineChannel;
                             itScriptEvent->handlers[0] = pEngineChannel->pScript->handlerInit;
                             itScriptEvent->handlers[1] = NULL;
+                            itScriptEvent->currentHandler = 0;
+                            itScriptEvent->executionSlices = 0;
+                            itScriptEvent->ignoreAllWaitCalls = false;
+                            itScriptEvent->handlerType = VM_EVENT_HANDLER_INIT;
 
                             VMExecStatus_t res = pScriptVM->exec(
                                 pEngineChannel->pScript->parserContext, &*itScriptEvent

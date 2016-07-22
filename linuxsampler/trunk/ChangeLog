@@ -114,6 +114,12 @@ Version SVN trunk (?)
     - Implemented built-in script function "sh_right()".
     - Implemented built-in script function "min()".
     - Implemented built-in script function "max()".
+    - NKSP Fix: "init" event handler was not always executed when a script
+      was loaded.
+    - NKSP built-in wait() script function: abort script execution if
+      a negative or zero wait time was passed as argument (since this is
+      a common indication of a bug either of the script or even of the
+      engine, which could lead to RT instability or even worse).
 
 Version 2.0.0 (15 July 2015)
 
