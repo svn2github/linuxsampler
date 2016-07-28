@@ -409,12 +409,17 @@ void DimensionManager::onColumnClicked() {
 # warning Your GTKMM version is too old; dimension manager dialog might crash when changing a dimension type !
 #endif
 
+#if (GTKMM_MAJOR_VERSION == 3 && GTKMM_MINOR_VERSION >= 8) || GTKMM_MAJOR_VERSION > 3
+    if (!is_visible()) return;
+#endif
+
     Gtk::TreeModel::Path path;
     Gtk::TreeViewColumn* focus_column;
     treeView.get_cursor(path, focus_column);
     //const int row = path[0];
     if (focus_column == treeView.get_column(0)) {
         Gtk::TreeModel::iterator it = treeView.get_model()->get_iter(path);
+        if (!it) return;
         Gtk::TreeModel::Row row = *it;
         gig::dimension_t oldType = row[tableModel.m_type];
 
