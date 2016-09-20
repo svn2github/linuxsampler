@@ -1,18 +1,49 @@
-.TH "gigdump" "1" "8 May 2005" "libgig @VERSION@" "libgig tools"
+.TH "gigdump" "1" "20 Sep 2016" "libgig @VERSION@" "libgig tools"
 .SH NAME
 gigdump \- List informations about a Gigasampler (.gig) file.
 .SH SYNOPSIS
 .B gigdump
-[ -v ] GIGFILE
+[OPTIONS] GIGFILE
 .SH DESCRIPTION
-Prints out a list of all available samples and instruments within a Gigasampler (.gig) file along with detailed informations about their properties and settings.
+By default it prints out a list of all available samples, real-time instrument
+scripts and instruments within a Gigasampler (.gig) file, along with detailed
+informations about their properties and settings.
 .SH OPTIONS
 .TP
 .B \ GIGFILE
 filename of the Gigasampler file
 .TP
+.B \ --rebuild-checksums
+Rebuild checksum table for all samples. Read description of
+.B --verify
+option for more details about sample checksums in general. Usually you only
+need to use
+.B --rebuild-checksums
+in case the samples' CRC checksum table itself was damaged. The
+.B --verify
+option will tell you if that is really the case and will suggest to you to use
+.B --rebuild-checksums
+to repair the table in such cases.
+.TP
 .B \ -v
-print version and exit
+Print version and exit.
+.TP
+.B \ --verify
+Check raw wave data integrity of all samples and print result of this check.
+For all samples of a gig file a correspondig CRC32 checksum is stored along
+to its raw wave form data whenever a conscious change to the wave form data
+was performed. By calling gigdump with this option all samples are scanned
+and compared with their existing checksums to detect any damage to
+individual samples. The individual damaged samples are listed by gigdump
+in this case. Since essentially the entire file has to be read, this can
+take a long time and hence this check is not by default performed i.e.
+each time a gig file is loaded for regular use for example. Accordingly you
+may use
+.B --verify
+from time to time to check explicitly whether your gig files have been
+damaged for some reason, i.e. after modifying them with an instrument editor
+like
+.BR gigedit (1).
 
 .SH "SEE ALSO"
 .BR gigextract(1),

@@ -671,6 +671,7 @@ namespace gig {
             virtual void  UpdateChunks(progress_t* pProgress);
             void CopyAssignMeta(const Sample* orig);
             void CopyAssignWave(const Sample* orig);
+            bool VerifyWaveData();
         protected:
             static size_t        Instances;               ///< Number of instances of class Sample.
             static buffer_t      InternalDecompressionBuffer; ///< Buffer used for decompression as well as for truncation of 24 Bit -> 16 Bit samples.
@@ -689,6 +690,7 @@ namespace gig {
 
             Sample(File* pFile, RIFF::List* waveList, file_offset_t WavePoolOffset, unsigned long fileNo = 0);
            ~Sample();
+            uint32_t CalculateWaveDataChecksum();
 
             // Guess size (in bytes) of a compressed sample
             inline file_offset_t GuessSize(file_offset_t samples) {
@@ -1267,6 +1269,10 @@ namespace gig {
             virtual void LoadInstruments(progress_t* pProgress);
             virtual void LoadScriptGroups();
             void SetSampleChecksum(Sample* pSample, uint32_t crc);
+            uint32_t GetSampleChecksum(Sample* pSample);
+            bool VerifySampleChecksumTable();
+            bool RebuildSampleChecksumTable();
+            int  GetWaveTableIndexOf(gig::Sample* pSample);
             friend class Region;
             friend class Sample;
             friend class Instrument;

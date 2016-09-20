@@ -1341,6 +1341,51 @@ namespace {
         return pGroup;
     }
 
+    /**
+     * Checks the integrity of this sample's raw audio wave data. Whenever a
+     * Sample's raw wave data is intentionally modified (i.e. by calling
+     * Write() and supplying the new raw audio wave form data) a CRC32 checksum
+     * is calculated and stored/updated for this sample, along to the sample's
+     * meta informations.
+     *
+     * Now by calling this method the current raw audio wave data is checked
+     * against the already stored CRC32 check sum in order to check whether the
+     * sample data had been damaged unintentionally for some reason. Since by
+     * calling this method always the entire raw audio wave data has to be
+     * read, verifying all samples this way may take a long time accordingly.
+     * And that's also the reason why the sample integrity is not checked by
+     * default whenever a gig file is loaded. So this method must be called
+     * explicitly to fulfill this task.
+     *
+     * @returns true if sample is OK or false if the sample is damaged
+     * @throws Exception if no checksum had been stored to disk for this
+     *         sample yet, or on I/O issues
+     */
+    bool Sample::VerifyWaveData() {
+        File* pFile = static_cast<File*>(GetParent());
+        const uint32_t referenceCRC = pFile->GetSampleChecksum(this);
+        uint32_t crc = CalculateWaveDataChecksum();
+        return crc == referenceCRC;
+    }
+
+    uint32_t Sample::CalculateWaveDataChecksum() {
+        const size_t sz = 20*1024; // 20kB buffer size
+        std::vector<uint8_t> buffer(sz);
+        buffer.resize(sz);
+
+        const size_t n = sz / FrameSize;
+        SetPos(0);
+        uint32_t crc = 0;
+        __resetCRC(crc);
+        while (true) {
+            file_offset_t nRead = Read(&buffer[0], n);
+            if (nRead <= 0) break;
+            __calculateCRC(&buffer[0], nRead * FrameSize, crc);
+        }
+        __encodeCRC(crc);
+        return crc;
+    }
+
     Sample::~Sample() {
         Instances--;
         if (!Instances && InternalDecompressionBuffer.Size) {
@@ -5615,22 +5660,141 @@ namespace {
         if (!_3crc) return;
 
         // get the index of the sample
-        int iWaveIndex = -1;
-        File::SampleList::iterator iter = pSamples->begin();
-        File::SampleList::iterator end  = pSamples->end();
-        for (int index = 0; iter != end; ++iter, ++index) {
-            if (*iter == pSample) {
-                iWaveIndex = index;
-                break;
-            }
-        }
+        int iWaveIndex = GetWaveTableIndexOf(pSample);
         if (iWaveIndex < 0) throw gig::Exception("Could not update crc, could not find sample");
 
         // write the CRC-32 checksum to disk
         _3crc->SetPos(iWaveIndex * 8);
-        uint32_t tmp = 1;
-        _3crc->WriteUint32(&tmp); // unknown, always 1?
+        uint32_t one = 1;
+        _3crc->WriteUint32(&one); // always 1
         _3crc->WriteUint32(&crc);
+
+        // reload CRC table to RAM to keep it persistent over several subsequent save operations
+        _3crc->ReleaseChunkData();
+        _3crc->LoadChunkData();
+    }
+
+    uint32_t File::GetSampleChecksum(Sample* pSample) {
+        RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
+        if (!_3crc) throw gig::Exception("Could not retrieve reference crc of sample, no checksums stored for this file yet");
+        uint8_t* pData = (uint8_t*) _3crc->LoadChunkData();
+        if (!pData) throw gig::Exception("Could not retrieve reference crc of sample, no checksums stored for this file yet");
+
+        // get the index of the sample
+        int iWaveIndex = GetWaveTableIndexOf(pSample);
+        if (iWaveIndex < 0) throw gig::Exception("Could not retrieve reference crc of sample, could not resolve sample's wave table index");
+
+        // read the CRC-32 checksum directly from disk
+        size_t pos = iWaveIndex * 8;
+        if (pos + 8 > _3crc->GetNewSize())
+            throw gig::Exception("Could not retrieve reference crc of sample, could not seek to required position in crc chunk");
+
+        uint32_t one = load32(&pData[pos]); // always 1
+        if (one != 1)
+            throw gig::Exception("Could not verify sample, because reference checksum table is damaged");
+
+        return load32(&pData[pos+4]);
+    }
+    
+    int File::GetWaveTableIndexOf(gig::Sample* pSample) {
+        if (!pSamples) GetFirstSample(); // make sure sample chunks were scanned
+        File::SampleList::iterator iter = pSamples->begin();
+        File::SampleList::iterator end  = pSamples->end();
+        for (int index = 0; iter != end; ++iter, ++index)
+            if (*iter == pSample)
+                return index;
+        return -1;
+    }
+
+    /**
+     * Checks whether the file's "3CRC" chunk was damaged. This chunk contains
+     * the CRC32 check sums of all samples' raw wave data.
+     *
+     * @return true if 3CRC chunk is OK, or false if 3CRC chunk is damaged
+     */
+    bool File::VerifySampleChecksumTable() {
+        RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
+        if (!_3crc) return false;
+        if (_3crc->GetNewSize() <= 0) return false;
+        if (_3crc->GetNewSize() % 8) return false;
+        if (!pSamples) GetFirstSample(); // make sure sample chunks were scanned
+        if (_3crc->GetNewSize() != pSamples->size() * 8) return false;
+
+        const int n = _3crc->GetNewSize() / 8;
+
+        uint32_t* pData = (uint32_t*) _3crc->LoadChunkData();
+        if (!pData) return false;
+
+        for (int i = 0; i < n; ++i) {
+            uint32_t one = pData[i*2];
+            if (one != 1) return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Recalculates CRC32 checksums for all samples and rebuilds this gig
+     * file's checksum table with those new checksums. This might usually
+     * just be necessary if the checksum table was damaged.
+     *
+     * @e IMPORTANT: The current implementation of this method only works
+     * with files that have not been modified since it was loaded, because
+     * it expects that no externally caused file structure changes are
+     * required!
+     *
+     * Due to the expectation above, this method is currently protected
+     * and actually only used by the command line tool "gigdump" yet.
+     *
+     * @returns true if Save() is required to be called after this call,
+     *          false if no further action is required
+     */
+    bool File::RebuildSampleChecksumTable() {
+        // make sure sample chunks were scanned
+        if (!pSamples) GetFirstSample();
+
+        bool bRequiresSave = false;
+
+        // make sure "3CRC" chunk exists with required size
+        RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
+        if (!_3crc) {
+            _3crc = pRIFF->AddSubChunk(CHUNK_ID_3CRC, pSamples->size() * 8);
+            bRequiresSave = true;
+        } else if (_3crc->GetNewSize() != pSamples->size() * 8) {
+            _3crc->Resize(pSamples->size() * 8);
+            bRequiresSave = true;
+        }
+
+        if (bRequiresSave) { // refill CRC table for all samples in RAM ...
+            uint32_t* pData = (uint32_t*) _3crc->LoadChunkData();
+            {
+                File::SampleList::iterator iter = pSamples->begin();
+                File::SampleList::iterator end  = pSamples->end();
+                for (; iter != end; ++iter) {
+                    gig::Sample* pSample = (gig::Sample*) *iter;
+                    int index = GetWaveTableIndexOf(pSample);
+                    if (index < 0) throw gig::Exception("Could not rebuild crc table for samples, wave table index of a sample could not be resolved");
+                    pData[index*2]   = 1; // always 1
+                    pData[index*2+1] = pSample->CalculateWaveDataChecksum();
+                }
+            }
+        } else { // no file structure changes necessary, so directly write to disk and we are done ...
+            // make sure file is in write mode
+            pRIFF->SetMode(RIFF::stream_mode_read_write);
+            {
+                File::SampleList::iterator iter = pSamples->begin();
+                File::SampleList::iterator end  = pSamples->end();
+                for (; iter != end; ++iter) {
+                    gig::Sample* pSample = (gig::Sample*) *iter;
+                    int index = GetWaveTableIndexOf(pSample);
+                    if (index < 0) throw gig::Exception("Could not rebuild crc table for samples, wave table index of a sample could not be resolved");
+                    uint32_t crc = pSample->CalculateWaveDataChecksum();
+                    SetSampleChecksum(pSample, crc);
+                }
+            }
+        }
+
+        return bRequiresSave;
     }
 
     Group* File::GetFirstGroup() {
@@ -5892,6 +6056,11 @@ namespace {
             lst3LS = NULL;
         }
 
+        // if there is a 3CRC chunk, make sure it is loaded into RAM, otherwise
+        // its data might get lost or damaged on file structure changes
+        RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
+        if (_3crc) _3crc->LoadChunkData();
+
         // first update base class's chunks
         DLS::File::UpdateChunks(pProgress);
 
@@ -6051,7 +6220,6 @@ namespace {
         // samples. The actual checksum values will be filled in
         // later, by Sample::Write.
 
-        RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
         if (_3crc) {
             _3crc->Resize(pSamples->size() * 8);
         } else if (newFile) {

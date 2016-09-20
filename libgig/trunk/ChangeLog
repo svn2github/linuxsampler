@@ -14,6 +14,9 @@ Version SVN trunk
       if there were dimensions after the velocity dimension: it only created
       valid velocity tables for cases of dimensions lower than the velocity
       dimension.
+    - added new method Sample::VerifyWaveData() which allows to check whether
+      a sample had been damaged for some reason
+    - Fix: samples' CRC checksums were damaged on file structure changes.
 
   * src/DLS.cpp, src/DLS.h:
     - Sample: wave pool offsets are now 64 bits (to allow support for files
@@ -41,6 +44,12 @@ Version SVN trunk
       dimension regions
     - additionally print RIFF chunk file offset and RIFF chunk size of sample
       data
+    - added and implemented new parameter "--verify" which allows to check
+      the raw wave form data integrity of all samples
+    - added and implemented new parameter "--rebuild-checksums" which allows
+      to recalculate the CRC32 checksum of all samples' raw wave data and
+      rebuilding the gig file's global checksum table (i.e. in case the
+      file's checksum table was damaged)
 
   * src/tools/gigextract.cpp:
     - Fix: if sample name contains a path separator (slash or backslash) then

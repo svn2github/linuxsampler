@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2014 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2016 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This program is part of libgig.                                       *
@@ -45,43 +45,87 @@ void PrintInstruments(gig::File* gig);
 void PrintRegions(gig::Instrument* instr);
 void PrintUsage();
 void PrintDimensionRegions(gig::Region* rgn);
+bool VerifyFile(gig::File* gig);
+void RebuildChecksumTable(gig::File* gig);
 
 class PubSample : public gig::Sample {
 public:
     using DLS::Sample::pCkData;
 };
 
+class PubFile : public gig::File {
+public:
+    using gig::File::VerifySampleChecksumTable;
+    using gig::File::RebuildSampleChecksumTable;
+};
+
+
 int main(int argc, char *argv[])
 {
+    bool bVerify = false;
+    bool bRebuildChecksums = false;
+
     if (argc <= 1) {
         PrintUsage();
         return EXIT_FAILURE;
     }
-    if (argv[1][0] == '-') {
-        switch (argv[1][1]) {
-            case 'v':
-                PrintVersion();
-                return EXIT_SUCCESS;
+
+    int iArg;
+    for (iArg = 1; iArg < argc; ++iArg) {
+        const string opt = argv[iArg];
+        if (opt == "--") { // common for all command line tools: separator between initial option arguments and i.e. subsequent file arguments
+            iArg++;
+            break;
+        }
+        if (opt.substr(0, 1) != "-") break;
+
+        if (opt == "-v") {
+            PrintVersion();
+            return EXIT_SUCCESS;
+        } else if (opt == "--verify") {
+            bVerify = true;
+        } else if (opt == "--rebuild-checksums") {
+            bRebuildChecksums = true;
+        } else {
+            cerr << "Unknown option '" << opt << "'" << endl;
+            cerr << endl;
+            PrintUsage();
+            return EXIT_FAILURE;
         }
     }
-    FILE* hFile = fopen(argv[1], "r");
+    if (iArg >= argc) {
+        cout << "No file name provided!" << endl;
+        return EXIT_FAILURE;
+    }
+    const char* filename = argv[iArg];
+
+    FILE* hFile = fopen(filename, "r");
     if (!hFile) {
         cout << "Invalid file argument!" << endl;
         return EXIT_FAILURE;
     }
     fclose(hFile);
     try {
-        RIFF::File* riff = new RIFF::File(argv[1]);
+        RIFF::File* riff = new RIFF::File(filename);
         gig::File*  gig  = new gig::File(riff);
-        PrintFileInformations(gig);
-        cout << endl;
-        PrintGroups(gig);
-        cout << endl;
-        PrintSamples(gig);
-        cout << endl;
-        PrintScripts(gig);
-        cout << endl;
-        PrintInstruments(gig);
+
+        if (bRebuildChecksums) {
+            RebuildChecksumTable(gig);
+        } else if (bVerify) {
+            bool OK = VerifyFile(gig);
+            if (OK) cout << "All checks passed successfully! :-)\n";
+            return (OK) ? EXIT_SUCCESS : EXIT_FAILURE;
+        } else {
+            PrintFileInformations(gig);
+            cout << endl;
+            PrintGroups(gig);
+            cout << endl;
+            PrintSamples(gig);
+            cout << endl;
+            PrintScripts(gig);
+            cout << endl;
+            PrintInstruments(gig);
+        }
         delete gig;
         delete riff;
     }
@@ -467,6 +511,57 @@ void PrintDimensionRegions(gig::Region* rgn) {
     }
 }
 
+bool VerifyFile(gig::File* _gig) {
+    PubFile* gig = (PubFile*) _gig;
+
+    cout << "Verifying sample checksum table ... " << flush;
+    if (!gig->VerifySampleChecksumTable()) {
+        cout << "DAMAGED\n";
+        cout << "You may use --rebuild-checksums to repair the sample checksum table.\n";
+        return false;
+    }
+    cout << "OK\n" << flush;
+
+    cout << "Verifying samples ... " << flush;
+    std::map<int,gig::Sample*> failedSamples;
+    int iTotal = 0;
+    for (gig::Sample* pSample = gig->GetFirstSample(); pSample; pSample = gig->GetNextSample(), ++iTotal) {
+        if (!pSample->VerifyWaveData())
+            failedSamples[iTotal] = pSample;
+    }
+    if (failedSamples.empty()) {
+        cout << "ALL OK\n";
+        return true;
+    } else {
+        cout << failedSamples.size() << " of " << iTotal << " Samples DAMAGED:\n";
+        for (std::map<int,gig::Sample*>::iterator it = failedSamples.begin(); it != failedSamples.end(); ++it) {
+            const int i = it->first;
+            gig::Sample* pSample = it->second;
+
+            string name = pSample->pInfo->Name;
+            if (name == "") name = "<NO NAME>";
+            else            name = '\"' + name + '\"';
+
+            cout << "Damaged Sample " << (i+1) << ") " << name << endl;
+        }
+        return false;
+    }
+}
+
+void RebuildChecksumTable(gig::File* _gig) {
+    PubFile* gig = (PubFile*) _gig;
+
+    cout << "Recalculating checksums of all samples ... " << flush;
+    bool bSaveRequired = gig->RebuildSampleChecksumTable();
+    cout << "OK\n";
+    if (bSaveRequired) {
+        cout << "WARNING: File structure change required, rebuilding entire file now ..." << endl;
+        gig->Save();
+        cout << "DONE\n";
+        cout << "NOTE: Since the entire file was rebuilt, you may need to manually check all samples in this particular case now!\n";
+    }
+}
+
 string Revision() {
     string s = "$Revision$";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
@@ -480,8 +575,12 @@ void PrintVersion() {
 void PrintUsage() {
     cout << "gigdump - parses Gigasampler files and prints out the content." << endl;
     cout << endl;
-    cout << "Usage: gigdump [-v] FILE" << endl;
+    cout << "Usage: gigdump [-v | --verify | --rebuild-checksums] FILE" << endl;
     cout << endl;
-    cout << "	-v  Print version and exit." << endl;
+    cout << "   --rebuild-checksums  Rebuild checksum table for all samples." << endl;
+    cout << endl;
+    cout << "	-v                   Print version and exit." << endl;
+    cout << endl;
+    cout << "   --verify             Checks raw wave data integrity of all samples." << endl;
     cout << endl;
 }
