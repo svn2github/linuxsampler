@@ -46,6 +46,11 @@ void PrintRegions(gig::Instrument* instr);
 void PrintUsage();
 void PrintDimensionRegions(gig::Region* rgn);
 
+class PubSample : public gig::Sample {
+public:
+    using DLS::Sample::pCkData;
+};
+
 int main(int argc, char *argv[])
 {
     if (argc <= 1) {
@@ -153,7 +158,7 @@ void PrintGroups(gig::File* gig) {
 void PrintSamples(gig::File* gig) {
     int samples = 0;
     cout << "ALL Available Samples (as there might be more than referenced by Instruments):" << endl;
-    gig::Sample* pSample = gig->GetFirstSample();
+    PubSample* pSample = (PubSample*) gig->GetFirstSample();
     while (pSample) {
         samples++;
         // determine sample's name
@@ -179,8 +184,25 @@ void PrintSamples(gig::File* gig) {
             cout << ", LoopFraction=" << pSample->LoopFraction << ", Start=" << pSample->LoopStart << ", End=" << pSample->LoopEnd;
             cout << ", LoopPlayCount=" << pSample->LoopPlayCount;
         }
-        cout << ", Length=" << pSample->SamplesTotal << " Compressed=" << ((pSample->Compressed) ? "true" : "false") << endl;
-        pSample = gig->GetNextSample();
+        cout << ", Length=" << pSample->SamplesTotal << " Compressed=" << ((pSample->Compressed) ? "true" : "false")
+             << " foffset=" << pSample->pCkData->GetFilePos()
+             << " fsz=" << pSample->pCkData->GetSize()
+             << endl;
+#if 0
+        {
+            const uint bufSize = 64;
+            unsigned char buf[bufSize] = {};
+            pSample->SetPos(0);
+            RIFF::file_offset_t n = pSample->pCkData->Read(&buf[0], bufSize, 1);
+            //RIFF::file_offset_t n = pSample->Read(&buf[0], bufSize / pSample->FrameSize);
+            cout << "        FrameSize=" << pSample->FrameSize << ",Data[" << n << "]" << flush;
+            for (int x = 0; x < bufSize; ++x)
+                printf("%02x ", buf[x]);
+            printf("\n");
+            fflush(stdout);
+        }
+#endif
+        pSample = (PubSample*) gig->GetNextSample();
     }
 }
 

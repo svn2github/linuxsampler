@@ -190,6 +190,13 @@ static std::string getLoopTypeText(gig::loop_type_t type) {
     }
 }
 
+static string replacePathSeparators(string s) {
+    for (int i = 0; i < s.size(); ++i)
+        if (s[i] == '/' || s[i] == '\\')
+            s[i] = '-';
+    return s;
+}
+
 void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
 #if !HAVE_SNDFILE // use libaudiofile
     hAFlib = NULL;
@@ -212,7 +219,7 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
                 continue;
             }
         }
-        string name = pSample->pInfo->Name;
+        string name = replacePathSeparators(pSample->pInfo->Name);
         string filename = destdir;
         if (filename[filename.size() - 1] != '/') filename += "/";
         filename += ToString(samples);

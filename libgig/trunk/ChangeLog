@@ -39,6 +39,12 @@ Version SVN trunk
   * src/tools/gigdump.cpp:
     - additionally print VelocityUpperLimit and DimensionUpperLimits of all
       dimension regions
+    - additionally print RIFF chunk file offset and RIFF chunk size of sample
+      data
+
+  * src/tools/gigextract.cpp:
+    - Fix: if sample name contains a path separator (slash or backslash) then
+      replace them by a minus sign to avoid file system issues.
 
   * packaging changes:
     - Automake: set environment variable GCC_COLORS=auto to allow GCC to
