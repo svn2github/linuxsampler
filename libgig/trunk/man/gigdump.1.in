@@ -1,4 +1,4 @@
-.TH "gigdump" "1" "20 Sep 2016" "libgig @VERSION@" "libgig tools"
+.TH "gigdump" "1" "21 Sep 2016" "libgig @VERSION@" "libgig tools"
 .SH NAME
 gigdump \- List informations about a Gigasampler (.gig) file.
 .SH SYNOPSIS
@@ -23,7 +23,19 @@ in case the samples' CRC checksum table itself was damaged. The
 .B --verify
 option will tell you if that is really the case and will suggest to you to use
 .B --rebuild-checksums
-to repair the table in such cases.
+to repair the table in such cases. If only individual samples were damaged, you
+rather might want to replace only those damaged samples with
+.BR gigedit (1)
+for example. Read description of 
+.B --verify
+for reasons to do so. When using
+.B --rebuild-checksums
+all checksums of all samples will be regenerated. Hence you should manually
+check all samples once after using this option. That is by using your ears,
+or by exporting the samples, but not by using the
+.B --verify
+option. Because the latter cannot identifiy damaged samples that have been
+damaged before the entire checksum table had been regenerated.
 .TP
 .B \ -v
 Print version and exit.
@@ -44,6 +56,13 @@ from time to time to check explicitly whether your gig files have been
 damaged for some reason, i.e. after modifying them with an instrument editor
 like
 .BR gigedit (1).
+In case damaged samples were found, you may replace those damaged samples with
+.BR gigedit (1).
+By doing this, only the replaced samples' checksums will be
+updated. All other checksums remain untouched. That's why this approach is
+recommended over using 
+.B --rebuild-checksums
+in such cases.
 
 .SH "SEE ALSO"
 .BR gigextract(1),
