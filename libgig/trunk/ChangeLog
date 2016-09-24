@@ -17,6 +17,8 @@ Version SVN trunk
     - added new method Sample::VerifyWaveData() which allows to check whether
       a sample had been damaged for some reason
     - Fix: samples' CRC checksums were damaged on file structure changes.
+    - Fix: samples' CRC checksums were misordered when a Sample was deleted.
+    - Added new method Sample::GetWaveDataCRC32Checksum().
 
   * src/DLS.cpp, src/DLS.h:
     - Sample: wave pool offsets are now 64 bits (to allow support for files
@@ -50,6 +52,7 @@ Version SVN trunk
       to recalculate the CRC32 checksum of all samples' raw wave data and
       rebuilding the gig file's global checksum table (i.e. in case the
       file's checksum table was damaged)
+    - print samples' CRC32 checksums
 
   * src/tools/gigextract.cpp:
     - Fix: if sample name contains a path separator (slash or backslash) then

@@ -338,8 +338,11 @@ namespace {
      *                         ('wvpl') list chunk
      * @param fileNo         - number of an extension file where this sample
      *                         is located, 0 otherwise
+     * @param index          - wave pool index of sample (may be -1 on new sample)
      */
-    Sample::Sample(File* pFile, RIFF::List* waveList, file_offset_t WavePoolOffset, unsigned long fileNo) : DLS::Sample((DLS::File*) pFile, waveList, WavePoolOffset) {
+    Sample::Sample(File* pFile, RIFF::List* waveList, file_offset_t WavePoolOffset, unsigned long fileNo, int index)
+        : DLS::Sample((DLS::File*) pFile, waveList, WavePoolOffset)
+    {
         static const DLS::Info::string_length_t fixedStringLengths[] = {
             { CHUNK_ID_INAM, 64 },
             { 0, 0 }
@@ -349,6 +352,16 @@ namespace {
         FileNo = fileNo;
 
         __resetCRC(crc);
+        // if this is not a new sample, try to get the sample's already existing
+        // CRC32 checksum from disk, this checksum will reflect the sample's CRC32
+        // checksum of the time when the sample was consciously modified by the
+        // user for the last time (by calling Sample::Write() that is).
+        if (index >= 0) { // not a new file ...
+            try {
+                uint32_t crc = pFile->GetSampleChecksumByIndex(index);
+                this->crc = crc;
+            } catch (...) {}
+        }
 
         pCk3gix = waveList->GetSubChunk(CHUNK_ID_3GIX);
         if (pCk3gix) {
@@ -1342,6 +1355,22 @@ namespace {
     }
 
     /**
+     * Returns the CRC-32 checksum of the sample's raw wave form data at the
+     * time when this sample's wave form data was modified for the last time
+     * by calling Write(). This checksum only covers the raw wave form data,
+     * not any meta informations like i.e. bit depth or loop points. Since
+     * this method just returns the checksum stored for this sample i.e. when
+     * the gig file was loaded, this method returns immediately. So it does no
+     * recalcuation of the checksum with the currently available sample wave
+     * form data.
+     *
+     * @see VerifyWaveData()
+     */
+    uint32_t Sample::GetWaveDataCRC32Checksum() {
+        return crc;
+    }
+
+    /**
      * Checks the integrity of this sample's raw audio wave data. Whenever a
      * Sample's raw wave data is intentionally modified (i.e. by calling
      * Write() and supplying the new raw audio wave form data) a CRC32 checksum
@@ -1357,15 +1386,20 @@ namespace {
      * default whenever a gig file is loaded. So this method must be called
      * explicitly to fulfill this task.
      *
+     * @param pActually - (optional) if provided, will be set to the actually
+     *                    calculated checksum of the current raw wave form data,
+     *                    you can get the expected checksum instead by calling
+     *                    GetWaveDataCRC32Checksum()
      * @returns true if sample is OK or false if the sample is damaged
      * @throws Exception if no checksum had been stored to disk for this
      *         sample yet, or on I/O issues
+     * @see GetWaveDataCRC32Checksum()
      */
-    bool Sample::VerifyWaveData() {
+    bool Sample::VerifyWaveData(uint32_t* pActually) {
         File* pFile = static_cast<File*>(GetParent());
-        const uint32_t referenceCRC = pFile->GetSampleChecksum(this);
         uint32_t crc = CalculateWaveDataChecksum();
-        return crc == referenceCRC;
+        if (pActually) *pActually = crc;
+        return crc == this->crc;
     }
 
     uint32_t Sample::CalculateWaveDataChecksum() {
@@ -5422,7 +5456,7 @@ namespace {
                         __notify_progress(pProgress, subprogress);
 
                         file_offset_t waveFileOffset = wave->GetFilePos();
-                        pSamples->push_back(new Sample(this, wave, waveFileOffset - wvplFileOffset, fileNo));
+                        pSamples->push_back(new Sample(this, wave, waveFileOffset - wvplFileOffset, fileNo, iSampleIndex));
 
                         iSampleIndex++;
                     }
@@ -5668,34 +5702,36 @@ namespace {
         uint32_t one = 1;
         _3crc->WriteUint32(&one); // always 1
         _3crc->WriteUint32(&crc);
-
-        // reload CRC table to RAM to keep it persistent over several subsequent save operations
-        _3crc->ReleaseChunkData();
-        _3crc->LoadChunkData();
     }
 
     uint32_t File::GetSampleChecksum(Sample* pSample) {
+        // get the index of the sample
+        int iWaveIndex = GetWaveTableIndexOf(pSample);
+        if (iWaveIndex < 0) throw gig::Exception("Could not retrieve reference crc of sample, could not resolve sample's wave table index");
+
+        return GetSampleChecksumByIndex(iWaveIndex);
+    }
+
+    uint32_t File::GetSampleChecksumByIndex(int index) {
+        if (index < 0) throw gig::Exception("Could not retrieve reference crc of sample, invalid wave pool index of sample");
+
         RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
         if (!_3crc) throw gig::Exception("Could not retrieve reference crc of sample, no checksums stored for this file yet");
         uint8_t* pData = (uint8_t*) _3crc->LoadChunkData();
         if (!pData) throw gig::Exception("Could not retrieve reference crc of sample, no checksums stored for this file yet");
 
-        // get the index of the sample
-        int iWaveIndex = GetWaveTableIndexOf(pSample);
-        if (iWaveIndex < 0) throw gig::Exception("Could not retrieve reference crc of sample, could not resolve sample's wave table index");
-
         // read the CRC-32 checksum directly from disk
-        size_t pos = iWaveIndex * 8;
+        size_t pos = index * 8;
         if (pos + 8 > _3crc->GetNewSize())
             throw gig::Exception("Could not retrieve reference crc of sample, could not seek to required position in crc chunk");
 
         uint32_t one = load32(&pData[pos]); // always 1
         if (one != 1)
-            throw gig::Exception("Could not verify sample, because reference checksum table is damaged");
+            throw gig::Exception("Could not retrieve reference crc of sample, because reference checksum table is damaged");
 
         return load32(&pData[pos+4]);
     }
-    
+
     int File::GetWaveTableIndexOf(gig::Sample* pSample) {
         if (!pSamples) GetFirstSample(); // make sure sample chunks were scanned
         File::SampleList::iterator iter = pSamples->begin();
@@ -5759,6 +5795,9 @@ namespace {
         RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
         if (!_3crc) {
             _3crc = pRIFF->AddSubChunk(CHUNK_ID_3CRC, pSamples->size() * 8);
+            // the order of einf and 3crc is not the same in v2 and v3
+            RIFF::Chunk* einf = pRIFF->GetSubChunk(CHUNK_ID_EINF);
+            if (einf && pVersion && pVersion->major == 3) pRIFF->MoveSubChunk(_3crc, einf);
             bRequiresSave = true;
         } else if (_3crc->GetNewSize() != pSamples->size() * 8) {
             _3crc->Resize(pSamples->size() * 8);
@@ -5788,8 +5827,8 @@ namespace {
                     gig::Sample* pSample = (gig::Sample*) *iter;
                     int index = GetWaveTableIndexOf(pSample);
                     if (index < 0) throw gig::Exception("Could not rebuild crc table for samples, wave table index of a sample could not be resolved");
-                    uint32_t crc = pSample->CalculateWaveDataChecksum();
-                    SetSampleChecksum(pSample, crc);
+                    pSample->crc  = pSample->CalculateWaveDataChecksum();
+                    SetSampleChecksum(pSample, pSample->crc);
                 }
             }
         }
@@ -6056,11 +6095,6 @@ namespace {
             lst3LS = NULL;
         }
 
-        // if there is a 3CRC chunk, make sure it is loaded into RAM, otherwise
-        // its data might get lost or damaged on file structure changes
-        RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
-        if (_3crc) _3crc->LoadChunkData();
-
         // first update base class's chunks
         DLS::File::UpdateChunks(pProgress);
 
@@ -6217,17 +6251,36 @@ namespace {
         // update 3crc chunk
 
         // The 3crc chunk contains CRC-32 checksums for the
-        // samples. The actual checksum values will be filled in
-        // later, by Sample::Write.
+        // samples. When saving a gig file to disk, we first update the 3CRC
+        // chunk here (in RAM) with the old crc values which we read from the
+        // 3CRC chunk when we opened the file (available with gig::Sample::crc
+        // member variable). This step is required, because samples might have
+        // been deleted by the user since the file was opened, which in turn
+        // changes the order of the (i.e. old) checksums within the 3crc chunk.
+        // If a sample was conciously modified by the user (that is if
+        // Sample::Write() was called later on) then Sample::Write() will just
+        // update the respective individual checksum(s) directly on disk and
+        // leaves all other sample checksums untouched.
 
+        RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
         if (_3crc) {
             _3crc->Resize(pSamples->size() * 8);
-        } else if (newFile) {
+        } else /*if (newFile)*/ {
             _3crc = pRIFF->AddSubChunk(CHUNK_ID_3CRC, pSamples->size() * 8);
-            _3crc->LoadChunkData();
-
             // the order of einf and 3crc is not the same in v2 and v3
             if (einf && pVersion && pVersion->major == 3) pRIFF->MoveSubChunk(_3crc, einf);
+        }
+        { // must be performed in RAM here ...
+            uint32_t* pData = (uint32_t*) _3crc->LoadChunkData();
+            if (pData) {
+                File::SampleList::iterator iter = pSamples->begin();
+                File::SampleList::iterator end  = pSamples->end();
+                for (int index = 0; iter != end; ++iter, ++index) {
+                    gig::Sample* pSample = (gig::Sample*) *iter;
+                    pData[index*2]   = 1; // always 1
+                    pData[index*2+1] = pSample->crc;
+                }
+            }
         }
     }
     

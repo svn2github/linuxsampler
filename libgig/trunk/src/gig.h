@@ -671,7 +671,8 @@ namespace gig {
             virtual void  UpdateChunks(progress_t* pProgress);
             void CopyAssignMeta(const Sample* orig);
             void CopyAssignWave(const Sample* orig);
-            bool VerifyWaveData();
+            uint32_t GetWaveDataCRC32Checksum();
+            bool VerifyWaveData(uint32_t* pActually = NULL);
         protected:
             static size_t        Instances;               ///< Number of instances of class Sample.
             static buffer_t      InternalDecompressionBuffer; ///< Buffer used for decompression as well as for truncation of 24 Bit -> 16 Bit samples.
@@ -686,9 +687,9 @@ namespace gig {
             unsigned long        FileNo;                  ///< File number (> 0 when sample is stored in an extension file, 0 when it's in the gig)
             RIFF::Chunk*         pCk3gix;
             RIFF::Chunk*         pCkSmpl;
-            uint32_t             crc;                     ///< CRC-32 checksum of the raw sample data
+            uint32_t             crc;                     ///< Reflects CRC-32 checksum of the raw sample data at the last time when the sample's raw wave form data has been modified consciously by the user by calling Write().
 
-            Sample(File* pFile, RIFF::List* waveList, file_offset_t WavePoolOffset, unsigned long fileNo = 0);
+            Sample(File* pFile, RIFF::List* waveList, file_offset_t WavePoolOffset, unsigned long fileNo = 0, int index = -1);
            ~Sample();
             uint32_t CalculateWaveDataChecksum();
 
@@ -1270,6 +1271,7 @@ namespace gig {
             virtual void LoadScriptGroups();
             void SetSampleChecksum(Sample* pSample, uint32_t crc);
             uint32_t GetSampleChecksum(Sample* pSample);
+            uint32_t GetSampleChecksumByIndex(int index);
             bool VerifySampleChecksumTable();
             bool RebuildSampleChecksumTable();
             int  GetWaveTableIndexOf(gig::Sample* pSample);

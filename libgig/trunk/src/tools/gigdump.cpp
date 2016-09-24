@@ -228,6 +228,9 @@ void PrintSamples(gig::File* gig) {
             cout << ", LoopFraction=" << pSample->LoopFraction << ", Start=" << pSample->LoopStart << ", End=" << pSample->LoopEnd;
             cout << ", LoopPlayCount=" << pSample->LoopPlayCount;
         }
+        cout << flush;
+        printf(", crc=%x", pSample->GetWaveDataCRC32Checksum());
+        fflush(stdout);
         cout << ", Length=" << pSample->SamplesTotal << " Compressed=" << ((pSample->Compressed) ? "true" : "false")
              << " foffset=" << pSample->pCkData->GetFilePos()
              << " fsz=" << pSample->pCkData->GetSize()
@@ -511,6 +514,11 @@ void PrintDimensionRegions(gig::Region* rgn) {
     }
 }
 
+struct _FailedSample {
+    gig::Sample* sample;
+    uint32_t calculatedCRC;
+};
+
 bool VerifyFile(gig::File* _gig) {
     PubFile* gig = (PubFile*) _gig;
 
@@ -523,26 +531,32 @@ bool VerifyFile(gig::File* _gig) {
     cout << "OK\n" << flush;
 
     cout << "Verifying samples ... " << flush;
-    std::map<int,gig::Sample*> failedSamples;
+    std::map<int,_FailedSample> failedSamples;
     int iTotal = 0;
     for (gig::Sample* pSample = gig->GetFirstSample(); pSample; pSample = gig->GetNextSample(), ++iTotal) {
-        if (!pSample->VerifyWaveData())
-            failedSamples[iTotal] = pSample;
+        uint32_t crc; // will be set to the actually now calculated checksum
+        if (!pSample->VerifyWaveData(&crc)) {
+            _FailedSample failed;
+            failed.sample = pSample;
+            failed.calculatedCRC = crc;
+            failedSamples[iTotal] = failed;
+        }
     }
     if (failedSamples.empty()) {
         cout << "ALL OK\n";
         return true;
     } else {
         cout << failedSamples.size() << " of " << iTotal << " Samples DAMAGED:\n";
-        for (std::map<int,gig::Sample*>::iterator it = failedSamples.begin(); it != failedSamples.end(); ++it) {
+        for (std::map<int,_FailedSample>::iterator it = failedSamples.begin(); it != failedSamples.end(); ++it) {
             const int i = it->first;
-            gig::Sample* pSample = it->second;
+            gig::Sample* pSample = it->second.sample;
 
             string name = pSample->pInfo->Name;
             if (name == "") name = "<NO NAME>";
             else            name = '\"' + name + '\"';
 
-            cout << "Damaged Sample " << (i+1) << ") " << name << endl;
+            cout << "Damaged Sample " << (i+1) << ") " << name << flush;
+            printf(" expectedCRC=%x calculatedCRC=%x\n", pSample->GetWaveDataCRC32Checksum(), it->second.calculatedCRC);
         }
         return false;
     }
