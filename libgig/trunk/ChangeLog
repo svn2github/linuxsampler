@@ -19,6 +19,7 @@ Version SVN trunk
     - Fix: samples' CRC checksums were damaged on file structure changes.
     - Fix: samples' CRC checksums were misordered when a Sample was deleted.
     - Added new method Sample::GetWaveDataCRC32Checksum().
+    - Changed default value of EG2Release (filter release time) to 60s.
 
   * src/DLS.cpp, src/DLS.h:
     - Sample: wave pool offsets are now 64 bits (to allow support for files

@@ -1630,7 +1630,7 @@ namespace {
             EG2Attack                       = 0.0;
             EG2Decay1                       = 0.005;
             EG2Sustain                      = 1000;
-            EG2Release                      = 0.3;
+            EG2Release                      = 60;
             LFO2ControlDepth                = 0;
             LFO2Frequency                   = 1.0;
             LFO2InternalDepth               = 0;
