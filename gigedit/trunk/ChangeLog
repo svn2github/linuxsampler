@@ -41,6 +41,9 @@ Version SVN HEAD (?)
   * fixed crash when opening dimension manager dialolg multiple times
     (and i.e. adding or removing dimensions each time)
   * Show sample group name and CRC-32 checksum on "Sample" tab.
+  * Show instrument index number on instruments list view.
+  * Added multi-row selection support on samples tree view.
+  * Added multi-row selection support on instruments list view.
 
 Version 1.0.0 (2015-07-17)
 

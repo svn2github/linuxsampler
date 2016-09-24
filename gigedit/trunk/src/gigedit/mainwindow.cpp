@@ -521,14 +521,16 @@ MainWindow::MainWindow() :
     // Create the Tree model:
     m_refTreeModel = Gtk::ListStore::create(m_Columns);
     m_TreeView.set_model(m_refTreeModel);
+    m_TreeView.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
     m_TreeView.set_tooltip_text(_("Right click here for actions on instruments & MIDI Rules. Drag & drop to change the order of instruments."));
     instrument_name_connection = m_refTreeModel->signal_row_changed().connect(
         sigc::mem_fun(*this, &MainWindow::instrument_name_changed)
     );
 
     // Add the TreeView's view columns:
-    m_TreeView.append_column_editable("Instrument", m_Columns.m_col_name);
-    m_TreeView.set_headers_visible(false);
+    m_TreeView.append_column(_("Nr"), m_Columns.m_col_nr);
+    m_TreeView.append_column_editable(_("Instrument"), m_Columns.m_col_name);
+    m_TreeView.set_headers_visible(true);
     
     // establish drag&drop within the instrument tree view, allowing to reorder
     // the sequence of instruments within the gig file
@@ -551,6 +553,7 @@ MainWindow::MainWindow() :
     // create samples treeview (including its data model)
     m_refSamplesTreeModel = SamplesTreeStore::create(m_SamplesModel);
     m_TreeViewSamples.set_model(m_refSamplesTreeModel);
+    m_TreeViewSamples.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
     m_TreeViewSamples.set_tooltip_text(_("To actually use a sample, drag it from this list view to \"Sample\" -> \"Sample:\" on the region's settings pane on the right.\n\nRight click here for more actions on samples."));
     // m_TreeViewSamples.set_reorderable();
     m_TreeViewSamples.append_column_editable(_("Name"), m_SamplesModel.m_col_name);
@@ -728,8 +731,9 @@ void MainWindow::region_changed()
 gig::Instrument* MainWindow::get_instrument()
 {
     gig::Instrument* instrument = 0;
-    Gtk::TreeModel::const_iterator it =
-        m_TreeView.get_selection()->get_selected();
+    std::vector<Gtk::TreeModel::Path> rows = m_TreeView.get_selection()->get_selected_rows();
+    if (rows.empty()) return NULL;
+    Gtk::TreeModel::const_iterator it = m_refTreeModel->get_iter(rows[0]);
     if (it) {
         Gtk::TreeModel::Row row = *it;
         instrument = row[m_Columns.m_col_instr];
@@ -789,13 +793,16 @@ void MainWindow::dimreg_changed()
 void MainWindow::on_sel_change()
 {
     // select item in instrument menu
-    Gtk::TreeModel::iterator it = m_TreeView.get_selection()->get_selected();
-    if (it) {
-        Gtk::TreePath path(it);
-        int index = path[0];
-        const std::vector<Gtk::Widget*> children =
-            instrument_menu->get_children();
-        static_cast<Gtk::RadioMenuItem*>(children[index])->set_active();
+    std::vector<Gtk::TreeModel::Path> rows = m_TreeView.get_selection()->get_selected_rows();
+    if (!rows.empty()) {
+        Gtk::TreeModel::iterator it = m_refTreeModel->get_iter(rows[0]);
+        if (it) {
+            Gtk::TreePath path(it);
+            int index = path[0];
+            const std::vector<Gtk::Widget*> children =
+                instrument_menu->get_children();
+            static_cast<Gtk::RadioMenuItem*>(children[index])->set_active();
+        }
     }
 
     m_RegionChooser.set_instrument(get_instrument());
@@ -1807,12 +1814,14 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
     propDialog.set_info(gig->pInfo);
 
     instrument_name_connection.block();
+    int index = 0;
     for (gig::Instrument* instrument = gig->GetFirstInstrument() ; instrument ;
-         instrument = gig->GetNextInstrument()) {
+         instrument = gig->GetNextInstrument(), ++index) {
         Glib::ustring name(gig_to_utf8(instrument->pInfo->Name));
 
         Gtk::TreeModel::iterator iter = m_refTreeModel->append();
         Gtk::TreeModel::Row row = *iter;
+        row[m_Columns.m_col_nr] = index;
         row[m_Columns.m_col_name] = name;
         row[m_Columns.m_col_instr] = instrument;
 
@@ -1885,8 +1894,12 @@ bool MainWindow::instr_props_set_instrument()
 {
     instrumentProps.signal_name_changed().clear();
 
-    Gtk::TreeModel::const_iterator it =
-        m_TreeView.get_selection()->get_selected();
+    std::vector<Gtk::TreeModel::Path> rows = m_TreeView.get_selection()->get_selected_rows();
+    if (rows.empty()) {
+        instrumentProps.hide();
+        return false;
+    }
+    Gtk::TreeModel::const_iterator it = m_refTreeModel->get_iter(rows[0]);
     if (it) {
         Gtk::TreeModel::Row row = *it;
         gig::Instrument* instrument = row[m_Columns.m_col_instr];
@@ -1939,8 +1952,9 @@ void MainWindow::show_midi_rules()
 void MainWindow::show_script_slots() {
     if (!file) return;
     // get selected instrument
-    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeView.get_selection();
-    Gtk::TreeModel::iterator it = sel->get_selected();
+    std::vector<Gtk::TreeModel::Path> rows = m_TreeView.get_selection()->get_selected_rows();
+    if (rows.empty()) return;
+    Gtk::TreeModel::iterator it = m_refTreeModel->get_iter(rows[0]);
     if (!it) return;
     Gtk::TreeModel::Row row = *it;
     gig::Instrument* instrument = row[m_Columns.m_col_instr];
@@ -2060,11 +2074,12 @@ void MainWindow::select_instrument(gig::Instrument* instrument) {
         if (row[m_Columns.m_col_instr] == instrument) {
             // select and show the respective instrument in the list view
             show_intruments_tab();
+            m_TreeView.get_selection()->unselect_all();
             m_TreeView.get_selection()->select(model->children()[i]);
-            Gtk::TreePath path(
-                m_TreeView.get_selection()->get_selected()
-            );
-            m_TreeView.scroll_to_row(path);
+            std::vector<Gtk::TreeModel::Path> rows =
+                m_TreeView.get_selection()->get_selected_rows();
+            if (!rows.empty())
+                m_TreeView.scroll_to_row(rows[0]);
             on_sel_change(); // the regular instrument selection change callback
         }
     }
@@ -2081,11 +2096,12 @@ bool MainWindow::select_dimension_region(gig::DimensionRegion* dimRgn) {
         if (row[m_Columns.m_col_instr] == pInstrument) {
             // select and show the respective instrument in the list view
             show_intruments_tab();
+            m_TreeView.get_selection()->unselect_all();
             m_TreeView.get_selection()->select(model->children()[i]);
-            Gtk::TreePath path(
-                m_TreeView.get_selection()->get_selected()
-            );
-            m_TreeView.scroll_to_row(path);
+            std::vector<Gtk::TreeModel::Path> rows =
+                m_TreeView.get_selection()->get_selected_rows();
+            if (!rows.empty())
+                m_TreeView.scroll_to_row(rows[0]);
             on_sel_change(); // the regular instrument selection change callback
 
             // select respective region in the region selector
@@ -2111,11 +2127,12 @@ void MainWindow::select_sample(gig::Sample* sample) {
             Gtk::TreeModel::Row rowSample = rowGroup.children()[s];
             if (rowSample[m_SamplesModel.m_col_sample] == sample) {
                 show_samples_tab();
+                m_TreeViewSamples.get_selection()->unselect_all();
                 m_TreeViewSamples.get_selection()->select(rowGroup.children()[s]);
-                Gtk::TreePath path(
-                    m_TreeViewSamples.get_selection()->get_selected()
-                );
-                m_TreeViewSamples.scroll_to_row(path);
+                std::vector<Gtk::TreeModel::Path> rows =
+                    m_TreeViewSamples.get_selection()->get_selected_rows();
+                if (rows.empty()) return;
+                m_TreeViewSamples.scroll_to_row(rows[0]);
                 return;
             }
         }
@@ -2124,43 +2141,64 @@ void MainWindow::select_sample(gig::Sample* sample) {
 
 void MainWindow::on_sample_treeview_button_release(GdkEventButton* button) {
     if (button->type == GDK_BUTTON_PRESS && button->button == 3) {
+        // by default if Ctrl keys is pressed down, then a mouse right-click
+        // does not select the respective row, so we must assure this
+        // programmatically ...
+        /*{
+            Gtk::TreeModel::Path path;
+            Gtk::TreeViewColumn* pColumn = NULL;
+            int cellX, cellY;
+            bool bSuccess = m_TreeViewSamples.get_path_at_pos(
+                (int)button->x, (int)button->y,
+                path, pColumn, cellX, cellY
+            );
+            if (bSuccess) {
+                if (m_TreeViewSamples.get_selection()->count_selected_rows() <= 0) {
+                    printf("not selected !!!\n");
+                    m_TreeViewSamples.get_selection()->select(path);
+                }
+            }
+        }*/
+
         Gtk::Menu* sample_popup =
             dynamic_cast<Gtk::Menu*>(uiManager->get_widget("/SamplePopupMenu"));
         // update enabled/disabled state of sample popup items
         Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
-        Gtk::TreeModel::iterator it = sel->get_selected();
-        bool group_selected  = false;
-        bool sample_selected = false;
-        if (it) {
+        std::vector<Gtk::TreeModel::Path> rows = sel->get_selected_rows();
+        const int n = rows.size();
+        int nGroups  = 0;
+        int nSamples = 0;
+        for (int r = 0; r < n; ++r) {
+            Gtk::TreeModel::iterator it = m_refSamplesTreeModel->get_iter(rows[r]);
+            if (!it) continue;
             Gtk::TreeModel::Row row = *it;
-            group_selected  = row[m_SamplesModel.m_col_group];
-            sample_selected = row[m_SamplesModel.m_col_sample];
+            if (row[m_SamplesModel.m_col_group]) nGroups++;
+            if (row[m_SamplesModel.m_col_sample]) nSamples++;
         }
-        
-            
+
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/SampleProperties"))->
-            set_sensitive(group_selected || sample_selected);
+            set_sensitive(n == 1);
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/AddSample"))->
-            set_sensitive(group_selected || sample_selected);
+            set_sensitive(n);
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/AddGroup"))->
             set_sensitive(file);
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/ShowSampleRefs"))->
-            set_sensitive(sample_selected);
+            set_sensitive(nSamples == 1);
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/RemoveSample"))->
-            set_sensitive(group_selected || sample_selected);
+            set_sensitive(n);
         // show sample popup
         sample_popup->popup(button->button, button->time);
 
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuSample/SampleProperties"))->
-            set_sensitive(group_selected || sample_selected);
+            set_sensitive(n == 1);
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuSample/AddSample"))->
-            set_sensitive(group_selected || sample_selected);
+            set_sensitive(n);
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuSample/AddGroup"))->
             set_sensitive(file);
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuSample/ShowSampleRefs"))->
-            set_sensitive(sample_selected);
+            set_sensitive(nSamples == 1);
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuSample/RemoveSample"))->
-            set_sensitive(group_selected || sample_selected);
+            set_sensitive(n);
     }
 }
 
@@ -2239,6 +2277,7 @@ void MainWindow::add_instrument(gig::Instrument* instrument) {
     instrument_name_connection.block();
     Gtk::TreeModel::iterator iterInstr = m_refTreeModel->append();
     Gtk::TreeModel::Row rowInstr = *iterInstr;
+    rowInstr[m_Columns.m_col_nr] = m_refTreeModel->children().size() - 1;
     rowInstr[m_Columns.m_col_name] = name;
     rowInstr[m_Columns.m_col_instr] = instrument;
     instrument_name_connection.unblock();
@@ -2267,19 +2306,23 @@ void MainWindow::on_action_duplicate_instrument() {
     // retrieve the currently selected instrument
     // (being the original instrument to be duplicated)
     Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeView.get_selection();
-    Gtk::TreeModel::iterator itSelection = sel->get_selected();
-    if (!itSelection) return;
-    Gtk::TreeModel::Row row = *itSelection;
-    gig::Instrument* instrOrig = row[m_Columns.m_col_instr];
-    if (!instrOrig) return;
+    std::vector<Gtk::TreeModel::Path> rows = sel->get_selected_rows();
+    for (int r = 0; r < rows.size(); ++r) {
+        Gtk::TreeModel::iterator it = m_refTreeModel->get_iter(rows[r]);
+        if (it) {
+            Gtk::TreeModel::Row row = *it;
+            gig::Instrument* instrOrig = row[m_Columns.m_col_instr];
+            if (instrOrig) {
+                // duplicate the orginal instrument
+                gig::Instrument* instrNew = file->AddDuplicateInstrument(instrOrig);
+                instrNew->pInfo->Name =
+                    instrOrig->pInfo->Name +
+                    gig_from_utf8(Glib::ustring(" (") + _("Copy") + ")");
 
-    // duplicate the orginal instrument
-    gig::Instrument* instrNew = file->AddDuplicateInstrument(instrOrig);
-    instrNew->pInfo->Name =
-        instrOrig->pInfo->Name + 
-        gig_from_utf8(Glib::ustring(" (") + _("Copy") + ")");
-
-    add_instrument(instrNew);
+                add_instrument(instrNew);
+            }
+        }
+    }
 }
 
 void MainWindow::on_action_remove_instrument() {
@@ -2296,8 +2339,10 @@ void MainWindow::on_action_remove_instrument() {
     }
 
     Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeView.get_selection();
-    Gtk::TreeModel::iterator it = sel->get_selected();
-    if (it) {
+    std::vector<Gtk::TreeModel::Path> rows = sel->get_selected_rows();
+    for (int r = rows.size() - 1; r >= 0; --r) {
+        Gtk::TreeModel::iterator it = m_refTreeModel->get_iter(rows[r]);
+        if (!it) continue;
         Gtk::TreeModel::Row row = *it;
         gig::Instrument* instr = row[m_Columns.m_col_instr];
         try {
@@ -2312,6 +2357,16 @@ void MainWindow::on_action_remove_instrument() {
 
             // remove row from instruments tree view
             m_refTreeModel->erase(it);
+            // update "Nr" column of all instrument rows
+            {
+                int index = 0;
+                for (Gtk::TreeModel::iterator it = m_refTreeModel->children().begin();
+                     it != m_refTreeModel->children().end(); ++it, ++index)
+                {
+                    Gtk::TreeModel::Row row = *it;
+                    row[m_Columns.m_col_nr] = index;
+                }
+            }
 
 #if GTKMM_MAJOR_VERSION < 3
             // select another instrument (in gtk3 this is done
@@ -2493,7 +2548,9 @@ void MainWindow::add_or_replace_sample(bool replace) {
 
     // get selected group (and probably selected sample)
     Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
-    Gtk::TreeModel::iterator it = sel->get_selected();
+    std::vector<Gtk::TreeModel::Path> rows = sel->get_selected_rows();
+    if (rows.empty()) return;
+    Gtk::TreeModel::iterator it = m_refSamplesTreeModel->get_iter(rows[0]);
     if (!it) return;
     Gtk::TreeModel::Row row = *it;
     gig::Sample* sample = NULL;
@@ -2776,8 +2833,10 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
 void MainWindow::on_action_remove_sample() {
     if (!file) return;
     Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
-    Gtk::TreeModel::iterator it = sel->get_selected();
-    if (it) {
+    std::vector<Gtk::TreeModel::Path> rows = sel->get_selected_rows();
+    for (int r = rows.size() - 1; r >= 0; --r) {
+        Gtk::TreeModel::iterator it = m_refSamplesTreeModel->get_iter(rows[r]);
+        if (!it) continue;
         Gtk::TreeModel::Row row = *it;
         gig::Group* group   = row[m_SamplesModel.m_col_group];
         gig::Sample* sample = row[m_SamplesModel.m_col_sample];
@@ -2956,10 +3015,13 @@ void MainWindow::on_instruments_treeview_drag_data_get(const Glib::RefPtr<Gdk::D
     gig::Instrument* src = NULL;
     {
         Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeView.get_selection();
-        Gtk::TreeModel::iterator it = sel->get_selected();
-        if (it) {
-            Gtk::TreeModel::Row row = *it;
-            src = row[m_Columns.m_col_instr];
+        std::vector<Gtk::TreeModel::Path> rows = sel->get_selected_rows();
+        if (!rows.empty()) {
+            Gtk::TreeModel::iterator it = m_refTreeModel->get_iter(rows[0]);
+            if (it) {
+                Gtk::TreeModel::Row row = *it;
+                src = row[m_Columns.m_col_instr];
+            }
         }
     }
     if (!src) return;
@@ -3014,10 +3076,13 @@ void MainWindow::on_sample_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragCo
     // get selected sample
     gig::Sample* sample = NULL;
     Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
-    Gtk::TreeModel::iterator it = sel->get_selected();
-    if (it) {
-        Gtk::TreeModel::Row row = *it;
-        sample = row[m_SamplesModel.m_col_sample];
+    std::vector<Gtk::TreeModel::Path> rows = sel->get_selected_rows();
+    if (!rows.empty()) {
+        Gtk::TreeModel::iterator it = m_refSamplesTreeModel->get_iter(rows[0]);
+        if (it) {
+            Gtk::TreeModel::Row row = *it;
+            sample = row[m_SamplesModel.m_col_sample];
+        }
     }
     // pass the gig::Sample as pointer
     selection_data.set(selection_data.get_target(), 0/*unused*/, (const guchar*)&sample,
@@ -3216,7 +3281,9 @@ void MainWindow::on_action_combine_instruments() {
 
 void MainWindow::on_action_view_references() {
     Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
-    Gtk::TreeModel::iterator it = sel->get_selected();
+    std::vector<Gtk::TreeModel::Path> rows = sel->get_selected_rows();
+    if (rows.empty()) return;
+    Gtk::TreeModel::iterator it = m_refSamplesTreeModel->get_iter(rows[0]);
     if (!it) return;
     Gtk::TreeModel::Row row = *it;
     gig::Sample* sample = row[m_SamplesModel.m_col_sample];
