@@ -188,8 +188,10 @@ protected:
     BoolEntry eMSDecode;
     NumEntryTemp<uint16_t> eSampleStartOffset;
     NoteEntry eUnityNote;
+    ReadOnlyLabelWidget eSampleGroup;
     ReadOnlyLabelWidget eSampleFormatInfo;
     ReadOnlyLabelWidget eSampleID;
+    ReadOnlyLabelWidget eChecksum;
     NumEntryTemp<int16_t> eFineTune;
     NumEntryGain eGain;
     BoolEntryPlus6 eGainPlus6;

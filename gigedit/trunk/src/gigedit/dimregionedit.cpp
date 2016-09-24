@@ -230,8 +230,10 @@ DimRegionEdit::DimRegionEdit() :
     eMSDecode(_("Decode Mid/Side Recordings")),
     eSampleStartOffset(_("Sample start offset"), 0, 2000),
     eUnityNote(_("Unity note")),
+    eSampleGroup(_("Sample Group")),
     eSampleFormatInfo(_("Sample Format")),
     eSampleID("Sample ID"),
+    eChecksum("Wave Data CRC-32"),
     eFineTune(_("Fine tune"), -49, 50),
     eGain(_("Gain"), -96, 0, 2, -655360),
     eGainPlus6(_("Gain +6dB"), eGain, 6 * -655360),
@@ -467,8 +469,10 @@ DimRegionEdit::DimRegionEdit() :
     wSample->set_tooltip_text(_("Drag & drop a sample here"));
 #endif
     addProp(eUnityNote);
+    addProp(eSampleGroup);
     addProp(eSampleFormatInfo);
     addProp(eSampleID);
+    addProp(eChecksum);
     addRightHandSide(buttonSelectSample);
     addHeader(_("Optional Settings"));
     addProp(eSampleStartOffset);
@@ -1021,6 +1025,13 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
     eMSDecode.set_value(d->MSDecode);
     eSampleStartOffset.set_value(d->SampleStartOffset);
     eUnityNote.set_value(d->UnityNote);
+    // show sample group name
+    {
+        Glib::ustring s = "---";
+        if (d->pSample && d->pSample->GetGroup())
+            s = d->pSample->GetGroup()->Name;
+        eSampleGroup.text.set_text(s);
+    }
     // assemble sample format info string
     {
         Glib::ustring s;
@@ -1051,6 +1062,16 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
             s = "---";
         }
         eSampleID.text.set_text(s);
+    }
+    // generate raw wave form data CRC-32 checksum string
+    {
+        Glib::ustring s = "---";
+        if (d->pSample) {
+            char buf[64] = {};
+            snprintf(buf, sizeof(buf), "%x", d->pSample->GetWaveDataCRC32Checksum());
+            s = buf;
+        }
+        eChecksum.text.set_text(s);
     }
     buttonSelectSample.set_sensitive(d && d->pSample);
     eFineTune.set_value(d->FineTune);
