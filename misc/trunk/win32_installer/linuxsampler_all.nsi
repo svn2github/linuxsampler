@@ -517,7 +517,6 @@ Section "libgig ${LIBGIG_VERSION}" Seclibgig
   File bin\64\akaiextract.exe
   File bin\64\sf2dump.exe
   File bin\64\sf2extract.exe
-  ; special dependencies for the 64 bit version
   File bin\64\libgcc_s_sjlj-1.dll
   File bin\64\libstdc++-6.dll
 
@@ -529,7 +528,7 @@ Section "libgig ${LIBGIG_VERSION}" Seclibgig
   libgigForQsampler:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686sse\libgig-7.dll
-  Goto done
+  Goto libgig32common
 
   libgig686sse:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
@@ -548,7 +547,7 @@ Section "libgig ${LIBGIG_VERSION}" Seclibgig
   File bin\686sse\akaiextract.exe
   File bin\686sse\sf2dump.exe
   File bin\686sse\sf2extract.exe
-  Goto done
+  Goto libgig32common
 
   libgig686:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
@@ -567,8 +566,12 @@ Section "libgig ${LIBGIG_VERSION}" Seclibgig
   File bin\686\akaiextract.exe
   File bin\686\sf2dump.exe
   File bin\686\sf2extract.exe
-  Goto done
 
+  libgig32common:
+  File bin\686\libgcc_s_dw2-1.dll
+  File bin\686\libwinpthread-1.dll  
+  File bin\686\libstdc++-6.dll
+  
   done:
 
   ; As this is a mandatory component, we misuse is for the following

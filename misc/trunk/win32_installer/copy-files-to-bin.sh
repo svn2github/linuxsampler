@@ -22,6 +22,8 @@ cp libsndfile-1.dll libsqlite3-0.dll \
     gigedit.exe \
     liblscp-6.dll qsampler.exe \
     $DIST
+cd /home/persson/msys2/mingw32/bin
+cp libgcc_s_dw2-1.dll libwinpthread-1.dll libstdc++-6.dll $DIST
 cd $WIN/gtkmm/redist
 cp libatk-1.0-0.dll libatkmm-1.6-1.dll libcairo-2.dll \
     libcairomm-1.0-1.dll libgdkmm-2.4-1.dll \
@@ -54,7 +56,7 @@ cd $DIST
     share/locale/de/LC_MESSAGES/gigedit.mo \
     share/locale/sv/LC_MESSAGES/gigedit.mo) | tar xf -
 cd $WIN/qt/bin
-cp QtCore4.dll QtGui4.dll mingwm10.dll libgcc_s_dw2-1.dll $DIST
+cp QtCore4.dll QtGui4.dll mingwm10.dll $DIST
 cd $WIN/qt/translations
 cp qt_ru.qm qt_cs.qm $DIST/share/locale
 cd $WIN/share/locale
