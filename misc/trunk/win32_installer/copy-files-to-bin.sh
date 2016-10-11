@@ -24,6 +24,7 @@ cd /home/persson/msys2/mingw32/bin
 cp libgcc_s_dw2-1.dll libwinpthread-1.dll libstdc++-6.dll \
    libsndfile-1.dll libsqlite3-0.dll \
    libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
+   libspeex-1.dll \
    $DIST
 cd ../lib/pkgconfig
 cp sndfile.pc $DIST

@@ -630,6 +630,7 @@ Section "libsndfile ${SNDFILE_VERSION}" Seclibsndfile
   File bin\686\libogg-0.dll
   File bin\686\libvorbis-0.dll
   File bin\686\libvorbisenc-2.dll
+  File bin\686\libspeex-1.dll
   Goto done
 
   done:
