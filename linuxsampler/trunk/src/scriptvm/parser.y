@@ -18,10 +18,12 @@
 
     void InstrScript_error(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* err);
     void InstrScript_warning(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* txt);
+    int InstrScript_tnamerr(char* yyres, const char* yystr);
     int InstrScript_lex(YYSTYPE* lvalp, YYLTYPE* llocp, void* scanner);
     #define scanner context->scanner
     #define PARSE_ERR(loc,txt)  yyerror(&loc, context, txt)
     #define PARSE_WRN(loc,txt)  InstrScript_warning(&loc, context, txt)
+    #define yytnamerr(res,str)  InstrScript_tnamerr(res, str)
 %}
 
 // generate reentrant safe parser
@@ -34,14 +36,38 @@
 %defines
 %error-verbose
 
-%token <iValue> INTEGER
-%token <sValue> STRING
-%token <sValue> IDENTIFIER
-%token <sValue> VARIABLE
-%token ON END INIT NOTE DECLARE ASSIGNMENT WHILE IF OR RELEASE AND ELSE FUNCTION CALL
-%token BITWISE_OR BITWISE_AND BITWISE_NOT
-%token CONTROLLER SELECT CASE TO NOT CONST_ POLYPHONIC MOD
-%token LE GE
+%token <iValue> INTEGER "integer literal"
+%token <sValue> STRING "string literal"
+%token <sValue> IDENTIFIER "function name"
+%token <sValue> VARIABLE "variable name"
+%token ON "keyword 'on'"
+%token END "keyword 'end'"
+%token INIT "keyword 'init'"
+%token NOTE "keyword 'note'"
+%token RELEASE "keyword 'release'"
+%token CONTROLLER "keyword 'controller'"
+%token DECLARE "keyword 'declare'"
+%token ASSIGNMENT "operator ':='"
+%token CONST_ "keyword 'const'"
+%token POLYPHONIC "keyword 'polyphonic'"
+%token WHILE "keyword 'while'"
+%token IF "keyword 'if'"
+%token ELSE "keyword 'else'"
+%token SELECT "keyword 'select'"
+%token CASE "keyword 'case'"
+%token TO "keyword 'to'"
+%token OR "operator 'or'"
+%token AND "operator 'and'"
+%token NOT "operator 'not'"
+%token BITWISE_OR "bitwise operator '.or.'"
+%token BITWISE_AND "bitwise operator '.and.'"
+%token BITWISE_NOT "bitwise operator '.not.'"
+%token FUNCTION "keyword 'function'"
+%token CALL "keyword 'call'"
+%token MOD "operator 'mod'"
+%token LE "operator '<='"
+%token GE "operator '>='"
+%token END_OF_FILE 0 "end of file"
 
 %type <nEventHandlers> script sections
 %type <nEventHandler> section eventhandler
@@ -773,4 +799,42 @@ void InstrScript_error(YYLTYPE* locp, LinuxSampler::ParserContext* context, cons
 void InstrScript_warning(YYLTYPE* locp, LinuxSampler::ParserContext* context, const char* txt) {
     //fprintf(stderr, "WRN %d: %s\n", locp->first_line, txt);
     context->addWrn(locp->first_line, locp->last_line, locp->first_column+1, locp->last_column+1, txt);
+}
+
+/// Custom implementation of yytnamerr() to ensure quotation is always stripped from token names before printing them to error messages.
+int InstrScript_tnamerr(char* yyres, const char* yystr) {
+  if (*yystr == '"') {
+      int yyn = 0;
+      char const *yyp = yystr;
+      for (;;)
+        switch (*++yyp)
+          {
+/*
+          case '\'':
+          case ',':
+            goto do_not_strip_quotes;
+
+          case '\\':
+            if (*++yyp != '\\')
+              goto do_not_strip_quotes;
+*/
+            /* Fall through.  */
+          default:
+            if (yyres)
+              yyres[yyn] = *yyp;
+            yyn++;
+            break;
+
+          case '"':
+            if (yyres)
+              yyres[yyn] = '\0';
+            return yyn;
+          }
+    do_not_strip_quotes: ;
+    }
+
+  if (! yyres)
+    return yystrlen (yystr);
+
+  return yystpcpy (yyres, yystr) - yyres;
 }
