@@ -12,9 +12,7 @@ WIN=/home/persson/win32
 rm -rf $DIST
 mkdir -p $DIST
 cd $WIN/bin
-cp libsndfile-1.dll libsqlite3-0.dll \
-    libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
-    rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
+cp rifftree.exe dlsdump.exe gigdump.exe gigextract.exe gigmerge.exe \
     gig2mono.exe gig2stereo.exe \
     korg2gig.exe korgdump.exe akaidump.exe akaiextract.exe \
     sf2dump.exe sf2extract.exe \
@@ -23,7 +21,10 @@ cp libsndfile-1.dll libsqlite3-0.dll \
     liblscp-6.dll qsampler.exe \
     $DIST
 cd /home/persson/msys2/mingw32/bin
-cp libgcc_s_dw2-1.dll libwinpthread-1.dll libstdc++-6.dll $DIST
+cp libgcc_s_dw2-1.dll libwinpthread-1.dll libstdc++-6.dll \
+   libsndfile-1.dll libsqlite3-0.dll \
+   libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
+   $DIST
 cd $WIN/gtkmm/redist
 cp libatk-1.0-0.dll libatkmm-1.6-1.dll libcairo-2.dll \
     libcairomm-1.0-1.dll libgdkmm-2.4-1.dll \
