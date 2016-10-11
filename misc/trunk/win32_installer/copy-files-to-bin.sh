@@ -25,6 +25,8 @@ cp libgcc_s_dw2-1.dll libwinpthread-1.dll libstdc++-6.dll \
    libsndfile-1.dll libsqlite3-0.dll \
    libFLAC-8.dll libogg-0.dll libvorbis-0.dll libvorbisenc-2.dll \
    $DIST
+cd ../lib/pkgconfig
+cp sndfile.pc $DIST
 cd $WIN/gtkmm/redist
 cp libatk-1.0-0.dll libatkmm-1.6-1.dll libcairo-2.dll \
     libcairomm-1.0-1.dll libgdkmm-2.4-1.dll \
@@ -65,7 +67,7 @@ cp qsampler_ru.qm qsampler_cs.qm $DIST/share/locale
 cd $WIN/share
 cp qsampler.version gigedit.version $DIST
 cd $WIN/lib/pkgconfig
-cp gig.pc linuxsampler.pc sndfile.pc $DIST
+cp gig.pc linuxsampler.pc $DIST
 
 # win32sse --------------------------------------------------------
 
