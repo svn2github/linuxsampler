@@ -343,11 +343,28 @@ Section "QSampler ${QSAMPLER_VERSION}" SecQSampler
   ; Files to install
   File bin\686\qsampler.exe
   File bin\686\liblscp-6.dll
-  File bin\686\QtCore4.dll
-  File bin\686\QtGui4.dll
-  File bin\686\mingwm10.dll
-  File bin\686\libgcc_s_dw2-1.dll
+  File bin\686\Qt5Core.dll
+  File bin\686\Qt5Gui.dll
+  File bin\686\Qt5Widgets.dll
+  File bin\686\libbz2-1.dll
+  File bin\686\libfreetype-6.dll
+  File bin\686\libglib-2.0-0.dll
+  File bin\686\libgraphite2.dll
+  File bin\686\libharfbuzz-0.dll
+  File bin\686\libiconv-2.dll
+  File bin\686\libicudt57.dll
+  File bin\686\libicuin57.dll
+  File bin\686\libicuuc57.dll
+  File bin\686\libintl-8.dll
+  File bin\686\liblscp-6.dll
+  File bin\686\libpcre-1.dll
+  File bin\686\libpcre16-0.dll
+  File bin\686\libpng16-16.dll
+  File bin\686\zlib1.dll
+  File qt.conf
   File qsampler.ico
+  SetOutPath $INSTDIR\plugins\platforms
+  File bin\686\plugins\platforms\qwindows.dll
   SetOutPath $INSTDIR\share\locale
   File bin\686\share\locale\qsampler_ru.qm
   File bin\686\share\locale\qsampler_cs.qm
@@ -440,7 +457,7 @@ Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   File bin\686\libgdk-win32-2.0-0.dll
   File bin\686\libgio-2.0-0.dll
   File bin\686\libgiomm-2.4-1.dll
-  File bin\686\libglib-2.0-0.dll
+  ; File bin\686\libglib-2.0-0.dll
   File bin\686\libglibmm-2.4-1.dll
   File bin\686\libgmodule-2.0-0.dll
   File bin\686\libgobject-2.0-0.dll
@@ -454,7 +471,7 @@ Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   File bin\686\libpng12-0.dll
   File bin\686\libsigc-2.0-0.dll
   File bin\686\libtiff3.dll
-  File bin\686\zlib1.dll
+  ; File bin\686\zlib1.dll
   SetOutPath $INSTDIR\${SUBDIR_32_BIT}\etc\gtk-2.0
   File bin\686\etc\gtk-2.0\gdk-pixbuf.loaders
   File bin\686\etc\gtk-2.0\gtkrc
