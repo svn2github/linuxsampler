@@ -848,6 +848,8 @@ namespace LinuxSampler {
      * issue (either a parser error or parser warning), a human readable
      * explanation text of the error or warning and the location of the
      * encountered parser issue within the script.
+     *
+     * @see VMSourceToken for processing syntax highlighting instead.
      */
     struct ParserIssue {
         String txt; ///< Human readable explanation text of the parser issue.
@@ -966,6 +968,8 @@ namespace LinuxSampler {
      * This class is not actually used by the sampler itself. It is rather
      * provided for external script editor applications. Primary purpose of
      * this class is syntax highlighting for external script editors.
+     *
+     * @see ParserIssue for processing compile errors and warnings instead.
      */
     class VMSourceToken {
     public:
@@ -978,26 +982,26 @@ namespace LinuxSampler {
         String text() const;
 
         // position of token in script
-        int firstLine() const; ///< First line this source token is located at in script source code (indexed with 0 being the very first line).
-        int firstColumn() const; ///< Last line this source token is located at in script source code.
+        int firstLine() const; ///< First line this source token is located at in script source code (indexed with 0 being the very first line). Most source code tokens are not spanning over multiple lines, the only current exception are comments, in the latter case you need to process text() to get the last line and last column for the comment.
+        int firstColumn() const; ///< First column on the first line this source token is located at in script source code (indexed with 0 being the very first column). To get the length of this token use text().length().
 
         // base types
-        bool isEOF() const;
-        bool isNewLine() const;
-        bool isKeyword() const;
-        bool isVariableName() const;
-        bool isIdentifier() const;
-        bool isNumberLiteral() const;
-        bool isStringLiteral() const;
-        bool isComment() const;
-        bool isPreprocessor() const;
-        bool isOther() const;
+        bool isEOF() const; ///< Returns true in case this source token represents the end of the source code file.
+        bool isNewLine() const; ///< Returns true in case this source token represents a line feed character (i.e. "\n" on Unix systems).
+        bool isKeyword() const; ///< Returns true in case this source token represents a language keyword (i.e. "while", "function", "declare", "on", etc.).
+        bool isVariableName() const; ///< Returns true in case this source token represents a variable name (i.e. "$someIntVariable", "%someArrayVariable", "\@someStringVariable"). @see isIntegerVariable(), isStringVariable(), isArrayVariable() for the precise variable type.
+        bool isIdentifier() const; ///< Returns true in case this source token represents an identifier, which currently always means a function name.
+        bool isNumberLiteral() const; ///< Returns true in case this source token represents a number literal (i.e. 123).
+        bool isStringLiteral() const; ///< Returns true in case this source token represents a string literal (i.e. "Some text").
+        bool isComment() const; ///< Returns true in case this source token represents a source code comment.
+        bool isPreprocessor() const; ///< Returns true in case this source token represents a preprocessor statement.
+        bool isOther() const; ///< Returns true in case this source token represents anything else not covered by the token types mentioned above.
 
         // extended types
-        bool isIntegerVariable() const;
-        bool isStringVariable() const;
-        bool isArrayVariable() const;
-        bool isEventHandlerName() const;
+        bool isIntegerVariable() const; ///< Returns true in case this source token represents an integer variable name (i.e. "$someIntVariable").
+        bool isStringVariable() const; ///< Returns true in case this source token represents an string variable name (i.e. "\@someStringVariable").
+        bool isArrayVariable() const; ///< Returns true in case this source token represents an array variable name (i.e. "%someArryVariable").
+        bool isEventHandlerName() const; ///< Returns true in case this source token represents an event handler name (i.e. "note", "release", "controller").
 
         VMSourceToken& operator=(const VMSourceToken& other);
 
