@@ -298,9 +298,10 @@ statement:
                         break;
                     }
                 }
-                if (argsOK)
-                    $$ = context->vartable[name] = new IntArrayVariable(context, size, args);
-                else
+                if (argsOK) {
+                    context->vartable[name] = new IntArrayVariable(context, size, args);
+                    $$ = new NoOperation;
+                } else
                     $$ = new FunctionCall("nothing", new Args, NULL); // whatever
             }
         }

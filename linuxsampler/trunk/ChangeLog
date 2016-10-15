@@ -123,6 +123,8 @@ Version SVN trunk (?)
     - ScriptVM: Implemented automatic suspension of RT safety
       threatening scripts.
     - Provide more user friendly error messages on syntax errors.
+    - Fixed NKSP parser warning "Not a statement" when assigning an
+      initializer list to an array variable.
 
 Version 2.0.0 (15 July 2015)
 
