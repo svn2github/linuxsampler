@@ -27,6 +27,8 @@ Version SVN trunk (?)
     - All engines: Increased ramp speed of volume smoother and pan smoother
       (while slow rate of crossfade smoother is preserved) to allow quick
       volume and pan changes by instrument scripts for instance.
+    - gig/sf2/sfz: Fixed aftertouch channel pressure events being processed
+      properly and thus were ignored for certain uses.
 
   * packaging changes:
     - removed unnecessary dependency to libuuid

@@ -117,6 +117,9 @@ namespace LinuxSampler { namespace gig {
     }
 
     void Engine::ProcessChannelPressure(LinuxSampler::EngineChannel* pEngineChannel, Pool<Event>::Iterator& itChannelPressureEvent) {
+        // forward this to the CC routine, so it updates the current aftertouch value and may handle aftertouch trigger rules
+        ProcessControlChange(pEngineChannel, itChannelPressureEvent);
+
         // if required: engine global aftertouch handling (apart from the per voice handling)
     }
 

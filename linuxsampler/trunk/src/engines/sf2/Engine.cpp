@@ -59,6 +59,9 @@ namespace LinuxSampler { namespace sf2 {
     }
 
     void Engine::ProcessChannelPressure(LinuxSampler::EngineChannel* pEngineChannel, Pool<Event>::Iterator& itChannelPressureEvent) {
+        // forward this to the CC routine, so it updates the current aftertouch value
+        ProcessControlChange(pEngineChannel, itChannelPressureEvent);
+
         // if required: engine global aftertouch handling (apart from the per voice handling)
     }
 
