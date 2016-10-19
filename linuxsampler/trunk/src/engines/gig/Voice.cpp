@@ -341,7 +341,7 @@ namespace LinuxSampler { namespace gig {
                 break;
             case ::gig::lfo3_ctrl_aftertouch:
                 lfo3_internal_depth  = 0;
-                pLFO3->ExtController = 128;
+                pLFO3->ExtController = CTRL_TABLE_IDX_AFTERTOUCH;
                 bLFO3Enabled         = true;
                 break;
             case ::gig::lfo3_ctrl_internal_modwheel:
@@ -351,7 +351,7 @@ namespace LinuxSampler { namespace gig {
                 break;
             case ::gig::lfo3_ctrl_internal_aftertouch:
                 lfo3_internal_depth  = pRegion->LFO3InternalDepth;
-                pLFO3->ExtController = 128;
+                pLFO3->ExtController = CTRL_TABLE_IDX_AFTERTOUCH;
                 bLFO3Enabled         = (lfo3_internal_depth > 0 || pRegion->LFO3ControlDepth > 0);
                 break;
             default:
@@ -426,7 +426,7 @@ namespace LinuxSampler { namespace gig {
                 ctrl = 83;
                 break;
             case ::gig::vcf_cutoff_ctrl_aftertouch:
-                ctrl = 128;
+                ctrl = CTRL_TABLE_IDX_AFTERTOUCH;
                 break;
             case ::gig::vcf_cutoff_ctrl_none:
             default:

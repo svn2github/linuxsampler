@@ -305,7 +305,7 @@ namespace LinuxSampler { namespace sf2 {
                 ctrl = 83;
                 break;
             case ::gig::vcf_cutoff_ctrl_aftertouch:
-                ctrl = 128;
+                ctrl = CTRL_TABLE_IDX_AFTERTOUCH;
                 break;
             case ::gig::vcf_cutoff_ctrl_none:
             default:

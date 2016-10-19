@@ -644,12 +644,18 @@ namespace LinuxSampler {
     void AbstractVoice::processCCEvents(RTList<Event>::Iterator& itEvent, uint End) {
         for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
             if ((itEvent->Type == Event::type_control_change || itEvent->Type == Event::type_channel_pressure)
-                && itEvent->Param.CC.Controller) { // if (valid) MIDI control change event
+                && itEvent->Param.CC.Controller) // if (valid) MIDI control change event
+            {
                 if (itEvent->Param.CC.Controller == VCFCutoffCtrl.controller) {
                     ProcessCutoffEvent(itEvent);
                 }
                 if (itEvent->Param.CC.Controller == VCFResonanceCtrl.controller) {
                     processResonanceEvent(itEvent);
+                }
+                if (itEvent->Param.CC.Controller == CTRL_TABLE_IDX_AFTERTOUCH ||
+                    itEvent->Type == Event::type_channel_pressure)
+                {
+                    ProcessChannelPressureEvent(itEvent);
                 }
                 if (pSignalUnitRack == NULL) {
                     if (itEvent->Param.CC.Controller == pLFO1->ExtController) {
@@ -669,8 +675,6 @@ namespace LinuxSampler {
                 }
             } else if (itEvent->Type == Event::type_pitchbend) { // if pitch bend event
                 processPitchEvent(itEvent);
-            } else if (itEvent->Type == Event::type_channel_pressure) {
-                ProcessChannelPressureEvent(itEvent);
             } else if (itEvent->Type == Event::type_note_pressure) {
                 ProcessPolyphonicKeyPressureEvent(itEvent);
             }
