@@ -29,6 +29,8 @@ Version SVN trunk (?)
       volume and pan changes by instrument scripts for instance.
     - gig/sf2/sfz: Fixed aftertouch channel pressure events being processed
       properly and thus were ignored for certain uses.
+    - Added new C++ API method
+      VirtualMidiDevice::SendChannelPressureToSampler().
 
   * packaging changes:
     - removed unnecessary dependency to libuuid

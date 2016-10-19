@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2008 - 2014 Christian Schoenebeck
+    Copyright (C) 2008 - 2016 Christian Schoenebeck
  */
 
 #ifndef LS_VIRTUALMIDIDEVICE_H
@@ -24,7 +24,8 @@ public:
         EVENT_TYPE_NOTEOFF = 2,
         EVENT_TYPE_CC      = 3,
         EVENT_TYPE_PITCHBEND,
-        EVENT_TYPE_PROGRAM
+        EVENT_TYPE_PROGRAM,
+        EVENT_TYPE_CHPRESSURE,
     };
 
     struct event_t {
@@ -60,6 +61,14 @@ public:
      *          (or provided values invalid)
      */
     bool SendCCToSampler(uint8_t Controller, uint8_t Value);
+
+    /**
+     * Sends a MIDI @e Channel @e Pressure (aftertouch) event to the sampler.
+     *
+     * @returns true on success, false if internal FIFO full
+     *          (or provided value invalid)
+     */
+    bool SendChannelPressureToSampler(uint8_t Pressure);
 
     /**
      * Sends a MIDI @e Pitch @e Bend event to the sampler.

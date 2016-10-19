@@ -783,6 +783,12 @@ namespace LinuxSampler {
                         case VirtualMidiDevice::EVENT_TYPE_PROGRAM:
                             SendProgramChange(devEvent.Arg1);
                             continue; // don't push this event into FIFO
+                        case VirtualMidiDevice::EVENT_TYPE_CHPRESSURE:
+                            event.Type = Event::type_channel_pressure;
+                            event.Param.ChannelPressure.Controller = CTRL_TABLE_IDX_AFTERTOUCH;
+                            event.Param.ChannelPressure.Value   = devEvent.Arg2;
+                            event.Param.ChannelPressure.Channel = channel;
+                            break;
                         default:
                             std::cerr << "AbstractEngineChannel::ImportEvents() ERROR: unknown event type ("
                                       << devEvent.Type << "). This is a bug!";

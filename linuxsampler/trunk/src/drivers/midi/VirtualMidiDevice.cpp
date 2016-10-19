@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2008 - 2014 Christian Schoenebeck
+    Copyright (C) 2008 - 2016 Christian Schoenebeck
  */
 
 #include "VirtualMidiDevice.h"
@@ -77,6 +77,14 @@ namespace LinuxSampler {
     bool VirtualMidiDevice::SendCCToSampler(uint8_t Controller, uint8_t Value) {
         if (Controller >= MIDI_CONTROLLERS || Value > 127) return false;
         event_t ev = { EVENT_TYPE_CC, Controller, Value };
+        if (p->events.write_space() <= 0) return false;
+        p->events.push(&ev);
+        return true;
+    }
+
+    bool VirtualMidiDevice::SendChannelPressureToSampler(uint8_t Pressure) {
+        if (Pressure > 127) return false;
+        event_t ev = { EVENT_TYPE_CHPRESSURE, 128 /*actually ignored by engine*/, Pressure };
         if (p->events.write_space() <= 0) return false;
         p->events.push(&ev);
         return true;
