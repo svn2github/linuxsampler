@@ -1,4 +1,4 @@
-#!/bin/sh -ex
+#!/bin/bash -ex
 
 # This script is primarily made for the linuxsampler build server. It
 # copies all files to be included in the installer from the
@@ -68,12 +68,10 @@ cd $DIST
 (cd $WIN ; tar cf - \
     share/locale/de/LC_MESSAGES/gigedit.mo \
     share/locale/sv/LC_MESSAGES/gigedit.mo) | tar xf -
-cd $WIN/qt/bin
-cp QtCore4.dll QtGui4.dll mingwm10.dll $DIST
-cd $WIN/qt/translations
-cp qt_ru.qm qt_cs.qm $DIST/share/locale
+cd $MINGW/share/qt5/translations
+cp qt{,base,script,quick1,multimedia,xmlpatterns}_{cs,ru}.qm $DIST/share/locale
 cd $WIN/share/locale
-cp qsampler_ru.qm qsampler_cs.qm $DIST/share/locale
+cp qsampler_{cs,ru}.qm $DIST/share/locale
 cd $WIN/share
 cp qsampler.version gigedit.version $DIST
 cd $WIN/lib/pkgconfig

@@ -366,10 +366,8 @@ Section "QSampler ${QSAMPLER_VERSION}" SecQSampler
   SetOutPath $INSTDIR\plugins\platforms
   File bin\686\plugins\platforms\qwindows.dll
   SetOutPath $INSTDIR\share\locale
-  File bin\686\share\locale\qsampler_ru.qm
-  File bin\686\share\locale\qsampler_cs.qm
-  File bin\686\share\locale\qt_ru.qm
-  File bin\686\share\locale\qt_cs.qm
+  File bin\686\share\locale\qsampler_*.qm
+  File bin\686\share\locale\qt*_*.qm
 SectionEnd
 
 Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
