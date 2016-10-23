@@ -44,6 +44,8 @@ Version SVN HEAD (?)
   * Show instrument index number on instruments list view.
   * Added multi-row selection support on samples tree view.
   * Added multi-row selection support on instruments list view.
+  * windows, 32-bit: fixed crashes by making sure the stack in sub
+    threads is 16-byte aligned
 
 Version 1.0.0 (2015-07-17)
 

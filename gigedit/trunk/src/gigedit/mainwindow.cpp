@@ -827,6 +827,10 @@ void Loader::progress_callback(float fraction)
     progress_dispatcher();
 }
 
+#if defined(WIN32) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2))
+// make sure stack is 16-byte aligned for SSE instructions
+__attribute__((force_align_arg_pointer))
+#endif
 void Loader::thread_function()
 {
     printf("thread_function self=%p\n",
@@ -906,6 +910,10 @@ void Saver::progress_callback(float fraction)
     progress_dispatcher.emit();
 }
 
+#if defined(WIN32) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2))
+// make sure stack is 16-byte aligned for SSE instructions
+__attribute__((force_align_arg_pointer))
+#endif
 void Saver::thread_function()
 {
     printf("thread_function self=%p\n",

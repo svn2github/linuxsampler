@@ -391,6 +391,10 @@ void GigEditState::close_window() {
     close.signal();
 }
 
+#if defined(WIN32) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2))
+// make sure stack is 16-byte aligned for SSE instructions
+__attribute__((force_align_arg_pointer))
+#endif
 void GigEditState::main_loop_run(Cond* initialized) {
     int argc = 1;
     const char* argv_c[] = { "gigedit" };
