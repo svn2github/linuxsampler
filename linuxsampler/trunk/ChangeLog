@@ -31,6 +31,8 @@ Version SVN trunk (?)
       properly and thus were ignored for certain uses.
     - Added new C++ API method
       VirtualMidiDevice::SendChannelPressureToSampler().
+    - windows, 32-bit: fixed potential crashes by making sure the stack in
+      sub threads is 16-byte aligned
 
   * packaging changes:
     - removed unnecessary dependency to libuuid

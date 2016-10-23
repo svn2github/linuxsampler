@@ -374,6 +374,10 @@ void Thread::TestCancel() {
 }
 
 #if defined(WIN32)
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2)
+// make sure stack is 16-byte aligned for SSE instructions
+__attribute__((force_align_arg_pointer))
+#endif
 DWORD WINAPI __win32thread_launcher(LPVOID lpParameter) {
     Thread* t;
     t = (Thread*) lpParameter;
