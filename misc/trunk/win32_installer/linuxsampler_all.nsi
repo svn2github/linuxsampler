@@ -444,62 +444,38 @@ Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}\plugins"
   File bin\686\plugins\libgigeditlinuxsamplerplugin.dll
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
-  File bin\686\intl.dll
-  File bin\686\jpeg62.dll
   File bin\686\libatk-1.0-0.dll
   File bin\686\libatkmm-1.6-1.dll
   File bin\686\libcairo-2.dll
+  File bin\686\libcairo-gobject-2.dll
   File bin\686\libcairomm-1.0-1.dll
-  File bin\686\libgdkmm-2.4-1.dll
+  File bin\686\libepoxy-0.dll
+  File bin\686\libexpat-1.dll
+  File bin\686\libffi-6.dll
+  File bin\686\libfontconfig-1.dll
   File bin\686\libgdk_pixbuf-2.0-0.dll
-  File bin\686\libgdk-win32-2.0-0.dll
+  File bin\686\libgdk-3-0.dll
+  File bin\686\libgdkmm-3.0-1.dll
   File bin\686\libgio-2.0-0.dll
   File bin\686\libgiomm-2.4-1.dll
-  ; File bin\686\libglib-2.0-0.dll
   File bin\686\libglibmm-2.4-1.dll
   File bin\686\libgmodule-2.0-0.dll
   File bin\686\libgobject-2.0-0.dll
-  File bin\686\libgthread-2.0-0.dll
-  File bin\686\libgtkmm-2.4-1.dll
-  File bin\686\libgtk-win32-2.0-0.dll
+  File bin\686\libgtk-3-0.dll
+  File bin\686\libgtkmm-3.0-1.dll
   File bin\686\libpango-1.0-0.dll
   File bin\686\libpangocairo-1.0-0.dll
+  File bin\686\libpangoft2-1.0-0.dll
   File bin\686\libpangomm-1.4-1.dll
   File bin\686\libpangowin32-1.0-0.dll
-  File bin\686\libpng12-0.dll
+  File bin\686\libpixman-1-0.dll
   File bin\686\libsigc-2.0-0.dll
-  File bin\686\libtiff3.dll
-  ; File bin\686\zlib1.dll
-  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\etc\gtk-2.0
-  File bin\686\etc\gtk-2.0\gdk-pixbuf.loaders
-  File bin\686\etc\gtk-2.0\gtkrc
-  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\lib\gtk-2.0\2.10.0\engines
-  File bin\686\lib\gtk-2.0\2.10.0\engines\libwimp.dll
-  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\lib\gtk-2.0\2.10.0\loaders
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-ani.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-bmp.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-gif.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-icns.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-ico.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-jpeg.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-pcx.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-png.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-pnm.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-ras.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-tga.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-tiff.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-wbmp.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-xbm.dll
-  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-xpm.dll
-  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\share\locale\de\LC_MESSAGES
-  File bin\686\share\locale\de\LC_MESSAGES\gigedit.mo
-  File bin\686\share\locale\de\LC_MESSAGES\gtk20.mo
-  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\share\locale\sv\LC_MESSAGES
-  File bin\686\share\locale\sv\LC_MESSAGES\gigedit.mo
-  File bin\686\share\locale\sv\LC_MESSAGES\gtk20.mo
-  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\share\themes\MS-Windows\gtk-2.0
-  File bin\686\share\themes\MS-Windows\gtk-2.0\gtkrc
-  Goto done
+  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\share
+  File /r bin\686\share\glib-2.0
+  File /r bin\686\share\icons
+  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\share\locale
+  File /r bin\686\share\locale\de
+  File /r bin\686\share\locale\sv
 
   done:
 SectionEnd
