@@ -73,6 +73,7 @@ cd $DIST
      share/icons/Adwaita/16x16/actions/window-minimize-symbolic.symbolic.png \
      share/icons/Adwaita/16x16/actions/window-restore-symbolic.symbolic.png \
      share/icons/Adwaita/16x16/devices/drive-harddisk-symbolic.symbolic.png \
+     share/icons/Adwaita/16x16/devices/drive-optical-symbolic.symbolic.png \
      share/icons/Adwaita/16x16/mimetypes/text-x-generic.png \
      share/icons/Adwaita/16x16/places \
      share/icons/Adwaita/32x32/devices/drive-harddisk.png \
