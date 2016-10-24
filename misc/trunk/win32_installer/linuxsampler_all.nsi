@@ -348,6 +348,7 @@ Section "QSampler ${QSAMPLER_VERSION}" SecQSampler
   File bin\686\Qt5Widgets.dll
   File bin\686\libbz2-1.dll
   File bin\686\libfreetype-6.dll
+  Delete $INSTDIR\${SUBDIR_32_BIT}\libglib-2.0-0.dll ; remove old version
   File bin\686\libglib-2.0-0.dll
   File bin\686\libgraphite2.dll
   File bin\686\libharfbuzz-0.dll
@@ -360,6 +361,7 @@ Section "QSampler ${QSAMPLER_VERSION}" SecQSampler
   File bin\686\libpcre-1.dll
   File bin\686\libpcre16-0.dll
   File bin\686\libpng16-16.dll
+  Delete $INSTDIR\${SUBDIR_32_BIT}\zlib1.dll ; remove old version
   File bin\686\zlib1.dll
   File qt.conf
   File qsampler.ico
@@ -559,6 +561,7 @@ Section "libgig ${LIBGIG_VERSION}" Seclibgig
   File bin\686\sf2extract.exe
 
   libgig32common:
+  Delete $INSTDIR\libgcc_s_dw2-1.dll ; remove old version
   File bin\686\libgcc_s_dw2-1.dll
   File bin\686\libwinpthread-1.dll  
   File bin\686\libstdc++-6.dll
