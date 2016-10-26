@@ -74,8 +74,11 @@ cd $DIST
      share/icons/Adwaita/16x16/actions/window-restore-symbolic.symbolic.png \
      share/icons/Adwaita/16x16/devices/drive-harddisk-symbolic.symbolic.png \
      share/icons/Adwaita/16x16/devices/drive-optical-symbolic.symbolic.png \
+     share/icons/Adwaita/16x16/emblems/emblem-default.png \
      share/icons/Adwaita/16x16/mimetypes/text-x-generic.png \
      share/icons/Adwaita/16x16/places \
+     share/icons/Adwaita/16x16/status/dialog-error.png \
+     share/icons/Adwaita/16x16/status/dialog-warning-symbolic.symbolic.png \
      share/icons/Adwaita/32x32/devices/drive-harddisk.png \
      share/icons/Adwaita/48x48/status/dialog-warning.png \
      share/icons/Adwaita/96x96/actions/edit-find-symbolic.symbolic.png \
