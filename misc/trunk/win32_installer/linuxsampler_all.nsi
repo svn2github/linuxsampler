@@ -346,23 +346,10 @@ Section "QSampler ${QSAMPLER_VERSION}" SecQSampler
   File bin\686\Qt5Core.dll
   File bin\686\Qt5Gui.dll
   File bin\686\Qt5Widgets.dll
-  File bin\686\libbz2-1.dll
-  File bin\686\libfreetype-6.dll
-  Delete $INSTDIR\${SUBDIR_32_BIT}\libglib-2.0-0.dll ; remove old version
-  File bin\686\libglib-2.0-0.dll
-  File bin\686\libgraphite2.dll
-  File bin\686\libharfbuzz-0.dll
-  File bin\686\libiconv-2.dll
   File bin\686\libicudt57.dll
   File bin\686\libicuin57.dll
   File bin\686\libicuuc57.dll
-  File bin\686\libintl-8.dll
-  File bin\686\liblscp-6.dll
-  File bin\686\libpcre-1.dll
   File bin\686\libpcre16-0.dll
-  File bin\686\libpng16-16.dll
-  Delete $INSTDIR\${SUBDIR_32_BIT}\zlib1.dll ; remove old version
-  File bin\686\zlib1.dll
   File qt.conf
   File qsampler.ico
   SetOutPath $INSTDIR\plugins\platforms
@@ -370,17 +357,36 @@ Section "QSampler ${QSAMPLER_VERSION}" SecQSampler
   SetOutPath $INSTDIR\share\locale
   File bin\686\share\locale\qsampler_*.qm
   File bin\686\share\locale\qt*_*.qm
+  Call FilesCommonToQSamplerAndGigedit32
 SectionEnd
+
+Function FilesCommonToQSamplerAndGigedit32
+  SetOutPath $INSTDIR
+  File bin\686\libbz2-1.dll
+  File bin\686\libfreetype-6.dll
+  Delete $INSTDIR\${SUBDIR_32_BIT}\libglib-2.0-0.dll ; remove old version
+  File bin\686\libglib-2.0-0.dll
+  File bin\686\libgraphite2.dll
+  File bin\686\libharfbuzz-0.dll
+  File bin\686\libiconv-2.dll
+  File bin\686\libintl-8.dll
+  File bin\686\libpcre-1.dll
+  File bin\686\libpng16-16.dll
+  Delete $INSTDIR\${SUBDIR_32_BIT}\zlib1.dll ; remove old version
+  File bin\686\zlib1.dll
+FunctionEnd
 
 Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   DetailPrint "Installing gigedit binaries ..."
   StrCpy $installinggigedit "1"
 
-  ; make sure gtkmm is installed
-  ; (commented out for now, since we include gtk(mm) DLLs with this
-  ; installer, so no check and no download necessary ATM)
-  ;Call CheckForGtkmm
-
+  StrCmp $installingQSampler "1" commonDone
+  StrCmp $binType BIN_TYPE_64BIT 0 common
+  StrCmp $installing32BitToo "0" commonDone
+  common:
+  Call FilesCommonToQSamplerAndGigedit32
+  commonDone:
+  
   StrCmp $binType BIN_TYPE_64BIT gigedit64
   ; I think we don't need a SSE optimized 32 bit binary for gigedit, one 64bit and one simple 32 bit version should be sufficient
   ;StrCmp $binType BIN_TYPE_686SSE gigedit686sse
