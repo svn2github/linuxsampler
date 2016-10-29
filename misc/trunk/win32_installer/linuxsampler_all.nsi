@@ -403,44 +403,44 @@ Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\libatk-1.0-0.dll
   File bin\64\libatkmm-1.6-1.dll
+  File bin\64\libbz2-1.dll
   File bin\64\libcairo-2.dll
+  File bin\64\libcairo-gobject-2.dll
   File bin\64\libcairomm-1.0-1.dll
+  File bin\64\libepoxy-0.dll
   File bin\64\libexpat-1.dll
+  File bin\64\libffi-6.dll
   File bin\64\libfontconfig-1.dll
   File bin\64\libfreetype-6.dll
-  File bin\64\libgdkmm-2.4-1.dll
+  File bin\64\libgdkmm-3.0-1.dll
   File bin\64\libgdk_pixbuf-2.0-0.dll
-  File bin\64\libgdk-win32-2.0-0.dll
+  File bin\64\libgdk-3-0.dll
   File bin\64\libgio-2.0-0.dll
   File bin\64\libgiomm-2.4-1.dll
   File bin\64\libglib-2.0-0.dll
   File bin\64\libglibmm-2.4-1.dll
   File bin\64\libgmodule-2.0-0.dll
   File bin\64\libgobject-2.0-0.dll
-  File bin\64\libgthread-2.0-0.dll
-  File bin\64\libgtkmm-2.4-1.dll
-  File bin\64\libgtk-win32-2.0-0.dll
+  File bin\64\libgraphite2.dll
+  File bin\64\libgtkmm-3.0-1.dll
+  File bin\64\libgtk-3-0.dll
+  File bin\64\libharfbuzz-0.dll
+  File bin\64\libiconv-2.dll
   File bin\64\libintl-8.dll
   File bin\64\libpango-1.0-0.dll
   File bin\64\libpangocairo-1.0-0.dll
   File bin\64\libpangoft2-1.0-0.dll
   File bin\64\libpangomm-1.4-1.dll
   File bin\64\libpangowin32-1.0-0.dll
-  File bin\64\libpng14-14.dll
+  File bin\64\libpcre-1.dll
+  File bin\64\libpixman-1-0.dll
+  File bin\64\libpng16-16.dll
   File bin\64\libsigc-2.0-0.dll
   File bin\64\zlib1.dll
-  SetOutPath $INSTDIR\${SUBDIR_64_BIT}\etc\gtk-2.0
-  File bin\64\etc\gtk-2.0\gtkrc
-  SetOutPath $INSTDIR\${SUBDIR_64_BIT}\lib\gtk-2.0\2.10.0\engines
-  File bin\64\lib\gtk-2.0\2.10.0\engines\libwimp.dll
   SetOutPath $INSTDIR\${SUBDIR_64_BIT}\share\locale\de\LC_MESSAGES
   File bin\64\share\locale\de\LC_MESSAGES\gigedit.mo
-  File bin\64\share\locale\de\LC_MESSAGES\gtk20.mo
   SetOutPath $INSTDIR\${SUBDIR_64_BIT}\share\locale\sv\LC_MESSAGES
   File bin\64\share\locale\sv\LC_MESSAGES\gigedit.mo
-  File bin\64\share\locale\sv\LC_MESSAGES\gtk20.mo
-  SetOutPath $INSTDIR\${SUBDIR_64_BIT}\share\themes\MS-Windows\gtk-2.0
-  File bin\64\share\themes\MS-Windows\gtk-2.0\gtkrc
 
   ; shall we install the 32 bit version as well?
   StrCmp $installing32BitToo "1" gigedit686 done
@@ -516,7 +516,8 @@ Section "libgig ${LIBGIG_VERSION}" Seclibgig
   File bin\64\akaiextract.exe
   File bin\64\sf2dump.exe
   File bin\64\sf2extract.exe
-  File bin\64\libgcc_s_sjlj-1.dll
+  File bin\64\libgcc_s_seh-1.dll
+  File bin\64\libwinpthread-1.dll  
   File bin\64\libstdc++-6.dll
 
   ; shall we install the 32 bit version as well?
@@ -619,6 +620,7 @@ Section "libsndfile ${SNDFILE_VERSION}" Seclibsndfile
   File bin\64\libogg-0.dll
   File bin\64\libvorbis-0.dll
   File bin\64\libvorbisenc-2.dll
+  File bin\64\libspeex-1.dll
 
   ; shall we install the 32 bit version as well?
   StrCmp $installing32BitToo "1" libsndfile686 done
