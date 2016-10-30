@@ -33,7 +33,12 @@
 #endif
 #include <glibmm/dispatcher.h>
 #include <glibmm/main.h>
+#include <glibmm/miscutils.h>
 #include <gtkmm/main.h>
+
+#ifdef WIN32
+#include <gtkmm/icontheme.h>
+#endif
 
 #if defined(__APPLE__)
 # include <CoreFoundation/CoreFoundation.h>
@@ -47,7 +52,6 @@
 #ifdef __APPLE__
 #include <dlfcn.h>
 #include <glibmm/fileutils.h>
-#include <glibmm/miscutils.h>
 #endif
 
 //TODO: (hopefully) just a temporary nasty hack for launching gigedit on the main thread on Mac (see comments below in this file for details)
@@ -123,6 +127,8 @@ private:
 
 #ifdef WIN32
 HINSTANCE gigedit_dll_handle = 0;
+std::string gigedit_datadir;
+bool gigedit_installdir_is_parent = false;
 #endif
 
 #ifdef __APPLE__
@@ -176,21 +182,41 @@ void init_app() {
                                  ".local/share").c_str(), 0777);
 #endif // __APPLE__
 
-//FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?
-#if (HAVE_GETTEXT || defined(__APPLE__))
+#ifdef WIN32
+        // Find the data directory: the linuxsampler installer puts
+        // the binaries in sub directories "32" and "64", so the share
+        // directory is located in the parent of the directory of the
+        // binaries.
 
-  #ifdef WIN32
-    #if GLIB_CHECK_VERSION(2, 16, 0)
+  #if GLIB_CHECK_VERSION(2, 16, 0)
         gchar* root =
             g_win32_get_package_installation_directory_of_module(gigedit_dll_handle);
-    #else
+  #else
         gchar* root =
             g_win32_get_package_installation_directory(NULL, NULL);
-    #endif
-        gchar* temp = g_build_filename(root, "/share/locale", NULL);
+  #endif
+        std::string installdir(root);
         g_free(root);
-        gchar* localedir = g_win32_locale_filename_from_utf8(temp);
-        g_free(temp);
+        std::string basename = Glib::path_get_basename(installdir);
+        if (basename == "32" || basename == "64") {
+            installdir = Glib::path_get_dirname(installdir);
+            gigedit_installdir_is_parent = true;
+        }
+        gigedit_datadir = Glib::build_filename(installdir, "share");
+
+        // the file dialogs need glib-2.0/schemas/gschemas.compiled
+        if (gigedit_installdir_is_parent) {
+            Glib::setenv("GSETTINGS_SCHEMA_DIR",
+                         Glib::build_filename(gigedit_datadir,
+                                              "glib-2.0/schemas"));
+        }
+#endif
+
+//FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?
+#if (HAVE_GETTEXT || defined(__APPLE__))
+  #ifdef WIN32
+        std::string temp = Glib::build_filename(gigedit_datadir, "locale");
+        gchar* localedir = g_win32_locale_filename_from_utf8(temp.c_str());
         bindtextdomain(GETTEXT_PACKAGE, localedir);
         g_free(localedir);
   #elif !defined(__APPLE__)
@@ -206,6 +232,25 @@ void init_app() {
 #endif
         process_initialized = true;
     }
+}
+
+void init_app_after_gtk_init() {
+//FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?
+#if (/*HAVE_GETTEXT &&*/ defined(__APPLE__))
+    // Gtk::Main binds the gtk locale to a possible non-existent
+    // directory. If we have bundled gtk locale files, we rebind here,
+    // after the Gtk::Main constructor.
+    if (!gigedit_localedir.empty()) {
+        bindtextdomain("gtk20", gigedit_localedir.c_str());
+    }
+#endif
+
+#ifdef WIN32
+    if (gigedit_installdir_is_parent) {
+        std::string icon_dir = Glib::build_filename(gigedit_datadir, "icons");
+        Gtk::IconTheme::get_default()->append_search_path(icon_dir);
+    }
+#endif
 }
 
 void connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {
@@ -269,16 +314,7 @@ int GigEdit::run(int argc, char* argv[]) {
     init_app();
 
     Gtk::Main kit(argc, argv);
-
-//FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?
-#if (/*HAVE_GETTEXT &&*/ defined(__APPLE__))
-    // Gtk::Main binds the gtk locale to a possible non-existent
-    // directory. If we have bundled gtk locale files, we rebind here,
-    // after the Gtk::Main constructor.
-    if (!gigedit_localedir.empty()) {
-        bindtextdomain("gtk20", gigedit_localedir.c_str());
-    }
-#endif
+    init_app_after_gtk_init();
 
     MainWindow window;
     connect_signals(this, &window);
@@ -400,12 +436,7 @@ void GigEditState::main_loop_run(Cond* initialized) {
     const char* argv_c[] = { "gigedit" };
     char** argv = const_cast<char**>(argv_c);
     Gtk::Main main_loop(argc, argv);
-//FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?
-#if (/*HAVE_GETTEXT &&*/ defined(__APPLE__))
-    if (!gigedit_localedir.empty()) {
-        bindtextdomain("gtk20", gigedit_localedir.c_str());
-    }
-#endif
+    init_app_after_gtk_init();
 
     dispatcher = new Glib::Dispatcher();
     dispatcher->connect(sigc::ptr_fun(&GigEditState::open_window_static));
