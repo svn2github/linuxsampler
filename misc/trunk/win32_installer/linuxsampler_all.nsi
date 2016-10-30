@@ -386,7 +386,15 @@ Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   common:
   Call FilesCommonToQSamplerAndGigedit32
   commonDone:
-  
+
+  ; Files common to 32 and 64 bit gigedit
+  SetOutPath $INSTDIR\share
+  File /r bin\686\share\glib-2.0
+  File /r bin\686\share\icons
+  SetOutPath $INSTDIR\share\locale
+  File /r bin\686\share\locale\de
+  File /r bin\686\share\locale\sv
+    
   StrCmp $binType BIN_TYPE_64BIT gigedit64
   ; I think we don't need a SSE optimized 32 bit binary for gigedit, one 64bit and one simple 32 bit version should be sufficient
   ;StrCmp $binType BIN_TYPE_686SSE gigedit686sse
@@ -437,10 +445,8 @@ Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   File bin\64\libpng16-16.dll
   File bin\64\libsigc-2.0-0.dll
   File bin\64\zlib1.dll
-  SetOutPath $INSTDIR\${SUBDIR_64_BIT}\share\locale\de\LC_MESSAGES
-  File bin\64\share\locale\de\LC_MESSAGES\gigedit.mo
-  SetOutPath $INSTDIR\${SUBDIR_64_BIT}\share\locale\sv\LC_MESSAGES
-  File bin\64\share\locale\sv\LC_MESSAGES\gigedit.mo
+  ; remove old share directory
+  RMDir /r $INSTDIR\${SUBDIR_64_BIT}\share
 
   ; shall we install the 32 bit version as well?
   StrCmp $installing32BitToo "1" gigedit686 done
@@ -478,12 +484,8 @@ Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   File bin\686\libpangowin32-1.0-0.dll
   File bin\686\libpixman-1-0.dll
   File bin\686\libsigc-2.0-0.dll
-  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\share
-  File /r bin\686\share\glib-2.0
-  File /r bin\686\share\icons
-  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\share\locale
-  File /r bin\686\share\locale\de
-  File /r bin\686\share\locale\sv
+  ; remove old share directory
+  RMDir /r $INSTDIR\${SUBDIR_32_BIT}\share
 
   done:
 SectionEnd
