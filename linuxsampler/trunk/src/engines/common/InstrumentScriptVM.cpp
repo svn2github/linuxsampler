@@ -7,6 +7,7 @@
  * See README file for details.
  */
 
+#include "../../common/global_private.h"
 #include "InstrumentScriptVM.h"
 #include "../AbstractEngineChannel.h"
 #include "../../common/global_private.h"

@@ -539,6 +539,17 @@ namespace LinuxSampler {
         }
     };
 
+    #if HAVE_CXX_EMBEDDED_PRAGMA_DIAGNOSTICS
+    # define COMPILER_DISABLE_OFFSETOF_WARNING                    \
+        _Pragma("GCC diagnostic push")                            \
+        _Pragma("GCC diagnostic ignored \"-Winvalid-offsetof\"")
+    # define COMPILER_RESTORE_OFFSETOF_WARNING \
+        _Pragma("GCC diagnostic pop")
+    #else
+    # define COMPILER_DISABLE_OFFSETOF_WARNING
+    # define COMPILER_RESTORE_OFFSETOF_WARNING
+    #endif
+
     /**
      * Convenience macro for initializing VMIntRelPtr and VMInt8RelPtr
      * structures. Usage example:
@@ -583,14 +594,13 @@ namespace LinuxSampler {
      */
     #define DECLARE_VMINT(basePtr, T_struct, T_member) (          \
         /* Disable offsetof warning, trust us, we are cautios. */ \
-        _Pragma("GCC diagnostic push")                            \
-        _Pragma("GCC diagnostic ignored \"-Winvalid-offsetof\"")  \
+        COMPILER_DISABLE_OFFSETOF_WARNING                         \
         (VMRelPtr) {                                              \
             (void**) &basePtr,                                    \
             offsetof(T_struct, T_member),                         \
             false                                                 \
         }                                                         \
-        _Pragma("GCC diagnostic pop")                             \
+        COMPILER_RESTORE_OFFSETOF_WARNING                         \
     )                                                             \
 
     /**
@@ -608,14 +618,13 @@ namespace LinuxSampler {
      */
     #define DECLARE_VMINT_READONLY(basePtr, T_struct, T_member) ( \
         /* Disable offsetof warning, trust us, we are cautios. */ \
-        _Pragma("GCC diagnostic push")                            \
-        _Pragma("GCC diagnostic ignored \"-Winvalid-offsetof\"")  \
+        COMPILER_DISABLE_OFFSETOF_WARNING                         \
         (VMRelPtr) {                                              \
             (void**) &basePtr,                                    \
             offsetof(T_struct, T_member),                         \
             true                                                  \
         }                                                         \
-        _Pragma("GCC diagnostic pop")                             \
+        COMPILER_RESTORE_OFFSETOF_WARNING                         \
     )                                                             \
 
     /** @brief Built-in VM 8 bit integer array variable.

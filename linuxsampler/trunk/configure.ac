@@ -152,6 +152,13 @@ CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 CC="$PTHREAD_CC"
 
+
+# check for compiler's pragma diagnostic capabilities
+m4_ifdef([m4_include(m4/pragma_diagnostics.m4)],,
+             [sinclude([m4/pragma_diagnostics.m4])])
+ACX_CXX_PRAGMA_DIAGNOSTICS
+
+
 # check for a bug in NPTL-enabled glibc
 # (see Gentoo bug report #194076)
 AC_ARG_ENABLE(nptl-bug-check,
