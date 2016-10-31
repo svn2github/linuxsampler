@@ -67,7 +67,7 @@ enum InstrScriptIDType_T {
 namespace LinuxSampler {
 
     class AbstractEngineChannel;
-    class InstrumentScript;
+    struct InstrumentScript;
 
     /** @brief Convert IDs between script scope and engine internal scope.
      *

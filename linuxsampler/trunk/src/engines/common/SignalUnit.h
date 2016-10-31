@@ -114,7 +114,7 @@ namespace LinuxSampler {
                 float Coeff; // The modulation coefficient
                 
                 
-                Parameter() : Coeff(1), pUnit(NULL) { }
+                Parameter() : pUnit(NULL), Coeff(1) { }
 
                 /**
                  * @param unit The source unit used to influence this parameter.

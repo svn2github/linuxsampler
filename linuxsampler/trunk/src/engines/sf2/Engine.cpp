@@ -84,12 +84,12 @@ namespace LinuxSampler { namespace sf2 {
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
 
-        uint8_t  chan     = pChannel->MidiChannel();
+        //uint8_t  chan     = pChannel->MidiChannel();
         int      key      = itNoteOnEvent->Param.Note.Key;
         uint8_t  vel      = itNoteOnEvent->Param.Note.Velocity;
-        int      bend     = pChannel->Pitch;
-        uint8_t  chanaft  = pChannel->ControllerTable[128];
-        uint8_t* cc       = pChannel->ControllerTable;
+        //int      bend     = pChannel->Pitch;
+        //uint8_t  chanaft  = pChannel->ControllerTable[128];
+        //uint8_t* cc       = pChannel->ControllerTable;
 
         NoteIterator itNote = GetNotePool()->fromID(itNoteOnEvent->Param.Note.ID);
         if (!itNote) {
@@ -138,7 +138,7 @@ namespace LinuxSampler { namespace sf2 {
         bool                          HandleKeyGroupConflicts
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
-        int key = itNoteOnEvent->Param.Note.Key;
+        //int key = itNoteOnEvent->Param.Note.Key;
         //EngineChannel::MidiKey* pKey = &pChannel->pMIDIKeyInfo[key];
 
         Voice::type_t VoiceType = Voice::type_normal;

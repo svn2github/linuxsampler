@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2007 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -239,8 +239,8 @@ namespace LinuxSampler {
                 continue;
             // skip files that are not .so files
             if (sPath.length() < 3 ||
-                sPath.substr(sPath.length() - 3) != ".so" &&
-                sPath.find(".so.") == String::npos)
+                (sPath.substr(sPath.length() - 3) != ".so" &&
+                 sPath.find(".so.") == String::npos) )
                 continue;
             // load the DLL (the plugins should register themselfes automatically)
             void* pDLL = dlopen(sPath.c_str(), RTLD_NOW);

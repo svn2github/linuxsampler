@@ -2,7 +2,7 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2003 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2003 - 2016 Christian Schoenebeck                       *
  *   Copyright (C) 2009 Grigor Iliev                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -65,7 +65,7 @@ namespace LinuxSampler {
               */
             uint MaxOffset;
 
-            Sample(): MaxOffset(2000), Offset(0), RAMCacheOffset(0) { }
+            Sample(): Offset(0), RAMCacheOffset(0), MaxOffset(2000) { }
             virtual ~Sample() { }
 
             virtual String  GetName() = 0;

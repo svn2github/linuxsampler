@@ -73,6 +73,7 @@ public:
  */
 class VMEmptyResultFunction : public VMFunction {
 protected:
+    virtual ~VMEmptyResultFunction() {}
     ExprType_t returnType() { return EMPTY_EXPR; }
     VMFnResult* errorResult();
     VMFnResult* successResult();
@@ -87,6 +88,7 @@ protected:
  */
 class VMIntResultFunction : public VMFunction {
 protected:
+    virtual ~VMIntResultFunction() {}
     ExprType_t returnType() { return INT_EXPR; }
     VMFnResult* errorResult(int i = 0);
     VMFnResult* successResult(int i = 0);
@@ -101,6 +103,7 @@ protected:
  */
 class VMStringResultFunction : public VMFunction {
 protected:
+    virtual ~VMStringResultFunction() {}
     ExprType_t returnType() { return STRING_EXPR; }
     VMFnResult* errorResult(const String& s = "");
     VMFnResult* successResult(const String& s = "");

@@ -157,7 +157,7 @@ namespace LinuxSampler { namespace sfz {
         bool                         HandleKeyGroupConflicts
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
-        MidiKey* pKey = &pChannel->pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
+        //MidiKey* pKey = &pChannel->pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
         ::sfz::Query q;
         q.chan        = itNoteOnEvent->Param.Note.Channel + 1;
         q.key         = itNoteOnEvent->Param.Note.Key;
@@ -255,7 +255,7 @@ namespace LinuxSampler { namespace sfz {
         bool                          HandleKeyGroupConflicts
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
-        int key = itNoteOnEvent->Param.Note.Key;
+        //int key = itNoteOnEvent->Param.Note.Key;
         //EngineChannel::MidiKey* pKey  = &pChannel->pMIDIKeyInfo[key];
         ::sfz::Region* pRgn = static_cast< ::sfz::Region*>(itNoteOnEvent->Param.Note.pRegion);
 

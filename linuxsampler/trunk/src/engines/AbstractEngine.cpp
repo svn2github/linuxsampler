@@ -5,7 +5,7 @@
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
  *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
- *   Copyright (C) 2013-2014 Christian Schoenebeck and Andreas Persson     *
+ *   Copyright (C) 2013-2016 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -516,7 +516,7 @@ namespace LinuxSampler {
 
                 // command address
                 uint8_t addr[3]; // 2 byte addr MSB, followed by 1 byte addr LSB)
-                const RingBuffer<uint8_t,false>::NonVolatileReader checksum_reader = reader; // so we can calculate the check sum later
+                //const RingBuffer<uint8_t,false>::NonVolatileReader checksum_reader = reader; // so we can calculate the check sum later
                 if (reader.read(&addr[0], 3) != 3) goto free_sysex_data;
                 if (addr[0] == 0x40 && addr[1] == 0x00) { // System Parameters
                     dmsg(3,("\tSystem Parameter\n"));

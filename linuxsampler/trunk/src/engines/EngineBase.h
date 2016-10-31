@@ -58,7 +58,7 @@ namespace LinuxSampler {
             typedef typename RTList<RR*>::Iterator RootRegionIterator;
             typedef typename MidiKeyboardManager<V>::MidiKey MidiKey;
             
-            EngineBase() : SuspendedRegions(128), noteIDPool(GLOBAL_MAX_NOTES) {
+            EngineBase() : noteIDPool(GLOBAL_MAX_NOTES), SuspendedRegions(128) {
                 pDiskThread          = NULL;
                 pNotePool            = new Pool< Note<V> >(GLOBAL_MAX_NOTES);
                 pNotePool->setPoolElementIDsReservedBits(INSTR_SCRIPT_EVENT_ID_RESERVED_BITS);
@@ -163,6 +163,7 @@ namespace LinuxSampler {
                                 dmsg(5,("Engine: Sysex received\n"));
                                 ProcessSysex(itEvent);
                                 break;
+                            default: ; // noop
                         }
                     }
                 }
@@ -798,6 +799,18 @@ namespace LinuxSampler {
                             case Event::type_note_pressure:
                                 //TODO: ...
                                 break;
+
+                            case Event::type_sysex:
+                                //TODO: ...
+                                break;
+
+                            case Event::type_cancel_release_key:
+                            case Event::type_release_key:
+                            case Event::type_release_note:
+                            case Event::type_play_note:
+                            case Event::type_stop_note:
+                            case Event::type_note_synth_param:
+                                break; // noop
                         }
 
                         // see HACK comment above
@@ -888,6 +901,13 @@ namespace LinuxSampler {
                                 dmsg(5,("Engine: Note Synth Param received\n"));
                                 ProcessNoteSynthParam(itEvent->pEngineChannel, itEvent);
                                 break;
+                            case Event::type_sysex:
+                                break; // TODO ...
+
+                            case Event::type_cancel_release_key:
+                            case Event::type_release_key:
+                            case Event::type_release_note:
+                                break; // noop
                         }
                     }
                 }
@@ -1271,7 +1291,7 @@ namespace LinuxSampler {
                             itScriptEvent->ignoreAllWaitCalls = false;
                             itScriptEvent->handlerType = VM_EVENT_HANDLER_INIT;
 
-                            VMExecStatus_t res = pScriptVM->exec(
+                            /*VMExecStatus_t res = */ pScriptVM->exec(
                                 pEngineChannel->pScript->parserContext, &*itScriptEvent
                             );
 

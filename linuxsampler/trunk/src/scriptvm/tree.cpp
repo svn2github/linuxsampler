@@ -359,11 +359,12 @@ IntVariable::IntVariable(ParserContext* ctx, bool polyphonic, bool bConst, int s
 
 void IntVariable::assign(Expression* expr) {
     IntExpr* intExpr = dynamic_cast<IntExpr*>(expr);
-    if (intExpr)
+    if (intExpr) {
         if (polyphonic)
             context->execContext->polyphonicIntMemory[memPos] = intExpr->evalInt();
         else
             (*context->globalIntMemory)[memPos] = intExpr->evalInt();
+    }
 }
 
 int IntVariable::evalInt() {

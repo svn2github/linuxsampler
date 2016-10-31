@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -170,11 +170,12 @@ void LSCPResultSet::Warning (String message, int code) {
 //Produce resultset
 String LSCPResultSet::Produce(void) {
 	//FIXME: I'm assuming that only a sinle like "OK" can have index
-	if (count == 0) //When there is nothing in the resultset we just send "OK" to ack the request
+	if (count == 0) { //When there is nothing in the resultset we just send "OK" to ack the request
 		if (result_index == -1)
 			return "OK\r\n";
 		else
 			return "OK[" + ToString(result_index) + "]\r\n";
+    }
 	if (count == 1) //Single line results are just that, single line
 		return storage;
 	//Multiline results MUST end with a line with a single dot

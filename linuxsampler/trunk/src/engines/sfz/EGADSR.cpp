@@ -44,6 +44,7 @@ namespace LinuxSampler { namespace sfz {
                         else
                             enterDecayStage(SampleRate);
                         break;
+                    default: ; // noop
                 }
                 break;
             case stage_attack_hold:
@@ -54,6 +55,7 @@ namespace LinuxSampler { namespace sfz {
                     case event_release:
                         enterReleaseStage();
                         break;
+                    default: ; // noop
                 }
                 break;
             case stage_decay:
@@ -67,6 +69,7 @@ namespace LinuxSampler { namespace sfz {
                         else
                             enterSustainStage();
                         break;
+                    default: ; // noop
                 }
                 break;
             case stage_sustain:
@@ -79,6 +82,7 @@ namespace LinuxSampler { namespace sfz {
                     case event_release:
                         enterReleaseStage();
                         break;
+                    default: ; // noop
                 }
                 break;
             case stage_release:
@@ -89,8 +93,13 @@ namespace LinuxSampler { namespace sfz {
                     case event_cancel_release:
                         enterSustainStage();
                         break;
+                    default: ; // noop
                 }
                 break;
+
+            case stage_fadeout:
+            case stage_end:
+                ; // noop
         }
     }
 

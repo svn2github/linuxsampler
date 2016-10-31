@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006-2014 Andreas Persson                               *
+ *   Copyright (C) 2006-2016 Andreas Persson                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -197,13 +197,13 @@ namespace LinuxSampler {
 
     template <class T>
     SynchronizedConfig<T>::Reader::Reader(SynchronizedConfig& config) :
-        parent(&config), lock(0), lockCount(1) {
+        parent(&config), lockCount(1), lock(0) {
         parent->readers.insert(this);
     }
     
     template <class T>
     SynchronizedConfig<T>::Reader::Reader(SynchronizedConfig* config) :
-        parent(config), lock(0), lockCount(1) {
+        parent(config), lockCount(1), lock(0) {
         parent->readers.insert(this);
     }
 

@@ -831,7 +831,9 @@ int InstrScript_tnamerr(char* yyres, const char* yystr) {
               yyres[yyn] = '\0';
             return yyn;
           }
+/*
     do_not_strip_quotes: ;
+*/
     }
 
   if (! yyres)

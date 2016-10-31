@@ -13,7 +13,7 @@
 namespace LinuxSampler {
 
 CodeScanner::CodeScanner(std::istream* _is)
-    : is(_is), scanner(NULL), line(0), column(0)
+    : scanner(NULL), is(_is), line(0), column(0)
 {
 }
 

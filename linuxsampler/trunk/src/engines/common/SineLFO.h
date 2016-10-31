@@ -59,7 +59,7 @@ namespace LinuxSampler {
              * @param ExtControlValue - new external controller value
              */
             inline void update(const uint16_t& ExtControlValue) {
-                const unsigned int intLimit = (unsigned int) -1; // all 0xFFFF...
+                //const unsigned int intLimit = (unsigned int) -1; // all 0xFFFF...
                 const float max = this->InternalDepth + ExtControlValue * this->ExtControlDepthCoeff;
                 if (RANGE == range_unsigned) {
                     normalizer = max / 2.0f;

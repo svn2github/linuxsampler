@@ -66,7 +66,7 @@ public:
     int firstColumn() const { return column; }
 
     // base types
-    bool isEOF() const { return baseType == EOF; }
+    bool isEOF() const { return baseType == END_OF_FILE; }
     bool isNewLine() const { return baseType == NEW_LINE; }
     bool isKeyword() const { return baseType == KEYWORD; }
     bool isVariableName() const { return baseType == VARIABLE_NAME; }

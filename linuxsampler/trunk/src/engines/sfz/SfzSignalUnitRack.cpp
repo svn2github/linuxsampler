@@ -255,13 +255,13 @@ namespace LinuxSampler { namespace sfz {
     
     LFOUnit::LFOUnit(SfzSignalUnitRack* rack)
         : SfzSignalUnit(rack), pLfoInfo(NULL), pLFO(NULL),
-          suFadeEG(rack), suFreqOnCC(rack, this), suDepthOnCC(rack)
+          suFadeEG(rack), suDepthOnCC(rack), suFreqOnCC(rack, this)
     { }
     
     LFOUnit::LFOUnit(const LFOUnit& Unit)
         : SfzSignalUnit(Unit), suFadeEG(static_cast<SfzSignalUnitRack*>(Unit.pRack)),
-          suFreqOnCC(static_cast<SfzSignalUnitRack*>(Unit.pRack), this),
-          suDepthOnCC(static_cast<SfzSignalUnitRack*>(Unit.pRack))
+          suDepthOnCC(static_cast<SfzSignalUnitRack*>(Unit.pRack)),
+          suFreqOnCC(static_cast<SfzSignalUnitRack*>(Unit.pRack), this)
     {
         Copy(Unit);
     }
@@ -483,7 +483,7 @@ namespace LinuxSampler { namespace sfz {
 
 
     EndpointUnit::EndpointUnit(SfzSignalUnitRack* rack)
-        : EndpointSignalUnit(rack), suXFInCC(rack), suXFOutCC(rack), suPanOnCC(rack), pitchVeltrackRatio(0)
+        : EndpointSignalUnit(rack), pitchVeltrackRatio(0), suXFInCC(rack), suXFOutCC(rack), suPanOnCC(rack)
     {
         
     }
@@ -776,14 +776,15 @@ namespace LinuxSampler { namespace sfz {
     
     
     SfzSignalUnitRack::SfzSignalUnitRack(Voice* voice)
-        : SignalUnitRack(MaxUnitCount), EqUnitSupport(this, voice), pVoice(voice),
+        : SignalUnitRack(MaxUnitCount), EqUnitSupport(this, voice),
         suEndpoint(this), suVolEG(this), suFilEG(this), suPitchEG(this),
+        suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
+        suVolOnCC(this), suPitchOnCC(this), suCutoffOnCC(this), suResOnCC(this),
         EGs(maxEgCount), volEGs(maxEgCount), pitchEGs(maxEgCount), filEGs(maxEgCount),
         resEGs(maxEgCount), panEGs(maxEgCount), eqEGs(maxEgCount),
-        suVolOnCC(this), suPitchOnCC(this), suCutoffOnCC(this), suResOnCC(this),
-        suAmpLFO(this), suPitchLFO(this), suFilLFO(this),
         LFOs(maxLfoCount), volLFOs(maxLfoCount), pitchLFOs(maxLfoCount),
-        filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount), eqLFOs(maxLfoCount)
+        filLFOs(maxLfoCount), resLFOs(maxLfoCount), panLFOs(maxLfoCount), eqLFOs(maxLfoCount),
+        pVoice(voice)
     {
         suEndpoint.pVoice = suEndpoint.suXFInCC.pVoice = suEndpoint.suXFOutCC.pVoice = suEndpoint.suPanOnCC.pVoice = voice;
         suVolEG.pVoice = suFilEG.pVoice = suPitchEG.pVoice = voice;

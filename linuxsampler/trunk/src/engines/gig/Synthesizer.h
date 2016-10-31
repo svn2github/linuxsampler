@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -30,22 +30,22 @@
 #include "Filter.h"
 #include "SynthesisParam.h"
 
-#define SYNTHESIS_MODE_SET_INTERPOLATE(iMode,bVal)      if (bVal) iMode |= 0x01; else iMode &= ~0x01   /* (un)set mode bit 0 */
-#define SYNTHESIS_MODE_SET_FILTER(iMode,bVal)           if (bVal) iMode |= 0x02; else iMode &= ~0x02   /* (un)set mode bit 1 */
-#define SYNTHESIS_MODE_SET_LOOP(iMode,bVal)             if (bVal) iMode |= 0x04; else iMode &= ~0x04   /* (un)set mode bit 2 */
-#define SYNTHESIS_MODE_SET_CHANNELS(iMode,bVal)         if (bVal) iMode |= 0x08; else iMode &= ~0x08   /* (un)set mode bit 3 */
-#define SYNTHESIS_MODE_SET_BITDEPTH24(iMode,bVal)       if (bVal) iMode |= 0x10; else iMode &= ~0x10   /* (un)set mode bit 4 */
+#define SYNTHESIS_MODE_SET_INTERPOLATE(iMode,bVal)      { if (bVal) iMode |= 0x01; else iMode &= ~0x01; }  /* (un)set mode bit 0 */
+#define SYNTHESIS_MODE_SET_FILTER(iMode,bVal)           { if (bVal) iMode |= 0x02; else iMode &= ~0x02; }   /* (un)set mode bit 1 */
+#define SYNTHESIS_MODE_SET_LOOP(iMode,bVal)             { if (bVal) iMode |= 0x04; else iMode &= ~0x04; }   /* (un)set mode bit 2 */
+#define SYNTHESIS_MODE_SET_CHANNELS(iMode,bVal)         { if (bVal) iMode |= 0x08; else iMode &= ~0x08; }   /* (un)set mode bit 3 */
+#define SYNTHESIS_MODE_SET_BITDEPTH24(iMode,bVal)       { if (bVal) iMode |= 0x10; else iMode &= ~0x10; }   /* (un)set mode bit 4 */
 //TODO: the Asm implementation mode is currently not implemented anymore, since Asm synthesis code is currently broken!
-#define SYNTHESIS_MODE_SET_IMPLEMENTATION(iMode,bVal)   if (bVal) iMode |= 0x20; else iMode &= ~0x20   /* (un)set mode bit 5 */
+#define SYNTHESIS_MODE_SET_IMPLEMENTATION(iMode,bVal)   { if (bVal) iMode |= 0x20; else iMode &= ~0x20; }   /* (un)set mode bit 5 */
 //TODO: the profiling mode is currently not implemented anymore!
-#define SYNTHESIS_MODE_SET_PROFILING(iMode,bVal)        if (bVal) iMode |= 0x40; else iMode &= ~0x40   /* (un)set mode bit 6 */
+#define SYNTHESIS_MODE_SET_PROFILING(iMode,bVal)        { if (bVal) iMode |= 0x40; else iMode &= ~0x40; }   /* (un)set mode bit 6 */
 
-#define SYNTHESIS_MODE_GET_INTERPOLATE(iMode)           iMode & 0x01
-#define SYNTHESIS_MODE_GET_FILTER(iMode)                iMode & 0x02
-#define SYNTHESIS_MODE_GET_LOOP(iMode)                  iMode & 0x04
-#define SYNTHESIS_MODE_GET_CHANNELS(iMode)              iMode & 0x08
-#define SYNTHESIS_MODE_GET_BITDEPTH24(iMode)            iMode & 0x10
-#define SYNTHESIS_MODE_GET_IMPLEMENTATION(iMode)        iMode & 0x20
+#define SYNTHESIS_MODE_GET_INTERPOLATE(iMode)           (iMode & 0x01)
+#define SYNTHESIS_MODE_GET_FILTER(iMode)                (iMode & 0x02)
+#define SYNTHESIS_MODE_GET_LOOP(iMode)                  (iMode & 0x04)
+#define SYNTHESIS_MODE_GET_CHANNELS(iMode)              (iMode & 0x08)
+#define SYNTHESIS_MODE_GET_BITDEPTH24(iMode)            (iMode & 0x10)
+#define SYNTHESIS_MODE_GET_IMPLEMENTATION(iMode)        (iMode & 0x20)
 
 
 namespace LinuxSampler { namespace gig {

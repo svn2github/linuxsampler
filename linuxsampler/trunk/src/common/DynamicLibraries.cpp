@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2010 Christian Schoenebeck
+    Copyright (C) 2010-2016 Christian Schoenebeck
 */
 
 #include "DynamicLibraries.h"
@@ -93,8 +93,8 @@ int DynamicLibrariesSearch(String dir, String funct, DynamicLibrariesSearchCallb
             continue;
         // skip files that are not .so files
         if (sPath.length() < 3 ||
-            sPath.substr(sPath.length() - 3) != ".so" &&
-            sPath.find(".so.") == String::npos)
+            (sPath.substr(sPath.length() - 3) != ".so" &&
+             sPath.find(".so.") == String::npos) )
             continue;
         // load the DLL
         void* pDLL = dlopen(sPath.c_str(), RTLD_NOW);

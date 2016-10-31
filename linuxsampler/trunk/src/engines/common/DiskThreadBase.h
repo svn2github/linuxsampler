@@ -5,7 +5,7 @@
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
- *   Copyright (C) 2013 - 2014 Christian Schoenebeck and Andreas Persson   *
+ *   Copyright (C) 2013 - 2016 Christian Schoenebeck and Andreas Persson   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -197,9 +197,9 @@ namespace LinuxSampler {
             // Methods
             DiskThreadBase(int MaxStreams, uint BufferWrapElements, IM* pInstruments) :
                 Thread(true, false, 1, -2),
-                pInstruments(pInstruments),
                 DeletionNotificationQueue(4*MaxStreams),
-                ProgramChangeQueue(512)
+                ProgramChangeQueue(512),
+                pInstruments(pInstruments)
             {
                 CreationQueue       = new RingBuffer<create_command_t,false>(4*MaxStreams);
                 DeletionQueue       = new RingBuffer<delete_command_t,false>(4*MaxStreams);

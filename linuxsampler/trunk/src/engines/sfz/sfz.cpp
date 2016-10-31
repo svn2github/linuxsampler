@@ -863,10 +863,10 @@ namespace sfz
 
     File::File(std::string file, SampleManager* pSampleManager) :
         _current_section(GLOBAL),
+        id(0),
         default_path(""),
         octave_offset(0),
-        note_offset(0),
-        id(0)
+        note_offset(0)
     {
         _instrument = new Instrument(LinuxSampler::Path::getBaseName(file), pSampleManager);
         ContainerDefinition* defaultGlobalContainer = new ContainerDefinition(ContainerDefinition::GLOBAL);
@@ -1296,8 +1296,8 @@ namespace sfz
             token == "<master>" ||
             token == "<group>")
         {
-            ContainerDefinition::section_type level;
-            
+            ContainerDefinition::section_type level = ContainerDefinition::GLOBAL; // initialized only to avoid an irrelevant compiler warning
+
             if (token == "<global>")
             {
                 _current_section = GLOBAL;
@@ -1313,7 +1313,7 @@ namespace sfz
                 _current_section = GROUP;
                 level = ContainerDefinition::GROUP;
             }
-            
+
             ContainerDefinition* newContainer = new ContainerDefinition(level);
             
             while (_current_containers.size() > 0 && _current_containers.top()->level <= level)
@@ -2029,8 +2029,8 @@ namespace sfz
     }
 
     EG::EG() :
-        sustain(0), loop(0), loop_count(0), amplitude(0), pan(0), pan_curve(-1),
-        cutoff(0), pitch(0), resonance(0), volume(-200) /* less than -144 dB is considered unset */
+        sustain(0), loop(0), loop_count(0), amplitude(0), volume(-200), /* less than -144 dB is considered unset */
+        cutoff(0), pitch(0), resonance(0), pan(0), pan_curve(-1)
     { }
     
     void EG::Copy(const EG& eg) {
@@ -2057,11 +2057,13 @@ namespace sfz
         pan_curvecc    = eg.pan_curvecc;
     }
     
-    LFO::LFO(): freq (-1),/* -1 is used to determine whether the LFO was initialized */
-                fade(0), phase(0), wave(0), delay(0), pitch(0), cutoff(0), resonance(0), pan(0), volume(0) {
-        
+    LFO::LFO():
+        delay(0),
+        freq(-1), /* -1 is used to determine whether the LFO was initialized */
+        fade(0), phase(0), wave(0), volume(0), pitch(0), cutoff(0), resonance(0), pan(0)
+    {
     }
-    
+
     void LFO::Copy(const LFO& lfo) {
         EqSmoothStepImpl::Copy(static_cast<const EqSmoothStepImpl>(lfo));
         

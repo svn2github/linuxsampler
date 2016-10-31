@@ -581,13 +581,17 @@ namespace LinuxSampler {
      * complexity inside the sampler engines which provide the actual script
      * functionalities.
      */
-    #define DECLARE_VMINT(basePtr, T_struct, T_member) ( \
-        (VMRelPtr) {                                     \
-            (void**) &basePtr,                           \
-            offsetof(T_struct, T_member),                \
-            false                                        \
-        }                                                \
-    )                                                    \
+    #define DECLARE_VMINT(basePtr, T_struct, T_member) (          \
+        /* Disable offsetof warning, trust us, we are cautios. */ \
+        _Pragma("GCC diagnostic push")                            \
+        _Pragma("GCC diagnostic ignored \"-Winvalid-offsetof\"")  \
+        (VMRelPtr) {                                              \
+            (void**) &basePtr,                                    \
+            offsetof(T_struct, T_member),                         \
+            false                                                 \
+        }                                                         \
+        _Pragma("GCC diagnostic pop")                             \
+    )                                                             \
 
     /**
      * Same as DECLARE_VMINT(), but this one defines the VMIntRelPtr and
@@ -603,12 +607,16 @@ namespace LinuxSampler {
      * @see ScriptVM::builtInConstIntVariables()
      */
     #define DECLARE_VMINT_READONLY(basePtr, T_struct, T_member) ( \
-        (VMRelPtr) {                                          \
-            (void**) &basePtr,                                \
-            offsetof(T_struct, T_member),                     \
-            true                                              \
-        }                                                     \
-    )                                                         \
+        /* Disable offsetof warning, trust us, we are cautios. */ \
+        _Pragma("GCC diagnostic push")                            \
+        _Pragma("GCC diagnostic ignored \"-Winvalid-offsetof\"")  \
+        (VMRelPtr) {                                              \
+            (void**) &basePtr,                                    \
+            offsetof(T_struct, T_member),                         \
+            true                                                  \
+        }                                                         \
+        _Pragma("GCC diagnostic pop")                             \
+    )                                                             \
 
     /** @brief Built-in VM 8 bit integer array variable.
      *
@@ -708,6 +716,8 @@ namespace LinuxSampler {
          * @param expr - new value to be assigned to this variable
          */
         void assignExpr(VMExpr* expr) OVERRIDE {}
+
+        virtual ~VMDynVar() {}
     };
 
     /** @brief Dynamically executed variable (of integer data type).

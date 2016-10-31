@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2012 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2016 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -29,8 +29,9 @@
 
 namespace LinuxSampler { namespace sf2 {
 
-    typedef LinuxSampler::VoiceBase<EngineChannel, ::sf2::Region, ::sf2::Sample, DiskThread> SF2Voice;
-    Voice::Voice(): SignalRack(this), SF2Voice(&SignalRack) {
+    typedef LinuxSampler::VoiceBase<EngineChannel, ::sf2::Region, ::sf2::Sample, DiskThread> SF2VoiceBase;
+
+    Voice::Voice(): SF2VoiceBase(&SignalRack), SignalRack(this) {
         pEngine = NULL;
         pEG1 = NULL;
         pEG2 = NULL;

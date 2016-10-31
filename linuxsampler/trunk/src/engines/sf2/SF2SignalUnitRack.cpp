@@ -246,7 +246,7 @@ namespace LinuxSampler { namespace sf2 {
     }
     
     SF2SignalUnitRack::SF2SignalUnitRack(Voice* voice)
-        : SignalUnitRack(MaxUnitCount), pVoice(voice), suVolEG(this), suModEG(this), suModLfo(this), suVibLfo(this), suEndpoint(this) {
+        : SignalUnitRack(MaxUnitCount), suVolEG(this), suModEG(this), suModLfo(this), suVibLfo(this), suEndpoint(this), pVoice(voice) {
 
         suVolEG.pVoice = suModEG.pVoice = suModLfo.pVoice = suVibLfo.pVoice = suEndpoint.pVoice = voice;
         Units.add(&suVolEG);

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -44,6 +44,7 @@ namespace LinuxSampler { namespace gig {
                         else
                             enterDecay1Part1Stage(SampleRate);
                         break;
+                    default: ; // noop
                 }
                 break;
             case stage_attack_hold:
@@ -59,6 +60,7 @@ namespace LinuxSampler { namespace gig {
                     case event_release:
                         enterReleasePart1Stage();
                         break;
+                    default: ; // noop
                 }
                 break;
             case stage_decay1_part1:
@@ -69,6 +71,7 @@ namespace LinuxSampler { namespace gig {
                     case event_release:
                         enterReleasePart1Stage();
                         break;
+                    default: ; // noop
                 }
                 break;
             case stage_decay1_part2:
@@ -84,6 +87,7 @@ namespace LinuxSampler { namespace gig {
                         else
                             enterDecay2Stage(SampleRate);
                         break;
+                    default: ; // noop
                 }
                 break;
             case stage_decay2:
@@ -97,6 +101,7 @@ namespace LinuxSampler { namespace gig {
                     case event_hold_end:
                         enterDecay1Part1Stage(SampleRate);
                         break;
+                    default: ; // noop
                 }
                 break;
             case stage_sustain:
@@ -112,6 +117,7 @@ namespace LinuxSampler { namespace gig {
                     case event_hold_end:
                         enterDecay1Part1Stage(SampleRate);
                         break;
+                    default: ; // noop
                 }
                 break;
             case stage_release_part1:
@@ -125,6 +131,7 @@ namespace LinuxSampler { namespace gig {
                         else
                             enterDecay2Stage(SampleRate);
                         break;
+                    default: ; // noop
                 }
                 break;
             case stage_release_part2:
@@ -138,8 +145,12 @@ namespace LinuxSampler { namespace gig {
                         else
                             enterDecay2Stage(SampleRate);
                         break;
+                    default: ; // noop
                 }
                 break;
+            case stage_fadeout:
+            case stage_end:
+                ; // noop
         }
     }
 

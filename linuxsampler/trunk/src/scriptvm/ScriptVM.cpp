@@ -60,10 +60,12 @@ int InstrScript_parse(LinuxSampler::ParserContext*);
 
 namespace LinuxSampler {
 
+    #if DEBUG_SCRIPTVM_CORE
     static void _printIndents(int n) {
         for (int i = 0; i < n; ++i) printf("  ");
         fflush(stdout);
     }
+    #endif
 
     static int _requiredMaxStackSizeFor(Statement* statement, int depth = 0) {
         if (!statement) return 1;

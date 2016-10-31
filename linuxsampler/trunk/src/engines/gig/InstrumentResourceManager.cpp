@@ -41,6 +41,8 @@ namespace LinuxSampler { namespace gig {
     // we use this to react on events concerning an instrument on behalf of an instrument editor
     class InstrumentEditorProxy : public InstrumentConsumer {
     public:
+        virtual ~InstrumentEditorProxy() {}
+
         virtual void ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg) {
             //TODO: inform the instrument editor about the pending update
         }

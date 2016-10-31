@@ -749,6 +749,11 @@ namespace LinuxSampler {
                     case Event::synth_param_resonance:
                         NoteResonance = itEvent->Param.NoteSynthParam.AbsValue;
                         break;
+
+                    case Event::synth_param_attack:
+                    case Event::synth_param_decay:
+                    case Event::synth_param_release:
+                        break; // noop
                 }
             }
         }

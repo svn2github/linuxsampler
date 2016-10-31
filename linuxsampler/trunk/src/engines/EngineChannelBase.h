@@ -438,7 +438,7 @@ namespace LinuxSampler {
                     EngineChannelBase<V, R, I>* pChannel;
 
                     RenderVoicesHandler(EngineChannelBase<V, R, I>* channel, uint samples) :
-                        pChannel(channel), Samples(samples), VoiceCount(0), StreamCount(0) { }
+                        Samples(samples), VoiceCount(0), StreamCount(0), pChannel(channel) { }
 
                     virtual void Process(RTListVoiceIterator& itVoice) {
                         // now render current voice
