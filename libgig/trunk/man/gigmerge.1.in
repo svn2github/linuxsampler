@@ -3,7 +3,7 @@
 gigmerge \- Merges several Gigasampler (.gig) files to one Gigasampler file.
 .SH SYNOPSIS
 .B gigmerge
-[ -v ] GIGFILE1 GIGFILE2 [ ... ] NEWGIGFILE
+[ \-v ] GIGFILE1 GIGFILE2 [ ... ] NEWGIGFILE
 .SH DESCRIPTION
 Takes a list of Gigasampler (.gig) files as input and merges their content to one new single Gigasampler file. Note: There is no check for duplicate (equivalent) samples yet. That means, if for example 2 input files use the exact same sample, then this sample will exist twice in the output file.
 .SH OPTIONS

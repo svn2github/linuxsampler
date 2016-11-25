@@ -3,7 +3,7 @@
 gigextract \- Extract samples from Gigasampler (.gig) files.
 .SH SYNOPSIS
 .B gigextract
-[ -v ] GIGFILE DESTDIR [SAMPLENR] [ [SAMPLENR] ... ]
+[ \-v ] GIGFILE DESTDIR [SAMPLENR] [ [SAMPLENR] ... ]
 .SH DESCRIPTION
 Extract samples from Gigasampler (.gig) files. All extracted samples will be
 written in .wav format. You must at least supply name of the .gig input file and

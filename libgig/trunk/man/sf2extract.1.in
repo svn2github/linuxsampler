@@ -3,7 +3,7 @@
 sf2extract \- Extract samples from SoundFont version 2 (.sf2) files.
 .SH SYNOPSIS
 .B sf2extract
-[ -v ] SF2FILE DESTDIR [SAMPLENR] [ [SAMPLENR] ... ]
+[ \-v ] SF2FILE DESTDIR [SAMPLENR] [ [SAMPLENR] ... ]
 .SH DESCRIPTION
 Extract samples from SoundFont version 2 (.sf2) files. All extracted samples
 will be written in .wav format. You must at least supply name of the .sf2 input

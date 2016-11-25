@@ -82,7 +82,7 @@ Gigasampler/GigaStudio file) and show the exact sizes of each chunk in the file:
 .PP
 .nf
 .RS
-rifftree -s piano.gig
+rifftree \-s piano.gig
 .RE
 .fi
 .PP
@@ -91,7 +91,7 @@ standard RIFF file, but a RIFF-alike file):
 .PP
 .nf
 .RS
-rifftree -s --flat --first-chunk-id MSP1 --big-endian PIANO_000.KMP
+rifftree \-s --flat --first-chunk-id MSP1 --big-endian PIANO_000.KMP
 .RE
 .fi
 .PP

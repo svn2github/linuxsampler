@@ -3,7 +3,7 @@
 korg2gig \- Convert sound files from KORG to GigaStudio format.
 .SH SYNOPSIS
 .B korg2gig
-[-v] [-f] [--interpret-names] FILE1 [ FILE2 ... ] NEWFILE
+[\-v] [\-f] [--interpret-names] FILE1 [ FILE2 ... ] NEWFILE
 .SH DESCRIPTION
 
 This tool takes a list of KORG sound files, used with KORG synthesizer keyboards
@@ -23,7 +23,7 @@ file.
 
 Unfortunately there is no support for KORG's program/combinations/bank (.PCG)
 files yet. Have a look at option
-.B --interpret-names
+.B \ --interpret-names
 for a workaround.
 Because of this lack of support for .PCG files, you still have to adjust the
 articulation settings in the output (.gig) file afterwards with an instrument
@@ -58,7 +58,7 @@ Output file in Gigasampler/GigaStudio (.gig) format. If this output file
 already exists,
 .B korg2gig
 will abort with an error message unless you specify
-.B -f
+.B \ -f
 as argument as well.
 
 .TP

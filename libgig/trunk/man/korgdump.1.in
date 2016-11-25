@@ -3,7 +3,7 @@
 korgdump \- List informations about sound files in KORG synthesizer format.
 .SH SYNOPSIS
 .B korgdump
-[ -v ] FILE
+[ \-v ] FILE
 .SH DESCRIPTION
 Prints out detailled informations of sample based sound files (either with .KMP
 or .KSF file type extension) used with KORG synthesizer keyboards like Trinity,

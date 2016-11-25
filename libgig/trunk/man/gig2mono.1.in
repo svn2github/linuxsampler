@@ -3,7 +3,7 @@
 gig2mono \- Converts Gigasampler (.gig) files from stereo to mono.
 .SH SYNOPSIS
 .B gig2mono
-[ -v ] [ -r ] [ --left | --right | --mix ] FILE_OR_DIR1 [ FILE_OR_DIR2 ... ]
+[ \-v ] [ \-r ] [ --left | --right | --mix ] FILE_OR_DIR1 [ FILE_OR_DIR2 ... ]
 .SH DESCRIPTION
 Takes a list of Gigasampler (.gig) files and / or directories as argument(s) and converts the individual Gigasampler files from stereo to mono audio format. Given directories are scanned for .gig files. The Gigasampler files are directly modified, not copied. Gigasampler files already being in mono format are ignored. Since at this point the Gigasampler format only defines mono and stereo samples, this program currently also assumes all samples in the .gig files provided to be either mono or stereo.
 .SH OPTIONS

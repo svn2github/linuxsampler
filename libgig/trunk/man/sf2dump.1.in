@@ -3,7 +3,7 @@
 sf2dump \- Parses SoundFont v2 (.sf2) files and prints out the content.
 .SH SYNOPSIS
 .B sf2dump
-[ -v ] FILE
+[ \-v ] FILE
 .SH DESCRIPTION
 Prints out a list of all available samples and instruments within a SoundFont version 2 (.sf2) file along with detailed informations about their properties and settings.
 .SH OPTIONS
