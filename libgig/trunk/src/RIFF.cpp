@@ -313,7 +313,7 @@ namespace RIFF {
      *  @param WordCount  number of data words to read
      *  @param WordSize   size of each data word to read
      *  @returns          number of successfully read data words or 0 if end
-     *                    of file reached or error occured
+     *                    of file reached or error occurred
      */
     file_offset_t Chunk::Read(void* pData, file_offset_t WordCount, file_offset_t WordSize) {
         #if DEBUG
@@ -382,7 +382,7 @@ namespace RIFF {
      *  @param WordSize   size of each data word to write
      *  @returns          number of successfully written data words
      *  @throws RIFF::Exception  if write operation would exceed current
-     *                           chunk size or any IO error occured
+     *                           chunk size or any IO error occurred
      *  @see Resize()
      */
     file_offset_t Chunk::Write(void* pData, file_offset_t WordCount, file_offset_t WordSize) {
@@ -455,7 +455,7 @@ namespace RIFF {
      * @param pData             destination buffer
      * @param WordCount         number of 8 Bit signed integers to read
      * @returns                 number of read integers
-     * @throws RIFF::Exception  if an error occured or less than
+     * @throws RIFF::Exception  if an error occurred or less than
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadInt8(int8_t* pData, file_offset_t WordCount) {
@@ -476,7 +476,7 @@ namespace RIFF {
      * @param pData             source buffer (containing the data)
      * @param WordCount         number of 8 Bit signed integers to write
      * @returns                 number of written integers
-     * @throws RIFF::Exception  if an IO error occured
+     * @throws RIFF::Exception  if an IO error occurred
      * @see Resize()
      */
     file_offset_t Chunk::WriteInt8(int8_t* pData, file_offset_t WordCount) {
@@ -492,7 +492,7 @@ namespace RIFF {
      * @param pData             destination buffer
      * @param WordCount         number of 8 Bit unsigned integers to read
      * @returns                 number of read integers
-     * @throws RIFF::Exception  if an error occured or less than
+     * @throws RIFF::Exception  if an error occurred or less than
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadUint8(uint8_t* pData, file_offset_t WordCount) {
@@ -513,7 +513,7 @@ namespace RIFF {
      * @param pData             source buffer (containing the data)
      * @param WordCount         number of 8 Bit unsigned integers to write
      * @returns                 number of written integers
-     * @throws RIFF::Exception  if an IO error occured
+     * @throws RIFF::Exception  if an IO error occurred
      * @see Resize()
      */
     file_offset_t Chunk::WriteUint8(uint8_t* pData, file_offset_t WordCount) {
@@ -529,7 +529,7 @@ namespace RIFF {
      * @param pData             destination buffer
      * @param WordCount         number of 16 Bit signed integers to read
      * @returns                 number of read integers
-     * @throws RIFF::Exception  if an error occured or less than
+     * @throws RIFF::Exception  if an error occurred or less than
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadInt16(int16_t* pData, file_offset_t WordCount) {
@@ -550,7 +550,7 @@ namespace RIFF {
      * @param pData             source buffer (containing the data)
      * @param WordCount         number of 16 Bit signed integers to write
      * @returns                 number of written integers
-     * @throws RIFF::Exception  if an IO error occured
+     * @throws RIFF::Exception  if an IO error occurred
      * @see Resize()
      */
     file_offset_t Chunk::WriteInt16(int16_t* pData, file_offset_t WordCount) {
@@ -566,7 +566,7 @@ namespace RIFF {
      * @param pData             destination buffer
      * @param WordCount         number of 8 Bit unsigned integers to read
      * @returns                 number of read integers
-     * @throws RIFF::Exception  if an error occured or less than
+     * @throws RIFF::Exception  if an error occurred or less than
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadUint16(uint16_t* pData, file_offset_t WordCount) {
@@ -587,7 +587,7 @@ namespace RIFF {
      * @param pData             source buffer (containing the data)
      * @param WordCount         number of 16 Bit unsigned integers to write
      * @returns                 number of written integers
-     * @throws RIFF::Exception  if an IO error occured
+     * @throws RIFF::Exception  if an IO error occurred
      * @see Resize()
      */
     file_offset_t Chunk::WriteUint16(uint16_t* pData, file_offset_t WordCount) {
@@ -603,7 +603,7 @@ namespace RIFF {
      * @param pData             destination buffer
      * @param WordCount         number of 32 Bit signed integers to read
      * @returns                 number of read integers
-     * @throws RIFF::Exception  if an error occured or less than
+     * @throws RIFF::Exception  if an error occurred or less than
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadInt32(int32_t* pData, file_offset_t WordCount) {
@@ -624,7 +624,7 @@ namespace RIFF {
      * @param pData             source buffer (containing the data)
      * @param WordCount         number of 32 Bit signed integers to write
      * @returns                 number of written integers
-     * @throws RIFF::Exception  if an IO error occured
+     * @throws RIFF::Exception  if an IO error occurred
      * @see Resize()
      */
     file_offset_t Chunk::WriteInt32(int32_t* pData, file_offset_t WordCount) {
@@ -640,7 +640,7 @@ namespace RIFF {
      * @param pData             destination buffer
      * @param WordCount         number of 32 Bit unsigned integers to read
      * @returns                 number of read integers
-     * @throws RIFF::Exception  if an error occured or less than
+     * @throws RIFF::Exception  if an error occurred or less than
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadUint32(uint32_t* pData, file_offset_t WordCount) {
@@ -657,7 +657,7 @@ namespace RIFF {
      *
      * @param s                 destination string
      * @param size              number of characters to read
-     * @throws RIFF::Exception  if an error occured or less than
+     * @throws RIFF::Exception  if an error occurred or less than
      *                          \a size characters could be read!
      */
     void Chunk::ReadString(String& s, int size) {
@@ -678,7 +678,7 @@ namespace RIFF {
      * @param pData             source buffer (containing the data)
      * @param WordCount         number of 32 Bit unsigned integers to write
      * @returns                 number of written integers
-     * @throws RIFF::Exception  if an IO error occured
+     * @throws RIFF::Exception  if an IO error occurred
      * @see Resize()
      */
     file_offset_t Chunk::WriteUint32(uint32_t* pData, file_offset_t WordCount) {
@@ -690,7 +690,7 @@ namespace RIFF {
      * the chunk.
      *
      * @returns                 read integer word
-     * @throws RIFF::Exception  if an error occured
+     * @throws RIFF::Exception  if an error occurred
      */
     int8_t Chunk::ReadInt8() {
         #if DEBUG
@@ -706,7 +706,7 @@ namespace RIFF {
      * within the chunk.
      *
      * @returns                 read integer word
-     * @throws RIFF::Exception  if an error occured
+     * @throws RIFF::Exception  if an error occurred
      */
     uint8_t Chunk::ReadUint8() {
         #if DEBUG
@@ -723,7 +723,7 @@ namespace RIFF {
      * needed.
      *
      * @returns                 read integer word
-     * @throws RIFF::Exception  if an error occured
+     * @throws RIFF::Exception  if an error occurred
      */
     int16_t Chunk::ReadInt16() {
         #if DEBUG
@@ -740,7 +740,7 @@ namespace RIFF {
      * needed.
      *
      * @returns                 read integer word
-     * @throws RIFF::Exception  if an error occured
+     * @throws RIFF::Exception  if an error occurred
      */
     uint16_t Chunk::ReadUint16() {
         #if DEBUG
@@ -757,7 +757,7 @@ namespace RIFF {
      * needed.
      *
      * @returns                 read integer word
-     * @throws RIFF::Exception  if an error occured
+     * @throws RIFF::Exception  if an error occurred
      */
     int32_t Chunk::ReadInt32() {
         #if DEBUG
@@ -774,7 +774,7 @@ namespace RIFF {
      * needed.
      *
      * @returns                 read integer word
-     * @throws RIFF::Exception  if an error occured
+     * @throws RIFF::Exception  if an error occurred
      */
     uint32_t Chunk::ReadUint32() {
         #if DEBUG
@@ -1576,7 +1576,7 @@ namespace RIFF {
      * Loads an existing RIFF file with all its chunks.
      *
      * @param path - path and file name of the RIFF file to open
-     * @throws RIFF::Exception if error occured while trying to load the
+     * @throws RIFF::Exception if error occurred while trying to load the
      *                         given RIFF file
      */
     File::File(const String& path)
@@ -1623,7 +1623,7 @@ namespace RIFF {
      * @param Endian - whether the file uses little endian or big endian layout
      * @param layout - general file structure type
      * @param fileOffsetSize - (optional) preference how to deal with large files
-     * @throws RIFF::Exception if error occured while trying to load the
+     * @throws RIFF::Exception if error occurred while trying to load the
      *                         given RIFF-alike file
      */
     File::File(const String& path, uint32_t FileType, endian_t Endian, layout_t layout, offset_size_t fileOffsetSize)
@@ -1650,7 +1650,7 @@ namespace RIFF {
      * @param path - path and file name of the RIFF file or RIFF-alike file to
      *               be opened
      * @param FileType - (optional) expected chunk ID of first chunk in file
-     * @throws RIFF::Exception if error occured while trying to load the
+     * @throws RIFF::Exception if error occurred while trying to load the
      *                         given RIFF file or RIFF-alike file
      */
     void File::__openExistingFile(const String& path, uint32_t* FileType) {
@@ -1854,7 +1854,7 @@ namespace RIFF {
      *
      * @param pProgress - optional: callback function for progress notification
      * @throws RIFF::Exception if there is an empty chunk or empty list
-     *                         chunk or any kind of IO error occured
+     *                         chunk or any kind of IO error occurred
      */
     void File::Save(progress_t* pProgress) {
         //TODO: implementation for the case where first chunk is not a global container (List chunk) is not implemented yet (i.e. Korg files)

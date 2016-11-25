@@ -12,7 +12,7 @@ The Gigasampler files are directly modified, not copied. Since at this point the
 Gigasampler format only defines mono and stereo samples, this program currently
 also assumes all samples in the .gig files provided to be either mono or stereo.
 
-Background: The Gigasampler/GigaStudio format allows to create stereo
+Background: The Gigasampler/GigaStudio format allows one to create stereo
 instruments in two ways: either by referencing true stereo (interleaved) samples
 in the instruments, or by referencing a pair of (two) mono samples. Unfortunately
 LinuxSampler does not support the latter at the moment, thus if a gig instrument
@@ -83,8 +83,8 @@ Recurse through subdirectories.
 Print version and exit.
 .TP
 .B \ --verbose [LEVEL]
-Be verbose and print additional informations while converting. The additional
-numeric argument is optional, it allows to define the verbosity level
+Be verbose and print additional information while converting. The additional
+numeric argument is optional, it allows one to define the verbosity level
 (1 .. 2, default: 1).
 
 .SH "SEE ALSO"

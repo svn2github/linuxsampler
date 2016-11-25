@@ -1,11 +1,11 @@
 .TH "korgdump" "1" "8 May 2014" "libgig @VERSION@" "libgig tools"
 .SH NAME
-korgdump \- List informations about sound files in KORG synthesizer format.
+korgdump \- List information about sound files in KORG synthesizer format.
 .SH SYNOPSIS
 .B korgdump
 [ \-v ] FILE
 .SH DESCRIPTION
-Prints out detailled informations of sample based sound files (either with .KMP
+Prints out detailed information of sample based sound files (either with .KMP
 or .KSF file type extension) used with KORG synthesizer keyboards like Trinity,
 Triton, OASYS, M3 or Kronos.
 

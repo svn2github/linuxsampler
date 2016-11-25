@@ -1,13 +1,13 @@
 .TH "gigdump" "1" "21 Sep 2016" "libgig @VERSION@" "libgig tools"
 .SH NAME
-gigdump \- List informations about a Gigasampler (.gig) file.
+gigdump \- List information about a Gigasampler (.gig) file.
 .SH SYNOPSIS
 .B gigdump
 [OPTIONS] GIGFILE
 .SH DESCRIPTION
 By default it prints out a list of all available samples, real-time instrument
 scripts and instruments within a Gigasampler (.gig) file, along with detailed
-informations about their properties and settings.
+information about their properties and settings.
 .SH OPTIONS
 .TP
 .B \ GIGFILE

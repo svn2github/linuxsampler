@@ -14,11 +14,11 @@ Gigasampler/GigaStudio (.gig) file. All input KORG files are merged to a single
 For each KORG "multi-sample" (.KMP) file a separate GigaStudio instrument will
 be created in the output (.gig) file. KORG Sample (.KSF) files referenced by
 such multi-sample (.KMP) files are automatically detected, loaded and written to
-the output (.gig) file as well. Assignemnts of samples to keyboard regions,
-sample loops and other minor articulation informations are converted as well.
+the output (.gig) file as well. Assignments of samples to keyboard regions,
+sample loops and other minor articulation information are converted as well.
 But note, the multi-sample (.KMP) form is very primitive. It does NOT save the
-detailled articulation informations of your KORG keyboard like envelopes, LFO
-and filter settings. Those informations are stored in a separate program (.PCG)
+detailed articulation information of your KORG keyboard like envelopes, LFO
+and filter settings. Those information are stored in a separate program (.PCG)
 file.
 
 Unfortunately there is no support for KORG's program/combinations/bank (.PCG)

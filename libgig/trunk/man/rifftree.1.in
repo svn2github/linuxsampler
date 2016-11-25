@@ -12,7 +12,7 @@ on top of the RIFF format (e.g. media file formats like WAV, AVI, DLS, GIG).
 Data in a RIFF file is encapsulated into so called "chunks". There are list
 chunks (containers) which can be seen as nodes in the data tree and thus can
 have children (that is can have subchunks) and there are normal data chunks
-which can be seen as leafs in the data tree and thus cannot have childs.
+which can be seen as leafs in the data tree and thus cannot have children.
 The regular chunks (leafs of the tree) contain the actual data to be stored.
 The list chunks themselves (nodes / containers) contain no data on their own.
 

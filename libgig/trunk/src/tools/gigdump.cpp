@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 }
 
 void PrintFileInformations(gig::File* gig) {
-    cout << "Global File Informations:" << endl;
+    cout << "Global File Information:" << endl;
     cout << "    Total instruments: " << gig->Instruments << endl;
     if (gig->pVersion) {
        cout << "    Version: " << gig->pVersion->major   << "."

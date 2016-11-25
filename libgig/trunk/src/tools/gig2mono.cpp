@@ -312,7 +312,7 @@ static bool convertFileToMono(const string path) {
         e.PrintMessage();
         return false; // error
     } catch (...) {
-        cerr << "Unknown exception occured while trying to convert file." << endl;
+        cerr << "Unknown exception occurred while trying to convert file." << endl;
         return false; // error
     }
     return true; // success

@@ -67,7 +67,7 @@ static void printUsage() {
     cout << endl;
     cout << "   -v               Print version and exit." << endl;
     cout << endl;
-    cout << "   --verbose        Print additional informations while converting." << endl;
+    cout << "   --verbose        Print additional information while converting." << endl;
     cout << endl;
     cout << "Read `man gig2stereo' for details." << endl;
     cout << endl;
@@ -203,7 +203,7 @@ static string stripAudioChannelFromName(const string& s) {
  *                            their main sample characteristics match, if set
  *                            to true this sanity check will be skipped
  * @param verbosity - verbosity level, defines whether and how much additional
- *                    informations to be printed to the console while doing the
+ *                    information to be printed to the console while doing the
  *                    conversion (0 .. 2)
  */
 static bool convertFileToStereo(const string path, bool keep, bool forceReplace, bool skipIncompatible, int verbose) {
@@ -567,7 +567,7 @@ static bool convertFileToStereo(const string path, bool keep, bool forceReplace,
         e.PrintMessage();
         return false; // error
     } catch (...) {
-        cerr << "Unknown exception occured while trying to convert file." << endl;
+        cerr << "Unknown exception occurred while trying to convert file." << endl;
         return false; // error
     }
     return true; // success

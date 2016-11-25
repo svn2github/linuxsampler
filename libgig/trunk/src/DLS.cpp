@@ -996,7 +996,7 @@ namespace DLS {
     Region::Region(Instrument* pInstrument, RIFF::List* rgnList) : Resource(pInstrument, rgnList), Articulator(rgnList), Sampler(rgnList) {
         pCkRegion = rgnList;
 
-        // articulation informations
+        // articulation information
         RIFF::Chunk* rgnh = rgnList->GetSubChunk(CHUNK_ID_RGNH);
         if (rgnh) {
             rgnh->Read(&KeyRange, 2, 2);
@@ -1018,7 +1018,7 @@ namespace DLS {
         }
         SelfNonExclusive = FormatOptionFlags & F_RGN_OPTION_SELFNONEXCLUSIVE;
 
-        // sample informations
+        // sample information
         RIFF::Chunk* wlnk = rgnList->GetSubChunk(CHUNK_ID_WLNK);
         if (wlnk) {
             WaveLinkOptionFlags = wlnk->ReadUint16();
@@ -1827,8 +1827,8 @@ namespace DLS {
      * have at the end of the saving process.
      *
      * @param pProgress - optional: callback function for progress notification
-     * @throws RIFF::Exception if any kind of IO error occured
-     * @throws DLS::Exception  if any kind of DLS specific error occured
+     * @throws RIFF::Exception if any kind of IO error occurred
+     * @throws DLS::Exception  if any kind of DLS specific error occurred
      */
     void File::Save(progress_t* pProgress) {
         {

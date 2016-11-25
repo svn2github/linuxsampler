@@ -3,6 +3,7 @@ Version SVN trunk
     - removed 2 GB limitation when loading a gig or DLS file
     - using now native integer size where appropriate
     - fixed minor issues with man pages (patch by Debian maintainer)
+    - fixed various spelling mistakes (patch by Debian maintainer)
 
   * src/gig.cpp, src/gig.h:
     - fixed bug in Script::SetGroup: the script chunk wasn't moved

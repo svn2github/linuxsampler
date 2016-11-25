@@ -1,11 +1,11 @@
 .TH "dlsdump" "1" "8 May 2005" "libgig @VERSION@" "libgig tools"
 .SH NAME
-dlsdump \- List informations about a DLS (Downloadable Sound) file.
+dlsdump \- List information about a DLS (Downloadable Sound) file.
 .SH SYNOPSIS
 .B dlsdump
 [ \-v ] DLSFILE
 .SH DESCRIPTION
-Prints out a list of all available samples and instruments within a DLS file along with detailed informations about their properties and settings. At the moment DLS Level 1 and 2 is supported.
+Prints out a list of all available samples and instruments within a DLS file along with detailed information about their properties and settings. At the moment DLS Level 1 and 2 is supported.
 .SH OPTIONS
 .TP
 .B \ DLSFILE

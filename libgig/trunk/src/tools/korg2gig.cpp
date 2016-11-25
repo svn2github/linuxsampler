@@ -214,7 +214,7 @@ inline string parseNumberRange(const string& s, int& from, int& to) {
     stripWhiteSpace(w);
     stripLeftOrRightMarkerAtEnd(w);
     string result = parseNumberRangeAtEnd(w, from, to);
-    if (result == w) return s; // parse error occured, return original input s
+    if (result == w) return s; // parse error occurred, return original input s
     stripWhiteSpace(result);
     return result;
 }
@@ -508,7 +508,7 @@ static void loadKorgFile(const string& filename, bool bReferenced = false) {
         exit(EXIT_FAILURE);
     } catch (...) {
         cerr << "Failed opening input file '" << filename << "':" << endl;
-        cerr << "Unknown exception occured while trying to access input file." << endl;
+        cerr << "Unknown exception occurred while trying to access input file." << endl;
         exit(EXIT_FAILURE);
     }
 }
