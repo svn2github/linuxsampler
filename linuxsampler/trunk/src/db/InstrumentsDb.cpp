@@ -1651,7 +1651,7 @@ namespace LinuxSampler {
 
     void InstrumentsDb::BindTextParam(sqlite3_stmt* pStmt, int Index, String Text) {
         if (pStmt == NULL) return;
-        int res = sqlite3_bind_text(pStmt, Index, Text.c_str(), -1, SQLITE_STATIC);
+        int res = sqlite3_bind_text(pStmt, Index, Text.c_str(), -1, SQLITE_TRANSIENT);
         if (res != SQLITE_OK) {
             sqlite3_finalize(pStmt);
             throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));

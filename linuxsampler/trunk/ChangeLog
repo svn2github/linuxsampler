@@ -132,6 +132,10 @@ Version SVN trunk (?)
     - Fixed NKSP parser warning "Not a statement" when assigning an
       initializer list to an array variable.
 
+  * Instruments DB:
+    - Fixed memory access bug of general DB access code which lead to
+      undefined behavior.
+
 Version 2.0.0 (15 July 2015)
 
   * packaging changes:
