@@ -27,7 +27,11 @@
 
 #include "../../common/global.h"
 
-#include <gig.h>
+#if AC_APPLE_UNIVERSAL_BUILD
+# include <libgig/gig.h>
+#else
+# include <gig.h>
+#endif
 
 #include <cmath>
 

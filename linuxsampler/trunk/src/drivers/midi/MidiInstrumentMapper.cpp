@@ -25,7 +25,11 @@
 #include "../../engines/EngineFactory.h"
 #include "../../engines/Engine.h"
 
-#include <RIFF.h>
+#if AC_APPLE_UNIVERSAL_BUILD
+# include <libgig/RIFF.h>
+#else
+# include <RIFF.h>
+#endif
 
 namespace LinuxSampler {
 

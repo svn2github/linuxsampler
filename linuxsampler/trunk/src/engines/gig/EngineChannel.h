@@ -30,7 +30,12 @@
 #include "../EngineChannelBase.h"
 #include "../EngineChannelFactory.h"
 #include "Voice.h"
-#include <gig.h>
+
+#if AC_APPLE_UNIVERSAL_BUILD
+# include <libgig/gig.h>
+#else
+# include <gig.h>
+#endif
 
 namespace LinuxSampler { namespace gig {
     class Voice;

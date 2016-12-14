@@ -21,20 +21,18 @@
 #ifndef __LS_LFOBASE_H__
 #define __LS_LFOBASE_H__
 
-#ifdef HAVE_CONFIG_H
-# include "../../common/global.h"
-# include "../../common/RTMath.h"
+#include "../../common/global.h"
+#include "../../common/RTMath.h"
 
 // IDs of the two possible implementations
 // we get the implementation to pick from config.h
 // the implementation IDs should be the same like in benchmarks/triang.cpp !
-# define INT_MATH_SOLUTION		2
-# define DI_HARMONIC_SOLUTION	3
-# define INT_ABS_MATH_SOLUTION          5
-#else
-# include <math.h>
-# include <stdint.h>
-#endif
+#define INT_MATH_SOLUTION       2
+#define DI_HARMONIC_SOLUTION    3
+#define INT_ABS_MATH_SOLUTION   5
+
+#include <math.h>
+#include <stdint.h>
 
 namespace LinuxSampler {
 

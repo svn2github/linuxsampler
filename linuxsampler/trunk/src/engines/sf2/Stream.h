@@ -26,7 +26,12 @@
 #define	__LS_SF2_STREAM_H__
 
 #include "../common/StreamBase.h"
-#include <SF.h>
+
+#if AC_APPLE_UNIVERSAL_BUILD
+# include <libgig/SF.h>
+#else
+# include <SF.h>
+#endif
 
 namespace LinuxSampler { namespace sf2 {
 

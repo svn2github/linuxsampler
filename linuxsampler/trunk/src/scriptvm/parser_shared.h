@@ -14,7 +14,13 @@
 
 #include <stdio.h>
 #include "tree.h"
-#include "parser.h"
+
+#if AC_APPLE_UNIVERSAL_BUILD
+# include "parser.tab.h"
+#else
+# include "parser.h"
+#endif
+
 #include "../common/global_private.h"
     
 struct _YYSTYPE {

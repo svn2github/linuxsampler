@@ -34,7 +34,13 @@
 #include "lscpparser.h"
 #include "lscpserver.h"
 #include "lscpevent.h"
-#include "lscpsymbols.h"
+
+#if AC_APPLE_UNIVERSAL_BUILD
+# include "lscp.tab.h"
+#else
+# include "lscpsymbols.h"
+#endif
+
 #include <algorithm>
 #include "lscp.h"
 

@@ -2,7 +2,7 @@
 
 # Updates the built-in LSCP documentation reference of the LSCP shell.
 #
-# Copyright (c) 2014 Christian Schoenebeck
+# Copyright (c) 2014-2016 Christian Schoenebeck
 #
 # Extracts all sections from Documentation/lscp.xml marked with our magic
 # XML attribute "lscp_cmd=true" (and uses the section's "anchor" XML attribute
@@ -144,8 +144,13 @@ package main;
 
 # parse command line argument(s)
 my $g_debug_xml_extract = 0;
-if (defined($ARGV[0]) and $ARGV[0] eq "--debug-xml-extract") {
-    $g_debug_xml_extract = 1;
+foreach $arg (@ARGV) {
+    if ($arg eq "--debug-xml-extract") {
+        $g_debug_xml_extract = 1;
+    } elsif ($arg =~ /^--output/) { # argument --output=OUTFILE
+        my ($name, $value) = split(/=|\s+/, $arg); # key value separated by space or "=" character
+        $REFERENCE_CPP_FILE = $value;
+    }
 }
 
 # will be populated by collectCommands()

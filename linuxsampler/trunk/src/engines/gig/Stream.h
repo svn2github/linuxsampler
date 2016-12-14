@@ -26,7 +26,12 @@
 #define	__LS_GIG_STREAM_H__
 
 #include "../common/StreamBase.h"
-#include <gig.h>
+
+#if AC_APPLE_UNIVERSAL_BUILD
+# include <libgig/gig.h>
+#else
+# include <gig.h>
+#endif
 
 namespace LinuxSampler { namespace gig {
 

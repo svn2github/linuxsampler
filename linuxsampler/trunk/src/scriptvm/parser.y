@@ -31,7 +31,8 @@
 %parse-param { LinuxSampler::ParserContext* context }
 %lex-param { void* scanner }
 // avoid symbol collision with other (i.e. future) auto generated (f)lex scanners
-%name-prefix "InstrScript_"
+// (NOTE: "=" is deprecated here with Bison 3.x, however removing it would cause an error with Bison 2.x)
+%name-prefix="InstrScript_"
 %locations
 %defines
 %error-verbose

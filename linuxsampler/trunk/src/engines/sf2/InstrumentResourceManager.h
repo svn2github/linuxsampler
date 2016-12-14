@@ -27,7 +27,11 @@
 
 #include "../../common/global.h"
 
-#include <SF.h>
+#if AC_APPLE_UNIVERSAL_BUILD
+# include <libgig/SF.h>
+#else
+# include <SF.h>
+#endif
 
 #include "../../common/global.h"
 #include "../../common/Pool.h"

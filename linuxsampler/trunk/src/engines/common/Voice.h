@@ -28,7 +28,12 @@
 #include "../gig/Filter.h"
 #include "../../common/Pool.h"
 
-#include <gig.h> // TODO: remove gig dependency
+// TODO: remove gig dependency
+#if AC_APPLE_UNIVERSAL_BUILD
+# include <libgig/gig.h>
+#else
+# include <gig.h>
+#endif
 
 namespace LinuxSampler {
 
