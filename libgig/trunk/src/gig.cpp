@@ -275,8 +275,8 @@ namespace {
      * @param bufSize - size of the data to be processed
      * @param crc     - variable the CRC sum shall be stored to
      */
-    static void __calculateCRC(unsigned char* buf, int bufSize, uint32_t& crc) {
-        for (int i = 0 ; i < bufSize ; i++) {
+    static void __calculateCRC(unsigned char* buf, size_t bufSize, uint32_t& crc) {
+        for (size_t i = 0 ; i < bufSize ; i++) {
             crc = __CRCTable[(crc ^ buf[i]) & 0xff] ^ (crc >> 8);
         }
     }
@@ -1396,7 +1396,7 @@ namespace {
      * @see GetWaveDataCRC32Checksum()
      */
     bool Sample::VerifyWaveData(uint32_t* pActually) {
-        File* pFile = static_cast<File*>(GetParent());
+        //File* pFile = static_cast<File*>(GetParent());
         uint32_t crc = CalculateWaveDataChecksum();
         if (pActually) *pActually = crc;
         return crc == this->crc;
@@ -1829,7 +1829,7 @@ namespace {
 
         // update '3ewa' chunk with DimensionRegion's current settings
 
-        const uint32_t chunksize = _3ewa->GetNewSize();
+        const uint32_t chunksize = (uint32_t) _3ewa->GetNewSize();
         store32(&pData[0], chunksize); // unknown, always chunk size?
 
         const int32_t lfo3freq = (int32_t) GIG_EXP_ENCODE(LFO3Frequency);
@@ -3797,7 +3797,7 @@ namespace {
     DimensionRegion* Region::GetDimensionRegionByValue(const uint DimValues[8]) {
         uint8_t bits;
         int veldim = -1;
-        int velbitpos;
+        int velbitpos = 0;
         int bitpos = 0;
         int dimregidx = 0;
         for (uint i = 0; i < Dimensions; i++) {
@@ -3846,7 +3846,7 @@ namespace {
     int Region::GetDimensionRegionIndexByValue(const uint DimValues[8]) {
         uint8_t bits;
         int veldim = -1;
-        int velbitpos;
+        int velbitpos = 0;
         int bitpos = 0;
         int dimregidx = 0;
         for (uint i = 0; i < Dimensions; i++) {
@@ -4195,7 +4195,7 @@ namespace {
             // to handle potential future extensions of the header
             ckScri->SetPos(sizeof(int32_t) + headerSize);
             // read actual script data
-            uint32_t scriptSize = ckScri->GetSize() - ckScri->GetPos();
+            uint32_t scriptSize = uint32_t(ckScri->GetSize() - ckScri->GetPos());
             data.resize(scriptSize);
             for (int i = 0; i < scriptSize; ++i)
                 data[i] = ckScri->ReadUint8();
@@ -4248,13 +4248,13 @@ namespace {
         __calculateCRC(&data[0], data.size(), crc);
         __encodeCRC(crc);
         // make sure chunk exists and has the required size
-        const int chunkSize = 7*sizeof(int32_t) + Name.size() + data.size();
+        const file_offset_t chunkSize = (file_offset_t) 7*sizeof(int32_t) + Name.size() + data.size();
         if (!pChunk) pChunk = pGroup->pList->AddSubChunk(CHUNK_ID_SCRI, chunkSize);
         else pChunk->Resize(chunkSize);
         // fill the chunk data to be written to disk
         uint8_t* pData = (uint8_t*) pChunk->LoadChunkData();
         int pos = 0;
-        store32(&pData[pos], 6*sizeof(int32_t) + Name.size()); // total header size
+        store32(&pData[pos], uint32_t(6*sizeof(int32_t) + Name.size())); // total header size
         pos += sizeof(int32_t);
         store32(&pData[pos], Compression);
         pos += sizeof(int32_t);
@@ -4266,7 +4266,7 @@ namespace {
         pos += sizeof(int32_t);
         store32(&pData[pos], crc);
         pos += sizeof(int32_t);
-        store32(&pData[pos], Name.size());
+        store32(&pData[pos], (uint32_t) Name.size());
         pos += sizeof(int32_t);
         for (int i = 0; i < Name.size(); ++i, ++pos)
             pData[pos] = Name[i];
@@ -4618,7 +4618,7 @@ namespace {
 
            RIFF::List* lst3LS = pCkInstrument->GetSubList(LIST_TYPE_3LS);
            if (!lst3LS) lst3LS = pCkInstrument->AddSubList(LIST_TYPE_3LS);
-           const int slotCount = pScriptRefs->size();
+           const int slotCount = (int) pScriptRefs->size();
            const int headerSize = 3 * sizeof(uint32_t);
            const int slotSize  = 2 * sizeof(uint32_t);
            const int totalChunkSize = headerSize + slotCount * slotSize;
@@ -4654,14 +4654,15 @@ namespace {
        if (pScriptRefs && pScriptRefs->size() > 0) {
            RIFF::List* lst3LS = pCkInstrument->GetSubList(LIST_TYPE_3LS);
            RIFF::Chunk* ckSCSL = lst3LS->GetSubChunk(CHUNK_ID_SCSL);
-           const int slotCount = pScriptRefs->size();
+           const int slotCount = (int) pScriptRefs->size();
            const int headerSize = 3 * sizeof(uint32_t);
            ckSCSL->SetPos(headerSize);
            for (int i = 0; i < slotCount; ++i) {
-               uint32_t fileOffset =
+               uint32_t fileOffset = uint32_t(
                     (*pScriptRefs)[i].script->pChunk->GetFilePos() -
                     (*pScriptRefs)[i].script->pChunk->GetPos() -
-                    CHUNK_HEADER_SIZE(ckSCSL->GetFile()->GetFileOffsetSize());
+                    CHUNK_HEADER_SIZE(ckSCSL->GetFile()->GetFileOffsetSize())
+               );
                ckSCSL->WriteUint32(&fileOffset);
                // jump over flags entry (containing the bypass flag)
                ckSCSL->SetPos(sizeof(uint32_t), RIFF::stream_curpos);
@@ -4721,7 +4722,7 @@ namespace {
         RIFF::List* rgn = lrgn->AddSubList(LIST_TYPE_RGN);
         Region* pNewRegion = new Region(this, rgn);
         pRegions->push_back(pNewRegion);
-        Regions = pRegions->size();
+        Regions = (uint32_t) pRegions->size();
         // update Region key table for fast lookup
         UpdateRegionKeyTable();
         // done
@@ -4867,9 +4868,11 @@ namespace {
                 for (uint s = 0; group->GetScript(s); ++s) {
                     Script* script = group->GetScript(s);
                     if (script->pChunk) {
-                        uint32_t offset = script->pChunk->GetFilePos() -
-                                          script->pChunk->GetPos() -
-                                          CHUNK_HEADER_SIZE(script->pChunk->GetFile()->GetFileOffsetSize());
+                        uint32_t offset = uint32_t(
+                            script->pChunk->GetFilePos() -
+                            script->pChunk->GetPos() -
+                            CHUNK_HEADER_SIZE(script->pChunk->GetFile()->GetFileOffsetSize())
+                        );
                         if (offset == soughtOffset)
                         {
                             _ScriptPooolRef ref;
@@ -4994,7 +4997,7 @@ namespace {
      */
     void Instrument::RemoveScript(Script* pScript) {
         LoadScripts();
-        for (int i = pScriptRefs->size() - 1; i >= 0; --i) {
+        for (ssize_t i = pScriptRefs->size() - 1; i >= 0; --i) {
             if ((*pScriptRefs)[i].script == pScript) {
                 pScriptRefs->erase( pScriptRefs->begin() + i );
             }
@@ -5016,7 +5019,7 @@ namespace {
      * gigedit.
      */
     uint Instrument::ScriptSlotCount() const {
-        return pScriptRefs ? pScriptRefs->size() : scriptPoolFileOffsets.size();
+        return uint(pScriptRefs ? pScriptRefs->size() : scriptPoolFileOffsets.size());
     }
 
     /** @brief Whether script execution shall be skipped.
@@ -5440,7 +5443,7 @@ namespace {
             }
         }
         String name(pRIFF->GetFileName());
-        int nameLen = name.length();
+        int nameLen = (int) name.length();
         char suffix[6];
         if (nameLen > 4 && name.substr(nameLen - 4) == ".gig") nameLen -= 4;
 
@@ -5756,12 +5759,12 @@ namespace {
         if (!pSamples) GetFirstSample(); // make sure sample chunks were scanned
         if (_3crc->GetNewSize() != pSamples->size() * 8) return false;
 
-        const int n = _3crc->GetNewSize() / 8;
+        const file_offset_t n = _3crc->GetNewSize() / 8;
 
         uint32_t* pData = (uint32_t*) _3crc->LoadChunkData();
         if (!pData) return false;
 
-        for (int i = 0; i < n; ++i) {
+        for (file_offset_t i = 0; i < n; ++i) {
             uint32_t one = pData[i*2];
             if (one != 1) return false;
         }
@@ -6153,7 +6156,7 @@ namespace {
         // Note that there are several fields with unknown use. These
         // are set to zero.
 
-        int sublen = pSamples->size() / 8 + 49;
+        int sublen = int(pSamples->size() / 8 + 49);
         int einfSize = (Instruments + 1) * sublen;
 
         RIFF::Chunk* einf = pRIFF->GetSubChunk(CHUNK_ID_EINF);
@@ -6226,7 +6229,7 @@ namespace {
                 store32(&pData[(instrumentIdx + 1) * sublen + 24], nbloops);
                 // next 8 bytes unknown
                 store32(&pData[(instrumentIdx + 1) * sublen + 36], instrumentIdx);
-                store32(&pData[(instrumentIdx + 1) * sublen + 40], pSamples->size());
+                store32(&pData[(instrumentIdx + 1) * sublen + 40], (uint32_t) pSamples->size());
                 // next 4 bytes unknown
 
                 totnbregions += instrument->Regions;
@@ -6244,7 +6247,7 @@ namespace {
             store32(&pData[24], totnbloops);
             // next 8 bytes unknown
             // next 4 bytes unknown, not always 0
-            store32(&pData[40], pSamples->size());
+            store32(&pData[40], (uint32_t) pSamples->size());
             // next 4 bytes unknown
         }
 

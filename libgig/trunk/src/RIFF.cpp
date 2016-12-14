@@ -941,12 +941,12 @@ namespace RIFF {
             int iBytesMoved = 1;
             #endif
             for (file_offset_t ullOffset = 0; ullToMove > 0 && iBytesMoved > 0; ullOffset += iBytesMoved, ullToMove -= iBytesMoved) {
-                iBytesMoved = (ullToMove < 4096) ? ullToMove : 4096;
+                iBytesMoved = (ullToMove < 4096) ? int(ullToMove) : 4096;
                 #if POSIX
                 lseek(pFile->hFileRead, ullStartPos + ullCurrentDataOffset + ullOffset, SEEK_SET);
-                iBytesMoved = read(pFile->hFileRead, pCopyBuffer, iBytesMoved);
+                iBytesMoved = (int) read(pFile->hFileRead, pCopyBuffer, (size_t) iBytesMoved);
                 lseek(pFile->hFileWrite, ullWritePos + ullOffset, SEEK_SET);
-                iBytesMoved = write(pFile->hFileWrite, pCopyBuffer, iBytesMoved);
+                iBytesMoved = (int) write(pFile->hFileWrite, pCopyBuffer, (size_t) iBytesMoved);
                 #elif defined(WIN32)
                 LARGE_INTEGER liFilePos;
                 liFilePos.QuadPart = ullStartPos + ullCurrentDataOffset + ullOffset;
@@ -1461,7 +1461,7 @@ namespace RIFF {
     }
 
     void List::LoadSubChunksRecursively(progress_t* pProgress) {
-        const int n = CountSubLists();
+        const int n = (int) CountSubLists();
         int i = 0;
         for (List* pList = GetFirstSubList(); pList; pList = GetNextSubList(), ++i) {
             // divide local progress into subprogress

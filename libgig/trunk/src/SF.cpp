@@ -728,13 +728,13 @@ namespace sf2 {
 
     InstrumentBase::~InstrumentBase() {
         if (pGlobalRegion) delete pGlobalRegion;
-        for (int i = regions.size() - 1; i >= 0; i--) {
+        for (ssize_t i = regions.size() - 1; i >= 0; i--) {
             if (regions[i]) delete (regions[i]);
         }
     }
 
     int InstrumentBase::GetRegionCount() {
-        return regions.size();
+        return (int) regions.size();
     }
 
     Region* InstrumentBase::GetRegion(int idx) {
@@ -1012,7 +1012,7 @@ namespace sf2 {
             throw Exception("Broken SF2 file (broken phdr)");
         }
 
-        int count = ck->GetSize() / 38;
+        int count = (int) ck->GetSize() / 38;
         for (int i = 0; i < count; i++) {
             Presets.push_back(new Preset(this, ck));
         }
@@ -1022,7 +1022,7 @@ namespace sf2 {
             throw Exception("Broken SF2 file (broken pbag)");
         }
 
-        count = ck->GetSize() / 4;
+        count = int(ck->GetSize() / 4);
         for (int i = 0; i < count; i++) {
             PresetBag pb;
             pb.GenNdx = ck->ReadInt16();
@@ -1036,7 +1036,7 @@ namespace sf2 {
             throw Exception("Broken SF2 file (broken pmod)");
         }
 
-        count = ck->GetSize() / 10;
+        count = int(ck->GetSize() / 10);
         for (int i = 0; i < count; i++) {
             ModList ml;
             ml.ModSrcOper = ck->ReadInt16();
@@ -1053,7 +1053,7 @@ namespace sf2 {
             throw Exception("Broken SF2 file (broken pgen)");
         }
 
-        count = ck->GetSize() / 4;
+        count = int(ck->GetSize() / 4);
         for (int i = 0; i < count; i++) {
             GenList gl;
             gl.GenOper = ck->ReadInt16();
@@ -1066,7 +1066,7 @@ namespace sf2 {
         if (ck->GetSize() < (22 * 2) || (ck->GetSize() % 22)) {
             throw Exception("Broken SF2 file (broken inst)");
         }
-        count = ck->GetSize() / 22;
+        count = int(ck->GetSize() / 22);
         for (int i = 0; i < count; i++) {
             Instruments.push_back(new Instrument(this, ck));
         }
@@ -1076,7 +1076,7 @@ namespace sf2 {
             throw Exception("Broken SF2 file (broken ibag)");
         }
 
-        count = ck->GetSize() / 4;
+        count = int(ck->GetSize() / 4);
         for (int i = 0; i < count; i++) {
             InstBag ib;
             ib.InstGenNdx = ck->ReadInt16();
@@ -1090,7 +1090,7 @@ namespace sf2 {
             throw Exception("Broken SF2 file (broken imod)");
         }
 
-        count = ck->GetSize() / 10;
+        count = int(ck->GetSize() / 10);
         for (int i = 0; i < count; i++) {
             ModList ml;
             ml.ModSrcOper = ck->ReadInt16();
@@ -1107,7 +1107,7 @@ namespace sf2 {
             throw Exception("Broken SF2 file (broken igen)");
         }
 
-        count = ck->GetSize() / 4;
+        count = int(ck->GetSize() / 4);
         for (int i = 0; i < count; i++) {
             GenList gl;
             gl.GenOper = ck->ReadInt16();
@@ -1120,7 +1120,7 @@ namespace sf2 {
         if ((ck->GetSize() % 46)) {
             throw Exception("Broken SF2 file (broken shdr)");
         }
-        count = ck->GetSize() / 46;
+        count = int(ck->GetSize() / 46);
         for (int i = 0; i < count; i++) {
             Samples.push_back(new Sample(ck, pCkSmpl, pCkSm24));
         }
@@ -1152,19 +1152,19 @@ namespace sf2 {
 
     File::~File() {
         delete pInfo;
-        for (int i = Presets.size() - 1; i >= 0; i--) {
+        for (ssize_t i = Presets.size() - 1; i >= 0; i--) {
             if (Presets[i]) delete (Presets[i]);
         }
-        for (int i = Instruments.size() - 1; i >= 0; i--) {
+        for (ssize_t i = Instruments.size() - 1; i >= 0; i--) {
             if (Instruments[i]) delete (Instruments[i]);
         }
-        for (int i = Samples.size() - 1; i >= 0; i--) {
+        for (ssize_t i = Samples.size() - 1; i >= 0; i--) {
             if (Samples[i]) delete (Samples[i]);
         }
     }
 
     int File::GetPresetCount() {
-        return Presets.size() - 1; // exclude terminal preset (EOP)
+        return (int) Presets.size() - 1; // exclude terminal preset (EOP)
     }
 
     Preset* File::GetPreset(int idx) {
@@ -1176,7 +1176,7 @@ namespace sf2 {
     }
 
     int File::GetInstrumentCount() {
-        return Instruments.size() - 1; // exclude terminal instrument (EOI)
+        return (int) Instruments.size() - 1; // exclude terminal instrument (EOI)
     }
 
     Instrument* File::GetInstrument(int idx) {
@@ -1207,7 +1207,7 @@ namespace sf2 {
     }
 
     int File::GetSampleCount() {
-        return Samples.size() - 1; // exclude terminal sample (EOS)
+        return (int) Samples.size() - 1; // exclude terminal sample (EOS)
     }
 
     Sample* File::GetSample(int idx) {
@@ -1425,7 +1425,7 @@ namespace sf2 {
             if (pSample->SampleType == Sample::MONO_SAMPLE || pSample->SampleType == Sample::ROM_MONO_SAMPLE) {
                 pSample->pCkSmpl->Read(pTmpBuf, SampleCount, 2);
                 pSample->pCkSm24->Read(pTmpBuf + SampleCount * 2, SampleCount, 1);
-                for (int i = SampleCount - 1; i >= 0; i--) {
+                for (long i = SampleCount - 1; i >= 0; i--) {
                     pBuf[i*3]     = pTmpBuf[(SampleCount * 2) + i];
                     pBuf[i*3 + 2] = pTmpBuf[i*2 + 1];
                     pBuf[i*3 + 1] = pTmpBuf[i*2];
@@ -1433,7 +1433,7 @@ namespace sf2 {
             } else if (pSample->SampleType == Sample::LEFT_SAMPLE || pSample->SampleType == Sample::ROM_LEFT_SAMPLE) {
                 pSample->pCkSmpl->Read(pTmpBuf, SampleCount, 2);
                 pSample->pCkSm24->Read(pTmpBuf + SampleCount * 2, SampleCount, 1);
-                for (int i = SampleCount - 1; i >= 0; i--) {
+                for (long i = SampleCount - 1; i >= 0; i--) {
                     pBuf[i*6]     = pTmpBuf[(SampleCount * 2) + i];
                     pBuf[i*6 + 2] = pTmpBuf[i*2 + 1];
                     pBuf[i*6 + 1] = pTmpBuf[i*2];
@@ -1443,7 +1443,7 @@ namespace sf2 {
             } else if (pSample->SampleType == Sample::RIGHT_SAMPLE || pSample->SampleType == Sample::ROM_RIGHT_SAMPLE) {
                 pSample->pCkSmpl->Read(pTmpBuf, SampleCount, 2);
                 pSample->pCkSm24->Read(pTmpBuf + SampleCount * 2, SampleCount, 1);
-                for (int i = SampleCount - 1; i >= 0; i--) {
+                for (long i = SampleCount - 1; i >= 0; i--) {
                     pBuf[i*6 + 3] = pTmpBuf[(SampleCount * 2) + i];
                     pBuf[i*6 + 5] = pTmpBuf[i*2 + 1];
                     pBuf[i*6 + 4] = pTmpBuf[i*2];
@@ -1460,14 +1460,14 @@ namespace sf2 {
             int16_t* const pBuf    = (int16_t*) pBuffer;
             if (pSample->SampleType == Sample::LEFT_SAMPLE || pSample->SampleType == Sample::ROM_LEFT_SAMPLE) {
                 pSample->pCkSmpl->Read(pTmpBuf, SampleCount, 2);
-                for (int i = SampleCount - 1; i >= 0; i--) {
+                for (long i = SampleCount - 1; i >= 0; i--) {
                     pBuf[i*2] = pTmpBuf[i];
                     if (CLEAR)
                         pBuf[i*2 + 1] = 0;
                 }
             } else if (pSample->SampleType == Sample::RIGHT_SAMPLE || pSample->SampleType == Sample::ROM_RIGHT_SAMPLE) {
                 pSample->pCkSmpl->Read(pTmpBuf, SampleCount, 2);
-                for (int i = SampleCount - 1; i >= 0; i--) {
+                for (long i = SampleCount - 1; i >= 0; i--) {
                     if (CLEAR)
                         pBuf[i*2] = 0;
                     pBuf[i*2 + 1] = pTmpBuf[i];

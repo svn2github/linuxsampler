@@ -55,7 +55,7 @@ namespace Korg {
     template<unsigned int SZ>
     inline String readText(RIFF::Chunk* ck) {
         char buf[SZ+1] = {};
-        int n = ck->Read(buf, SZ, 1);
+        int n = (int) ck->Read(buf, SZ, 1);
         if (n != SZ)
             throw Exception("Premature end while reading text field");
         String s = buf;
@@ -412,7 +412,7 @@ namespace Korg {
     }
 
     int KMPInstrument::GetRegionCount() const {
-        return regions.size();
+        return (int) regions.size();
     }
 
     bool KMPInstrument::Use2ndStart() const {

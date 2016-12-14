@@ -1277,7 +1277,7 @@ namespace DLS {
         RIFF::List* rgn = lrgn->AddSubList(LIST_TYPE_RGN);
         Region* pNewRegion = new Region(this, rgn);
         pRegions->push_back(pNewRegion);
-        Regions = pRegions->size();
+        Regions = (uint32_t) pRegions->size();
         return pNewRegion;
     }
 
@@ -1295,7 +1295,7 @@ namespace DLS {
         RegionList::iterator iter = find(pRegions->begin(), pRegions->end(), pRegion);
         if (iter == pRegions->end()) return;
         pRegions->erase(iter);
-        Regions = pRegions->size();
+        Regions = (uint32_t) pRegions->size();
         delete pRegion;
     }
 
@@ -1315,7 +1315,7 @@ namespace DLS {
         if (!insh) insh = pCkInstrument->AddSubChunk(CHUNK_ID_INSH, 12);
         uint8_t* pData = (uint8_t*) insh->LoadChunkData();
         // update 'insh' chunk
-        Regions = (pRegions) ? pRegions->size() : 0;
+        Regions = (pRegions) ? uint32_t(pRegions->size()) : 0;
         midi_locale_t locale;
         locale.instrument = MIDIProgram;
         locale.bank       = MIDI_BANK_ENCODE(MIDIBankCoarse, MIDIBankFine);
@@ -1711,7 +1711,7 @@ namespace DLS {
         }
 
         // update 'colh' chunk
-        Instruments = (pInstruments) ? pInstruments->size() : 0;
+        Instruments = (pInstruments) ? uint32_t(pInstruments->size()) : 0;
         RIFF::Chunk* colh = pRIFF->GetSubChunk(CHUNK_ID_COLH);
         if (!colh)   colh = pRIFF->AddSubChunk(CHUNK_ID_COLH, 4);
         uint8_t* pData = (uint8_t*) colh->LoadChunkData();
@@ -1738,7 +1738,7 @@ namespace DLS {
         }
 
         // update 'ptbl' chunk
-        const int iSamples = (pSamples) ? pSamples->size() : 0;
+        const int iSamples = (pSamples) ? int(pSamples->size()) : 0;
         int iPtblOffsetSize = (b64BitWavePoolOffsets) ? 8 : 4;
         RIFF::Chunk* ptbl = pRIFF->GetSubChunk(CHUNK_ID_PTBL);
         if (!ptbl)   ptbl = pRIFF->AddSubChunk(CHUNK_ID_PTBL, 1 /*anything, we'll resize*/);
@@ -1897,7 +1897,7 @@ namespace DLS {
         RIFF::Chunk* ptbl = pRIFF->GetSubChunk(CHUNK_ID_PTBL);
         const int iOffsetSize = (b64BitWavePoolOffsets) ? 8 : 4;
         // check if 'ptbl' chunk is large enough
-        WavePoolCount = (pSamples) ? pSamples->size() : 0;
+        WavePoolCount = (pSamples) ? uint32_t(pSamples->size()) : 0;
         const file_offset_t ulRequiredSize = WavePoolHeaderSize + iOffsetSize * WavePoolCount;
         if (ptbl->GetSize() < ulRequiredSize) throw Exception("Fatal error, 'ptbl' chunk too small");
         // save the 'ptbl' chunk's current read/write position
@@ -1933,7 +1933,7 @@ namespace DLS {
      * exists already.
      */
     void File::__UpdateWavePoolTable() {
-        WavePoolCount = (pSamples) ? pSamples->size() : 0;
+        WavePoolCount = (pSamples) ? uint32_t(pSamples->size()) : 0;
         // resize wave pool table arrays
         if (pWavePoolTable)   delete[] pWavePoolTable;
         if (pWavePoolTableHi) delete[] pWavePoolTableHi;

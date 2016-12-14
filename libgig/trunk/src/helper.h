@@ -195,7 +195,7 @@ inline void SwapMemoryArea(void* pData, unsigned long AreaSize, uint WordSize) {
 inline void LoadString(RIFF::Chunk* ck, std::string& s) {
     if (ck) {
         const char* str = (char*)ck->LoadChunkData();
-        int size = ck->GetSize();
+        int size = (int) ck->GetSize();
         int len;
         for (len = 0 ; len < size ; len++)
             if (str[len] == '\0') break;
@@ -224,13 +224,13 @@ inline void LoadString(RIFF::Chunk* ck, std::string& s) {
  */
 inline void SaveString(uint32_t ChunkID, RIFF::Chunk* ck, RIFF::List* lstINFO, const std::string& s, const std::string& sDefault, bool bUseFixedLengthStrings, int size) {
     if (ck) { // if chunk exists already, use 's' as value
-        if (!bUseFixedLengthStrings) size = s.size() + 1;
+        if (!bUseFixedLengthStrings) size = (int) s.size() + 1;
         ck->Resize(size);
         char* pData = (char*) ck->LoadChunkData();
         strncpy(pData, s.c_str(), size);
     } else if (s != "" || sDefault != "" || bUseFixedLengthStrings) { // create chunk
         const std::string& sToSave = (s != "") ? s : sDefault;
-        if (!bUseFixedLengthStrings) size = sToSave.size() + 1;
+        if (!bUseFixedLengthStrings) size = (int) sToSave.size() + 1;
         ck = lstINFO->AddSubChunk(ChunkID, size);
         char* pData = (char*) ck->LoadChunkData();
         strncpy(pData, sToSave.c_str(), size);

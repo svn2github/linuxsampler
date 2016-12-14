@@ -153,7 +153,7 @@ static kern_return_t GetBSDPath(io_iterator_t mediaIterator, char *bsdPath, CFIn
 
 // Given the path to a CD drive, open the drive.
 // Return the file descriptor associated with the device.
-static int OpenDrive(const char *bsdPath) {
+/*static int OpenDrive(const char *bsdPath) {
     int fileDescriptor;
     
     // This open() call will fail with a permissions error if the sample has been changed to
@@ -168,11 +168,11 @@ static int OpenDrive(const char *bsdPath) {
     }
     
     return fileDescriptor;
-}
+}*/
 
 // Given the file descriptor for a whole-media CD device, read a sector from the drive.
 // Return true if successful, otherwise false.
-static Boolean ReadSector(int fileDescriptor) {
+/*static Boolean ReadSector(int fileDescriptor) {
     char *buffer;
     ssize_t numBytes;
     u_int32_t blockSize;
@@ -202,12 +202,12 @@ static Boolean ReadSector(int fileDescriptor) {
     free(buffer);
     
     return numBytes == blockSize ? true : false;
-}
+}*/
 
 // Given the file descriptor for a device, close that device.
-static void CloseDrive(int fileDescriptor) {
+/*static void CloseDrive(int fileDescriptor) {
     close(fileDescriptor);
-}
+}*/
 
 // path is the BSD path to a raw device such as /dev/rdisk1
 static struct _CDTOC * ReadTOC(const char *devpath) {
@@ -514,7 +514,7 @@ bool AkaiProgram::Load()
     return false;
   }
   //     2-3     first keygroup address      150,0       
-  uint16_t KeygroupAddress = mpDisk->ReadInt16();
+  /*uint16_t KeygroupAddress =*/ mpDisk->ReadInt16();
   //     4-15    program name                10,10,10... AKAII character set
   char buffer[13];
   mpDisk->Read(buffer, 12, 1);
@@ -660,7 +660,7 @@ bool AkaiKeygroup::Load(DiskImage* pDisk)
   if (pDisk->ReadInt8() != AKAI_KEYGROUP_ID)
     return false;
   //     2-3     next keygroup address       44,1        300,450,600,750.. (16-bit)
-  uint16_t NextKeygroupAddress = pDisk->ReadInt16();
+  /*uint16_t NextKeygroupAddress =*/ pDisk->ReadInt16();
   //     4       low key                     24          24..127
   mLowKey = pDisk->ReadInt8();
   //     5       high key                    127         24..127
@@ -790,21 +790,21 @@ bool AkaiKeygroupSample::Load(DiskImage* pDisk)
   //     47      low vel                     0           0..127
   mLowLevel = pDisk->ReadInt8();
   //     48      high vel                    127         0..127
-  uint8_t mHighLevel = pDisk->ReadInt8();
+  /*uint8_t mHighLevel =*/ pDisk->ReadInt8();
   //     49      tune cents                  0           -128..127 (-50..50 cents)
-  int8_t mTuneCents = pDisk->ReadInt8();
+  /*int8_t mTuneCents =*/ pDisk->ReadInt8();
   //     50      tune semitones              0           -50..50
-  int8_t mTuneSemitones = pDisk->ReadInt8();
+  /*int8_t mTuneSemitones =*/ pDisk->ReadInt8();
   //     51      loudness                    0           -50..+50
-  int8_t mLoudness = pDisk->ReadInt8();
+  /*int8_t mLoudness =*/ pDisk->ReadInt8();
   //     52      filter                      0           -50..+50
-  int8_t mFilter = pDisk->ReadInt8();
+  /*int8_t mFilter =*/ pDisk->ReadInt8();
   //     53      pan                         0           -50..+50
-  int8_t mPan = pDisk->ReadInt8();
+  /*int8_t mPan =*/ pDisk->ReadInt8();
   //     54      loop mode                   0           0=AS_SAMPLE 1=LOOP_IN_REL 
   //                                                     2=LOOP_UNTIL_REL 3=NO_LOOP 
   //                                                     4=PLAY_TO_END
-  uint8_t mLoopMode = pDisk->ReadInt8();
+  /*uint8_t mLoopMode =*/ pDisk->ReadInt8();
   //     55      (internal use)              255
   pDisk->ReadInt8();
   //     56      (internal use)              255
@@ -1525,7 +1525,7 @@ DiskImage::DiskImage(int disk)
         // get the address of the immediately previous (or following depending
         // on how you look at it).  The difference in the sector numbers
         // is returned as the sized of the data track.
-        for (int i=toc_entries - 1; i>=0; i-- )
+        for (ssize_t i=toc_entries - 1; i>=0; i-- )
         {
           if ( start_sector != -1 )
           {
@@ -1559,7 +1559,7 @@ DiskImage::DiskImage(int disk)
     {
       printf("opened file: %s\n",bsdPath);
 
-            mSize = lseek(mFile,1000000000,SEEK_SET);
+            mSize = (int) lseek(mFile,1000000000,SEEK_SET);
             printf("size %d\n",mSize);
             lseek(mFile,0,SEEK_SET);
 
@@ -1686,7 +1686,7 @@ int DiskImage::Read(void* pData, uint WordCount, uint WordSize)
       if (mCluster * mClusterSize != lseek(mFile, mCluster * mClusterSize, SEEK_SET))
         return readbytes / WordSize;
 //          printf("trying to read %d bytes from device!\n",mClusterSize);
-      int size = read(mFile, mpCache, mClusterSize);
+      /*int size =*/ read(mFile, mpCache, mClusterSize);
 //          printf("read %d bytes from device!\n",size);
 #endif
     }
@@ -1802,7 +1802,7 @@ void DiskImage::OpenStream(const char* path) {
   if (S_ISREG(filestat.st_mode)) { // regular file
     printf("Using regular Akai image file.\n");
     mRegularFile = true;
-    mSize        = filestat.st_size;
+    mSize        = (int) filestat.st_size;
     mClusterSize = DISK_CLUSTER_SIZE;
     mpCache = (char*) malloc(mClusterSize);
   } else { // CDROM
