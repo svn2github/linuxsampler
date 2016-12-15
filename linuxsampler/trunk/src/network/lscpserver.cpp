@@ -31,6 +31,8 @@
 
 #if defined(WIN32)
 #include <windows.h>
+typedef unsigned short in_port_t;
+typedef unsigned long in_addr_t;
 #else
 #include <fcntl.h>
 #endif
