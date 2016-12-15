@@ -4,7 +4,7 @@
     This is a benchmark for comparison between a integer math, table lookup
     and numeric sine wave harmonics solution.
 
-    Copyright (C) 2005 Christian Schoenebeck <cuse@users.sf.net>
+    Copyright (C) 2005 - 2016 Christian Schoenebeck <cuse@users.sf.net>
 */
 
 #include <math.h>
@@ -61,7 +61,7 @@
 #define INVALID_RESULT		-1
 
 // we use 32 bit single precision floating point as sample point format
-typedef float sample_t;
+typedef float smpl_t; // (sample_t is already defined as int16_t by global_private.h)
 
 using namespace LinuxSampler;
 
@@ -76,7 +76,7 @@ LFOTriangleDiHarmonic<range_unsigned>* pDiHarmonicLFO = NULL;
 #endif
 
 // integer math solution
-float int_math(sample_t* pDestinationBuffer, float* pAmp, const int steps, const float frequency) {
+float int_math(smpl_t* pDestinationBuffer, float* pAmp, const int steps, const float frequency) {
     // pro forma
     pIntLFO->trigger(frequency, start_level_max, 1200 /* max. internal depth */, 0, false, (unsigned int) SAMPLING_RATE);
 
@@ -100,7 +100,7 @@ float int_math(sample_t* pDestinationBuffer, float* pAmp, const int steps, const
 }
 
 // integer math abs solution
-float int_math_abs(sample_t* pDestinationBuffer, float* pAmp, const int steps, const float frequency) {
+float int_math_abs(smpl_t* pDestinationBuffer, float* pAmp, const int steps, const float frequency) {
     // pro forma
     pIntAbsLFO->trigger(frequency, start_level_max, 1200 /* max. internal depth */, 0, false, (unsigned int) SAMPLING_RATE);
 
@@ -131,7 +131,7 @@ float int_math_abs(sample_t* pDestinationBuffer, float* pAmp, const int steps, c
 // anyway. If you found an architecture where this seems to be the best
 // solution, please let us know!
 #if 0
-float table_lookup(sample_t* pDestinationBuffer, float* pAmp, const int steps, const float frequency) {
+float table_lookup(smpl_t* pDestinationBuffer, float* pAmp, const int steps, const float frequency) {
     // pro forma
     const float r = frequency / SAMPLING_RATE; // frequency alteration quotient
     #if SIGNED
@@ -194,7 +194,7 @@ float table_lookup(sample_t* pDestinationBuffer, float* pAmp, const int steps, c
 #endif
 
 // numeric, di-harmonic solution
-float numeric_di_harmonic_solution(sample_t* pDestinationBuffer, float* pAmp, const int steps, const float frequency) {
+float numeric_di_harmonic_solution(smpl_t* pDestinationBuffer, float* pAmp, const int steps, const float frequency) {
     // pro forma
     pDiHarmonicLFO->trigger(frequency, start_level_max, 1200 /* max. internal depth */, 0, false, (unsigned int) SAMPLING_RATE);
 
@@ -218,7 +218,7 @@ float numeric_di_harmonic_solution(sample_t* pDestinationBuffer, float* pAmp, co
 }
 
 // output calculated values as RAW audio format (32 bit floating point, mono) file
-void output_as_raw_file(const char* filename, sample_t* pOutputBuffer, int steps) {
+void output_as_raw_file(const char* filename, smpl_t* pOutputBuffer, int steps) {
     FILE* file = fopen(filename, "w");
     if (file) {
         fwrite((void*) pOutputBuffer, sizeof(float), steps, file);
@@ -253,7 +253,7 @@ int main() {
     #endif
 
     // output buffer for the calculated sinusoid wave
-    sample_t* pOutputBuffer = new sample_t[steps];
+    smpl_t* pOutputBuffer = new smpl_t[steps];
     // just an arbitrary amplitude envelope to simulate a bit higher memory bandwidth
     float* pAmplitude  = new float[steps];
 

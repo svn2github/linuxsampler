@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -659,7 +659,7 @@ namespace LinuxSampler {
     }
 
     bool MidiInputPort::RemoveSysexListener(Engine* engine) {
-        int count = SysexListeners.GetConfigForUpdate().erase(engine);
+        size_t count = SysexListeners.GetConfigForUpdate().erase(engine);
         if (count) SysexListeners.SwitchConfig().erase(engine);
         return count;
     }

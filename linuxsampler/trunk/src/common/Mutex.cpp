@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,6 +25,10 @@
 # include <config.h>
 #endif
 
+#if AC_APPLE_UNIVERSAL_BUILD // maybe do this include for all Apple ones (defined(__APPLE__))?
+# include <sys/cdefs.h> // defines the system macros checked below
+#endif
+
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE 1 /* so _XOPEN_SOURCE will be defined by features.h */
 #endif
@@ -34,13 +38,15 @@
 #endif
 
 #if !defined(WIN32)
-#if !defined(_XOPEN_SOURCE) || _XOPEN_SOURCE < 500
-# undef _XOPEN_SOURCE
-# define _XOPEN_SOURCE 500 /* to define PTHREAD_MUTEX_ERRORCHECK */
-# warning "Seems you don't have a UNIX98 compatible system."
-# warning "Please run LinuxSampler's selftest to make sure this won't be a problem!"
-# warning "(compile tests with 'make tests', run them with 'src/testcases/linuxsamplertest')"
-#endif
+# if !defined(_XOPEN_SOURCE) || _XOPEN_SOURCE < 500
+#  undef _XOPEN_SOURCE
+#  define _XOPEN_SOURCE 500 /* to define PTHREAD_MUTEX_ERRORCHECK */
+#  if (!defined(POSIX_C_SOURCE) || POSIX_C_SOURCE < 199801L) && !defined(__DARWIN_UNIX03)
+#   warning "Seems you don't have a UNIX98 compatible system."
+#   warning "Please run LinuxSampler's selftest to make sure this won't be a problem!"
+#   warning "(compile tests with 'make tests', run them with 'src/testcases/linuxsamplertest')"
+#  endif
+# endif
 #endif
 
 #include <iostream>

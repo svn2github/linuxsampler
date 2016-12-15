@@ -838,7 +838,7 @@ int InstrScript_tnamerr(char* yyres, const char* yystr) {
     }
 
   if (! yyres)
-    return yystrlen (yystr);
+    return (int) yystrlen (yystr);
 
-  return yystpcpy (yyres, yystr) - yyres;
+  return int( yystpcpy (yyres, yystr) - yyres );
 }

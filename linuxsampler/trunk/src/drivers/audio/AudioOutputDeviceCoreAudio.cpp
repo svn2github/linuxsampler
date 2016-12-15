@@ -2,7 +2,9 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2009 - 2013 Grigor Iliev                                *
+ *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2011-2013 Andreas Persson                               *
+ *   Copyright (C) 2014-2016 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -423,7 +425,7 @@ namespace LinuxSampler {
     int AudioOutputDeviceCoreAudio::ParameterDevice::GetDeviceIndex() {
         String s = ValueAsString();
         if(s.empty()) return -1;
-        int n = s.find(' ');
+        int n = (int) s.find(' ');
         s = s.substr(0, n);
         return ToInt(s) - 1;
     }

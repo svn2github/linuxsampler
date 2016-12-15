@@ -35,16 +35,16 @@
 namespace LinuxSampler { namespace sfz {
     class EngineChannel: public LinuxSampler::EngineChannelBase<Voice, ::sfz::Region, ::sfz::Instrument>, public MidiKeyboardAdapter {
         public:
-            virtual void SendProgramChange(uint8_t Program);
-            virtual void LoadInstrument();
+            virtual void SendProgramChange(uint8_t Program) OVERRIDE;
+            virtual void LoadInstrument() OVERRIDE;
             virtual void ResetInternal(bool bResetEngine) OVERRIDE;
 
-            virtual AbstractEngine::Format GetEngineFormat();
+            virtual AbstractEngine::Format GetEngineFormat() OVERRIDE;
 
             // methods derived from MidiKeyboardListener
-            virtual void PreProcessNoteOn(uint8_t key, uint8_t velocity);
-            virtual void PostProcessNoteOn(uint8_t key, uint8_t velocity);
-            virtual void PreProcessNoteOff(uint8_t key, uint8_t velocity);
+            virtual void PreProcessNoteOn(uint8_t key, uint8_t velocity) OVERRIDE;
+            virtual void PostProcessNoteOn(uint8_t key, uint8_t velocity) OVERRIDE;
+            virtual void PreProcessNoteOff(uint8_t key, uint8_t velocity) OVERRIDE;
 
             friend class Voice;
             friend class Engine;
@@ -54,7 +54,7 @@ namespace LinuxSampler { namespace sfz {
             EngineChannel();
             virtual ~EngineChannel();
 
-            virtual void ProcessKeySwitchChange(int key);
+            virtual void ProcessKeySwitchChange(int key) OVERRIDE;
 
         private:
             bool PressedKeys[128];

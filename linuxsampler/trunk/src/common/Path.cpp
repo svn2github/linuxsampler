@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007-2014 Christian Schoenebeck                         *
+ *   Copyright (C) 2007-2016 Christian Schoenebeck                         *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -59,13 +59,13 @@ std::string Path::toPosix() const {
         // encode percent characters
         std::string e = elements[iElement];
         for (
-            int pos = e.find("%"); pos != std::string::npos;
-            pos = e.find("%", pos+2)
+            int pos = (int)e.find("%"); pos != std::string::npos;
+            pos = (int)e.find("%", pos+2)
         ) e.replace(pos/*offset*/, 1/*length*/, "%%"/*by*/);
         // encode forward slashes
         for (
-            int pos = e.find("/"); pos != std::string::npos;
-            pos = e.find("/", pos+3)
+            int pos = (int)e.find("/"); pos != std::string::npos;
+            pos = (int)e.find("/", pos+3)
         ) e.replace(pos/*offset*/, 1/*length*/, "%2f"/*by*/);
         // append encoded node to full encoded path
         result += "/" + e;
@@ -160,11 +160,11 @@ Path Path::fromPosix(std::string path) {
     {
         int nodeEnd;
         for (
-            int nodeBegin = path.find_first_not_of('/');
+            int nodeBegin = (int)path.find_first_not_of('/');
             nodeBegin != std::string::npos;
-            nodeBegin = path.find_first_not_of('/', nodeEnd)
+            nodeBegin = (int)path.find_first_not_of('/', nodeEnd)
         ) {
-            nodeEnd = path.find_first_of('/', nodeBegin);
+            nodeEnd = (int)path.find_first_of('/', nodeBegin);
             result.appendNode(
                 (nodeEnd != std::string::npos) ?
                     path.substr(nodeBegin, nodeEnd - nodeBegin) :
@@ -175,7 +175,7 @@ Path Path::fromPosix(std::string path) {
     // resolve POSIX escape sequences in all nodes
     for (int iNode = 0; iNode < result.elements.size(); iNode++) {
         std::string& s = result.elements[iNode];
-        for (int pos = s.find('%'); pos < s.length(); pos = s.find('%', ++pos)) {
+        for (size_t pos = s.find('%'); pos < s.length(); pos = s.find('%', ++pos)) {
             if (pos+1 >= s.length()) { // unexpected character
                 //TODO: we might want to throw an exception here, for now we simply replace the character by '?'
                 s.replace(pos, 1, "?");
@@ -209,11 +209,11 @@ Path Path::fromDbPath(std::string path) {
     {
         int nodeEnd;
         for (
-            int nodeBegin = path.find_first_not_of('/');
+            int nodeBegin = (int)path.find_first_not_of('/');
             nodeBegin != std::string::npos;
-            nodeBegin = path.find_first_not_of('/', nodeEnd)
+            nodeBegin = (int)path.find_first_not_of('/', nodeEnd)
         ) {
-            nodeEnd = path.find_first_of('/', nodeBegin);
+            nodeEnd = (int)path.find_first_of('/', nodeBegin);
 
             std::string s = (nodeEnd != std::string::npos) ?
                 path.substr(nodeBegin, nodeEnd - nodeBegin) :
@@ -240,11 +240,11 @@ Path Path::fromWindows(std::string path) {
     // split the nodes
     {
         for (
-            int nodeBegin = path.find_first_not_of('\\', nodeEnd);
+            int nodeBegin = (int)path.find_first_not_of('\\', nodeEnd);
             nodeBegin != std::string::npos;
-            nodeBegin = path.find_first_not_of('\\', nodeEnd)
+            nodeBegin = (int)path.find_first_not_of('\\', nodeEnd)
         ) {
-            nodeEnd = path.find_first_of('\\', nodeBegin);
+            nodeEnd = (int)path.find_first_of('\\', nodeBegin);
             result.appendNode(
                 (nodeEnd != std::string::npos) ?
                     path.substr(nodeBegin, nodeEnd - nodeBegin) :

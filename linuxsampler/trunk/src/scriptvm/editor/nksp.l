@@ -42,6 +42,11 @@ static int countNewLineChars(const char* txt) {
     return n;
 }
 
+// shut up warning that 'register' keyword is deprecated as of C++11
+#if defined(__cplusplus) && __cplusplus >= 201103L
+# define register
+#endif
+
 %}
 
 /* generate a reentrant safe scanner */

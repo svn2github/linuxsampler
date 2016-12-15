@@ -1,6 +1,7 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007, 2008 Grigor Iliev                                 *
+ *   Copyright (C) 2007 - 2009 Grigor Iliev                                *
+ *   Copyright (C) 2016 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -66,7 +67,7 @@ namespace LinuxSampler {
              * Gets the number of the registered listeners.
              */
             int GetListenerCount() {
-                return vListenerList.size();
+                return (int) vListenerList.size();
             }
             
             /**

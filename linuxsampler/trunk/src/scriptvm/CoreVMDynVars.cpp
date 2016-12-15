@@ -16,11 +16,11 @@
 namespace LinuxSampler {
 
 int CoreVMDynVar_NKSP_REAL_TIMER::evalInt() {
-    return RTMath::unsafeMicroSeconds(RTMath::real_clock);
+    return (int) RTMath::unsafeMicroSeconds(RTMath::real_clock);
 }
 
 int CoreVMDynVar_NKSP_PERF_TIMER::evalInt() {
-    return RTMath::unsafeMicroSeconds(RTMath::thread_clock);
+    return (int) RTMath::unsafeMicroSeconds(RTMath::thread_clock);
 }
 
 } // namespace LinuxSampler

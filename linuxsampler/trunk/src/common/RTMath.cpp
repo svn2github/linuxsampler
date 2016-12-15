@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -35,9 +35,6 @@ float* RTMathBase::pCentsToFreqTable(InitCentsToFreqTable());
 #if defined(__APPLE__)
 #include <mach/mach_time.h>
 typedef uint64_t time_stamp_t;
-static inline time_stamp_t GetMachTime() {
-    return (time_stamp_t) mach_absolute_time();
-}
 #endif
 
 /*
@@ -51,7 +48,7 @@ RTMathBase::time_stamp_t RTMathBase::CreateTimeStamp() {
     #if defined(__i386__) || defined(__x86_64__)
     uint64_t t;
     __asm__ __volatile__ ("rdtsc" : "=A" (t));
-    return t >> 8;
+    return time_stamp_t(t >> 8);
     #elif defined(__ia64__)
     time_stamp_t t;
     __asm__ __volatile__ ("mov %0=ar.itc" : "=r"(t));
@@ -75,7 +72,7 @@ RTMathBase::time_stamp_t RTMathBase::CreateTimeStamp() {
     __asm__ __volatile__ ("rpcc %0" : "=r"(t));
     return t;
     #elif defined(__APPLE__)
-    return GetMachTime();
+    return (time_stamp_t) mach_absolute_time();
     #else // we don't want to use a slow generic solution
     #  error "Sorry, LinuxSampler lacks time stamp code for your system."
     #  error "Please report this error and the CPU you are using to the LinuxSampler developers mailing list!"

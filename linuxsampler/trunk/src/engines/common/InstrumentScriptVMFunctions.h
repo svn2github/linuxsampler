@@ -105,13 +105,13 @@ namespace LinuxSampler {
     class InstrumentScriptVMFunction_by_marks : public VMFunction {
     public:
         InstrumentScriptVMFunction_by_marks(InstrumentScriptVM* parent);
-        int minRequiredArgs() const { return 1; }
-        int maxAllowedArgs() const { return 1; }
-        bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR;}
+        int minRequiredArgs() const OVERRIDE { return 1; }
+        int maxAllowedArgs() const OVERRIDE { return 1; }
+        bool acceptsArgType(int iArg, ExprType_t type) const OVERRIDE { return type == INT_EXPR;}
         bool modifiesArg(int iArg) const OVERRIDE { return false; }
-        ExprType_t argType(int iArg) const { return INT_EXPR; }
-        ExprType_t returnType() { return INT_ARR_EXPR; }
-        VMFnResult* exec(VMFnArgs* args);
+        ExprType_t argType(int iArg) const OVERRIDE { return INT_EXPR; }
+        ExprType_t returnType() OVERRIDE { return INT_ARR_EXPR; }
+        VMFnResult* exec(VMFnArgs* args) OVERRIDE;
     protected:
         InstrumentScriptVM* m_vm;
         class Result : public VMFnResult, public VMIntArrayExpr {
@@ -123,7 +123,7 @@ namespace LinuxSampler {
             int evalIntElement(uint i) OVERRIDE;
             void assignIntElement(uint i, int value) OVERRIDE {} // ignore assignment
             VMExpr* resultValue() OVERRIDE { return this; }
-            StmtFlags_t resultFlags() { return flags; }
+            StmtFlags_t resultFlags() OVERRIDE { return flags; }
             bool isConstExpr() const OVERRIDE { return false; }
         } m_result;
 

@@ -4,7 +4,8 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009 Christian Schoenebeck and Grigor Iliev             *
+ *   Copyright (C) 2014-2016 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -42,11 +43,11 @@ namespace LinuxSampler { namespace gig {
             Engine() { }
             virtual ~Engine() { }
             // implementation of abstract methods derived from class 'LinuxSampler::Engine'
-            virtual bool    DiskStreamSupported();
-            virtual String  Description();
-            virtual String  Version();
+            virtual bool    DiskStreamSupported() OVERRIDE;
+            virtual String  Description() OVERRIDE;
+            virtual String  Version() OVERRIDE;
 
-            virtual Format  GetEngineFormat();
+            virtual Format  GetEngineFormat() OVERRIDE;
 
             virtual void ProcessControlChange (
                 LinuxSampler::EngineChannel*  pEngineChannel,
@@ -58,7 +59,7 @@ namespace LinuxSampler { namespace gig {
             friend class Voice;
 
         protected:
-            virtual DiskThread* CreateDiskThread();
+            virtual DiskThread* CreateDiskThread() OVERRIDE;
 
             virtual Pool<Voice>::Iterator LaunchVoice (
                 LinuxSampler::EngineChannel* pEngineChannel,
@@ -67,18 +68,18 @@ namespace LinuxSampler { namespace gig {
                 bool                         ReleaseTriggerVoice,
                 bool                         VoiceStealing,
                 bool                         HandleKeyGroupConflicts
-            );
+            ) OVERRIDE;
 
             virtual void TriggerNewVoices (
                 LinuxSampler::EngineChannel*  pEngineChannel,
                 RTList<Event>::Iterator&      itNoteOnEvent,
                 bool                          HandleKeyGroupConflicts
-            );
+            ) OVERRIDE;
 
             void TriggerReleaseVoices (
                 LinuxSampler::EngineChannel*  pEngineChannel,
                 RTList<Event>::Iterator&      itNoteOffEvent
-            );
+            ) OVERRIDE;
     };
 
 }} // namespace LinuxSampler::gig

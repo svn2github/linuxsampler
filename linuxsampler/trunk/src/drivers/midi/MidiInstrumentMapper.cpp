@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2006 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -178,7 +178,7 @@ namespace LinuxSampler {
                 MapFound = true;
                 Replaced = (iterMap->second.find(Index) != iterMap->second.end());
                 iterMap->second[Index] = privateEntry;
-                InstrCount = iterMap->second.size();
+                InstrCount = (int)iterMap->second.size();
             }
         }
         EngineFactory::Destroy(pEngine);
@@ -256,7 +256,7 @@ namespace LinuxSampler {
             std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
             if (iterMap != midiMaps.end()) { // map found
                 iterMap->second.erase(Index); // remove entry
-                InstrCount = iterMap->second.size();
+                InstrCount = (int)iterMap->second.size();
             }
         }
         
@@ -333,7 +333,7 @@ namespace LinuxSampler {
 
     int MidiInstrumentMapper::GetMapCount() {
         LockGuard lock(midiMapsMutex);
-        return midiMaps.size();
+        return (int) midiMaps.size();
     }
 
     int MidiInstrumentMapper::GetInstrumentCount(int Map) {
@@ -343,7 +343,7 @@ namespace LinuxSampler {
             throw Exception("There is no MIDI instrument map " + ToString(Map));
         }
 
-        return iterMap->second.size();
+        return (int) iterMap->second.size();
     }
 
     int MidiInstrumentMapper::GetInstrumentCount() {
@@ -382,7 +382,7 @@ namespace LinuxSampler {
         __create_map:
         midiMaps[ID].name = MapName;
         
-        fireMidiInstrumentMapCountChanged(Maps().size());
+        fireMidiInstrumentMapCountChanged((int)Maps().size());
         // If there were no maps until now we must set a default map.
         if (midiMaps.size() == 1) SetDefaultMap(ID);
         
@@ -417,7 +417,7 @@ namespace LinuxSampler {
         if (Map == GetDefaultMap()) {
             SetDefaultMap(midiMaps.empty() ? -1 : (*(midiMaps.begin())).first);
         }
-        fireMidiInstrumentMapCountChanged(Maps().size());
+        fireMidiInstrumentMapCountChanged((int)Maps().size());
     }
 
     void MidiInstrumentMapper::RemoveAllMaps() {
@@ -425,7 +425,7 @@ namespace LinuxSampler {
 
         midiMaps.clear();
         SetDefaultMap(-1);
-        fireMidiInstrumentMapCountChanged(Maps().size());
+        fireMidiInstrumentMapCountChanged((int)Maps().size());
     }
 
     int MidiInstrumentMapper::GetDefaultMap() {

@@ -234,7 +234,7 @@ namespace sfz {
         }
         ccargs[ccs.size()] = -1;
 
-        int nbDimensions = dims.size() + ccs.size();
+        int nbDimensions = int(dims.size() + ccs.size());
         int* len = new int[nbDimensions];
         mapArr = new int*[nbDimensions];
 

@@ -328,7 +328,7 @@ namespace LinuxSampler { namespace sfz {
     void LFOv2Unit::Trigger() {
         LFOUnit::Trigger();
         
-        if (pLfoInfo->wave < 0 || pLfoInfo->wave >= lfos.size()) pLFO = &lfo0;
+        if (/*pLfoInfo->wave < 0 ||*/ pLfoInfo->wave >= lfos.size()) pLFO = &lfo0;
         else pLFO = lfos[pLfoInfo->wave];
         
         pLFO->Trigger (

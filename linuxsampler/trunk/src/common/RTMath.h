@@ -123,7 +123,8 @@ class RTMathBase {
          * @param n - amount of sample values applied so far
          * @returns new average value of all summed values (including the new @a sample)
          */
-        inline static float RelativeSummedAvg(float current, float sample, int n) {
+        template<typename T_int>
+        inline static float RelativeSummedAvg(float current, float sample, T_int n) {
             return current + (sample - current) / float(n);
         }
 

@@ -782,7 +782,7 @@ class Pool : public RTList<T> {
          */
         pool_element_id_t getID(const T* obj) const {
             if (!poolsize) return 0;
-            int index = obj - &data[0];
+            int index = int( obj - &data[0] );
             if (index < 0 || index >= poolsize) return 0;
             return ((nodes[index].reincarnation << poolsizebits) | index) + 1;
         }
@@ -840,7 +840,7 @@ class Pool : public RTList<T> {
          */
         Iterator fromPtr(const T* obj) const {
             if (!poolsize) return Iterator(); // invalid iterator
-            int index = obj - &data[0];
+            int index = int( obj - &data[0] );
             if (index < 0 || index >= poolsize) return Iterator(); // invalid iterator
             return Iterator(&nodes[index]);
         }

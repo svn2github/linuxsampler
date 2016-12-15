@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008, 2010 Christian Schoenebeck                        *
+ *   Copyright (C) 2008 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -47,7 +47,7 @@ AudioChannel* Effect::InputChannel(uint ChannelIndex) const {
 }
 
 uint Effect::InputChannelCount() const {
-    return vInputChannels.size();
+    return (uint) vInputChannels.size();
 }
 
 AudioChannel* Effect::OutputChannel(uint ChannelIndex) const {
@@ -56,7 +56,7 @@ AudioChannel* Effect::OutputChannel(uint ChannelIndex) const {
 }
 
 uint Effect::OutputChannelCount() const {
-    return vOutputChannels.size();
+    return (uint) vOutputChannels.size();
 }
 
 EffectControl* Effect::InputControl(uint ControlIndex) const {
@@ -65,7 +65,7 @@ EffectControl* Effect::InputControl(uint ControlIndex) const {
 }
 
 uint Effect::InputControlCount() const {
-    return vInputControls.size();
+    return (uint) vInputControls.size();
 }
 
 void Effect::SetParent(void* pParent) {

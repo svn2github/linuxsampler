@@ -975,7 +975,7 @@ namespace LinuxSampler {
     }
 
     uint AbstractEngineChannel::GetFxSendCount() {
-        return fxSends.size();
+        return (uint)fxSends.size();
     }
 
     void AbstractEngineChannel::RemoveFxSend(FxSend* pFxSend) {

@@ -127,7 +127,7 @@ namespace LinuxSampler {
                 }
             }
 
-            virtual void Connect(AudioOutputDevice* pAudioOut) {
+            virtual void Connect(AudioOutputDevice* pAudioOut) OVERRIDE {
                 if (pEngine) {
                     if (pEngine->pAudioOutputDevice == pAudioOut) return;
                     DisconnectAudioOutputDevice();
@@ -189,7 +189,7 @@ namespace LinuxSampler {
                 MidiInputPort::AddSysexListener(pEngine);
             }
 
-            virtual void DisconnectAudioOutputDevice() {
+            virtual void DisconnectAudioOutputDevice() OVERRIDE {
                 if (pEngine) { // if clause to prevent disconnect loops
 
                     ResetInternal(false/*don't reset engine*/); // 'false' is error prone here, but the danger of recursion with 'true' would be worse, there could be a better solution though
@@ -471,7 +471,7 @@ namespace LinuxSampler {
                 MidiKeyboardManager<V>::Reset();
             }
 
-            virtual void ResetControllers() {
+            virtual void ResetControllers() OVERRIDE {
                 AbstractEngineChannel::ResetControllers();
 
                 MidiKeyboardManager<V>::SustainPedal   = false;

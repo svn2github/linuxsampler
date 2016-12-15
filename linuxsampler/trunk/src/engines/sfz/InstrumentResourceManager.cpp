@@ -111,7 +111,7 @@ namespace LinuxSampler { namespace sfz {
 
         // cache initial samples points (for actually needed samples)
         dmsg(1,("Caching initial samples..."));
-        int regionCount = pInstrument->regions.size();
+        int regionCount = (int) pInstrument->regions.size();
         uint maxSamplesPerCycle = GetMaxSamplesPerCycle(pConsumer);
         for (int i = 0 ; i < regionCount ; i++) {
             float localProgress = (float) i / (float) regionCount;
@@ -178,7 +178,7 @@ namespace LinuxSampler { namespace sfz {
         bool deleteInstrument = true;
         ::sfz::Instrument* pInstr = pResource->GetInstrument();
 
-        for (int i = pInstr->regions.size() - 1; i >= 0 ; i--) {
+        for (int i = (int)pInstr->regions.size() - 1; i >= 0 ; i--) {
             ::sfz::Region* pRegion = pInstr->regions[i];
             std::map< ::sfz::Region*, region_info_t>::iterator iter = parent->RegionInfo.find(pRegion);
             if (iter != parent->RegionInfo.end()) {

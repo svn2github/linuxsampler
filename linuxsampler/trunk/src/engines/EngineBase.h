@@ -597,7 +597,7 @@ namespace LinuxSampler {
             }
 
             // implementation of abstract method derived from class 'LinuxSampler::RegionPools'
-            virtual Pool<R*>* GetRegionPool(int index) {
+            virtual Pool<R*>* GetRegionPool(int index) OVERRIDE {
                 if (index < 0 || index > 1) throw Exception("Index out of bounds");
                 return pRegionPool[index];
             }
@@ -1631,7 +1631,7 @@ namespace LinuxSampler {
              *  @param pEngineChannel - engine channel on which this event occurred on
              *  @param itNoteOnEvent - key, velocity and time stamp of the event
              */
-            virtual void ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
+            virtual void ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) OVERRIDE {
                 EngineChannelBase<V, R, I>* pChannel =
                         static_cast<EngineChannelBase<V, R, I>*>(pEngineChannel);
 
@@ -1762,7 +1762,7 @@ namespace LinuxSampler {
              *  @param pEngineChannel - engine channel on which this event occurred on
              *  @param itNoteOffEvent - key, velocity and time stamp of the event
              */
-            virtual void ProcessNoteOff(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOffEvent) {
+            virtual void ProcessNoteOff(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOffEvent) OVERRIDE {
                 EngineChannelBase<V, R, I>* pChannel = static_cast<EngineChannelBase<V, R, I>*>(pEngineChannel);
 
                 const int iKey = itNoteOffEvent->Param.Note.Key;
@@ -2002,7 +2002,7 @@ namespace LinuxSampler {
              *  Reset all voices and disk thread and clear input event queue and all
              *  control and status variables. This method is protected by a mutex.
              */
-            virtual void ResetInternal() {
+            virtual void ResetInternal() OVERRIDE {
                 LockGuard lock(ResetInternalMutex);
 
                 // make sure that the engine does not get any sysex messages
@@ -2061,7 +2061,7 @@ namespace LinuxSampler {
              * @param pEngineChannel - engine channel on which all voices should be killed
              * @param itKillEvent    - event which caused this killing of all voices
              */
-            virtual void KillAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itKillEvent) {
+            virtual void KillAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itKillEvent) OVERRIDE {
                 EngineChannelBase<V, R, I>* pChannel = static_cast<EngineChannelBase<V, R, I>*>(pEngineChannel);
                 int count = pChannel->KillAllVoices(itKillEvent);
                 VoiceSpawnsLeft -= count; //FIXME: just a temporary workaround, we should check the cause in StealVoice() instead
@@ -2096,7 +2096,7 @@ namespace LinuxSampler {
                 bool                    HandleKeyGroupConflicts
             ) = 0;
 
-            virtual int GetMinFadeOutSamples() { return MinFadeOutSamples; }
+            virtual int GetMinFadeOutSamples() OVERRIDE { return MinFadeOutSamples; }
 
             int InitNewVoice (
                 EngineChannelBase<V, R, I>*  pChannel,

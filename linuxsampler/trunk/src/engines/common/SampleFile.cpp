@@ -223,7 +223,7 @@ namespace LinuxSampler {
             const sf_count_t bufsize = CONVERT_BUFFER_SIZE / ChannelCount;
             unsigned char* const dst = static_cast<unsigned char*>(pBuffer);
             while (count > 0) {
-                int n = sf_readf_int(pSndFile, pConvertBuffer, std::min(count, bufsize));
+                int n = (int) sf_readf_int(pSndFile, pConvertBuffer, std::min(count, bufsize));
                 if (n <= 0) break;
                 for (int i = 0 ; i < n * ChannelCount ; i++) {
                     dst[j++] = pConvertBuffer[i] >> 8;
@@ -236,7 +236,7 @@ namespace LinuxSampler {
         } else
 #endif
         {
-            int bytes = sf_read_raw(pSndFile, pBuffer, FrameCount * GetFrameSize());
+            int bytes = (int)sf_read_raw(pSndFile, pBuffer, FrameCount * GetFrameSize());
             return bytes / GetFrameSize();
         }
     }

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -149,7 +149,7 @@ namespace LinuxSampler {
             // add routings with default destinations
             AudioOutputDevice* pDevice = pEngineChannel->GetAudioOutputDevice();
             const int iChanOffset = (pDevice) ? pDevice->ChannelCount() - pEngineChannel->Channels() : 0;
-            for (int i = Routing.size(); i < pEngineChannel->Channels(); i++) {
+            for (int i = (int)Routing.size(); i < pEngineChannel->Channels(); i++) {
                 const int iDestination = iChanOffset + i;
                 Routing.push_back(iDestination);
             }

@@ -48,6 +48,11 @@ static void scanner_warning(YYLTYPE* locp, LinuxSampler::ParserContext* context,
 #define SCANNER_ERR(txt)  scanner_error(yylloc, yyextra, txt)
 #define SCANNER_WRN(txt)  scanner_warning(yylloc, yyextra, txt)
 
+// shut up warning that 'register' keyword is deprecated as of C++11
+#if defined(__cplusplus) && __cplusplus >= 201103L
+# define register
+#endif
+
 using namespace LinuxSampler;
 
 static int countNewLineChars(const char* txt) {
@@ -58,7 +63,7 @@ static int countNewLineChars(const char* txt) {
 }
 
 static int countCharsPastLastNewLine(const char* txt) {
-    const int n = strlen(txt);
+    const int n = (int)strlen(txt);
     for (int i = n - 1; i >= 0; --i)
         if (txt[i] == '\n')
             return n - i - 1;

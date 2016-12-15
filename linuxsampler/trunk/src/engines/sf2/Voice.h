@@ -57,34 +57,34 @@ namespace LinuxSampler { namespace sf2 {
             void CalculateFadeOutCoeff(float FadeOutTime, float SampleRate);
 
         protected:
-            virtual SampleInfo       GetSampleInfo();
-            virtual RegionInfo       GetRegionInfo();
-            virtual InstrumentInfo   GetInstrumentInfo();
-            virtual double           CalculateCrossfadeVolume(uint8_t MIDIKeyVelocity);
-            virtual AbstractEngine*  GetEngine() { return (AbstractEngine*)pEngine; }
-            virtual double           GetEG1ControllerValue(uint8_t MIDIKeyVelocity);
-            virtual EGInfo           CalculateEG1ControllerInfluence(double eg1ControllerValue);
-            virtual void             TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) { }
-            virtual double           GetEG2ControllerValue(uint8_t MIDIKeyVelocity);
-            virtual EGInfo           CalculateEG2ControllerInfluence(double eg2ControllerValue);
-            virtual void             TriggerEG2(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) { }
-            virtual void             InitLFO1() { }
-            virtual void             InitLFO2() { }
-            virtual void             InitLFO3() { }
-            virtual float            CalculateCutoffBase(uint8_t MIDIKeyVelocity);
-            virtual float            CalculateFinalCutoff(float cutoffBase);
-            virtual uint8_t          GetVCFCutoffCtrl();
-            virtual uint8_t          GetVCFResonanceCtrl();
+            virtual SampleInfo       GetSampleInfo() OVERRIDE;
+            virtual RegionInfo       GetRegionInfo() OVERRIDE;
+            virtual InstrumentInfo   GetInstrumentInfo() OVERRIDE;
+            virtual double           CalculateCrossfadeVolume(uint8_t MIDIKeyVelocity) OVERRIDE;
+            virtual AbstractEngine*  GetEngine() OVERRIDE { return (AbstractEngine*)pEngine; }
+            virtual double           GetEG1ControllerValue(uint8_t MIDIKeyVelocity) OVERRIDE;
+            virtual EGInfo           CalculateEG1ControllerInfluence(double eg1ControllerValue) OVERRIDE;
+            virtual void             TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) OVERRIDE { }
+            virtual double           GetEG2ControllerValue(uint8_t MIDIKeyVelocity) OVERRIDE;
+            virtual EGInfo           CalculateEG2ControllerInfluence(double eg2ControllerValue) OVERRIDE;
+            virtual void             TriggerEG2(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) OVERRIDE { }
+            virtual void             InitLFO1() OVERRIDE { }
+            virtual void             InitLFO2() OVERRIDE { }
+            virtual void             InitLFO3() OVERRIDE { }
+            virtual float            CalculateCutoffBase(uint8_t MIDIKeyVelocity) OVERRIDE;
+            virtual float            CalculateFinalCutoff(float cutoffBase) OVERRIDE;
+            virtual uint8_t          GetVCFCutoffCtrl() OVERRIDE;
+            virtual uint8_t          GetVCFResonanceCtrl() OVERRIDE;
             virtual void             ProcessCCEvent(RTList<Event>::Iterator& itEvent) OVERRIDE;
             virtual void             ProcessChannelPressureEvent(RTList<Event>::Iterator& itEvent) OVERRIDE;
             virtual void             ProcessPolyphonicKeyPressureEvent(RTList<Event>::Iterator& itEvent) OVERRIDE;
-            virtual void             ProcessCutoffEvent(RTList<Event>::Iterator& itEvent);
-            virtual double           GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
-            virtual double           GetVelocityRelease(uint8_t MIDIKeyVelocity);
-            virtual double           GetSampleAttenuation();
-            virtual void             ProcessGroupEvent(RTList<Event>::Iterator& itEvent);
-            virtual void             AboutToTrigger();
-            virtual int              CalculatePan(uint8_t pan);
+            virtual void             ProcessCutoffEvent(RTList<Event>::Iterator& itEvent) OVERRIDE;
+            virtual double           GetVelocityAttenuation(uint8_t MIDIKeyVelocity) OVERRIDE;
+            virtual double           GetVelocityRelease(uint8_t MIDIKeyVelocity) OVERRIDE;
+            virtual double           GetSampleAttenuation() OVERRIDE;
+            virtual void             ProcessGroupEvent(RTList<Event>::Iterator& itEvent) OVERRIDE;
+            virtual void             AboutToTrigger() OVERRIDE;
+            virtual int              CalculatePan(uint8_t pan) OVERRIDE;
 
         private:
             ::sf2::Region* pPresetRegion;
@@ -113,7 +113,7 @@ namespace LinuxSampler { namespace sf2 {
             friend class SF2SignalUnitRack;
 
         protected:
-            virtual uint8_t CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {
+            virtual uint8_t CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) OVERRIDE {
                 /*uint8_t c = std::max(CrossfadeControllerValue, pRegion->AttenuationControllerThreshold);
                 c = (!pRegion->Crossfade.out_end) ? c     // 0,0,0,0 means no crossfade defined
                           : (c < pRegion->Crossfade.in_end) ?

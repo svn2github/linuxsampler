@@ -1,7 +1,7 @@
 /*
  * LSCP Shell
  *
- * Copyright (c) 2014 Christian Schoenebeck
+ * Copyright (c) 2014 - 2016 Christian Schoenebeck
  *
  * This program is part of LinuxSampler and released under the same terms.
  */
@@ -146,7 +146,7 @@ std::vector<char> TerminalCtrl::getChars(int max, int blockUntilMin, int burstDe
     setting.c_cc[VTIME] = burstDeciSeconds;
     if (tcsetattr(0, TCSANOW, &setting) < 0) return v;
     v.resize(max);
-    const int n = read(0, &v[0], max);
+    const int n = (int)read(0, &v[0], max);
     if (n != max) v.resize(n < 0 ? 0 : n);
 
     restore(original);
@@ -172,7 +172,7 @@ std::string TerminalCtrl::getStringToDelimiter(char delimiter, bool includeDelim
     std::vector<char> v = getCharsToDelimiter(delimiter, includeDelimiter);
     if (v.empty()) return s;
     v.push_back(0);
-    int n = strlen(&v[0]);
+    int n = (int)strlen(&v[0]);
     s.resize(n);
     memcpy(&s[0], &v[0], n);
     return s;

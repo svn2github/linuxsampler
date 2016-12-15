@@ -4,7 +4,8 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2011 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2012-2016 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -142,7 +143,9 @@ namespace LinuxSampler {
                                     KillImmediately();
                                     return;
                                 }
-                                DiskStreamRef.pStream->IncrementReadPos(SmplInfo.ChannelCount * (int(finalSynthesisParameters.dPos) - MaxRAMPos));
+                                DiskStreamRef.pStream->IncrementReadPos(uint(
+                                    SmplInfo.ChannelCount * (int(finalSynthesisParameters.dPos) - MaxRAMPos)
+                                ));
                                 finalSynthesisParameters.dPos -= int(finalSynthesisParameters.dPos);
                                 RealSampleWordsLeftToRead = -1; // -1 means no silence has been added yet
                             }

@@ -98,7 +98,7 @@ public:
     std::vector<ExpressionRef> args;
     void add(ExpressionRef arg) { args.push_back(arg); }
     void dump(int level = 0);
-    int argsCount() const { return args.size(); }
+    int argsCount() const { return (int) args.size(); }
     VMExpr* arg(int i) { return (i >= 0 && i < argsCount()) ? &*args.at(i) : NULL; }
     bool isPolyphonic() const;
 };
@@ -151,9 +151,9 @@ class BuiltInIntVariable : public IntVariable {
 public:
     BuiltInIntVariable(const String& name, VMIntRelPtr* ptr);
     bool isAssignable() const OVERRIDE { return !ptr->readonly; }
-    void assign(Expression* expr);
-    int evalInt();
-    void dump(int level = 0);
+    void assign(Expression* expr) OVERRIDE;
+    int evalInt() OVERRIDE;
+    void dump(int level = 0) OVERRIDE;
 };
 typedef Ref<BuiltInIntVariable,Node> BuiltInIntVariableRef;
 
@@ -414,7 +414,7 @@ public:
     int evalInt() { return 0; }
     EventHandler* eventHandlerByName(const String& name) const;
     EventHandler* eventHandler(uint index) const;
-    inline uint size() const { return args.size(); }
+    inline uint size() const { return (int) args.size(); }
     bool isPolyphonic() const;
 };
 typedef Ref<EventHandlers,Node> EventHandlersRef;

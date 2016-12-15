@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -267,14 +267,14 @@ namespace LinuxSampler {
 
     void AudioOutputDevice::AcquireChannels(uint Channels) {
         if (Channels > this->Channels.size()) {
-            for (int c = this->Channels.size(); c < Channels; c++) {
-                this->Channels.push_back(CreateChannel(c));
+            for (size_t c = this->Channels.size(); c < Channels; c++) {
+                this->Channels.push_back(CreateChannel(uint(c)));
             }
         }
     }
 
     uint AudioOutputDevice::ChannelCount() {
-        return Channels.size();
+        return (uint) Channels.size();
     }
 
     std::map<String,DeviceCreationParameter*> AudioOutputDevice::DeviceParameters() {
@@ -313,7 +313,7 @@ namespace LinuxSampler {
     }
 
     uint AudioOutputDevice::SendEffectChainCount() const {
-        return vEffectChains.size();
+        return (uint) vEffectChains.size();
     }
 
     // TODO: to be removed

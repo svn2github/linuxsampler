@@ -89,7 +89,7 @@ namespace LinuxSampler {
 
         // update position of this event in the current audio fragment
         // (since calling scheduleAheadMicroSec() will relate to this)
-        itEvent->itEvent->iFragmentPos = uiSamplesProcessed - (end - itEvent->scheduleTime);
+        itEvent->itEvent->iFragmentPos = int32_t( uiSamplesProcessed - (end - itEvent->scheduleTime) );
         // safety first: fragment boundary sanity checks
         if (itEvent->itEvent->iFragmentPos < 0)
             itEvent->itEvent->iFragmentPos = 0;
@@ -125,7 +125,7 @@ namespace LinuxSampler {
 
         // update position of this event in the current audio fragment
         // (since calling scheduleAheadMicroSec() will relate to this)
-        itEvent->cause.iFragmentPos = uiSamplesProcessed - (end - itEvent->scheduleTime);
+        itEvent->cause.iFragmentPos = int32_t( uiSamplesProcessed - (end - itEvent->scheduleTime) );
         // safety first: fragment boundary sanity checks
         if (itEvent->cause.iFragmentPos < 0)
             itEvent->cause.iFragmentPos = 0;

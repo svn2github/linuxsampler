@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2010 - 2014 Christian Schoenebeck
+    Copyright (C) 2010 - 2016 Christian Schoenebeck
 */
 
 #include "LadspaEffect.h"
@@ -113,11 +113,11 @@ LadspaEffect::LadspaEffect(EffectInfo* pInfo) throw (Exception) : Effect() {
     // create control input and control output variables (effect parameters)
     // (they are going to be assigned to the actual LADSPA effect instance
     // later in InitEffect() )
-    const int iInControls = _getPortCountByType(
+    const int iInControls = (int) _getPortCountByType(
         pDescriptor,
         LADSPA_PORT_CONTROL | LADSPA_PORT_INPUT
     );
-    const int iOutControls = _getPortCountByType(
+    const int iOutControls = (int) _getPortCountByType(
         pDescriptor,
         LADSPA_PORT_CONTROL | LADSPA_PORT_OUTPUT
     );
@@ -252,16 +252,16 @@ void LadspaEffect::RenderAudio(uint Samples) {
 void LadspaEffect::InitEffect(AudioOutputDevice* pDevice) throw (Exception) {
     this->pDevice = pDevice;
 
-    const int iInChannels = _getPortCountByType(
+    const int iInChannels = (int) _getPortCountByType(
         pDescriptor,
         LADSPA_PORT_AUDIO | LADSPA_PORT_INPUT
     );
-    const int iOutChannels = _getPortCountByType(
+    const int iOutChannels = (int) _getPortCountByType(
         pDescriptor,
         LADSPA_PORT_AUDIO | LADSPA_PORT_OUTPUT
     );
-    const int iInControls  = vInputControls.size();
-    const int iOutControls = vOutputControls.size();
+    //const int iInControls  = (int) vInputControls.size();
+    //const int iOutControls = (int) vOutputControls.size();
 
     // now create the actual LADSPA effect instance ...
     dmsg(1, ("Instantiating LADSPA effect '%s'.\n", pInfo->label.c_str()));

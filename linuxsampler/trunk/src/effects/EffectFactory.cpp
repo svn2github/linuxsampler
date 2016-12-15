@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2010 Christian Schoenebeck
+    Copyright (C) 2010 - 2016 Christian Schoenebeck
 */
 
 #include "EffectFactory.h"
@@ -47,7 +47,7 @@ uint EffectInfos::Count() {
         Update();
         bInitialized = true;
     }
-    return infos.size();
+    return (uint) infos.size();
 }
 
 EffectInfo* EffectInfos::GetEffectInfo(uint index) {
@@ -194,7 +194,7 @@ void EffectFactory::UpdateAvailableEffects() {
 }
 
 uint EffectFactory::EffectInstancesCount() {
-    return vEffectInstances.size();
+    return (uint) vEffectInstances.size();
 }
 
 Effect* EffectFactory::GetEffectInstance(uint index) {

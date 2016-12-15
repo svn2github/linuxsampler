@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2012 Andreas Persson                             *
+ *   Copyright (C) 2008 - 2016 Andreas Persson and Christian Schoenebeck   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -157,12 +157,12 @@ namespace LinuxSampler {
 
     void AudioOutputDevicePlugin::AddChannels(int newChannels) {
         static_cast<ParameterChannelsPlugin*>(
-            Parameters["CHANNELS"])->ForceSetValue(Channels.size() + newChannels);
+            Parameters["CHANNELS"])->ForceSetValue(int(Channels.size() + newChannels));
     }
 
     void AudioOutputDevicePlugin::RemoveChannel(AudioChannel* pChannel) {
         std::vector<AudioChannel*>::iterator i = find(Channels.begin(), Channels.end(), pChannel);
-        int channelNumber = i - Channels.begin();
+        int channelNumber = int(i - Channels.begin());
         delete *i;
         Channels.erase(i);
 
@@ -171,6 +171,6 @@ namespace LinuxSampler {
             Channels[channelNumber]->ChannelParameters()["NAME"]->SetValue("Channel " + ToString(channelNumber));
         }
         static_cast<ParameterChannelsPlugin*>(
-            Parameters["CHANNELS"])->ForceSetValue(Channels.size());
+            Parameters["CHANNELS"])->ForceSetValue(int(Channels.size()));
     }
 }

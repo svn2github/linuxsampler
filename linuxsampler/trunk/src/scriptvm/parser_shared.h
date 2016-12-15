@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Christian Schoenebeck
+ * Copyright (c) 2014-2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -40,6 +40,8 @@ struct _YYSTYPE {
 };
 #define YYSTYPE _YYSTYPE
 #define yystype YYSTYPE     ///< For backward compatibility.
-#define YYSTYPE_IS_DECLARED ///< We tell the lexer / parser that we use our own data structure as defined above.
+#ifndef YYSTYPE_IS_DECLARED
+# define YYSTYPE_IS_DECLARED ///< We tell the lexer / parser that we use our own data structure as defined above.
+#endif
 
 #endif // LS_INSTRSCRIPTSPARSER_SHARED_H

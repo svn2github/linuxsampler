@@ -701,12 +701,12 @@ namespace LinuxSampler { namespace gig {
             // number of '0' samples (silence samples) behind the official buffer
             // border, to allow the interpolator do it's work even at the end of
             // the sample.
-            const uint neededSilenceSamples = (maxSamplesPerCycle << CONFIG_MAX_PITCH) + 3;
-            const uint currentlyCachedSilenceSamples = pSample->GetCache().NullExtensionSize / pSample->FrameSize;
+            const uint neededSilenceSamples = uint((maxSamplesPerCycle << CONFIG_MAX_PITCH) + 3);
+            const uint currentlyCachedSilenceSamples = uint(pSample->GetCache().NullExtensionSize / pSample->FrameSize);
             if (currentlyCachedSilenceSamples < neededSilenceSamples) {
-                dmsg(3,("Caching whole sample (sample name: \"%s\", sample size: %lu)\n", pSample->pInfo->Name.c_str(), pSample->SamplesTotal));
+                dmsg(3,("Caching whole sample (sample name: \"%s\", sample size: %llu)\n", pSample->pInfo->Name.c_str(), (long long)pSample->SamplesTotal));
                 ::gig::buffer_t buf = pSample->LoadSampleDataWithNullSamplesExtension(neededSilenceSamples);
-                dmsg(4,("Cached %lu Bytes, %lu silence bytes.\n", buf.Size, buf.NullExtensionSize));
+                dmsg(4,("Cached %llu Bytes, %llu silence bytes.\n", (long long)buf.Size, (long long)buf.NullExtensionSize));
             }
         }
         else { // we only cache CONFIG_PRELOAD_SAMPLES and stream the other sample points from disk

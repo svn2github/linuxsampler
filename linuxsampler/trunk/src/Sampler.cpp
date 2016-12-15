@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -198,7 +198,7 @@ namespace LinuxSampler {
                 static_cast<uint>(pPort->GetDevice()->MidiInputDeviceID()),
                 pPort->GetPortNumber()
             };
-            for (int i = this->vMidiInputs.size() - 1; i >= 0; --i) {
+            for (ssize_t i = this->vMidiInputs.size() - 1; i >= 0; --i) {
                 if (this->vMidiInputs[i] == c)
                     this->vMidiInputs.erase(this->vMidiInputs.begin() + i);
                 // no break or return here, for safety reasons
@@ -379,7 +379,7 @@ namespace LinuxSampler {
     }
 
     uint Sampler::SamplerChannels() {
-        return mSamplerChannels.size();
+        return (uint) mSamplerChannels.size();
     }
 
     void Sampler::AddChannelCountListener(ChannelCountListener* l) {
@@ -672,11 +672,11 @@ namespace LinuxSampler {
     }
 
     uint Sampler::AudioOutputDevices() {
-        return AudioOutputDeviceFactory::Devices().size();
+        return (uint) AudioOutputDeviceFactory::Devices().size();
     }
 
     uint Sampler::MidiInputDevices() {
-        return MidiInputDeviceFactory::Devices().size();
+        return (uint) MidiInputDeviceFactory::Devices().size();
     }
 
     std::map<uint, AudioOutputDevice*> Sampler::GetAudioOutputDevices() {

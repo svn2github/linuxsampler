@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2013-2016 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -57,7 +58,7 @@ namespace LinuxSampler {
             AudioOutputDeviceCoreAudio(std::map<String,DeviceCreationParameter*> Parameters);
             virtual ~AudioOutputDeviceCoreAudio();
 
-            virtual void DeviceChanged(); // from CAAudioDeviceModelListener
+            virtual void DeviceChanged() OVERRIDE; // from CAAudioDeviceModelListener
 
             // derived abstract methods from class 'AudioOutputDevice'
             virtual void Play() OVERRIDE;

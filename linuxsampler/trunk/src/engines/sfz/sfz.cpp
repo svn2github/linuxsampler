@@ -1059,7 +1059,7 @@ namespace sfz
 
     void File::parseFile(std::string file, SampleManager* pSampleManager){
         enum token_type_t { HEADER, OPCODE };
-        token_type_t token_type;
+        token_type_t token_type = (token_type_t) -1;
         std::string token_string;
 
         std::ifstream fs(file.c_str());
@@ -1430,6 +1430,9 @@ namespace sfz
             {
             case CONTROL:
                 default_path = value;
+                break;
+            default:
+                ; // noop
             }
             return;
         }
@@ -1439,6 +1442,9 @@ namespace sfz
             {
             case CONTROL:
                 octave_offset = ToInt(value);
+                break;
+            default:
+                ; // noop
             }
             return;
         }
@@ -1448,6 +1454,9 @@ namespace sfz
             {
             case CONTROL:
                 note_offset = ToInt(value);
+                break;
+            default:
+                ; // noop
             }
             return;
         }

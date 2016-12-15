@@ -42,11 +42,11 @@ namespace LinuxSampler { namespace sf2 {
 
     class EngineChannel: public LinuxSampler::EngineChannelBase<Voice, ::sf2::Region, ::sf2::Preset> {
         public:
-            virtual void SendProgramChange(uint8_t Program);
-            virtual void LoadInstrument();
+            virtual void SendProgramChange(uint8_t Program) OVERRIDE;
+            virtual void LoadInstrument() OVERRIDE;
             virtual void ResetInternal(bool bResetEngine) OVERRIDE;
 
-            virtual AbstractEngine::Format GetEngineFormat();
+            virtual AbstractEngine::Format GetEngineFormat() OVERRIDE;
 
             friend class Voice;
             friend class Engine;
@@ -56,7 +56,7 @@ namespace LinuxSampler { namespace sf2 {
             EngineChannel();
             virtual ~EngineChannel();
 
-            virtual void ProcessKeySwitchChange(int key);
+            virtual void ProcessKeySwitchChange(int key) OVERRIDE;
 
         private:
             bool PressedKeys[128];

@@ -95,7 +95,7 @@ namespace LinuxSampler { namespace sf2 {
         info.ChannelsPerFrame = pRgn->pSample->GetChannelCount();
         info.FrameSize        = pRgn->pSample->GetFrameSize();
         info.BytesPerSample   = pRgn->pSample->GetFrameSize() / pRgn->pSample->GetChannelCount();
-        info.TotalSampleCount = pRgn->pSample->GetTotalFrameCount();
+        info.TotalSampleCount = (int)pRgn->pSample->GetTotalFrameCount();
 
         Sample::PlaybackState playbackState;
         playbackState.position         = SampleOffset;

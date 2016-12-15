@@ -42,13 +42,13 @@ namespace LinuxSampler { namespace gig {
 
     class EngineChannel: public LinuxSampler::EngineChannelBase<Voice, ::gig::DimensionRegion, ::gig::Instrument> {
         public:
-            virtual void SendProgramChange(uint8_t Program);
-            virtual void LoadInstrument();
+            virtual void SendProgramChange(uint8_t Program) OVERRIDE;
+            virtual void LoadInstrument() OVERRIDE;
             virtual void ResetInternal(bool bResetEngine) OVERRIDE;
-            virtual String InstrumentFileName();
-            virtual String InstrumentFileName(int index);
+            virtual String InstrumentFileName() OVERRIDE;
+            virtual String InstrumentFileName(int index) OVERRIDE;
 
-            virtual AbstractEngine::Format GetEngineFormat();
+            virtual AbstractEngine::Format GetEngineFormat() OVERRIDE;
 
             void reloadScript(::gig::Script* script);
 
@@ -63,7 +63,7 @@ namespace LinuxSampler { namespace gig {
             float CurrentKeyDimension;      ///< Current value (0-1.0) for the keyboard dimension, altered by pressing a keyswitching key.
             ::gig::Script* CurrentGigScript; ///< Only used when a script is updated (i.e. by instrument editor), to check whether this engine channel is actually using that specific script reference.
 
-            virtual void ProcessKeySwitchChange(int key);
+            virtual void ProcessKeySwitchChange(int key) OVERRIDE;
 
     };
 

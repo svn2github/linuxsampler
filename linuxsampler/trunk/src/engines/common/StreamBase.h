@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *   Copyright (C) 2009 Grigor Iliev                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -68,14 +68,14 @@ namespace LinuxSampler {
 
                 // we must delay the increment_write_ptr_with_wrap() after the while() loop because we need to
                 // ensure that we read exactly SampleCount sample, otherwise the buffer wrapping code will fail
-                pRingBuffer->increment_write_ptr_with_wrap(total_readsamples * SampleInfo.FrameSize);
+                pRingBuffer->increment_write_ptr_with_wrap(int(total_readsamples * SampleInfo.FrameSize));
 
-                return total_readsamples;
+                return (int)total_readsamples;
             }
 
             virtual void WriteSilence(unsigned long SilenceSampleWords) {
                 memset(pRingBuffer->get_write_ptr(), 0, SilenceSampleWords * SampleInfo.BytesPerSample);
-                pRingBuffer->increment_write_ptr_with_wrap(SilenceSampleWords * SampleInfo.BytesPerSample);
+                pRingBuffer->increment_write_ptr_with_wrap(int(SilenceSampleWords * SampleInfo.BytesPerSample));
             }
 
             /// Called by disk thread to activate the disk stream.

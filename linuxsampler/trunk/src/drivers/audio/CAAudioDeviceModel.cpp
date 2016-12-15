@@ -2,7 +2,8 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2009 - 2013 Grigor Iliev                                *
+ *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2013 - 2016 Andreas Persson and Christian Schoenebeck   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -117,7 +118,7 @@ namespace LinuxSampler {
         if(charBufSize < len) {
             delete [] charBuf;
             charBufSize *= 2;
-            if(charBufSize < len) charBufSize = len;
+            if(charBufSize < len) charBufSize = (UInt32)len;
             charBuf = new char[charBufSize];
         }
         
@@ -273,12 +274,12 @@ namespace LinuxSampler {
 
     UInt32 CAAudioDeviceListModel::GetOutputDeviceCount() {
         LockGuard lock(DeviceMutex);
-        return outDevices.size();
+        return (UInt32) outDevices.size();
     }
 
     CAAudioDeviceModel CAAudioDeviceListModel::GetOutputDevice(UInt32 Index) {
         LockGuard lock(DeviceMutex);
-        if(Index < 0 || Index >= GetOutputDeviceCount()) {
+        if(/*Index < 0 ||*/ Index >= GetOutputDeviceCount()) {
             throw Exception("Device index out of bounds");
         }
 

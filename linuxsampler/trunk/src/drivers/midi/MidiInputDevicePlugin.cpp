@@ -1,6 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2008 - 2012 Andreas Persson                             *
+ *   Copyright (C) 2014 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -83,12 +84,12 @@ namespace LinuxSampler {
     }
 
     MidiInputPort* MidiInputDevicePlugin::CreateMidiPort() {
-        return new MidiInputPortPlugin(this, Ports.size());
+        return new MidiInputPortPlugin(this, (int)Ports.size());
     }
 
     void MidiInputDevicePlugin::AddMidiPort() {
         static_cast<ParameterPortsPlugin*>(
-            Parameters["PORTS"])->ForceSetValue(Ports.size() + 1);
+            Parameters["PORTS"])->ForceSetValue((int)Ports.size() + 1);
     }
 
     void MidiInputDevicePlugin::RemoveMidiPort(MidiInputPort* pPort) {
@@ -109,7 +110,7 @@ namespace LinuxSampler {
 
         // delete the last port
         static_cast<ParameterPortsPlugin*>(
-            Parameters["PORTS"])->ForceSetValue(Ports.size() - 1);
+            Parameters["PORTS"])->ForceSetValue((int)Ports.size() - 1);
     }
 
     bool MidiInputDevicePlugin::isAutonomousDevice() {

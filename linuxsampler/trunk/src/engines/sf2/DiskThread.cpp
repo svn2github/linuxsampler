@@ -44,7 +44,7 @@ namespace sf2 {
     }
 
     LinuxSampler::Stream* DiskThread::CreateStream(long BufferSize, uint BufferWrapElements) {
-        return new Stream(BufferSize, BufferWrapElements); // 131072 sample words
+        return new Stream((uint)BufferSize, BufferWrapElements); // 131072 sample words
     }
 
     void DiskThread::LaunchStream (

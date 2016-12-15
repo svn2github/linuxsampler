@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2004, 2005 Grame                                        *
- *   Copyright (C) 2005 - 2015 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -119,7 +119,7 @@ namespace LinuxSampler {
 			static String Description();
             static String Version();
 
-			MidiInputPortCoreMidi* CreateMidiPort();
+			MidiInputPortCoreMidi* CreateMidiPort() OVERRIDE;
 
 			// CoreMidi callback
 			static void NotifyProc(const MIDINotification* message, void* refCon);

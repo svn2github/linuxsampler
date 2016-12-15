@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2015 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -111,8 +111,8 @@ Mutex LSCPServer::RTNotifyMutex;
 
 LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Thread(true, false, 0, -4), eventHandler(this) {
     SocketAddress.sin_family      = AF_INET;
-    SocketAddress.sin_addr.s_addr = addr;
-    SocketAddress.sin_port        = port;
+    SocketAddress.sin_addr.s_addr = (in_addr_t)addr;
+    SocketAddress.sin_port        = (in_port_t)port;
     this->pSampler = pSampler;
     LSCPEvent::RegisterEvent(LSCPEvent::event_audio_device_count, "AUDIO_OUTPUT_DEVICE_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_audio_device_info, "AUDIO_OUTPUT_DEVICE_INFO");
@@ -708,7 +708,7 @@ extern int GetLSCPCommand( void *buf, int max_size ) {
 
 	strcpy((char*) buf, command.c_str());
 	LSCPServer::bufferedCommands.erase(LSCPServer::currentSocket);
-	return command.size();
+	return (int) command.size();
 }
 
 extern yyparse_param_t* GetCurrentYaccSession() {
@@ -762,9 +762,9 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 	// first get as many character as possible and add it to the 'input' buffer
 	while (true) {
 		#if defined(WIN32)
-		result = recv(socket, (char *)&c, 1, 0); //Read one character at a time for now
+		result = (int)recv(socket, (char*)&c, 1, 0); //Read one character at a time for now
 		#else
-		result = recv(socket, (void *)&c, 1, 0); //Read one character at a time for now
+		result = (int)recv(socket, (void*)&c, 1, 0); //Read one character at a time for now
 		#endif
 		if (result == 1) input.push_back(c);
 		else break; // end of input or some error
@@ -798,7 +798,7 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 		} else if (c == 3) { // custom ASCII code usage for moving cursor right (LSCP shell)
 			if (iter->iCursorOffset < 0) iter->iCursorOffset++;
 		} else {
-			size_t cursorPos = bufferedCommands[socket].size() + iter->iCursorOffset;
+			ssize_t cursorPos = bufferedCommands[socket].size() + iter->iCursorOffset;
 			// backspace character - should only happen with shell
 			if (c == '\b') {
 				if (!bufferedCommands[socket].empty() && cursorPos > 0)
@@ -1146,7 +1146,7 @@ String LSCPServer::GetAvailableEngines() {
     dmsg(2,("LSCPServer: GetAvailableEngines()\n"));
     LSCPResultSet result;
     try {
-        int n = EngineFactory::AvailableEngineTypes().size();
+        int n = (int)EngineFactory::AvailableEngineTypes().size();
         result.Add(n);
     }
     catch (Exception e) {
@@ -1350,7 +1350,7 @@ String LSCPServer::GetAvailableAudioOutputDrivers() {
     dmsg(2,("LSCPServer: GetAvailableAudioOutputDrivers()\n"));
     LSCPResultSet result;
     try {
-        int n = AudioOutputDeviceFactory::AvailableDrivers().size();
+        int n = (int) AudioOutputDeviceFactory::AvailableDrivers().size();
         result.Add(n);
     }
     catch (Exception e) {
@@ -1376,7 +1376,7 @@ String LSCPServer::GetAvailableMidiInputDrivers() {
     dmsg(2,("LSCPServer: GetAvailableMidiInputDrivers()\n"));
     LSCPResultSet result;
     try {
-        int n = MidiInputDeviceFactory::AvailableDrivers().size();
+        int n = (int)MidiInputDeviceFactory::AvailableDrivers().size();
         result.Add(n);
     }
     catch (Exception e) {
@@ -2434,7 +2434,7 @@ String LSCPServer::GetMidiInstrumentMaps() {
     dmsg(2,("LSCPServer: GetMidiInstrumentMaps()\n"));
     LSCPResultSet result;
     try {
-        result.Add(MidiInstrumentMapper::Maps().size());
+        result.Add(int(MidiInstrumentMapper::Maps().size()));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -3275,7 +3275,7 @@ String LSCPServer::GetTotalVoiceCount() {
 String LSCPServer::GetTotalVoiceCountMax() {
     dmsg(2,("LSCPServer: GetTotalVoiceCountMax()\n"));
     LSCPResultSet result;
-    result.Add(EngineFactory::EngineInstances().size() * pSampler->GetGlobalMaxVoices());
+    result.Add(int(EngineFactory::EngineInstances().size() * pSampler->GetGlobalMaxVoices()));
     return result.Produce();
 }
 
@@ -3377,7 +3377,7 @@ String LSCPServer::GetFileInstruments(String Filename) {
                 std::vector<InstrumentManager::instrument_id_t> IDs =
                     pManager->GetInstrumentFileContent(Filename);
                 // return the amount of instruments in the file
-                result.Add(IDs.size());
+                result.Add((int)IDs.size());
                 // no more need to ask other engine types
                 bFound = true;
             } else dmsg(1,("Warning: engine '%s' does not provide an instrument manager\n", engineTypes[i].c_str()));

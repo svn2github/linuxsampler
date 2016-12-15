@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -1620,7 +1620,7 @@ static void walkAndFillExpectedSymbols(
             // the token is valid, "stackCopy" has been reduced accordingly
             // and now do recurse ...
             nextExpectedChars += _tokenName(token);
-            nextExpectedCharsLen = nextExpectedChars.size();
+            nextExpectedCharsLen = (int)nextExpectedChars.size();
             walkAndFillExpectedSymbols( //FIXME: could cause stack overflow (should be a loop instead), is probably fine with our current grammar though
                 stackCopy, expectedSymbols, nextExpectedChars, history, depth + 1
             );
@@ -1663,8 +1663,8 @@ static void walkAndFillExpectedSymbols(
 
         // "shift" / push the new state on the symbol stack and call this
         // function recursively, and restore the stack after the recurse return
-        stackSize = stack.size();
-        nextExpectedCharsLen = nextExpectedChars.size();
+        stackSize = (int)stack.size();
+        nextExpectedCharsLen = (int)nextExpectedChars.size();
         stack.push_back(action);
         nextExpectedChars += _tokenName(token);
         walkAndFillExpectedSymbols( //FIXME: could cause stack overflow (should be a loop instead), is probably fine with our current grammar though
@@ -1865,7 +1865,7 @@ static std::set<String> yyExpectedSymbols() {
     yyparse_param_t* param = GetCurrentYaccSession();
     YYTYPE_INT16* ss = (*param->ppStackBottom);
     YYTYPE_INT16* sp = (*param->ppStackTop);
-    int iStackSize   = sp - ss + 1;
+    int iStackSize   = int(sp - ss + 1);
     // copy and wrap parser's symbol stack into a convenient STL container
     std::vector<YYTYPE_INT16> stack;
     for (int i = 0; i < iStackSize; ++i) {
@@ -1981,7 +1981,7 @@ static String yyAutoComplete(std::vector<YYTYPE_INT16>& stack, YYStackHistory& h
         // (from the left)
         String sCommon;
         for (int i = 0; true; ++i) {
-            char c;
+            char c = '\0';
             for (std::map<String,BisonSymbolInfo>::const_iterator it = expectedSymbols.begin();
                  it != expectedSymbols.end(); ++it)
             {
@@ -2062,11 +2062,11 @@ String lscpParserProcessShellInteraction(String& line, yyparse_param_t* param, b
     // if auto correction is enabled, apply the auto corrected string to
     // intput/output string 'line'
     if (param->bShellAutoCorrect) {
-        int nMin = (n < line.length()) ? n : line.length();
+        int nMin = int( (n < line.length()) ? n : line.length() );
         line.replace(0, nMin, l.substr(0, nMin));
     }
 
-    size_t cursorPos = line.size() + param->iCursorOffset;
+    ssize_t cursorPos = line.size() + param->iCursorOffset;
     if (cursorPos < 0) cursorPos = 0;
 
     // generate an info string that will be sent to the LSCP shell for letting

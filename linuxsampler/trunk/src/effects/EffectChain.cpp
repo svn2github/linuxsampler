@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2013 Christian Schoenebeck                       *
+ *   Copyright (C) 2008 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -93,7 +93,7 @@ Effect* EffectChain::GetEffect(int iChainPos) const {
 }
 
 int EffectChain::EffectCount() const {
-    return vEntries.size();
+    return (int) vEntries.size();
 }
     
 void EffectChain::Reconnect(AudioOutputDevice* pDevice) {

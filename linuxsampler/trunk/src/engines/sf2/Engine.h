@@ -42,11 +42,11 @@ namespace LinuxSampler { namespace sf2 {
             Engine() { }
             virtual ~Engine() { }
             // implementation of abstract methods derived from class 'LinuxSampler::Engine'
-            virtual bool    DiskStreamSupported();
-            virtual String  Description();
-            virtual String  Version();
+            virtual bool    DiskStreamSupported() OVERRIDE;
+            virtual String  Description() OVERRIDE;
+            virtual String  Version() OVERRIDE;
             
-            virtual Format  GetEngineFormat();
+            virtual Format  GetEngineFormat() OVERRIDE;
 
             virtual void ProcessControlChange (
                 LinuxSampler::EngineChannel*  pEngineChannel,
@@ -58,7 +58,7 @@ namespace LinuxSampler { namespace sf2 {
             friend class Voice;
 
         protected:
-            virtual DiskThread* CreateDiskThread();
+            virtual DiskThread* CreateDiskThread() OVERRIDE;
 
             virtual Pool<Voice>::Iterator LaunchVoice (
                 LinuxSampler::EngineChannel* pEngineChannel,
@@ -67,18 +67,18 @@ namespace LinuxSampler { namespace sf2 {
                 bool                         ReleaseTriggerVoice,
                 bool                         VoiceStealing,
                 bool                         HandleKeyGroupConflicts
-            );
+            ) OVERRIDE;
 
             virtual void TriggerNewVoices (
                 LinuxSampler::EngineChannel*  pEngineChannel,
                 RTList<Event>::Iterator&      itNoteOnEvent,
                 bool                          HandleKeyGroupConflicts
-            );
+            ) OVERRIDE;
 
             void TriggerReleaseVoices (
                 LinuxSampler::EngineChannel*  pEngineChannel,
                 RTList<Event>::Iterator&      itNoteOffEvent
-            );
+            ) OVERRIDE;
     };
 
 }} // namespace LinuxSampler::sf2

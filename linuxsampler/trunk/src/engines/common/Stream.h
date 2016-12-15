@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *   Copyright (C) 2009 Grigor Iliev                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -105,7 +105,7 @@ namespace LinuxSampler {
             inline void IncrementReadPos(uint Count)  {
                 Count *= SampleInfo.BytesPerSample;
                 uint leftspace = pRingBuffer->read_space();
-                pRingBuffer->increment_read_ptr(Min(Count, leftspace));
+                pRingBuffer->increment_read_ptr((int)Min(Count, leftspace));
                 if (State == state_end && Count >= leftspace) {
                     Reset(); // quit relation between consumer (voice) and stream and reset stream right after
                 }

@@ -62,7 +62,7 @@ namespace LinuxSampler { namespace sf2 {
         si.ChannelCount     = pSample->GetChannelCount();
         si.FrameSize        = pSample->GetFrameSize();
         si.BitDepth         = (pSample->GetFrameSize() / pSample->GetChannelCount()) * 8;
-        si.TotalFrameCount  = pSample->GetTotalFrameCount();
+        si.TotalFrameCount  = (uint)pSample->GetTotalFrameCount();
 
         si.HasLoops       = pRegion->HasLoop;
         si.LoopStart      = (si.HasLoops) ? pRegion->LoopStart : 0;

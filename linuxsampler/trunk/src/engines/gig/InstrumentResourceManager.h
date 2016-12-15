@@ -72,20 +72,20 @@ namespace LinuxSampler { namespace gig {
             static void OnInstrumentLoadingProgress(::gig::progress_t* pProgress);
 
             // implementation of derived abstract methods from 'InstrumentManager'
-            virtual String GetInstrumentName(instrument_id_t ID);
-            virtual String GetInstrumentDataStructureName(instrument_id_t ID);
-            virtual String GetInstrumentDataStructureVersion(instrument_id_t ID);
+            virtual String GetInstrumentName(instrument_id_t ID) OVERRIDE;
+            virtual String GetInstrumentDataStructureName(instrument_id_t ID) OVERRIDE;
+            virtual String GetInstrumentDataStructureVersion(instrument_id_t ID) OVERRIDE;
             virtual InstrumentEditor* LaunchInstrumentEditor(LinuxSampler::EngineChannel* pEngineChannel, instrument_id_t ID, void* pUserData = NULL) throw (InstrumentManagerException) OVERRIDE;
-            virtual std::vector<instrument_id_t> GetInstrumentFileContent(String File) throw (InstrumentManagerException);
-            virtual instrument_info_t GetInstrumentInfo(instrument_id_t ID) throw (InstrumentManagerException);
+            virtual std::vector<instrument_id_t> GetInstrumentFileContent(String File) throw (InstrumentManagerException) OVERRIDE;
+            virtual instrument_info_t GetInstrumentInfo(instrument_id_t ID) throw (InstrumentManagerException) OVERRIDE;
 
             // implementation of derived abstract methods from 'InstrumentEditorListener'
-            virtual void OnInstrumentEditorQuit(InstrumentEditor* pSender);
-            virtual void OnSamplesToBeRemoved(std::set<void*> Samples, InstrumentEditor* pSender);
-            virtual void OnSamplesRemoved(InstrumentEditor* pSender);
-            virtual void OnDataStructureToBeChanged(void* pStruct, String sStructType, InstrumentEditor* pSender);
-            virtual void OnDataStructureChanged(void* pStruct, String sStructType, InstrumentEditor* pSender);
-            virtual void OnSampleReferenceChanged(void* pOldSample, void* pNewSample, InstrumentEditor* pSender);
+            virtual void OnInstrumentEditorQuit(InstrumentEditor* pSender) OVERRIDE;
+            virtual void OnSamplesToBeRemoved(std::set<void*> Samples, InstrumentEditor* pSender) OVERRIDE;
+            virtual void OnSamplesRemoved(InstrumentEditor* pSender) OVERRIDE;
+            virtual void OnDataStructureToBeChanged(void* pStruct, String sStructType, InstrumentEditor* pSender) OVERRIDE;
+            virtual void OnDataStructureChanged(void* pStruct, String sStructType, InstrumentEditor* pSender) OVERRIDE;
+            virtual void OnSampleReferenceChanged(void* pOldSample, void* pNewSample, InstrumentEditor* pSender) OVERRIDE;
 
 #if 0 // currently unused :
             void TrySendNoteOnToEditors(uint8_t Key, uint8_t Velocity, ::gig::Instrument* pInstrument);
@@ -94,10 +94,10 @@ namespace LinuxSampler { namespace gig {
 
         protected:
             // implementation of derived abstract methods from 'ResourceManager'
-            virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
-            virtual void               Destroy(::gig::Instrument* pResource, void* pArg);
-            virtual void               DeleteRegionIfNotUsed(::gig::DimensionRegion* pRegion, region_info_t* pRegInfo);
-            virtual void               DeleteSampleIfNotUsed(::gig::Sample* pSample, region_info_t* pRegInfo);
+            virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) OVERRIDE;
+            virtual void               Destroy(::gig::Instrument* pResource, void* pArg) OVERRIDE;
+            virtual void               DeleteRegionIfNotUsed(::gig::DimensionRegion* pRegion, region_info_t* pRegInfo) OVERRIDE;
+            virtual void               DeleteSampleIfNotUsed(::gig::Sample* pSample, region_info_t* pRegInfo) OVERRIDE;
         private:
             void                       CacheInitialSamples(::gig::Sample* pSample, AbstractEngine* pEngine);
             void                       CacheInitialSamples(::gig::Sample* pSample, EngineChannel* pEngineChannel);

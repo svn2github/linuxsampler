@@ -1,7 +1,7 @@
 /*
  * LSCP Shell
  *
- * Copyright (c) 2014 Christian Schoenebeck
+ * Copyright (c) 2014 - 2016 Christian Schoenebeck
  *
  * This program is part of LinuxSampler and released under the same terms.
  */
@@ -145,7 +145,7 @@ bool LSCPClient::send(char c) {
 bool LSCPClient::send(String s) {
     //lscpLog("[send] '%s'\n", s.c_str());
     if (!isConnected()) return false;
-    int n = ::write(hSocket, &s[0], s.size());
+    int n = (int) ::write(hSocket, &s[0], s.size());
     return n == s.size();
 }
 
@@ -296,7 +296,7 @@ void LSCPClient::setErrorCallback(Callback_t fn) {
 optional<String> LSCPClient::receiveLine() {
     if (!isConnected()) return optional<String>::nothing;
     for (char c; true; ) {
-        int n = ::read(hSocket, &c, 1);
+        int n = (int) ::read(hSocket, &c, 1);
         if (n < 1) return optional<String>::nothing;
         if (c == '\r') continue;
         if (c == '\n') {

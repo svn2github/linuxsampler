@@ -273,6 +273,8 @@ namespace LinuxSampler {
                     pEngineChannel->ControllerTable[CTRL_TABLE_IDX_PITCHBEND] =
                         event->cause.Param.Pitch.Pitch;
                     break;
+                default:
+                    ; // noop
             }
         }
 

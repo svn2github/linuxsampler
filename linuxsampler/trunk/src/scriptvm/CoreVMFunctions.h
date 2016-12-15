@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Christian Schoenebeck
+ * Copyright (c) 2014-2016 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -29,9 +29,9 @@ public:
     StmtFlags_t flags; ///< general completion status (i.e. success or failure) of the function call
 
     VMEmptyResult() : flags(STMT_SUCCESS) {}
-    ExprType_t exprType() const { return EMPTY_EXPR; }
-    VMExpr* resultValue() { return this; }
-    StmtFlags_t resultFlags() { return flags; }
+    ExprType_t exprType() const OVERRIDE { return EMPTY_EXPR; }
+    VMExpr* resultValue() OVERRIDE { return this; }
+    StmtFlags_t resultFlags() OVERRIDE { return flags; }
     bool isConstExpr() const OVERRIDE { return false; }
 };
 
@@ -45,9 +45,9 @@ public:
     int value; ///< result value of the function call
 
     VMIntResult() : flags(STMT_SUCCESS) {}
-    int evalInt() { return value; }
-    VMExpr* resultValue() { return this; }
-    StmtFlags_t resultFlags() { return flags; }
+    int evalInt() OVERRIDE { return value; }
+    VMExpr* resultValue() OVERRIDE { return this; }
+    StmtFlags_t resultFlags() OVERRIDE { return flags; }
     bool isConstExpr() const OVERRIDE { return false; }
 };
 
@@ -61,9 +61,9 @@ public:
     String value; ///< result value of the function call
 
     VMStringResult() : flags(STMT_SUCCESS) {}
-    String evalStr() { return value; }
-    VMExpr* resultValue() { return this; }
-    StmtFlags_t resultFlags() { return flags; }
+    String evalStr() OVERRIDE { return value; }
+    VMExpr* resultValue() OVERRIDE { return this; }
+    StmtFlags_t resultFlags() OVERRIDE { return flags; }
     bool isConstExpr() const OVERRIDE { return false; }
 };
 
@@ -74,7 +74,7 @@ public:
 class VMEmptyResultFunction : public VMFunction {
 protected:
     virtual ~VMEmptyResultFunction() {}
-    ExprType_t returnType() { return EMPTY_EXPR; }
+    ExprType_t returnType() OVERRIDE { return EMPTY_EXPR; }
     VMFnResult* errorResult();
     VMFnResult* successResult();
     bool modifiesArg(int iArg) const OVERRIDE { return false; }
@@ -89,7 +89,7 @@ protected:
 class VMIntResultFunction : public VMFunction {
 protected:
     virtual ~VMIntResultFunction() {}
-    ExprType_t returnType() { return INT_EXPR; }
+    ExprType_t returnType() OVERRIDE { return INT_EXPR; }
     VMFnResult* errorResult(int i = 0);
     VMFnResult* successResult(int i = 0);
     bool modifiesArg(int iArg) const OVERRIDE { return false; }
@@ -104,7 +104,7 @@ protected:
 class VMStringResultFunction : public VMFunction {
 protected:
     virtual ~VMStringResultFunction() {}
-    ExprType_t returnType() { return STRING_EXPR; }
+    ExprType_t returnType() OVERRIDE { return STRING_EXPR; }
     VMFnResult* errorResult(const String& s = "");
     VMFnResult* successResult(const String& s = "");
     bool modifiesArg(int iArg) const OVERRIDE { return false; }

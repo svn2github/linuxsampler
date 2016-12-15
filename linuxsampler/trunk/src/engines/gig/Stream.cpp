@@ -4,7 +4,8 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2015 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009 Christian Schoenebeck and Grigor Iliev             *
+ *   Copyright (C) 2016 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -89,7 +90,7 @@ namespace LinuxSampler { namespace gig {
         info.ChannelsPerFrame = pRgn->pSample->Channels;
         info.FrameSize        = pRgn->pSample->FrameSize;
         info.BytesPerSample   = pRgn->pSample->BitDepth / 8;
-        info.TotalSampleCount = pRgn->pSample->SamplesTotal;
+        info.TotalSampleCount = (int)pRgn->pSample->SamplesTotal;
 
         Sample::PlaybackState playbackState;
         playbackState.position         = SampleOffset;

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
+ *   Copyright (C) 2005-2016 Christian Schoenebeck                         *
  *   Copyright (C) 2009 Grigor Iliev                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -45,7 +45,7 @@ namespace gig {
     }
 
     LinuxSampler::Stream* DiskThread::CreateStream(long BufferSize, uint BufferWrapElements) {
-        return new Stream(&DecompressionBuffer, BufferSize, BufferWrapElements); // 131072 sample words
+        return new Stream(&DecompressionBuffer, (uint)BufferSize, BufferWrapElements); // 131072 sample words
     }
 
     void DiskThread::LaunchStream (

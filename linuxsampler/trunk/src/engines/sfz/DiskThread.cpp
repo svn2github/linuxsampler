@@ -44,7 +44,7 @@ namespace sfz {
     }
 
     LinuxSampler::Stream* DiskThread::CreateStream(long BufferSize, uint BufferWrapElements) {
-        return new Stream(BufferSize, BufferWrapElements, pInstruments->GetSampleManager()); // 131072 sample words
+        return new Stream((uint)BufferSize, BufferWrapElements, pInstruments->GetSampleManager()); // 131072 sample words
     }
 
     void DiskThread::LaunchStream (

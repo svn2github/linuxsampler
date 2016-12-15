@@ -4,7 +4,8 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2015 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 Christian Schoenebeck and Grigor Iliev             *
+ *   Copyright (C) 2010-2016 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -209,8 +210,8 @@ namespace LinuxSampler {
                     // number of '0' samples (silence samples) behind the official buffer
                     // border, to allow the interpolator do it's work even at the end of
                     // the sample.
-                    const uint neededSilenceSamples = (maxSamplesPerCycle << CONFIG_MAX_PITCH) + 3;
-                    const uint currentlyCachedSilenceSamples = pSample->GetCache().NullExtensionSize / pSample->GetFrameSize();
+                    const uint neededSilenceSamples = uint((maxSamplesPerCycle << CONFIG_MAX_PITCH) + 3);
+                    const uint currentlyCachedSilenceSamples = uint(pSample->GetCache().NullExtensionSize / pSample->GetFrameSize());
                     if (currentlyCachedSilenceSamples < neededSilenceSamples) {
                         dmsg(3,("Caching whole sample (sample name: \"%s\", sample size: %ld)\n", pSample->GetName().c_str(), pSample->GetTotalFrameCount()));
                         typename S::buffer_t buf = pSample->LoadSampleDataWithNullSamplesExtension(neededSilenceSamples);
@@ -225,12 +226,12 @@ namespace LinuxSampler {
             }
 
             // implementation of derived abstract methods from 'InstrumentManager'
-            std::vector<instrument_id_t> Instruments() {
+            std::vector<instrument_id_t> Instruments() OVERRIDE {
                 return ResourceManager<InstrumentManager::instrument_id_t, I>::Entries();
             }
 
             // implementation of derived abstract methods from 'ResourceManager'
-            void OnBorrow(I* pResource, InstrumentConsumer* pConsumer, void*& pArg) {
+            void OnBorrow(I* pResource, InstrumentConsumer* pConsumer, void*& pArg) OVERRIDE {
                 instr_entry_t* pEntry = static_cast<instr_entry_t*>(pArg);
         
                 uint maxSamplesPerCycle = GetMaxSamplesPerCycle(pConsumer);

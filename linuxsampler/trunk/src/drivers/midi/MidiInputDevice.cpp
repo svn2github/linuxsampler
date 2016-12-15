@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2014 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -164,7 +164,7 @@ namespace LinuxSampler {
     }
 
     uint MidiInputDevice::PortCount() {
-        return Ports.size();
+        return (uint) Ports.size();
     }
 
     std::map<String,DeviceCreationParameter*> MidiInputDevice::DeviceParameters() {
@@ -209,7 +209,7 @@ namespace LinuxSampler {
 
     void MidiInputDevice::AcquirePorts(uint newPorts) {
         //FIXME: hooo, this looks scary, no synchronization AT ALL yet!
-        int diff = this->Ports.size() - newPorts;
+        int diff = int(this->Ports.size() - newPorts);
         if (!diff)
             return; // number of ports matches already, nothing to do
 
@@ -230,7 +230,7 @@ namespace LinuxSampler {
                 fireMidiPortAdded(midiPort);
             }
         }
-        fireMidiPortCountChanged(Ports.size());
+        fireMidiPortCountChanged((int)Ports.size());
     }
 
 } // namespace LinuxSampler
