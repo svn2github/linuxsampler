@@ -354,15 +354,15 @@ class FunctionCall : virtual public LeafStatement, virtual public IntExpr, virtu
 public:
     FunctionCall(const char* function, ArgsRef args, VMFunction* fn) :
         functionName(function), args(args), fn(fn) { }
-    void dump(int level = 0);
-    StmtFlags_t exec();
-    int evalInt();
+    void dump(int level = 0) OVERRIDE;
+    StmtFlags_t exec() OVERRIDE;
+    int evalInt() OVERRIDE;
     VMIntArrayExpr* asIntArray() const OVERRIDE;
-    String evalStr();
-    bool isConstExpr() const { return false; }
-    ExprType_t exprType() const;
-    String evalCastToStr();
-    bool isPolyphonic() const { return args->isPolyphonic(); }
+    String evalStr() OVERRIDE;
+    bool isConstExpr() const OVERRIDE { return false; }
+    ExprType_t exprType() const OVERRIDE;
+    String evalCastToStr() OVERRIDE;
+    bool isPolyphonic() const OVERRIDE { return args->isPolyphonic(); }
 protected:
     VMFnResult* execVMFn();
 };
