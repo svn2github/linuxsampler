@@ -14,6 +14,18 @@
       IDs of the particular group and allows to manipulate a set of events
       this way with only one call.
     </p>
+    <p>
+      After notes died, this function may still return those recently died
+      notes' IDs for a certain while, that means for example that
+      <code lang="nksp">num_elements(by_marks($MARK_1))</code> may return a higher
+      value than the actual amount of currently active notes. This does not
+      mean that you have to remove dead notes from their groups by calling
+      <code lang="nksp">delete_event_mark()</code>. The sampler automatically
+      removes dead notes from their groups automatically after a certain
+      amount of time, and in practice this lag does not have any negative impact
+      on using this function, since all built-in functions automatically 
+      detect invalid IDs and are automatically ignoring IDs of dead notes.
+    </p>
 
     <h3>Function Prototype</h3>
     <p/>
