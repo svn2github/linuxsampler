@@ -70,9 +70,9 @@ namespace RIFF {
 // *
 
     Chunk::Chunk(File* pFile) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::Chunk(File* pFile)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         ullPos     = 0;
         pParent    = NULL;
         pChunkData = NULL;
@@ -84,9 +84,9 @@ namespace RIFF {
     }
 
     Chunk::Chunk(File* pFile, file_offset_t StartPos, List* Parent) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::Chunk(File*,file_offset_t,List*),StartPos=" << StartPos << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         this->pFile   = pFile;
         ullStartPos   = StartPos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize);
         pParent       = Parent;
@@ -115,9 +115,9 @@ namespace RIFF {
     }
 
     void Chunk::ReadHeader(file_offset_t filePos) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::Readheader(" << filePos << ") ";
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         ChunkID = 0;
         ullNewChunkSize = ullCurrentChunkSize = 0;
         #if POSIX
@@ -153,11 +153,11 @@ namespace RIFF {
                 else
                     swapBytes_64(&ullCurrentChunkSize);
             }
-            #if DEBUG
+            #if DEBUG_RIFF
             std::cout << "ckID=" << convertToString(ChunkID) << " ";
             std::cout << "ckSize=" << ullCurrentChunkSize << " ";
             std::cout << "bEndianNative=" << pFile->bEndianNative << std::endl;
-            #endif // DEBUG
+            #endif // DEBUG_RIFF
             ullNewChunkSize = ullCurrentChunkSize;
         }
     }
@@ -222,9 +222,9 @@ namespace RIFF {
      *                  data
      */
     file_offset_t Chunk::SetPos(file_offset_t Where, stream_whence_t Whence) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::SetPos(file_offset_t,stream_whence_t)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         switch (Whence) {
             case stream_curpos:
                 ullPos += Where;
@@ -254,9 +254,9 @@ namespace RIFF {
      *  @returns  number of bytes left to read
      */
     file_offset_t Chunk::RemainingBytes() const {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::Remainingbytes()=" << ullCurrentChunkSize - ullPos << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         return (ullCurrentChunkSize > ullPos) ? ullCurrentChunkSize - ullPos : 0;
     }
 
@@ -285,9 +285,9 @@ namespace RIFF {
      *    possible without SetPos()
      */
     stream_state_t Chunk::GetState() const {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::GetState()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         #if POSIX
         if (pFile->hFileRead == 0) return stream_closed;
         #elif defined (WIN32)
@@ -316,9 +316,9 @@ namespace RIFF {
      *                    of file reached or error occurred
      */
     file_offset_t Chunk::Read(void* pData, file_offset_t WordCount, file_offset_t WordSize) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::Read(void*,file_offset_t,file_offset_t)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         //if (ulStartPos == 0) return 0; // is only 0 if this is a new chunk, so nothing to read (yet)
         if (ullPos >= ullCurrentChunkSize) return 0;
         if (ullPos + WordCount * WordSize >= ullCurrentChunkSize) WordCount = (ullCurrentChunkSize - ullPos) / WordSize;
@@ -326,9 +326,9 @@ namespace RIFF {
         if (lseek(pFile->hFileRead, ullStartPos + ullPos, SEEK_SET) < 0) return 0;
         ssize_t readWords = read(pFile->hFileRead, pData, WordCount * WordSize);
         if (readWords < 1) {
-            #if DEBUG
+            #if DEBUG_RIFF
             std::cerr << "POSIX read() failed: " << strerror(errno) << std::endl << std::flush;
-            #endif // DEBUG
+            #endif // DEBUG_RIFF
             return 0;
         }
         readWords /= WordSize;
@@ -459,9 +459,9 @@ namespace RIFF {
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadInt8(int8_t* pData, file_offset_t WordCount) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadInt8(int8_t*,file_offset_t)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         return ReadSceptical(pData, WordCount, 1);
     }
 
@@ -496,9 +496,9 @@ namespace RIFF {
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadUint8(uint8_t* pData, file_offset_t WordCount) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadUint8(uint8_t*,file_offset_t)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         return ReadSceptical(pData, WordCount, 1);
     }
 
@@ -533,9 +533,9 @@ namespace RIFF {
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadInt16(int16_t* pData, file_offset_t WordCount) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadInt16(int16_t*,file_offset_t)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         return ReadSceptical(pData, WordCount, 2);
     }
 
@@ -570,9 +570,9 @@ namespace RIFF {
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadUint16(uint16_t* pData, file_offset_t WordCount) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadUint16(uint16_t*,file_offset_t)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         return ReadSceptical(pData, WordCount, 2);
     }
 
@@ -607,9 +607,9 @@ namespace RIFF {
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadInt32(int32_t* pData, file_offset_t WordCount) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadInt32(int32_t*,file_offset_t)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         return ReadSceptical(pData, WordCount, 4);
     }
 
@@ -644,9 +644,9 @@ namespace RIFF {
      *                          \a WordCount integers could be read!
      */
     file_offset_t Chunk::ReadUint32(uint32_t* pData, file_offset_t WordCount) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadUint32(uint32_t*,file_offset_t)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         return ReadSceptical(pData, WordCount, 4);
     }
 
@@ -693,9 +693,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occurred
      */
     int8_t Chunk::ReadInt8() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadInt8()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         int8_t word;
         ReadSceptical(&word,1,1);
         return word;
@@ -709,9 +709,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occurred
      */
     uint8_t Chunk::ReadUint8() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadUint8()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         uint8_t word;
         ReadSceptical(&word,1,1);
         return word;
@@ -726,9 +726,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occurred
      */
     int16_t Chunk::ReadInt16() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadInt16()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         int16_t word;
         ReadSceptical(&word,1,2);
         return word;
@@ -743,9 +743,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occurred
      */
     uint16_t Chunk::ReadUint16() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadUint16()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         uint16_t word;
         ReadSceptical(&word,1,2);
         return word;
@@ -760,9 +760,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occurred
      */
     int32_t Chunk::ReadInt32() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadInt32()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         int32_t word;
         ReadSceptical(&word,1,4);
         return word;
@@ -777,9 +777,9 @@ namespace RIFF {
      * @throws RIFF::Exception  if an error occurred
      */
     uint32_t Chunk::ReadUint32() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "Chunk::ReadUint32()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         uint32_t word;
         ReadSceptical(&word,1,4);
         return word;
@@ -1008,18 +1008,18 @@ namespace RIFF {
 // *
 
     List::List(File* pFile) : Chunk(pFile) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "List::List(File* pFile)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         pSubChunks    = NULL;
         pSubChunksMap = NULL;
     }
 
     List::List(File* pFile, file_offset_t StartPos, List* Parent)
       : Chunk(pFile, StartPos, Parent) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "List::List(File*,file_offset_t,List*)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         pSubChunks    = NULL;
         pSubChunksMap = NULL;
         ReadHeader(StartPos);
@@ -1034,9 +1034,9 @@ namespace RIFF {
     }
 
     List::~List() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "List::~List()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         DeleteChunkList();
     }
 
@@ -1069,9 +1069,9 @@ namespace RIFF {
      *                   that ID
      */
     Chunk* List::GetSubChunk(uint32_t ChunkID) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "List::GetSubChunk(uint32_t)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         if (!pSubChunksMap) LoadSubChunks();
         return (*pSubChunksMap)[ChunkID];
     }
@@ -1088,9 +1088,9 @@ namespace RIFF {
      *                    that type
      */
     List* List::GetSubList(uint32_t ListType) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "List::GetSubList(uint32_t)" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         if (!pSubChunks) LoadSubChunks();
         ChunkList::iterator iter = pSubChunks->begin();
         ChunkList::iterator end  = pSubChunks->end();
@@ -1114,9 +1114,9 @@ namespace RIFF {
      *            otherwise
      */
     Chunk* List::GetFirstSubChunk() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "List::GetFirstSubChunk()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         if (!pSubChunks) LoadSubChunks();
         ChunksIterator = pSubChunks->begin();
         return (ChunksIterator != pSubChunks->end()) ? *ChunksIterator : NULL;
@@ -1131,9 +1131,9 @@ namespace RIFF {
      *            end of list is reached
      */
     Chunk* List::GetNextSubChunk() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "List::GetNextSubChunk()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         if (!pSubChunks) return NULL;
         ChunksIterator++;
         return (ChunksIterator != pSubChunks->end()) ? *ChunksIterator : NULL;
@@ -1149,9 +1149,9 @@ namespace RIFF {
      *            otherwise
      */
     List* List::GetFirstSubList() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "List::GetFirstSubList()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         if (!pSubChunks) LoadSubChunks();
         ListIterator            = pSubChunks->begin();
         ChunkList::iterator end = pSubChunks->end();
@@ -1171,9 +1171,9 @@ namespace RIFF {
      *            end of list is reached
      */
     List* List::GetNextSubList() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "List::GetNextSubList()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         if (!pSubChunks) return NULL;
         if (ListIterator == pSubChunks->end()) return NULL;
         ListIterator++;
@@ -1375,9 +1375,9 @@ namespace RIFF {
     }
 
     void List::ReadHeader(file_offset_t filePos) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "List::Readheader(file_offset_t) ";
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         Chunk::ReadHeader(filePos);
         if (ullCurrentChunkSize < 4) return;
         ullNewChunkSize = ullCurrentChunkSize -= 4;
@@ -1394,9 +1394,9 @@ namespace RIFF {
         fseeko(pFile->hFileRead, filePos + CHUNK_HEADER_SIZE(pFile->FileOffsetSize), SEEK_SET);
         fread(&ListType, 4, 1, pFile->hFileRead);
         #endif // POSIX
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "listType=" << convertToString(ListType) << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         if (!pFile->bEndianNative) {
             //swapBytes_32(&ListType);
         }
@@ -1423,9 +1423,9 @@ namespace RIFF {
     }
 
     void List::LoadSubChunks(progress_t* pProgress) {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "List::LoadSubChunks()";
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         if (!pSubChunks) {
             pSubChunks    = new ChunkList();
             pSubChunksMap = new ChunkMap();
@@ -1440,9 +1440,9 @@ namespace RIFF {
                 Chunk* ck;
                 uint32_t ckid;
                 Read(&ckid, 4, 1);
-                #if DEBUG
+                #if DEBUG_RIFF
                 std::cout << " ckid=" << convertToString(ckid) << std::endl;
-                #endif // DEBUG
+                #endif // DEBUG_RIFF
                 if (ckid == CHUNK_ID_LIST) {
                     ck = new RIFF::List(pFile, ullStartPos + ullPos - 4, this);
                     SetPos(ck->GetSize() + LIST_HEADER_SIZE(pFile->FileOffsetSize) - 4, RIFF::stream_curpos);
@@ -1583,9 +1583,9 @@ namespace RIFF {
         : List(this), Filename(path), bIsNewFile(false), Layout(layout_standard),
           FileOffsetPreference(offset_size_auto)
     {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "File::File("<<path<<")" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         bEndianNative = true;
         FileOffsetSize = 4;
         try {
@@ -2079,9 +2079,9 @@ namespace RIFF {
     }
 
     File::~File() {
-        #if DEBUG
+        #if DEBUG_RIFF
         std::cout << "File::~File()" << std::endl;
-        #endif // DEBUG
+        #endif // DEBUG_RIFF
         Cleanup();
     }
 
