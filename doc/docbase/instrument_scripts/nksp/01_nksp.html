@@ -971,7 +971,7 @@ end on
     <p>
       This script will run an endless loop for each note being triggered.
       Every <code lang="none">200ms</code>. It will turn the volume alternatingly down and
-      up to create the audible stuttering effect. After each <code>wait()</code>
+      up to create the audible stuttering effect. After each <code lang="nksp">wait()</code>
       call it calls <code>event_status($EVENT_ID)</code> to check whether
       this note is still alive, and as soon as the note died, it will stop
       execution of the script instance by calling <code>exit()</code>. The latter
