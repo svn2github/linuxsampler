@@ -851,39 +851,37 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 	}
 	#else
 	if (result == -1) {
-		if (errno == EAGAIN) //Would block, try again later.
-			return false;
 		switch(errno) {
 			case EBADF:
 				dmsg(2,("LSCPScanner: The argument s is an invalid descriptor.\n"));
-				return false;
+				break; // close connection
 			case ECONNREFUSED:
 				dmsg(2,("LSCPScanner: A remote host refused to allow the network connection (typically because it is not running the requested service).\n"));
-				return false;
+				break; // close connection
 			case ENOTCONN:
 				dmsg(2,("LSCPScanner: The socket is associated with a connection-oriented protocol and has not been connected (see connect(2) and accept(2)).\n"));
-				return false;
+				break; // close connection
 			case ENOTSOCK:
 				dmsg(2,("LSCPScanner: The argument s does not refer to a socket.\n"));
-				return false;
+				break; // close connection
 			case EAGAIN:
 				dmsg(2,("LSCPScanner: The socket is marked non-blocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received.\n"));
-				return false;
+				return false; // don't close connection, try again later
 			case EINTR:
 				dmsg(2,("LSCPScanner: The receive was interrupted by delivery of a signal before any data were available.\n"));
-				return false;
+				break; // close connection
 			case EFAULT:
 				dmsg(2,("LSCPScanner: The receive buffer pointer(s) point outside the process's address space.\n"));
-				return false;
+				break; // close connection
 			case EINVAL:
 				dmsg(2,("LSCPScanner: Invalid argument passed.\n"));
-				return false;
+				break; // close connection
 			case ENOMEM:
 				dmsg(2,("LSCPScanner: Could not allocate memory for recvmsg.\n"));
-				return false;
+				break; // close connection
 			default:
 				dmsg(2,("LSCPScanner: Unknown recv() error.\n"));
-				return false;
+				break; // close connection
 		}
 		CloseConnection(iter);
 		return false;

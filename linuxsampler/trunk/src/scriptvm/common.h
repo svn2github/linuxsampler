@@ -157,9 +157,17 @@ namespace LinuxSampler {
          * expressions to an array expression for you, instead this method will
          * simply return NULL!
          *
+         * @b Note: this method is currently, and in contrast to its other
+         * counter parts, declared as virtual method. Some deriving classes are
+         * currently using this to override this default implementation in order
+         * to implement an "evaluate now as integer array" behavior. This has
+         * efficiency reasons, however this also currently makes this part of
+         * the API less clean and should thus be addressed in future with
+         * appropriate changes to the API.
+         *
          * @see exprType()
          */
-        VMIntArrayExpr* asIntArray() const;
+        virtual VMIntArrayExpr* asIntArray() const;
 
         /**
          * Returns true in case this expression can be considered to be a

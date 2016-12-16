@@ -63,6 +63,13 @@ public:
 };
 typedef Ref<IntExpr,Node> IntExprRef;
 
+/*class IntArrayExpr : virtual public VMIntArrayExpr, virtual public Expression {
+public:
+    ExprType_t exprType() const { return INT_ARR_EXPR; }
+    String evalCastToStr();
+};
+typedef Ref<IntArrayExpr,Node> IntArrayExprRef;*/
+
 class StringExpr : virtual public VMStringExpr, virtual public Expression {
 public:
     ExprType_t exprType() const { return STRING_EXPR; }
@@ -350,6 +357,7 @@ public:
     void dump(int level = 0);
     StmtFlags_t exec();
     int evalInt();
+    VMIntArrayExpr* asIntArray() const OVERRIDE;
     String evalStr();
     bool isConstExpr() const { return false; }
     ExprType_t exprType() const;

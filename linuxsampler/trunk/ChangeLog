@@ -560,6 +560,7 @@ Version 2.0.0 (15 July 2015)
       "SUBSCRIBE SEND_EFFECT_CHAIN_INFO"
     - provide comprehensive error messages on LSCP syntax errors
       (suggesting expected next non-terminal symbols)
+    - Fixed client connection not being closed after network errors.
 
   * LSCP shell:
     - Added support for auto correction of obvious and trivial syntax mistakes.
@@ -623,6 +624,7 @@ Version 2.0.0 (15 July 2015)
       (i.e. return value of new script function "by_marks()").
     - Pass/preserve polyphonic variable data from respective "note" event
       handler to "release" event handler.
+    - Fixed crash when using built-in script function "by_marks()".
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

@@ -56,6 +56,7 @@ LSCPServer* pLSCPServer = NULL;
 // inet_aton seems missing under WIN32
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
+typedef unsigned long in_addr_t;
 #endif
 
 int inet_aton(const char *cp, struct in_addr *addr)
@@ -100,6 +101,8 @@ int main(int argc, char **argv) {
     if (bShowStackTrace) {
         #if defined(WIN32)
         // FIXME: sigaction() not supported on WIN32, we ignore it for now
+        #elif AC_APPLE_UNIVERSAL_BUILD
+        // not used for Xcode
         #else
         StackTraceInit(argv[0], -1);
         // register signal handler for all unusual signals
@@ -196,7 +199,7 @@ int main(int argc, char **argv) {
 
     // start LSCP network server
     struct in_addr addr;
-    addr.s_addr = lscp_addr;
+    addr.s_addr = (in_addr_t)lscp_addr;
     dmsg(1,("Starting LSCP network server (%s:%d)...", inet_ntoa(addr), ntohs(lscp_port)));
     pLSCPServer = new LSCPServer(pSampler, lscp_addr, lscp_port);
     pLSCPServer->StartThread();
@@ -313,7 +316,9 @@ void signal_handler(int iSignal) {
     signal(iSignal, SIG_DFL); // Reinstall default handler to prevent race conditions
     if (bShowStackTrace) {
         std::cerr << "Showing stack trace...\n" << std::flush;
+        #if !AC_APPLE_UNIVERSAL_BUILD
         StackTrace();
+        #endif
         sleep(2);
     }
     std::cerr << "Killing LinuxSampler...\n" << std::flush;

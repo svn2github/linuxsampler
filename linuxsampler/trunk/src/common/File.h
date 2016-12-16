@@ -30,7 +30,7 @@
 
 namespace LinuxSampler {
 
-#if __cplusplus >= 201103L
+#if __cplusplus >= 201103L && !CONFIG_NO_CPP11STL
     typedef std::unique_ptr<std::vector<std::string>> FileListPtr;
 #else
     typedef std::auto_ptr<std::vector<std::string> > FileListPtr;

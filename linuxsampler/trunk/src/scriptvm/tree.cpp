@@ -35,6 +35,17 @@ String IntExpr::evalCastToStr() {
     return ToString(evalInt());
 }
 
+/*String IntArrayExpr::evalCastToStr() {
+    String s = "{";
+    for (int i = 0; i < arraySize(); ++i) {
+        int val = evalIntElement(i);
+        if (i) s += ",";
+        s += ToString(val);
+    }
+    s += "}";
+    return s;
+}*/
+
 int IntLiteral::evalInt() {
     return value;
 }
@@ -311,6 +322,13 @@ int FunctionCall::evalInt() {
     VMIntExpr* intExpr = dynamic_cast<VMIntExpr*>(result->resultValue());
     if (!intExpr) return 0;
     return intExpr->evalInt();
+}
+
+VMIntArrayExpr* FunctionCall::asIntArray() const {
+    VMFnResult* result = const_cast<FunctionCall*>(this)->execVMFn();
+    if (!result) return 0;
+    VMIntArrayExpr* intArrExpr = dynamic_cast<VMIntArrayExpr*>(result->resultValue());
+    return intArrExpr;
 }
 
 String FunctionCall::evalStr() {
