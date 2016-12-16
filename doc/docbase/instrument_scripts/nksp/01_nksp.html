@@ -970,14 +970,15 @@ end on
     </code>
     <p>
       This script will run an endless loop for each note being triggered.
-      Every <code lang="none">200ms</code>. It will turn the volume alternatingly down and
+      Every <code lang="none">200ms</code> it will turn the volume alternatingly down and
       up to create the audible stuttering effect. After each <code lang="nksp">wait()</code>
       call it calls <code>event_status($EVENT_ID)</code> to check whether
       this note is still alive, and as soon as the note died, it will stop
       execution of the script instance by calling <code>exit()</code>. The latter
-      is important in this example, because otherwise the script instances would
+      is important in this example, because otherwise the script execution instances would
       continue to run in this endless loop forever, even after the respectives
-      notes are gone. Which would let your CPU usage to increase with every new note.
+      notes are gone. Which would let your CPU usage to increase with every new note
+      and would never decrease again.
       This behavior of the sampler is not a bug, it is intended, since there may
       also be cases where you want to do certain things by script even after the
       respective notes are dead and gone. However as you can see, that script is
