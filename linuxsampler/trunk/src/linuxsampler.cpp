@@ -56,8 +56,9 @@ LSCPServer* pLSCPServer = NULL;
 // inet_aton seems missing under WIN32
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
-typedef unsigned long in_addr_t;
 #endif
+
+typedef unsigned long in_addr_t;
 
 int inet_aton(const char *cp, struct in_addr *addr)
 {
