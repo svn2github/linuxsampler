@@ -933,12 +933,18 @@ end on
     <p>
       We already came across various built-in functions, which you may call
       by your scripts to perform certain tasks or behavior which is already
-      provided for you by the sampler. When working on larger scripts, you
+      provided for you by the sampler. NKSP also allows you to write your
+      own functions, which you then may call from various places of your
+      script.
+    <p>  
+    </p>
+      When working on larger scripts, you
       may notice that you easily get to the point where you may have to
       duplicate portions of your script code, since there are certain things
       that you may have to do again and again in different parts of your script.
       Software developers usually try to avoid such code duplications to
-      keep the overall amount of code as small as possible, since it would
+      keep the overall amount of code as small as possible, since the 
+      overall amount of code would bloat quickly and would
       make the software very hard to maintain. One way for you to avoid such
       script code duplications with NKSP is to write so called <i>User Functions</s>.
     </p>
@@ -964,14 +970,14 @@ end on
     </code>
     <p>
       This script will run an endless loop for each note being triggered.
-      Every <code>200ms</code> it will turn the volume alternatingly down and
+      Every <code lang="none">200ms</code>. It will turn the volume alternatingly down and
       up to create the audible stuttering effect. After each <code>wait()</code>
       call it calls <code>event_status($EVENT_ID)</code> to check whether
       this note is still alive, and as soon as the note died, it will stop
       execution of the script instance by calling <code>exit()</code>. The latter
-      is important in this case, because otherwise the script instances would
+      is important in this example, because otherwise the script instances would
       continue to run in this endless loop forever, even after the respectives
-      notes are gone. Which would let your CPU usage to increase with every note.
+      notes are gone. Which would let your CPU usage to increase with every new note.
       This behavior of the sampler is not a bug, it is intended, since there may
       also be cases where you want to do certain things by script even after the
       respective notes are dead and gone. However as you can see, that script is
@@ -997,7 +1003,8 @@ end on
     </code>
     <p>
       The script became in this simple example only slightly smaller, but it also
-      became easier to read. And in practice, with a more complex script, you can
+      became easier to read and behaves identically to the previous solution.
+      And in practice, with a more complex script, you can
       reduce the overall amount of script code a lot this way. You can choose any
       name for your own user functions, as long as the name is not already
       reserved by a built-in function. Note that for calling a user function,
