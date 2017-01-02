@@ -72,6 +72,7 @@ AM_CONDITIONAL(MAC, test "$mac" = "yes")
 
 if test "$mac" = "yes"; then
     AC_PROG_OBJC
+    AC_PROG_OBJCXX
 fi
 
 PKG_PROG_PKG_CONFIG
