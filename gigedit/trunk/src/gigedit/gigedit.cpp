@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2015 Andreas Persson
+ * Copyright (C) 2007-2017 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -147,7 +147,11 @@ void init_app() {
         // under the same dir as the gigedit dylib is installed in.
         Dl_info info;
         if (dladdr((void*)&init_app, &info)) {
+#ifdef CONFIG_FORCE_GTK_LIBDIR
+            std::string libdir = CONFIG_FORCE_GTK_LIBDIR;
+#else
             std::string libdir = Glib::path_get_dirname(info.dli_fname);
+#endif
 
             if (Glib::getenv("PANGO_SYSCONFDIR") == "" &&
                 Glib::file_test(Glib::build_filename(libdir,

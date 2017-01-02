@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2007-2016 Andreas Persson
+ * Copyright (C) 2007-2017 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,7 +20,11 @@
 #ifndef GIGEDIT_H
 #define GIGEDIT_H
 
-#include <gig.h>
+#ifdef LIBGIG_HEADER_FILE
+# include LIBGIG_HEADER_FILE(gig.h)
+#else
+# include <gig.h>
+#endif
 
 #include <list>
 #include <cstddef>

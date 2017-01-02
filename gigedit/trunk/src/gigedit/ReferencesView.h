@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014-2016 Christian Schoenebeck
+    Copyright (c) 2014-2017 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -8,7 +8,12 @@
 #ifndef GIGEDIT_REFERENCESVIEW_H
 #define GIGEDIT_REFERENCESVIEW_H
 
-#include <gig.h>
+#ifdef LIBGIG_HEADER_FILE
+# include LIBGIG_HEADER_FILE(gig.h)
+#else
+# include <gig.h>
+#endif
+
 #include <gtkmm.h>
 #include "wrapLabel.hh"
 #include "ManagedWindow.h"

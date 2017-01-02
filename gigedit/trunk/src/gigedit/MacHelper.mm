@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2013 Christian Schoenebeck
+    Copyright (c) 2013 - 2017 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -8,6 +8,12 @@
 #import "MacHelper.h"
 #import <Cocoa/Cocoa.h>
 #import <stdio.h>
+
+#if __clang__
+# define HAS_OBJC_ARC    __has_feature(objc_arc)
+#else
+# define HAS_OBJC_ARC 0
+#endif
 
 @interface MacHelper : NSObject {
 @public
@@ -43,7 +49,9 @@ void macHelperRunCFuncOnMainThread(void (*fn)(void* info), void* info) {
     printf("perfoming selector on main thread ...\n"); fflush(stdout);
     [obj performSelectorOnMainThread:@selector(runCFunc) withObject:obj waitUntilDone:NO];
     printf("Selector scheduled async. (on main thread).\n"); fflush(stdout);
+    #if !HAS_OBJC_ARC
     [obj release];
+    #endif
 }
 
 #if defined(__cplusplus)

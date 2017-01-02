@@ -8,7 +8,7 @@ wraplabel = wrapLabel.cc wrapLabel.hh
 endif
 
 if MAC
-mac_src = MacHelper.h MacHelper.m
+mac_src = MacHelper.h MacHelper.mm
 mac_ld = -framework Foundation
 else
 mac_src =

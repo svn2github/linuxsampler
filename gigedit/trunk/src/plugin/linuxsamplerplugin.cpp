@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 - 2015 Andreas Persson
+ * Copyright (C) 2007 - 2017 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -19,9 +19,16 @@
 
 #include "linuxsamplerplugin.h"
 
-#include <linuxsampler/plugins/InstrumentEditorFactory.h>
-#include <linuxsampler/engines/Engine.h>
-#include <linuxsampler/engines/EngineChannel.h>
+#ifdef LIBLINUXSAMPLER_HEADER_FILE
+# include LIBLINUXSAMPLER_HEADER_FILE(plugins/InstrumentEditorFactory.h)
+# include LIBLINUXSAMPLER_HEADER_FILE(engines/Engine.h)
+# include LIBLINUXSAMPLER_HEADER_FILE(engines/EngineChannel.h)
+#else
+# include <linuxsampler/plugins/InstrumentEditorFactory.h>
+# include <linuxsampler/engines/Engine.h>
+# include <linuxsampler/engines/EngineChannel.h>
+#endif
+
 #include "../gigedit/gigedit.h"
 #include "../gigedit/global.h"
 

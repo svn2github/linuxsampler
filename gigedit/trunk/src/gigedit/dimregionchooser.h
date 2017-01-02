@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2015 Andreas Persson
+ * Copyright (C) 2006-2017 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -27,7 +27,11 @@
 
 #include "compat.h"
 
-#include <gig.h>
+#ifdef LIBGIG_HEADER_FILE
+# include LIBGIG_HEADER_FILE(gig.h)
+#else
+# include <gig.h>
+#endif
 
 #include <set>
 #include <map>

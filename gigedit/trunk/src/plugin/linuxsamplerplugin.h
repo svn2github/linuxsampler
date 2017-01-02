@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 - 2015 Andreas Persson
+ * Copyright (C) 2007 - 2017 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,11 +20,21 @@
 #ifndef GIGEDIT_LINUXSAMPLER_PLUGIN_H
 #define GIGEDIT_LINUXSAMPLER_PLUGIN_H
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
-#include <linuxsampler/plugins/InstrumentEditor.h>
+#ifdef LIBLINUXSAMPLER_HEADER_FILE
+# include LIBLINUXSAMPLER_HEADER_FILE(plugins/InstrumentEditor.h)
+#else
+# include <linuxsampler/plugins/InstrumentEditor.h>
+#endif
 
-#include <gig.h>
+#ifdef LIBGIG_HEADER_FILE
+# include LIBGIG_HEADER_FILE(gig.h)
+#else
+# include <gig.h>
+#endif
 
 class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor {
     public:

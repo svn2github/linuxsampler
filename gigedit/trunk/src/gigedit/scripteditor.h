@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014-2016 Christian Schoenebeck
+    Copyright (c) 2014-2017 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -8,9 +8,16 @@
 #ifndef GIGEDIT_SCRIPTEDITOR_H
 #define GIGEDIT_SCRIPTEDITOR_H
 
-#include <gig.h>
+#ifdef LIBGIG_HEADER_FILE
+# include LIBGIG_HEADER_FILE(gig.h)
+#else
+# include <gig.h>
+#endif
+
 #include <gtkmm.h>
-#include <config.h>
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
 #include "compat.h"
 #include <gtkmm/uimanager.h>
 #include <gtkmm/actiongroup.h>
@@ -24,8 +31,13 @@
 #endif
 
 #if USE_LS_SCRIPTVM
-# include <linuxsampler/scriptvm/ScriptVM.h>
-# include <linuxsampler/scriptvm/ScriptVMFactory.h>
+# ifdef LIBLINUXSAMPLER_HEADER_FILE
+#  include LIBLINUXSAMPLER_HEADER_FILE(scriptvm/ScriptVM.h)
+#  include LIBLINUXSAMPLER_HEADER_FILE(scriptvm/ScriptVMFactory.h)
+# else
+#  include <linuxsampler/scriptvm/ScriptVM.h>
+#  include <linuxsampler/scriptvm/ScriptVMFactory.h>
+# endif
 #endif
 
 class ScriptEditor : public ManagedWindow {
