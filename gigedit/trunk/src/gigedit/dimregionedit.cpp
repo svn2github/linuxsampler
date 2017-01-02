@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2016 Andreas Persson
+ * Copyright (C) 2006-2017 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -1315,11 +1315,13 @@ void DimRegionEdit::loop_infinite_toggled() {
 
 bool DimRegionEdit::set_sample(gig::Sample* sample, bool copy_sample_unity, bool copy_sample_tune, bool copy_sample_loop)
 {
+    bool result = false;
     for (std::set<gig::DimensionRegion*>::iterator itDimReg = dimregs.begin();
          itDimReg != dimregs.end(); ++itDimReg)
     {
-        set_sample(*itDimReg, sample, copy_sample_unity, copy_sample_tune, copy_sample_loop);
+        result |= set_sample(*itDimReg, sample, copy_sample_unity, copy_sample_tune, copy_sample_loop);
     }
+    return result;
 }
 
 bool DimRegionEdit::set_sample(gig::DimensionRegion* dimreg, gig::Sample* sample, bool copy_sample_unity, bool copy_sample_tune, bool copy_sample_loop)
