@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 Christian Schoenebeck                              *
- *   Copyright (C) 2006-2011 Christian Schoenebeck and Andreas Persson     *
+ *   Copyright (C) 2006-2017 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -566,6 +566,7 @@ namespace gig {
         }
 
         void SetParameters(FilterData& d, float fc, float r, float fs) const {
+            if (fc < 1.f) fc = 1.f; // this lowpass turbo filter cannot cope with cutoff being zero (would cause click sounds)
             LowpassFilter::SetParameters(d, fc, r, fs);
             d.b20 = d.b0 * 0.5;
         }

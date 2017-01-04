@@ -3,6 +3,10 @@ Version SVN trunk (?)
   * SFZ format engine:
     - added support for <global>, <master> and #define (patch by Alby M)
 
+  * Gigasampler format engine:
+    - Fixed clicks and pumping noise with Lowpass Turbo filter on very low
+      cutoff settings.
+
   * general changes:
     - fixed printf type errors (mostly in debug messages)
     - use unique_ptr instead of auto_ptr when building with C++11
