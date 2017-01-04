@@ -70,10 +70,14 @@ esac
 AM_CONDITIONAL(WINDOWS, test "$windows" = "yes")
 AM_CONDITIONAL(MAC, test "$mac" = "yes")
 
-if test "$mac" = "yes"; then
-    AC_PROG_OBJC
-    AC_PROG_OBJCXX
-fi
+# Note: even though Objective-C sources are just compiled for Mac, the
+# following AC macros though must not be embedded into a shell check
+# (if test "$mac" = "yes" ...), because those AC macros themselves are
+# expanded before any shell code is executed, the generated configure
+# code though would then not be executed and would lead to interesting
+# libtool errors on non-Mac systems due to this.
+AC_PROG_OBJC
+AC_PROG_OBJCXX
 
 PKG_PROG_PKG_CONFIG
 have_gtk3=no
