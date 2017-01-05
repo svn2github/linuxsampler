@@ -1,0 +1,76 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>in_range() function</title>
+    <meta name="description" content="Checks whether a value is between two other values.">
+  </head>
+  <body>
+    <h1>in_range()</h1>
+    <p>
+      This function takes 3 integer values as arguments and checks whether the
+      1st integer value is in the range between the two integer values provided by the
+      2nd and 3rd arguments. The valid range includes the values of the 2nd and
+      3rd arguments.
+    </p>
+    
+    <h3>Function Prototype</h3>
+    <p/>
+    <code lang="nksp">
+in_range(??needle??,??low??,??high??)
+    </code>
+
+    <h3>Arguments</h3>
+    <table>
+      <tr>
+        <th>Argument Name</th> <th>Data Type</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??needle??</code></td>
+        <td>Integer Number</td>
+        <td>The value that is going to be checked whether it is in range.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??low??</code></td>
+        <td>Integer Number</td>
+        <td>The smallest value of the valid range (including this value).<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??high??</code></td>
+        <td>Integer Number</td>
+        <td>The highest value of the valid range (including this value).<br>
+            [required]</td>
+      </tr>
+    </table>
+
+    <h3>Return Value</h3>
+    <table>
+      <tr>
+        <th>Description</th> <th>Data Type</th>
+      </tr>
+      <tr>
+        <td>Returns true (1) in case the value is in the allowed range, false (0) otherwise.</td>
+        <td>Integer Number</td>
+      </tr>
+    </table>
+    
+    <h3>Examples</h3>
+    <p>
+      The following example prints the result of some example argument
+      values to the terminal as soon as the script is loaded.
+    <p/>
+    <code>
+on init
+  message("in_range(1,4,9) = " & in_range(1,4,9))
+  message("in_range(5,4,9) = " & in_range(5,4,9))
+  message("in_range(9,4,9) = " & in_range(9,4,9))
+  message("in_range(10,4,9) = " & in_range(10,4,9))
+end on
+    </code>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0.svn36.<p>
+
+  </body>
+</html>

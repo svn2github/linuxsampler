@@ -36,6 +36,10 @@
         <td>Increments the passed integer variable by one.</td>
       </tr>
       <tr>
+        <td><code>in_range()</code></td>
+        <td>Checks whether a value is between two other values.</td>
+      </tr>
+      <tr>
         <td><code lang="nksp">message()</code></td>
         <td>Prints text to the sampler's terminal.</td>
       </tr>
@@ -319,6 +323,9 @@
         <td>
           Note IDs of all currently active notes of the current sampler part (a.k.a. sampler channel).
           This may be passed to many built-in functions like <code>note_off()</code>.
+          This array variable only contains IDs of notes which were launched due
+          to MIDI note-on events. This variable does not contain IDs of child notes
+          (i.e. notes which were launched programmatically by calling <code>note_on()</code>).
           <note>
             In contrast to KSP this variable is an integer array type, whereas KSP's
             pendent of this built-in variable is an integer constant (scalar) called
