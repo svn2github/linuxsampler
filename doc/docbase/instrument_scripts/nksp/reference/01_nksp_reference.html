@@ -315,6 +315,19 @@
         <th>Variable</th> <th>Description</th>
       </tr>
       <tr>
+        <td><code>%ALL_EVENTS</code></td>
+        <td>
+          Note IDs of all currently active notes of the current sampler part (a.k.a. sampler channel).
+          This may be passed to many built-in functions like <code>note_off()</code>.
+          <note>
+            In contrast to KSP this variable is an integer array type, whereas KSP's
+            pendent of this built-in variable is an integer constant (scalar) called
+            <code>$ALL_EVENTS<note>. Using the latter with NKSP will cause a
+            parser warning, the behavior will be the same though.
+          </note>
+        </td>
+      </tr>
+      <tr>
         <td><code>$CC_NUM</code></td>
         <td>MIDI controller number that caused the <code>controller</code>
             handler to be executed (only useful in the context of a
