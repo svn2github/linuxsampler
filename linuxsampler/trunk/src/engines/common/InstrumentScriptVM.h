@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Christian Schoenebeck
+ * Copyright (c) 2014-2017 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -281,6 +281,7 @@ namespace LinuxSampler {
         InstrumentScriptVMFunction_stop_wait m_fnStopWait;
         InstrumentScriptVMDynVar_ENGINE_UPTIME m_varEngineUptime;
         InstrumentScriptVMDynVar_NI_CALLBACK_ID m_varCallbackID;
+        InstrumentScriptVMDynVar_ALL_EVENTS m_varAllEvents;
 
         friend class InstrumentScriptVMFunction_play_note;
         friend class InstrumentScriptVMFunction_set_controller;
@@ -303,6 +304,7 @@ namespace LinuxSampler {
         friend class InstrumentScriptVMFunction_stop_wait;
         friend class InstrumentScriptVMDynVar_ENGINE_UPTIME;
         friend class InstrumentScriptVMDynVar_NI_CALLBACK_ID;
+        friend class InstrumentScriptVMDynVar_ALL_EVENTS;
     };
 
 } // namespace LinuxSampler

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Christian Schoenebeck
+ * Copyright (c) 2014-2017 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -754,6 +754,16 @@ namespace LinuxSampler {
      * code on each script variable access.
      */
     class VMDynStringVar : virtual public VMDynVar, virtual public VMStringExpr {
+    public:
+    };
+
+    /** @brief Dynamically executed variable (of integer array data type).
+     *
+     * This is the base class for all built-in integer array script variables
+     * whose variable content needs to be provided dynamically by executable
+     * native code on each script variable access.
+     */
+    class VMDynIntArrayVar : virtual public VMDynVar, virtual public VMIntArrayExpr {
     public:
     };
 

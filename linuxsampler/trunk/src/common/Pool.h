@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2016 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2017 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -648,11 +648,11 @@ class RTList : public RTListBase<T> {
             }
         }
 
-        inline int getID(const T* obj) const {
+        inline pool_element_id_t getID(const T* obj) const {
             return pPool->getID(obj);
         }
 
-        inline int getID(const Iterator& it) const {
+        inline pool_element_id_t getID(const Iterator& it) const {
             return pPool->getID(&*it);
         }
 
@@ -790,7 +790,7 @@ class Pool : public RTList<T> {
         /**
          * Overridden convenience method, behaves like the method above.
          */
-        int getID(const Iterator& it) const {
+        pool_element_id_t getID(const Iterator& it) const {
             return getID(&*it);
         }
 

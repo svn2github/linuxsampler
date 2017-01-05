@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Christian Schoenebeck
+ * Copyright (c) 2016 - 2017 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -12,6 +12,7 @@
 
 #include "../../common/global.h"
 #include "../../scriptvm/CoreVMDynVars.h"
+#include "Event.h"
 
 namespace LinuxSampler {
 
@@ -39,6 +40,26 @@ namespace LinuxSampler {
         int evalInt() OVERRIDE;
     protected:
         InstrumentScriptVM* m_vm;
+    };
+
+    /**
+     * Implements the built-in %ALL_EVENTS script array variable.
+     */
+    class InstrumentScriptVMDynVar_ALL_EVENTS : public VMDynIntArrayVar {
+    public:
+        InstrumentScriptVMDynVar_ALL_EVENTS(InstrumentScriptVM* parent);
+        virtual ~InstrumentScriptVMDynVar_ALL_EVENTS();
+        VMIntArrayExpr* asIntArray() const OVERRIDE;
+        int arraySize() const OVERRIDE;
+        bool isAssignable() const OVERRIDE { return false; }
+        int evalIntElement(uint i) OVERRIDE;
+        void assignIntElement(uint i, int value) OVERRIDE {}
+    protected:
+        void updateNoteIDs();
+    private:
+        InstrumentScriptVM* m_vm;
+        note_id_t* m_ids;
+        uint m_numIDs;
     };
 
 } // namespace LinuxSampler

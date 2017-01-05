@@ -5,7 +5,7 @@
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
  *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
- *   Copyright (C) 2012-2016 Christian Schoenebeck and Andreas Persson     *
+ *   Copyright (C) 2012-2017 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -198,6 +198,7 @@ namespace LinuxSampler {
             void IgnoreEvent(event_id_t id);
             virtual void IgnoreNote(note_id_t id) = 0;
             void IgnoreEventByScriptID(const ScriptID& id);
+            virtual uint AllNoteIDs(note_id_t* dstBuf, uint bufSize) = 0;
 
             void AddGroup(uint group);
             void HandleKeyGroupConflicts(uint KeyGroup, Pool<Event>::Iterator& itNoteOnEvent);

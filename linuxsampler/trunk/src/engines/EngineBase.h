@@ -5,7 +5,7 @@
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
  *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
- *   Copyright (C) 2012-2016 Christian Schoenebeck and Andreas Persson     *
+ *   Copyright (C) 2012-2017 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -605,7 +605,7 @@ namespace LinuxSampler {
             // implementation of abstract methods derived from class 'LinuxSampler::NotePool'
             virtual Pool<V>* GetVoicePool() OVERRIDE { return pVoicePool; }
             virtual Pool< Note<V> >* GetNotePool() OVERRIDE { return pNotePool; }
-            virtual Pool<note_id_t>* GetNodeIDPool() OVERRIDE { return &noteIDPool; }
+            virtual Pool<note_id_t>* GetNoteIDPool() OVERRIDE { return &noteIDPool; }
 
             D* GetDiskThread() { return pDiskThread; }
 

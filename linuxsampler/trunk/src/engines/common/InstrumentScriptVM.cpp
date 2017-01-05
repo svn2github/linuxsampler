@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 - 2016 Christian Schoenebeck
+ * Copyright (c) 2014 - 2017 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -234,7 +234,7 @@ namespace LinuxSampler {
         m_fnChangeCutoff(this), m_fnChangeReso(this),  m_fnChangeAttack(this),
         m_fnChangeDecay(this), m_fnChangeRelease(this), m_fnEventStatus(this),
         m_fnWait2(this), m_fnStopWait(this),
-        m_varEngineUptime(this), m_varCallbackID(this)
+        m_varEngineUptime(this), m_varCallbackID(this), m_varAllEvents(this)
     {
         m_CC.size = _MEMBER_SIZEOF(AbstractEngineChannel, ControllerTable);
         m_CC_NUM = DECLARE_VMINT(m_event, class ScriptEvent, cause.Param.CC.Controller);
@@ -338,6 +338,7 @@ namespace LinuxSampler {
         // first get built-in dynamic variables of derived VM class
         std::map<String,VMDynVar*> m = ScriptVM::builtInDynamicVariables();
 
+        m["%ALL_EVENTS"] = &m_varAllEvents;
         m["$ENGINE_UPTIME"] = &m_varEngineUptime;
         m["$NI_CALLBACK_ID"] = &m_varCallbackID;
 

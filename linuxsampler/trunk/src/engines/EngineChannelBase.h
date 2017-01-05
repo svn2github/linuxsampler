@@ -5,7 +5,7 @@
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
  *   Copyright (C) 2009-2012 Christian Schoenebeck and Grigor Iliev        *
- *   Copyright (C) 2012-2016 Christian Schoenebeck and Andreas Persson     *
+ *   Copyright (C) 2012-2017 Christian Schoenebeck and Andreas Persson     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -52,9 +52,24 @@ namespace LinuxSampler {
     template<class V>
     class NotePool {
         public:
+            /**
+             * Pool from where Voice objects are allocated from (and freed back to).
+             */
             virtual Pool<V>* GetVoicePool() = 0;
+
+            /**
+             * Pool from where new Note objects are allocated from (and freed back to).
+             */
             virtual Pool< Note<V> >* GetNotePool() = 0;
-            virtual Pool<note_id_t>* GetNodeIDPool() = 0;
+
+            /**
+             * Pool for saving already existing Note object IDs somewhere.
+             *
+             * @b IMPORTANT: This pool is @b NOT used for generating any IDs for
+             * Note objects! The respective Note objective IDs are emitted by
+             * the Note object pool (see GetNotePool() above).
+             */
+            virtual Pool<note_id_t>* GetNoteIDPool() = 0;
     };
 
     template <class V /* Voice */, class R /* Region */, class I /* Instrument */>
@@ -376,6 +391,36 @@ namespace LinuxSampler {
 
                 // drop the original event
                 pEvents->free(itEvent);
+            }
+
+            /**
+             * Copies the note IDs of all currently active notes on this engine
+             * channel to the note ID buffer @a dstBuf, and returns the amount
+             * of note IDs that have been copied to the destination buffer.
+             *
+             * @param dstBuf  - destination buffer for note IDs
+             * @param bufSize - size of destination buffer (as amount of max.
+             *                  note IDs, not as amount of bytes)
+             * @returns amount of note IDs that have been copied to buffer
+             */
+            uint AllNoteIDs(note_id_t* dstBuf, uint bufSize) OVERRIDE {
+                uint n = 0;
+
+                Pool< Note<V> >* pNotePool =
+                    dynamic_cast<NotePool<V>*>(pEngine)->GetNotePool();
+
+                RTList<uint>::Iterator iuiKey = this->pActiveKeys->first();
+                RTList<uint>::Iterator end    = this->pActiveKeys->end();
+                for(; iuiKey != end; ++iuiKey) {
+                    MidiKey* pKey = &this->pMIDIKeyInfo[*iuiKey];
+                    NoteIterator itNote = pKey->pActiveNotes->first();
+                    for (; itNote; ++itNote) {
+                        if (n >= bufSize) goto done;
+                        dstBuf[n++] = pNotePool->getID(itNote);
+                    }
+                }
+                done:
+                return n;
             }
 
             RTList<R*>* pRegionsInUse;     ///< temporary pointer into the instrument change command, used by the audio thread

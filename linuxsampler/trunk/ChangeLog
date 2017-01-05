@@ -136,6 +136,7 @@ Version SVN trunk (?)
     - Provide more user friendly error messages on syntax errors.
     - Fixed NKSP parser warning "Not a statement" when assigning an
       initializer list to an array variable.
+    - Implemented built-in script array variable "%ALL_EVENTS".
 
   * Instruments DB:
     - Fixed memory access bug of general DB access code which lead to
