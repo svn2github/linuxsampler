@@ -66,6 +66,11 @@ on init
   message("dec(" & $i & ") = " & dec($i))
   message("dec(" & $i & ") = " & dec($i))
 
+  message("in_range(1,4,9) = " & in_range(1,4,9))
+  message("in_range(5,4,9) = " & in_range(5,4,9))
+  message("in_range(9,4,9) = " & in_range(9,4,9))
+  message("in_range(10,4,9) = " & in_range(10,4,9))
+
   message("random(-5,5) = " & random(-5,5))
   message("random(-5,5) = " & random(-5,5))
   message("random(-5,5) = " & random(-5,5))
