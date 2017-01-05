@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Christian Schoenebeck
+ * Copyright (c) 2014-2017 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -272,6 +272,7 @@ namespace LinuxSampler {
         class CoreVMFunction_num_elements* m_fnNumElements;
         class CoreVMFunction_inc* m_fnInc;
         class CoreVMFunction_dec* m_fnDec;
+        class CoreVMFunction_in_range* m_fnInRange;
         class CoreVMFunction_sh_left* m_fnShLeft;
         class CoreVMFunction_sh_right* m_fnShRight;
         class CoreVMFunction_min* m_fnMin;

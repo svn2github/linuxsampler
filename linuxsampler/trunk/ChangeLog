@@ -137,6 +137,7 @@ Version SVN trunk (?)
     - Fixed NKSP parser warning "Not a statement" when assigning an
       initializer list to an array variable.
     - Implemented built-in script array variable "%ALL_EVENTS".
+    - Implemented built-in script function "in_range()".
 
   * Instruments DB:
     - Fixed memory access bug of general DB access code which lead to

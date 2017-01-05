@@ -180,6 +180,21 @@ VMFnResult* CoreVMFunction_dec::exec(VMFnArgs* args) {
 }
 
 ///////////////////////////////////////////////////////////////////////////
+// built-in script function:  in_range()
+
+VMFnResult* CoreVMFunction_in_range::exec(VMFnArgs* args) {
+    int i  = args->arg(0)->asInt()->evalInt();
+    int lo = args->arg(1)->asInt()->evalInt();
+    int hi = args->arg(2)->asInt()->evalInt();
+    if (lo > hi) { // swap lo and hi
+        int tmp = lo;
+        lo = hi;
+        hi = tmp;
+    }
+    return successResult(i >= lo && i <= hi);
+}
+
+///////////////////////////////////////////////////////////////////////////
 // built-in script function:  sh_left()
 
 VMFnResult* CoreVMFunction_sh_left::exec(VMFnArgs* args) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 - 2016 Christian Schoenebeck
+ * Copyright (c) 2014 - 2017 Christian Schoenebeck
  *
  * http://www.linuxsampler.org
  *
@@ -140,6 +140,7 @@ namespace LinuxSampler {
         m_fnNumElements = new CoreVMFunction_num_elements;
         m_fnInc = new CoreVMFunction_inc;
         m_fnDec = new CoreVMFunction_dec;
+        m_fnInRange = new CoreVMFunction_in_range;
         m_varRealTimer = new CoreVMDynVar_NKSP_REAL_TIMER;
         m_varPerfTimer = new CoreVMDynVar_NKSP_PERF_TIMER;
         m_fnShLeft = new CoreVMFunction_sh_left;
@@ -157,6 +158,7 @@ namespace LinuxSampler {
         delete m_fnNumElements;
         delete m_fnInc;
         delete m_fnDec;
+        delete m_fnInRange;
         delete m_fnShLeft;
         delete m_fnShRight;
         delete m_fnMin;
@@ -262,6 +264,7 @@ namespace LinuxSampler {
         else if (name == "num_elements") return m_fnNumElements;
         else if (name == "inc") return m_fnInc;
         else if (name == "dec") return m_fnDec;
+        else if (name == "in_range") return m_fnInRange;
         else if (name == "sh_left") return m_fnShLeft;
         else if (name == "sh_right") return m_fnShRight;
         else if (name == "min") return m_fnMin;

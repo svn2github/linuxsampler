@@ -218,6 +218,18 @@ public:
 };
 
 /**
+ * Implements the built-in in_range() script function.
+ */
+class CoreVMFunction_in_range : public VMIntResultFunction {
+public:
+    int minRequiredArgs() const { return 3; }
+    int maxAllowedArgs() const { return 3; }
+    bool acceptsArgType(int iArg, ExprType_t type) const { return type == INT_EXPR; }
+    ExprType_t argType(int iArg) const { return INT_EXPR; }
+    VMFnResult* exec(VMFnArgs* args);
+};
+
+/**
  * Implements the built-in sh_left() script function.
  */
 class CoreVMFunction_sh_left : public VMIntResultFunction {
