@@ -1,0 +1,78 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>SFZ File Format</title>
+    <urlpath>sfz</urlpath>
+    <meta name="description" content="SFZ File Format Reference.">
+    <link rel="stylesheet" href="http://doc.linuxsampler.org/css/preview.css">
+    <script type="text/javascript" src="http://doc.linuxsampler.org/js/preview.js"></script>
+  </head>
+  <body>
+    <h1>SFZ</h1>
+    <p>
+      The SFZ file format is a human readable instrument definition file format
+      for audio sample based virtual instruments. In contrast to many other
+      sampler file formats you can open and modify such .sfz files simply with
+      any text editor.
+    </p>
+
+    <h2>Sections</h2>
+    <p>
+      A sfz file is divided into sections. A section defines in which context
+      the subsequent statements in the sfz file shall be interpreted as. For example
+      You may want to declare a lowpass filter to be used either for the entire
+      sfz instrument, or you may declare the lowpass filter to be only used for
+      a certain region on the keyboard instead. A section is introduced by
+      its section name, where the section name is placed in a pair of angle brackets.
+      The section name is then followed by the respective sfz opcodes which shall be
+      assigned to that particular section. The sections available with sfz are:
+    </p>
+    <table>
+      <tr>
+        <th>Section</th> <th>Standard</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code lang="sfz">&lt;global&gt;</code></td> <td>SFZ v1</td> <td>Declarations which shall apply to the entire instrument.</td>
+      </tr>
+      <tr>
+        <td><code lang="sfz">&lt;group&gt;</code></td> <td>SFZ v1</td> <td>TODO ...</td>
+      </tr>
+      <tr>
+        <td><code lang="sfz">&lt;region&gt;</code></td> <td>SFZ v1</td> <td>TODO ...</td>
+      </tr>
+      <tr>
+        <td><code lang="sfz">&lt;control&gt;</code></td> <td>?</td> <td>TODO ...</td>
+      </tr>
+      <tr>
+        <td><code lang="sfz">&lt;curve&gt;</code></td> <td>?</td> <td>TODO ...</td>
+      </tr>
+      <tr>
+        <td><code lang="sfz">&lt;effect&gt;</code></td> <td>?</td> <td>TODO ...</td>
+      </tr>
+    </table>
+
+    <h2>Opcodes</h2>
+    <p>
+      The actual individual statements which make up the articulation
+      definition of a sfz instrument are called <i>opcodes</i>. For example there
+      is an opcode for loading and assigning a sample file to be played. And
+      there is an opcode for defining envelope parameters, and so on.
+      The opcodes available with the SFZ file format are:
+    </p>
+    <table>
+      <tr>
+        <th>Opcode</th> <th>Standard</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code lang="sfz">sample</code></td> <td>SFZ v1</td> <td>Load and assign an audio sample file.</td>
+      </tr>
+      <tr>
+        <td><code lang="sfz">script</code></td> <td>LinuxSampler Ext.</td> <td>Load an real-time instrument script for the instrument.</td>
+      </tr>
+      <tr>
+        <td>TODO ...</td> <td></td> <td></td>
+      </tr>
+    </table>
+
+  </body>
+</html>

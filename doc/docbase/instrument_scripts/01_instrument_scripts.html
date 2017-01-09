@@ -88,27 +88,52 @@
     <h2>Using Scripts with LinuxSampler</h2>
     <p>
       LinuxSampler allows you to write and use such <i>Instrument Scripts</i>
-      as well. At this point however, support for instrument scripts is limited
-      to the GigaStudio format engine of LinuxSampler yet. The script engine was
-      developed in a very modular design, where most of the script engine's
-      software is independent from the actual sampler format and the
-      respective sampler format engine is just adding its format specific
-      extensions to the script language. For example the GigaStudio format
-      engine adds scripting functions to allow the sound designer to control the
-      dimension region by scripts.
-    </p>  
-    <p>
-      In other words: adding script support to the SFZ format engine for
-      example would not be much work. Simply nobody so far had time and
-      passion to add the scripting feature to the SFZ engine yet.
+      as well. At the moment support for instrument scripts is provided by
+      the GigaStudio format engine, as well as now also by the SFZ format engine of
+      LinuxSampler. The script engine was developed in a very modular design,
+      where most of the script engine's software is independent from the
+      actual sampler format and the respective sampler format engine is just
+      adding its format specific extensions to the script language. For example
+      the GigaStudio format engine adds scripting functions to allow the sound
+      designer to control the dimension region by scripts.
     </p>
 
-    <h3>Bundling Scripts with Sounds</h3>
+    <h3>Bundling Scripts with GigaStudio (.gig) Files</h3>
     <p>
       Our graphical instrument editor for the GigaStudio format - <i>gigedit</i> -
       includes an instrument script editor and allows you to attach
       instrument scripts to individual GigaStudio format sounds. Refer to the
       gigedit manual for <a href="gigedit_scripts.html">how to manage instrument scripts with gigedit.</a>
+    </p>
+
+    <h3>Bundling Scripts with SFZ (.sfz) Files</h3>
+    <p>
+      LinuxSampler adds a new opcode <code lang="sfz">script</code> as an
+      extension to the offical SFZ format. Similar to the <code lang="sfz">sample</code>
+      opcode, a file system path needs to be assigned to the actual script file that should
+      be loaded by the sampler. The <code lang="sfz">script</code> opcode should be placed
+      in the SFZ file's <code lang="sfz">&lt;global&gt;</code> section. However at the moment
+      the precise location of the opcode will simply be ignored by LinuxSampler. A simple example
+      SFZ file may look like this:
+    </p>
+    <code lang="sfz">
+// real-time instrument scripts should be loaded in global section
+&lt;global&gt;
+script=path/to/my_nksp_script.txt
+
+// just load one audio file and assign in to entire key range
+&lt;group&gt;
+sample=some_sound.wav
+    </code>
+    <p>
+      At the moment LinuxSampler supports only one script file per instrument.
+      Accordingly there should only be one <code lang="sfz">script</code> opcode
+      occurrence in your SFZ file. If you place more than one
+      <code lang="sfz">script</code> opcode to a SFZ file, then only the first
+      script will be loaded and the sampler will print a warning. In future this will
+      change, and the sampler will support running multiple scripts, and will run
+      the scripts subsequently on events according to the order the scripts appeared
+      in the SFZ file.
     </p>
 
     <h3>Learning the Script Language</h3>

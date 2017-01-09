@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>script opcode</title>
+    <meta name="description" content="Loads a real-time instrument script for the instrument.">
+  </head>
+  <body>
+    <h1>script Opcode</h1>
+    <p>
+      This is an extension to the SFZ file format which is currently only
+      available with LinuxSampler. It allows to load real-time instrument scripts
+      for SFZ instruments. Find out more about <a href="01_instrument_scripts.html">Instrument Scripts ...</a>
+    </p>
+    
+    <h3>Opcode Prototype</h3>
+    <p/>
+    <code lang="sfz">
+script=??path??
+    </code>
+
+    <h3>Attribute</h3>
+    <p>The mandatory <code>??path??</code> value defines the relative path to the real-time instrument script file that shall be loaded and executed.</p>
+
+    <h3>Allowed Sections</h3>
+    <p>May only be used in <code>&lt;global&gt;</code> section.
+    
+    <h3>Examples</h3>
+    <p>
+      Loads the WAV file "some_sound.wav" and assigns it to the entire key range of the instrument,
+      and loads the real-time instrument script file "my_nksp_script.txt" from the subdirectory
+      "myscripts". The script will be executed on the respective events the script file provides
+      event handlers for.
+    <p/>
+    <code lang="sfz">
+&lt;global&gt;
+script=myscripts/my_nksp_script.txt
+
+&lt;group&gt;
+sample=some_sound.wav
+    </code>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0.svn37<p>
+    <p>Extension, not available with any SFZ standard.<p>
+
+  </body>
+</html>

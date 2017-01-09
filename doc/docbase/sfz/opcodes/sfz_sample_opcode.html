@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <title>sample opcode</title>
+    <meta name="description" content="Loads and assigns an audio sample file.">
+  </head>
+  <body>
+    <h1>sample Opcode</h1>
+    <p>
+      This is the most fundamental opcode of the SFZ file format. It allows you
+      to load and assign a certain audio instrument file.
+    </p>
+    
+    <h3>Opcode Prototype</h3>
+    <p/>
+    <code lang="sfz">
+sample=??path??
+    </code>
+
+    <h3>Attribute</h3>
+    <p>The mandatory <code>??path??</code> value defines the relative path of the sample file that shall be loaded and assigned.</p>
+
+    <h3>Allowed Sections</h3>
+    <p>May be used in sections <code>&lt;global&gt;</code>, <code>&lt;region&gt;</code>, ... TODO.
+
+    <h3>Examples</h3>
+    <p>
+      Loads the WAV file "organ_c3.wav" from the subdirectory "mysamples"
+      and assigns it to the entire key range of the instrument.
+    <p/>
+    <code lang="sfz">
+&lt;global&gt;
+sample=mysamples/organ_c3.wav
+    </code>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0<p>
+    <p>Conforms to SFZ v1 Standard.<p>
+
+  </body>
+</html>
