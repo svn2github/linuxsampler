@@ -94,6 +94,10 @@ namespace LinuxSampler { namespace sfz {
             // keep the dimension regions and samples that are in use
             pInstrumentManager->HandBackInstrument(cmd.pInstrument, this, cmd.pRegionsInUse);
         }
+        if (cmd.pScript) {
+            // give old instrument script back to instrument resource manager
+            cmd.pScript->resetAll();
+        }
         cmd.pRegionsInUse->clear();
 
         // delete all key groups
@@ -109,6 +113,15 @@ namespace LinuxSampler { namespace sfz {
             newInstrument = pInstrumentManager->Borrow(instrid, this);
             if (!newInstrument) {
                 throw InstrumentManagerException("resource was not created");
+            }
+
+            if (newInstrument->scripts.size() > 1) {
+                std::cerr << "WARNING: Executing more than one real-time instrument script slot is not implemented yet!\n";
+            }
+            ::sfz::Script* script = (!newInstrument->scripts.empty()) ? &newInstrument->scripts[0] : NULL;
+            if (script) {
+                String sourceCode = script->GetSourceCode();
+                LoadInstrumentScript(sourceCode);
             }
         }
         catch (InstrumentManagerException e) {
@@ -146,7 +159,14 @@ namespace LinuxSampler { namespace sfz {
         InstrumentIdxName = newInstrument->GetName();
         InstrumentStat = 100;
 
-        ChangeInstrument(newInstrument);
+        {
+            InstrumentChangeCmd< ::sfz::Region, ::sfz::Instrument>& cmd =
+                ChangeInstrument(newInstrument);
+            if (cmd.pScript) {
+                // give old instrument script back to instrument resource manager
+                cmd.pScript->resetAll();
+            }
+        }
 
         StatusChanged(true);
     }

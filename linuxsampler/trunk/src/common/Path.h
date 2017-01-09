@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007-2014 Christian Schoenebeck                         *
+ *   Copyright (C) 2007-2017 Christian Schoenebeck                         *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -50,8 +50,14 @@ public:
     Path();
 
     /**
-     * Creates a path object according to the local system's path conventions.
-     * @see fromPosix(), fromWindows(), fromDbPath()
+     * Creates a Path object according to the local system's path conventions.
+     * That means to construct this Path object it uses fromPosix() on POSIX
+     * compliant systems (i.e. Linux, Mac) and fromWindows() on Windows systems.
+     *
+     * If you have no information in which file system encoding the path string
+     * was encoded as, then rather use fromUnknownFS() instead.
+     *
+     * @see fromUnknownFS(), fromPosix(), fromWindows(), fromDbPath()
      */
     Path(std::string path);
 
@@ -72,8 +78,18 @@ public:
     void setDrive(const char& Drive);
 
     /**
+     * Returns file system path of this Path object as String in correct
+     * encoding as expected by the local file system calls. Essentially that
+     * means this software returns toWindows() on Windows systems, toPosix()
+     * on POSIX compliant systems like Linux and Mac.
+     */
+    std::string toNativeFSPath() const;
+
+    /**
      * Convert this Path into the correct encoding as expected by POSIX
      * compliant system calls.
+     *
+     * @see toNativeFSPath()
      */
     std::string toPosix() const;
 
@@ -92,6 +108,8 @@ public:
     /**
      * Convert this Path into the correct encoding as expected by Windows
      * operating systems.
+     *
+     * @see toNativeFSPath()
      */
     std::string toWindows() const;
 
@@ -104,6 +122,15 @@ public:
      * Concatenate two paths.
      */
     Path operator+(const Path* p);
+
+    /**
+     * Attempts to auto detect the file system the supplied filename string
+     * was encoded for, and then creates and returns a corresponding Path
+     * object. This method only auto detects file system encodings of Windows
+     * and POSIX (i.e. Linux and Mac). This method does @b NOT detect any other
+     * encodings like DB path for example.
+     */
+    static Path fromUnknownFS(std::string path);
 
     /**
      * Create a Path object from a POSIX path / filename string.
@@ -125,7 +152,7 @@ public:
      * this path in abstract/raw form. This is the last name in
      * the path's name sequence.
      */
-    std::string getName();
+    std::string getName() const;
 
     /**
      * Returns the name of the file or directory
@@ -150,7 +177,7 @@ public:
      * Returns the last name in the path's name sequence
      * of this path with the file extension stripped off.
      */
-    std::string getBaseName();
+    std::string getBaseName() const;
 
     /**
      * Returns the last name in the path's name sequence

@@ -30,6 +30,8 @@
 
 namespace LinuxSampler {
 
+    class Path;
+
 #if __cplusplus >= 201103L && !CONFIG_NO_CPP11STL
     typedef std::unique_ptr<std::vector<std::string>> FileListPtr;
 #else
@@ -45,7 +47,9 @@ namespace LinuxSampler {
             };
             
             File(std::string FileName);
-            
+
+            File(const Path& path);
+
             /**
              * Tests whether the file exists.
              */

@@ -24,9 +24,16 @@
 
 #include "Engine.h"
 #include "EngineChannel.h"
+#include "InstrumentScriptVM.h"
 
 namespace LinuxSampler { namespace sfz {
     Engine::Format Engine::GetEngineFormat() { return SFZ; }
+
+    void Engine::CreateInstrumentScriptVM() {
+        dmsg(2,("sfz::Engine created SFZ format scriptvm\n"));
+        if (pScriptVM) return;
+        pScriptVM = new InstrumentScriptVM; // sfz format specific extended script runner
+    }
     
     Engine::Engine() {
         pCCPool = new Pool<CCSignalUnit::CC>(GLOBAL_MAX_VOICES * MaxCCPerVoice);

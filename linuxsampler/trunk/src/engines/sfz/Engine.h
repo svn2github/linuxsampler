@@ -51,7 +51,8 @@ namespace LinuxSampler { namespace sfz {
             ) OVERRIDE;
             virtual void ProcessChannelPressure(LinuxSampler::EngineChannel* pEngineChannel, Pool<Event>::Iterator& itChannelPressureEvent) OVERRIDE;
             virtual void ProcessPolyphonicKeyPressure(LinuxSampler::EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNotePressureEvent) OVERRIDE;
-            
+            virtual void CreateInstrumentScriptVM() OVERRIDE;
+
             virtual void PostSetMaxVoices(int iVoices) OVERRIDE;
 
             friend class Voice;

@@ -2,6 +2,9 @@ Version SVN trunk (?)
 
   * SFZ format engine:
     - added support for <global>, <master> and #define (patch by Alby M)
+    - Removed code duplication in SFZ file loading code.
+    - Added support for sfz extension opcode 'script' which may be used to
+      load real-time instrument script file (NKSP script language).
 
   * Gigasampler format engine:
     - Fixed clicks and pumping noise with Lowpass Turbo filter on very low

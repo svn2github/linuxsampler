@@ -34,11 +34,16 @@
 #include "../common/SampleFile.h"
 #include "../common/SampleManager.h"
 #include "../../common/ArrayList.h"
+#include "../../common/optional.h"
+#include "../../common/Exception.h"
+#include "../../common/Path.h"
 
 #define TRIGGER_ATTACK  ((unsigned char) (1 << 0)) // 0x01
 #define TRIGGER_RELEASE ((unsigned char) (1 << 1)) // 0x02
 #define TRIGGER_FIRST   ((unsigned char) (1 << 2)) // 0x04
 #define TRIGGER_LEGATO  ((unsigned char) (1 << 3)) // 0x08
+
+#define optional LinuxSampler::optional
 
 namespace sfz
 {
@@ -50,6 +55,10 @@ namespace sfz
     class File;
     class LookupTable;
     class SampleManager;
+
+    class Exception : public LinuxSampler::Exception {
+    public:
+    };
 
     class Sample : public LinuxSampler::SampleFileBase<Region> {
         private:
@@ -78,6 +87,51 @@ namespace sfz
             virtual long GetTotalFrameCount() { return TotalFrames; }
             
             friend class SampleManager;
+    };
+
+    /** @brief Real-time instrument script (sfz format extension).
+     *
+     * Real-time instrument scripts are user supplied small programs which can
+     * be used by instrument designers to create custom behaviors and features
+     * not available in the stock sampler engine. Features which might be very
+     * exotic or specific for the respective instrument.
+     *
+     * This is an extension of the sfz format, thus a feature which is currently
+     * only supported by LinuxSampler. Scripts will not load with other sfz
+     * players right now. The dedicated sfz opcode for this purpose is:
+     * @code
+     * script=path/to/scriptfile
+     * @endcode
+     * This opcode is recommended to appear in the sfz file's global section,
+     * however ATM the precise location of the opcode is simply ignored.
+     * Currently there may only be one @c script opcode per instrument. Further
+     * @c script opcodes will currently simply be ignored. In future using
+     * multiple @c script opcodes will be supported as well, the scripts will
+     * then be executed by the sampler in the order in which their opcodes
+     * appeared in their sfz file.
+     *
+     * You find more informations about Instrument Scripts on the LinuxSampler
+     * documentation site:
+     *
+     * - <a href="http://doc.linuxsampler.org/Instrument_Scripts/">About Instrument Scripts in General</a>
+     * - <a href="http://doc.linuxsampler.org/Instrument_Scripts/NKSP_Language">Introduction to the NKSP Script Language</a>
+     * - <a href="http://doc.linuxsampler.org/Instrument_Scripts/NKSP_Language/Reference/">NKSP Reference Manual</a>
+     */
+    class Script {
+        public:
+            enum Language_t {
+                LANGUAGE_NKSP = 0 ///< NKSP stands for "Is Not KSP" (default). Refer to the <a href="http://doc.linuxsampler.org/Instrument_Scripts/NKSP_Language/Reference/">NKSP Reference Manual</a> for details about this script language. 
+            };
+
+            Script(LinuxSampler::Path path);
+            Script(String path);
+            virtual ~Script();
+
+            String     Name() const;    ///< Name of the script (currently returns the file's file name without its path).
+            Language_t Language();      ///< Programming language and dialect the script was written in (currently always returns LANGUAGE_NKSP).
+            String     GetSourceCode(); ///< Reads the script's source code from its script file and returns the entire source code as String.
+        private:
+            LinuxSampler::Path m_path;
     };
 
     // Enumerations
@@ -139,129 +193,6 @@ namespace sfz
                 Smooth     = cc.Smooth;
                 Step       = cc.Step;
             }
-    };
-
-    /////////////////////////////////////////////////////////////
-    // class Exception
-
-    class Exception :
-        public std::runtime_error
-    {
-        public:
-        Exception(const std::string& msg) :
-            runtime_error(msg)
-        {
-        }
-
-        std::string Message()
-        {
-            return what();
-        }
-
-        void PrintMessage()
-        {
-            std::cerr << what() << std::endl << std::flush;
-        }
-    };
-
-    /////////////////////////////////////////////////////////////
-    // class optional
-
-    //  Handy class nicked from LinuxSampler...
-    //  Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck
-    //  Copyright (C) 2005, 2006 Christian Schoenebeck
-
-    class optional_base
-    {
-        public:
-        class nothing_t { public: nothing_t() {} };
-        static const nothing_t nothing;
-    };
-
-    template<class T>
-    class optional :
-        public optional_base
-    {
-        public:
-        optional()
-        {
-            initialized = false;
-        }
-
-        optional(T data)
-        {
-            this->data  = data;
-            initialized = true;
-        }
-
-        optional(nothing_t)
-        {
-            initialized = false;
-        }
-
-        template <class T_inner>
-        optional(T_inner data)
-        {
-            this->data  = T(data);
-            initialized = true;
-        }
-
-        const T& get() const throw (Exception)
-        {
-            if (!initialized) throw Exception("optional variable not initialized");
-            return data;
-        }
-
-        T& get() throw (Exception)
-        {
-            if (!initialized) throw Exception("optional variable not initialized");
-            return data;
-        }
-
-        void unset()
-        {
-            initialized = false;
-        }
-
-        optional& operator =(const optional& arg) throw (Exception)
-        {
-            if (!arg.initialized) {
-                            initialized = false;
-                        } else {
-                            this->data  = arg.data;
-                            initialized = true;
-                        }
-            return *this;
-        }
-
-        optional& operator =(const T& arg)
-        {
-            this->data  = arg;
-            initialized = true;
-            return *this;
-        }
-
-        const T& operator *() const throw (Exception) { return get(); }
-        T&       operator *()       throw (Exception) { return get(); }
-
-        const T* operator ->() const throw (Exception)
-        {
-            if (!initialized) throw Exception("optional variable not initialized");
-            return &data;
-        }
-
-        T* operator ->() throw (Exception)
-        {
-            if (!initialized) throw Exception("optional variable not initialized");
-            return &data;
-        }
-
-        operator bool()   const { return initialized; }
-        bool operator !() const { return !initialized; }
-
-        protected:
-        T    data;
-        bool initialized;
     };
 
     /////////////////////////////////////////////////////////////
@@ -714,6 +645,7 @@ namespace sfz
         /// List of Regions belonging to this Instrument
         std::vector<Region*> regions;
         ::LinuxSampler::ArrayList<Curve> curves;
+        std::vector<Script> scripts;
 
         friend class File;
         friend class Query;

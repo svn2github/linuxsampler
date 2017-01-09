@@ -27,6 +27,7 @@
 #include <dirent.h>
 
 #include "Exception.h"
+#include "Path.h"
 #include "global_private.h"
 
 #if WIN32
@@ -46,6 +47,11 @@ namespace LinuxSampler {
     Mutex File::DirectoryWalkerMutex;
     std::vector<File::DirectoryWalker*> File::DirectoryWalkers;
     std::string File::DWErrorMsg;
+
+    File::File(const Path& path) {
+        bExist = !stat(path.toNativeFSPath().c_str(), &Status);
+        if (!bExist) ErrorMsg = strerror(errno);
+    }
 
     File::File(std::string Path) {
             bExist = !stat(Path.c_str(), &Status);

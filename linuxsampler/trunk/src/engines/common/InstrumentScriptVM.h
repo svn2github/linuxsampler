@@ -247,7 +247,7 @@ namespace LinuxSampler {
     protected:
         ScriptEvent* m_event; ///< The event currently executed by exec().
 
-        // buil-in script variables
+        // built-in script variables
         VMInt8Array m_CC;
         VMInt8RelPtr m_CC_NUM;
         VMIntRelPtr  m_EVENT_ID;
@@ -259,7 +259,7 @@ namespace LinuxSampler {
         VMIntRelPtr  m_NI_CALLBACK_TYPE;
         VMIntRelPtr  m_NKSP_IGNORE_WAIT;
 
-        // buil-in script functions
+        // built-in script functions
         InstrumentScriptVMFunction_play_note m_fnPlayNote;
         InstrumentScriptVMFunction_set_controller m_fnSetController;
         InstrumentScriptVMFunction_ignore_event m_fnIgnoreEvent;

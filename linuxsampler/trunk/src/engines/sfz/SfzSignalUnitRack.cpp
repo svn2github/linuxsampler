@@ -488,7 +488,7 @@ namespace LinuxSampler { namespace sfz {
         
     }
     
-    float EndpointUnit::GetInfluence(::sfz::Array< ::sfz::optional<float> >& cc) {
+    float EndpointUnit::GetInfluence(::sfz::Array< optional<float> >& cc) {
         float f = 0;
         for (int i = 0; i < 128; i++) {
             if (cc[i]) {
@@ -498,7 +498,7 @@ namespace LinuxSampler { namespace sfz {
         return f;
     }
     
-    float EndpointUnit::GetInfluence(::sfz::Array< ::sfz::optional<int> >& cc) {
+    float EndpointUnit::GetInfluence(::sfz::Array< optional<int> >& cc) {
         float f = 0;
         for (int i = 0; i < 128; i++) {
             if (cc[i]) {

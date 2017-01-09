@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007-2016 Christian Schoenebeck                         *
+ *   Copyright (C) 2007-2017 Christian Schoenebeck                         *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -46,6 +46,14 @@ void Path::appendNode(std::string Name) {
 void Path::setDrive(const char& Drive) {
     drive = Drive;
     absolute = true;
+}
+
+std::string Path::toNativeFSPath() const {
+    #if WIN32
+    return toWindows();
+    #else
+    return toPosix();
+    #endif
 }
 
 std::string Path::toPosix() const {
@@ -152,6 +160,26 @@ Path Path::operator+(const Path& p) {
 
 Path Path::operator+(const Path* p) {
     return *this + *p;
+}
+
+Path Path::fromUnknownFS(std::string path) {
+    bool hasDrive = false;
+    int nSlash = 0, nBackSlash = 0;
+
+    if (path.length() >= 2)
+        hasDrive = (path[1] == ':');
+
+    for (size_t i = 0; i < path.size(); ++i) {
+        if (path[i] == '/')  nSlash++;
+        if (path[i] == '\\') nBackSlash++;
+    }
+
+    if (!hasDrive && nSlash > nBackSlash)
+        return Path::fromPosix(path);
+    else if (hasDrive || nBackSlash > nSlash)
+        return Path::fromWindows(path);
+    else
+        return Path(path); // expect local file system encoding
 }
 
 Path Path::fromPosix(std::string path) {
@@ -271,7 +299,7 @@ std::string Path::getName(std::string path) {
     return p.getName();
 }
 
-std::string Path::getName() {
+std::string Path::getName() const {
     if(elements.empty()) return "";
     return elements[elements.size() - 1];
 }
@@ -287,7 +315,7 @@ std::string Path::getBaseName(std::string path) {
     return p.getBaseName();
 }
 
-std::string Path::getBaseName() {
+std::string Path::getBaseName() const {
     std::string name = getName();
     size_t lastdot = name.find_last_of('.');
     if(lastdot == std::string::npos) return name;
@@ -298,9 +326,9 @@ std::string Path::stripLastName() {
     if (elements.size() > 0) elements.pop_back();
     #if WIN32
     return toWindows();
-    #endif
-
+    #else
     return toPosix();
+    #endif
 }
 
 std::string Path::stripLastName(std::string path) {

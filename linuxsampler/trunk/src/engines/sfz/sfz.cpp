@@ -32,6 +32,7 @@
 #include "../../common/File.h"
 #include "../../common/Path.h"
 #include "LookupTable.h"
+#include "../../common/global_private.h"
 
 namespace sfz
 {
@@ -66,9 +67,37 @@ namespace sfz
     }
 
     /////////////////////////////////////////////////////////////
-    // class optional
+    // class Script
 
-    const optional_base::nothing_t optional_base::nothing;
+    Script::Script(LinuxSampler::Path path) : m_path(path) {
+    }
+
+    Script::Script(String path) : m_path(LinuxSampler::Path::fromUnknownFS(path)) {
+    }
+
+    Script::~Script() {
+    }
+
+    String Script::Name() const {
+        return m_path.getName();
+    }
+
+    Script::Language_t Script::Language() {
+        return LANGUAGE_NKSP;
+    }
+
+    String Script::GetSourceCode() {
+        std::ifstream f(m_path.toNativeFSPath().c_str());
+        std::string s;
+        // reserve required space on string object
+        f.seekg(0, std::ios::end);
+        s.reserve(f.tellg());
+        f.seekg(0, std::ios::beg);
+        // read entire content from file and assign it to string object
+        s.assign((std::istreambuf_iterator<char>(f)),
+                  std::istreambuf_iterator<char>());
+        return s;
+    }
 
     /////////////////////////////////////////////////////////////
     // class Articulation
@@ -305,16 +334,21 @@ namespace sfz
         off_mode = OFF_FAST;
 
         // sample player
-        count.unset();
-        delay.unset(); delay_random.unset();
-        delay_beats.unset(); stop_beats.unset();
-        delay_samples.unset();
+        count = optional<int>::nothing;
+        delay = optional<float>::nothing;
+        delay_random = optional<float>::nothing;
+        delay_beats = optional<int>::nothing;
+        stop_beats = optional<int>::nothing;
+        delay_samples = optional<int>::nothing;
         end = 0;
-        loop_crossfade.unset();
-        offset.unset(); offset_random.unset();
+        loop_crossfade = optional<float>::nothing;
+        offset = optional<uint>::nothing;
+        offset_random = optional<int>::nothing;
         loop_mode = LOOP_UNSET;
-        loop_start.unset(); loop_end.unset();
-        sync_beats.unset(); sync_offset.unset();
+        loop_start = optional<int>::nothing;
+        loop_end = optional<int>::nothing;
+        sync_beats = optional<int>::nothing;
+        sync_offset = optional<int>::nothing;
 
         // amplifier
         volume = 0;
@@ -361,7 +395,7 @@ namespace sfz
 
         // filter
         fil_type = LPF_2P;
-        cutoff.unset();
+        cutoff = optional<float>::nothing;
         cutoff_chanaft = 0;
         cutoff_polyaft = 0;
         resonance = 0;
@@ -371,7 +405,7 @@ namespace sfz
         fil_random = 0;
 
         fil2_type = LPF_2P;
-        cutoff2.unset();
+        cutoff2 = optional<float>::nothing;
         cutoff2_chanaft = 0;
         cutoff2_polyaft = 0;
         resonance2 = 0;
@@ -1145,6 +1179,33 @@ namespace sfz
                 _defined_macros[varname] = value;
                 
                 continue;
+            }
+            // script=path/to/scriptfile
+            else if (line.find("script") == 0) {
+                size_t eq = line.find_first_of("=");
+                if (eq == std::string::npos) {
+                    std::cerr << "sfz error: opcode 'script' misses '=' character\n";
+                    continue;
+                }
+                std::string value = trim( line.substr(eq+1, std::string::npos) );
+                if (value.empty()) {
+                    std::cerr << "sfz error: empty path assigned to opcode 'script'\n";
+                    continue;
+                }
+                LinuxSampler::Path path = LinuxSampler::Path::fromUnknownFS(value);
+                if (!currentDir.empty() && !path.isAbsolute())
+                    path = LinuxSampler::Path::fromUnknownFS(currentDir) + path;
+                LinuxSampler::File file(path);
+                if (!file.Exist()) {
+                    std::cerr << "sfz error: script file '" << value << "' does not exist\n";
+                    continue;
+                }
+                if (!file.IsFile()) {
+                    std::cerr << "sfz error: script '" << value << "' is not a file\n";
+                    continue;
+                }
+                Script script(path);
+                _instrument->scripts.push_back(script);
             }
 
             // DEFINITION

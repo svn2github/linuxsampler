@@ -11,15 +11,15 @@
 #include "../../common/global_private.h"
 #include "EngineChannel.h"
 
-namespace LinuxSampler { namespace gig {
+namespace LinuxSampler { namespace sfz {
 
     InstrumentScriptVM::InstrumentScriptVM() :
-        LinuxSampler::InstrumentScriptVM(), m_fnGigSetDimZone(this)
+        LinuxSampler::InstrumentScriptVM()
     {
     }
 
-    std::map<String,int> InstrumentScriptVM::builtInConstIntVariables() {
-        // first get built-in integer variables of derived VM class
+    /*std::map<String,int> InstrumentScriptVM::builtInConstIntVariables() {
+        // first get buil-in integer variables of derived VM class
         std::map<String,int> m =
             ::LinuxSampler::InstrumentScriptVM::builtInConstIntVariables();
 
@@ -59,14 +59,14 @@ namespace LinuxSampler { namespace gig {
         m["$GIG_DIM_EFFECT5DEPTH"] = ::gig::dimension_effect5depth;
 
         return m;
-    }
+    }*/
 
-    VMFunction* InstrumentScriptVM::functionByName(const String& name) {
+    /*VMFunction* InstrumentScriptVM::functionByName(const String& name) {
         // built-in script functions of this class
         if (name == "gig_set_dim_zone") return &m_fnGigSetDimZone;
 
         // built-in script functions of derived VM class
         return ::LinuxSampler::InstrumentScriptVM::functionByName(name);
-    }
+    }*/
 
-}} // namespace LinuxSampler::gig
+}} // namespace LinuxSampler::sfz

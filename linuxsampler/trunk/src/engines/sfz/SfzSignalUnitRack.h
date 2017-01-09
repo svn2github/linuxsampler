@@ -399,8 +399,8 @@ namespace LinuxSampler { namespace sfz {
             
             virtual float CalculateFilterCutoff(float cutoff);
             
-            float  GetInfluence(::sfz::Array< ::sfz::optional<float> >& cc);
-            float  GetInfluence(::sfz::Array< ::sfz::optional<int> >& cc);
+            float  GetInfluence(::sfz::Array< optional<float> >& cc);
+            float  GetInfluence(::sfz::Array< optional<int> >& cc);
     };
     
     
