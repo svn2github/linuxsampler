@@ -1206,6 +1206,8 @@ namespace sfz
                 }
                 Script script(path);
                 _instrument->scripts.push_back(script);
+
+                continue;
             }
 
             // DEFINITION
