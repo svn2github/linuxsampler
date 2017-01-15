@@ -628,6 +628,9 @@ include '../tmpl/header.php';
 </thead>
 <tbody>
 
+<tr><td class="decocomp_header" colspan="3">Real-Time Instrument Script</td></tr>
+<tr><td class="decocomp"><a href="http://doc.linuxsampler.org/sfz/script_opcode/">script</a><td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
+
 <tr><td class="decocomp_header" colspan="3">Amplifier</td></tr>
 <tr><td class="decocomp">position_onccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">position_smoothccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
