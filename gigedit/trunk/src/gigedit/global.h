@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2007-2015 Andreas Persson
+ * Copyright (C) 2007-2017 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -30,6 +30,13 @@
 #endif
 
 #include <sstream>
+#include <map>
+
+#ifdef LIBGIG_HEADER_FILE
+# include LIBGIG_HEADER_FILE(gig.h)
+#else
+# include <gig.h>
+#endif
 
 //FIXME: for some reason AC GETTEXT check fails on the Mac cross compiler?
 #if (HAVE_GETTEXT || defined(__APPLE__))
@@ -54,6 +61,22 @@ template<class T> inline std::string ToString(T o) {
     return ss.str();
 }
 
+inline int getDimensionIndex(gig::dimension_t type, gig::Region* rgn) {
+    for (uint i = 0; i < rgn->Dimensions; ++i)
+        if (rgn->pDimensionDefinitions[i].dimension == type)
+            return i;
+    return -1;
+}
+
+inline int getDimensionRegionIndex(gig::DimensionRegion* dr) {
+    if (!dr) return -1;
+    gig::Region* rgn = (gig::Region*)dr->GetParent();
+    for (uint i = 0; i < 256; ++i)
+        if (rgn->pDimensionRegions[i] == dr)
+            return i;
+    return -1;
+}
+
 /// Find the number of bits required to hold the specified amount of zones.
 inline int zoneCountToBits(int nZones) {
     if (!nZones) return 0;
@@ -62,6 +85,61 @@ inline int zoneCountToBits(int nZones) {
     for (; zoneBits > 1; iFinalBits += 2, zoneBits >>= 2);
     iFinalBits += zoneBits;
     return iFinalBits;
+}
+
+/**
+ * Returns the sum of all bits of all dimensions defined before the given
+ * dimensions (@a type). This allows to access cases of that particular
+ * dimension directly. If the supplied dimension @a type does not exist in the
+ * the supplied @a region, then this function returns -1 instead!
+ *
+ * @param type - dimension that shall be used
+ * @param rgn - parent region of that dimension
+ */
+inline int baseBits(gig::dimension_t type, gig::Region* rgn) {
+    int previousBits = 0;
+    for (uint i = 0; i < rgn->Dimensions; ++i) {
+        if (rgn->pDimensionDefinitions[i].dimension == type) return previousBits;
+        previousBits += rgn->pDimensionDefinitions[i].bits;
+    }
+    return -1;
+}
+
+// key: dimension type, value: dimension's zone index
+class DimensionCase : public std::map<gig::dimension_t,int> {
+public:
+    bool isViolating(const DimensionCase& c) const {
+        for (DimensionCase::const_iterator it = begin(); it != end(); ++it) {
+            if (c.find(it->first) == c.end()) continue;
+            if (c.find(it->first)->second != it->second) return true;
+        }
+        return false;
+    }
+};
+
+inline DimensionCase dimensionCaseOf(gig::DimensionRegion* dr) {
+    DimensionCase dimCase;
+    int idr = getDimensionRegionIndex(dr);
+    if (idr < 0) return dimCase;
+    gig::Region* rgn = (gig::Region*)dr->GetParent();
+    int bitpos = 0;
+    for (int d = 0; d < rgn->Dimensions; ++d) {
+        const gig::dimension_def_t& dimdef = rgn->pDimensionDefinitions[d];
+        const int zone = (idr >> bitpos) & ((1 << dimdef.bits) - 1);
+        dimCase[dimdef.dimension] = zone;
+        bitpos += rgn->pDimensionDefinitions[d].bits;
+    }
+    return dimCase;
+}
+
+inline std::vector<gig::DimensionRegion*> dimensionRegionsMatching(const DimensionCase& dimCase, gig::Region* rgn) {
+    std::vector<gig::DimensionRegion*> v;
+    for (int idr = 0; idr < 256; ++idr) {
+        if (!rgn->pDimensionRegions[idr]) continue;
+        DimensionCase c = dimensionCaseOf(rgn->pDimensionRegions[idr]);
+        if (!dimCase.isViolating(c)) v.push_back(rgn->pDimensionRegions[idr]);
+    }
+    return v;
 }
 
 #endif // GIGEDIT_GLOBAL_H

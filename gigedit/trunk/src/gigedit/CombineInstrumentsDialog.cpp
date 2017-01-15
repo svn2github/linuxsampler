@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2014-2016 Christian Schoenebeck
+    Copyright (c) 2014-2017 Christian Schoenebeck
     
     This file is part of "gigedit" and released under the terms of the
     GNU General Public License version 2.
@@ -32,8 +32,6 @@ typedef std::map<DLS::range_t,RegionGroup> RegionGroups;
 
 typedef std::vector<DLS::range_t> DimensionZones;
 typedef std::map<gig::dimension_t,DimensionZones> Dimensions;
-
-typedef std::map<gig::dimension_t,int> DimensionCase;
 
 typedef std::map<gig::dimension_t, int> DimensionRegionUpperLimits;
 
@@ -274,13 +272,6 @@ static Dimensions getDimensionsForRegionGroup(RegionGroup& regionGroup) {
     return dims;
 }
 
-inline int getDimensionIndex(gig::dimension_t type, gig::Region* rgn) {
-    for (uint i = 0; i < rgn->Dimensions; ++i)
-        if (rgn->pDimensionDefinitions[i].dimension == type)
-            return i;
-    return -1;
-}
-
 static void fillDimValues(uint* values/*[8]*/, DimensionCase dimCase, gig::Region* rgn, bool bShouldHaveAllDimensionsPassed) {
     #if DEBUG_COMBINE_INSTRUMENTS
     printf("dimvalues = { ");
@@ -322,23 +313,6 @@ static void restoreDimensionRegionUpperLimits(gig::DimensionRegion* dimRgn, cons
     }
 }
 
-/**
- * Returns the sum of all bits of all dimensions defined before the given
- * dimensions (@a type). This allows to access cases of that particular
- * dimension directly.
- *
- * @param type - dimension that shall be used
- * @param rgn - parent region of that dimension
- */
-inline int baseBits(gig::dimension_t type, gig::Region* rgn) {
-    int previousBits = 0;
-    for (uint i = 0; i < rgn->Dimensions; ++i) {
-        if (rgn->pDimensionDefinitions[i].dimension == type) break;
-        previousBits += rgn->pDimensionDefinitions[i].bits;
-    }
-    return previousBits;
-}
-
 inline int dimensionRegionIndex(gig::DimensionRegion* dimRgn) {
     gig::Region* rgn = dimRgn->GetParent();
     int sz = sizeof(rgn->pDimensionRegions) / sizeof(gig::DimensionRegion*);
@@ -371,6 +345,7 @@ static DimensionZones preciseDimensionZonesFor(gig::dimension_t type, gig::Dimen
     const gig::dimension_def_t& def = rgn->pDimensionDefinitions[iDimension];
     int iDimRgn = dimensionRegionIndex(dimRgn);
     int iBaseBits = baseBits(type, rgn);
+    assert(iBaseBits >= 0);
     int mask = ~(((1 << def.bits) - 1) << iBaseBits);
 
     #if DEBUG_COMBINE_INSTRUMENTS

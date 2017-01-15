@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2015 Andreas Persson
+ * Copyright (C) 2006-2017 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -25,6 +25,7 @@
 #include <glibmm/stringutils.h>
 #include <glibmm/ustring.h>
 #include <gtkmm/messagedialog.h>
+#include <assert.h>
 
 #include "global.h"
 
@@ -88,6 +89,7 @@ DimRegionChooser::DimRegionChooser(Gtk::Window& window) :
     cursor_is_resize = false;
     h = 24;
     multiSelectKeyDown = false;
+    modifybothchannels = modifyalldimregs = modifybothchannels = false;
     set_can_focus();
 
     actionGroup = Gtk::ActionGroup::create();
@@ -139,6 +141,18 @@ DimRegionChooser::DimRegionChooser(Gtk::Window& window) :
 
 DimRegionChooser::~DimRegionChooser()
 {
+}
+
+void DimRegionChooser::setModifyBothChannels(bool b) {
+    modifybothchannels = b;
+}
+
+void DimRegionChooser::setModifyAllDimensionRegions(bool b) {
+    modifyalldimregs = b;
+}
+
+void DimRegionChooser::setModifyAllRegions(bool b) {
+    modifyallregions = b;
 }
 
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
@@ -507,12 +521,23 @@ void DimRegionChooser::get_dimregions(const gig::Region* region, bool stereo,
 
 void DimRegionChooser::update_after_resize()
 {
-    if (region->pDimensionDefinitions[resize.dimension].dimension == gig::dimension_velocity) {
+    const uint8_t upperLimit = resize.pos - 1;
+    gig::Instrument* instr = (gig::Instrument*)region->GetParent();
 
-        int bitpos = 0;
-        for (int j = 0 ; j < resize.dimension ; j++) {
-            bitpos += region->pDimensionDefinitions[j].bits;
-        }
+    int bitpos = 0;
+    for (int j = 0 ; j < resize.dimension ; j++) {
+        bitpos += region->pDimensionDefinitions[j].bits;
+    }
+
+    const int stereobitpos =
+        (modifybothchannels) ? baseBits(gig::dimension_samplechannel, region) : -1;
+
+    // the velocity dimension must be handled differently than all other
+    // dimension types, because
+    // 1. it is currently the only dimension type which allows different zone
+    //    sizes for different cases
+    // 2. for v2 format VelocityUpperLimit has to be set, DimensionUpperLimits for v3
+    if (region->pDimensionDefinitions[resize.dimension].dimension == gig::dimension_velocity) {
         int mask =
             ~(((1 << region->pDimensionDefinitions[resize.dimension].bits) - 1) << bitpos);
         int c = maindimregno & mask; // mask away this dimension
@@ -538,22 +563,76 @@ void DimRegionChooser::update_after_resize()
             }
         }
 
-        gig::DimensionRegion* d = region->pDimensionRegions[c + resize.offset];
+        int index = c + (resize.zone << bitpos);
+        gig::DimensionRegion* d = region->pDimensionRegions[index];
         // update both v2 and v3 values
-        d->DimensionUpperLimits[resize.dimension] = resize.pos - 1;
-        d->VelocityUpperLimit = resize.pos - 1;
+        d->DimensionUpperLimits[resize.dimension] = upperLimit;
+        d->VelocityUpperLimit = upperLimit;
+        if (modifybothchannels && stereobitpos >= 0) { // do the same for the other audio channel's dimregion ...
+            gig::DimensionRegion* d = region->pDimensionRegions[index ^ (1 << stereobitpos)];
+            d->DimensionUpperLimits[resize.dimension] = upperLimit;
+            d->VelocityUpperLimit = upperLimit;
+        }
 
+        if (modifyalldimregs) {
+            gig::Region* rgn = NULL;
+            for (int key = 0; key < 128; ++key) {
+                if (!instr->GetRegion(key) || instr->GetRegion(key) == rgn) continue;
+                rgn = instr->GetRegion(key);
+                if (!modifyallregions && rgn != region) continue; // hack to reduce overall code amount a bit
+                gig::dimension_def_t* dimdef = rgn->GetDimensionDefinition(resize.dimensionDef.dimension);
+                if (!dimdef) continue;
+                if (dimdef->zones != resize.dimensionDef.zones) continue;
+                const int iDim = getDimensionIndex(resize.dimensionDef.dimension, rgn);
+                assert(iDim >= 0 && iDim < rgn->Dimensions);
+
+                // the dimension layout might be completely different in this
+                // region, so we have to recalculate bitpos etc for this region
+                const int bitpos = baseBits(resize.dimensionDef.dimension, rgn);
+                const int stencil = ~(((1 << dimdef->bits) - 1) << bitpos);
+                const int selection = resize.zone << bitpos;
+
+                // primitive and inefficient loop implementation, however due to
+                // this circumstance the loop code is much simpler, and its lack
+                // of runtime efficiency should not be notable in practice
+                for (int idr = 0; idr < 256; ++idr) {
+                    const int index = (idr & stencil) | selection;
+                    assert(index >= 0 && index < 256);
+                    gig::DimensionRegion* dr = rgn->pDimensionRegions[index];
+                    if (!dr) continue;
+                    dr->DimensionUpperLimits[iDim] = upperLimit;
+                    d->VelocityUpperLimit = upperLimit;
+                }
+            }
+        } else if (modifyallregions) { // implies modifyalldimregs is false ...
+            // resolve the precise case we need to modify for all other regions
+            DimensionCase dimCase = dimensionCaseOf(d);
+            // apply the velocity upper limit change to that resolved dim case
+            // of all regions ...
+            gig::Region* rgn = NULL;
+            for (int key = 0; key < 128; ++key) {
+                if (!instr->GetRegion(key) || instr->GetRegion(key) == rgn) continue;
+                rgn = instr->GetRegion(key);
+                gig::dimension_def_t* dimdef = rgn->GetDimensionDefinition(resize.dimensionDef.dimension);
+                if (!dimdef) continue;
+                if (dimdef->zones != resize.dimensionDef.zones) continue;
+                const int iDim = getDimensionIndex(resize.dimensionDef.dimension, rgn);
+                assert(iDim >= 0 && iDim < rgn->Dimensions);
+
+                std::vector<gig::DimensionRegion*> dimrgns = dimensionRegionsMatching(dimCase, rgn);
+                for (int i = 0; i < dimrgns.size(); ++i) {
+                    gig::DimensionRegion* dr = dimrgns[i];
+                    dr->DimensionUpperLimits[iDim] = upperLimit;
+                    dr->VelocityUpperLimit = upperLimit;
+                }
+            }
+        }
     } else {
         for (int i = 0 ; i < region->DimensionRegions ; ) {
-
             if (region->pDimensionRegions[i]->DimensionUpperLimits[resize.dimension] == 0) {
                 // the dimension didn't previously have custom
                 // limits, so we have to set default limits for
                 // all the dimension regions
-                int bitpos = 0;
-                for (int j = 0 ; j < resize.dimension ; j++) {
-                    bitpos += region->pDimensionDefinitions[j].bits;
-                }
                 int nbZones = region->pDimensionDefinitions[resize.dimension].zones;
 
                 for (int j = 0 ; j < nbZones ; j++) {
@@ -561,9 +640,15 @@ void DimRegionChooser::update_after_resize()
                     d->DimensionUpperLimits[resize.dimension] = int(128.0 * (j + 1) / nbZones - 1);
                 }
             }
-            gig::DimensionRegion* d = region->pDimensionRegions[i + resize.offset];
-            d->DimensionUpperLimits[resize.dimension] = resize.pos - 1;
-
+            int index = i + (resize.zone << bitpos);
+            gig::DimensionRegion* d = region->pDimensionRegions[index];
+            d->DimensionUpperLimits[resize.dimension] = upperLimit;
+#if 0       // the following is currently not necessary, because ATM the gig format uses for all dimension types except of the veleocity dimension the same zone sizes for all cases
+            if (modifybothchannels && stereobitpos >= 0) { // do the same for the other audio channel's dimregion ...
+                gig::DimensionRegion* d = region->pDimensionRegions[index ^ (1 << stereobitpos)];
+                d->DimensionUpperLimits[resize.dimension] = upperLimit;
+            }
+#endif
             int bitpos = 0;
             int j;
             for (j = 0 ; j < region->Dimensions ; j++) {
@@ -576,6 +661,37 @@ void DimRegionChooser::update_after_resize()
             }
             if (j == region->Dimensions) break;
             i = (i & ~((1 << bitpos) - 1)) + (1 << bitpos);
+        }
+
+        if (modifyallregions) { // TODO: this code block could be merged with the similar (and more generalized) code block of the velocity dimension above
+            gig::Region* rgn = NULL;
+            for (int key = 0; key < 128; ++key) {
+                if (!instr->GetRegion(key) || instr->GetRegion(key) == rgn) continue;
+                rgn = instr->GetRegion(key);
+                gig::dimension_def_t* dimdef = rgn->GetDimensionDefinition(resize.dimensionDef.dimension);
+                if (!dimdef) continue;
+                if (dimdef->zones != resize.dimensionDef.zones) continue;
+                const int iDim = getDimensionIndex(resize.dimensionDef.dimension, rgn);
+                assert(iDim >= 0 && iDim < rgn->Dimensions);
+
+                // the dimension layout might be completely different in this
+                // region, so we have to recalculate bitpos etc for this region
+                const int bitpos = baseBits(resize.dimensionDef.dimension, rgn);
+                const int stencil = ~(((1 << dimdef->bits) - 1) << bitpos);
+                const int selection = resize.zone << bitpos;
+
+                // this loop implementation is less efficient than the above's
+                // loop implementation (which skips unnecessary dimension regions)
+                // however this code is much simpler, and its lack of runtime
+                // efficiency should not be notable in practice
+                for (int idr = 0; idr < 256; ++idr) {
+                    const int index = (idr & stencil) | selection;
+                    assert(index >= 0 && index < 256);
+                    gig::DimensionRegion* dr = rgn->pDimensionRegions[index];
+                    if (!dr) continue;
+                    dr->DimensionUpperLimits[iDim] = upperLimit;
+                }
+            }
         }
     }
 }
@@ -805,7 +921,8 @@ bool DimRegionChooser::is_in_resize_zone(double x, double y)
                 if (x <= limitx - 2) break;
                 if (x <= limitx + 2) {
                     resize.dimension = dim;
-                    resize.offset = iZone << bitpos;
+                    resize.dimensionDef = region->pDimensionDefinitions[dim];
+                    resize.zone = iZone;
                     resize.pos = limit;
                     resize.min = prev_limit;
 

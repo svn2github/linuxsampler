@@ -52,6 +52,11 @@ public:
                         std::set<gig::DimensionRegion*>& dimregs) const;
     bool select_dimregion(gig::DimensionRegion* dimrgn);
 
+    // those 3 are ATM only relevant when resizing custom dimension region zones
+    void setModifyBothChannels(bool b);
+    void setModifyAllDimensionRegions(bool b);
+    void setModifyAllRegions(bool b);
+
 protected:
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
     virtual bool on_expose_event(GdkEventExpose* e);
@@ -76,6 +81,11 @@ protected:
 
     sigc::signal<void> dimregion_selected;
     sigc::signal<void> region_changed;
+
+    // those 3 are ATM only relevant when resizing custom dimension region zones
+    bool modifybothchannels;
+    bool modifyalldimregs;
+    bool modifyallregions;
 
     //std::set<gig::DimensionRegion*> dimregs; ///< Reflects which dimension regions are currently selected.
     int focus_line;
@@ -104,7 +114,8 @@ protected:
         int min;
         int max;
         int dimension;
-        int offset;
+        gig::dimension_def_t dimensionDef;
+        int zone;
     } resize;
 
     bool multiSelectKeyDown;

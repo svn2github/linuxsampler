@@ -48,7 +48,10 @@ Version SVN HEAD (?)
     threads is 16-byte aligned
   * windows: look for the data directory in the parent of the dll
     directory, if the dll directory is called "32" or "64"
-  
+  * Implemented resizing multiple dimension region zones at once, which is
+    controlled by the infamous checkbox trio "all regions",
+    "all dimension splits" and "both channels".
+
 Version 1.0.0 (2015-07-17)
 
   * minor fix in configure for cross-compiling
