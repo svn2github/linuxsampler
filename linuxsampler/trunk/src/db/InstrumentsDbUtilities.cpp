@@ -28,8 +28,172 @@
 
 #include "../common/Exception.h"
 #include "InstrumentsDb.h"
+#include "../engines/sfz/sfz.h"
+#if HAVE_SF2
+# if AC_APPLE_UNIVERSAL_BUILD
+#  include <libgig/SF.h>
+# else
+#  include <SF.h>
+# endif
+#endif // HAVE_SF2
 
 namespace LinuxSampler {
+
+    class GigFileInfo : public InstrumentFileInfo {
+    public:
+        GigFileInfo(String fileName) : InstrumentFileInfo(fileName) {
+            m_gig  = NULL;
+            m_riff = NULL;
+            try {
+                m_riff = new RIFF::File(fileName);
+                m_gig  = new gig::File(m_riff);
+                m_gig->SetAutoLoad(false); // avoid time consuming samples scanning
+            } catch (RIFF::Exception e) {
+                throw Exception(e.Message);
+            } catch (...) {
+                throw Exception("Unknown exception while accessing gig file");
+            }
+        }
+
+        virtual ~GigFileInfo() {
+            if (m_gig)  delete m_gig;
+            if (m_riff) delete m_riff;
+        }
+
+        String formatName() OVERRIDE {
+            return "GIG";
+        }
+
+        String formatVersion() OVERRIDE {
+            return (m_gig->pVersion) ? ToString(m_gig->pVersion->major) : "";
+        }
+
+        optional<InstrumentInfo> getInstrumentInfo(int index, ScanProgress* pProgress) OVERRIDE {
+            InstrumentInfo info;
+            try {
+                ::gig::progress_t* progress = (pProgress) ? &pProgress->GigFileProgress : NULL;
+                ::gig::Instrument* pInstrument = m_gig->GetInstrument(index, progress);
+                if (!pInstrument)
+                    return optional<InstrumentInfo>::nothing;
+
+                info.instrumentName = pInstrument->pInfo->Name;
+                info.product = (!pInstrument->pInfo->Product.empty()) ? pInstrument->pInfo->Product : m_gig->pInfo->Product;
+                info.artists = (!pInstrument->pInfo->Artists.empty()) ? pInstrument->pInfo->Artists : m_gig->pInfo->Artists;
+                info.keywords = (!pInstrument->pInfo->Keywords.empty()) ? pInstrument->pInfo->Keywords : m_gig->pInfo->Keywords;
+                info.comments = (!pInstrument->pInfo->Comments.empty()) ? pInstrument->pInfo->Comments : m_gig->pInfo->Comments;
+                info.isDrum = pInstrument->IsDrum;
+            } catch (RIFF::Exception e) {
+                throw Exception(e.Message);
+            } catch (...) {
+                throw Exception("Unknown exception while accessing gig file");
+            }
+            return info;
+        }
+    private:
+        ::RIFF::File* m_riff;
+        ::gig::File*  m_gig;
+    };
+
+    class SFZFileInfo : public InstrumentFileInfo {
+    public:
+        SFZFileInfo(String fileName) : InstrumentFileInfo(fileName) {
+            m_sfz = NULL;
+            try {
+                m_sfz = new ::sfz::File(fileName);
+            } catch (sfz::Exception e) {
+                throw Exception(e.Message());
+            } catch (...) {
+                throw Exception("Unknown exception while accessing sfz file");
+            }
+        }
+
+        virtual ~SFZFileInfo() {
+            if (m_sfz) delete m_sfz;
+        }
+
+        String formatName() OVERRIDE {
+            return "SFZ";
+        }
+
+        String formatVersion() OVERRIDE {
+            return "";
+        }
+
+        optional<InstrumentInfo> getInstrumentInfo(int index, ScanProgress* pProgress) OVERRIDE {
+            if (index != 0)
+                return optional<InstrumentInfo>::nothing;
+
+            InstrumentInfo info;
+            // yeah, lousy info, but SFZ does not provide any meta info unfortunately yet
+            return info;
+        }
+    private:
+        ::sfz::File* m_sfz;
+    };
+
+#if HAVE_SF2
+
+    class Sf2FileInfo : public InstrumentFileInfo {
+    public:
+        Sf2FileInfo(String fileName) : InstrumentFileInfo(fileName) {
+            m_sf2  = NULL;
+            m_riff = NULL;
+            try {
+                m_riff = new RIFF::File(fileName);
+                m_sf2  = new sf2::File(m_riff);
+            } catch (RIFF::Exception e) {
+                throw Exception(e.Message);
+            } catch (...) {
+                throw Exception("Unknown exception while accessing sf2 file");
+            }
+        }
+
+        virtual ~Sf2FileInfo() {
+            if (m_sf2)  delete m_sf2;
+            if (m_riff) delete m_riff;
+        }
+
+        String formatName() OVERRIDE {
+            return "SF2";
+        }
+
+        String formatVersion() OVERRIDE {
+            if (!m_sf2->pInfo || !m_sf2->pInfo->pVer) return "";
+            String major = ToString(m_sf2->pInfo->pVer->Major);
+            //String minor = ToString(m_sf2->pInfo->pVer->Minor);
+            //return major + "." + minor;
+            return major;
+        }
+
+        optional<InstrumentInfo> getInstrumentInfo(int index, ScanProgress* pProgress) OVERRIDE {
+            if (index >= m_sf2->GetPresetCount())
+                return optional<InstrumentInfo>::nothing;
+
+            InstrumentInfo info;
+            try {
+                ::sf2::Preset* preset = m_sf2->GetPreset(index);
+                if (!preset)
+                    return optional<InstrumentInfo>::nothing;
+
+                info.instrumentName = preset->Name;
+                if (m_sf2->pInfo) {
+                    info.product = m_sf2->pInfo->Product;
+                    info.comments = m_sf2->pInfo->Comments;
+                    info.artists = m_sf2->pInfo->Engineers;
+                }
+            } catch (RIFF::Exception e) {
+                throw Exception(e.Message);
+            } catch (...) {
+                throw Exception("Unknown exception while accessing gig file");
+            }
+            return info;
+        }
+    private:
+        ::RIFF::File* m_riff;
+        ::sf2::File*  m_sf2;
+    };
+
+#endif // #if HAVE_SF2
 
     void DbInstrument::Copy(const DbInstrument& Instr) {
         if (this == &Instr) return;
@@ -527,8 +691,7 @@ namespace LinuxSampler {
 
             for (int i = 0; i < fileList->size(); i++) {
                 String s = fileList->at(i);
-                if (s.length() < 4) continue;
-                if(!strcasecmp(".gig", s.substr(s.length() - 4).c_str())) count++;
+                if (InstrumentFileInfo::isSupportedFile(s)) count++;
             }
         } catch(Exception e) {
             e.PrintMessage();
@@ -623,8 +786,33 @@ namespace LinuxSampler {
 
     void InstrumentFileCounter::FileEntry(std::string Path) {
         dmsg(2,("InstrumentFileCounter: FileEntry(Path=%s)\n", Path.c_str()));
-        if(Path.length() < 4) return;
-        if(!strcasecmp(".gig", Path.substr(Path.length() - 4).c_str())) FileCount++;
+        if (InstrumentFileInfo::isSupportedFile(Path)) FileCount++;
     };
+
+
+    InstrumentFileInfo* InstrumentFileInfo::getFileInfoFor(String filename) {
+        if (filename.length() < 4) return NULL;
+        String fileExtension = filename.substr(filename.length() - 4);
+        if (!strcasecmp(".gig", fileExtension.c_str()))
+            return new GigFileInfo(filename);
+        if (!strcasecmp(".sfz", fileExtension.c_str()))
+            return new SFZFileInfo(filename);
+        #if HAVE_SF2
+        if (!strcasecmp(".sf2", fileExtension.c_str()))
+            return new Sf2FileInfo(filename);
+        #endif
+        return NULL;
+    }
+
+    bool InstrumentFileInfo::isSupportedFile(String filename) {
+        if (filename.length() < 4) return false;
+        String fileExtension = filename.substr(filename.length() - 4);
+        if (!strcasecmp(".gig", fileExtension.c_str())) return true;
+        if (!strcasecmp(".sfz", fileExtension.c_str())) return true;
+        #if HAVE_SF2
+        if (!strcasecmp(".sf2", fileExtension.c_str())) return true;
+        #endif
+        return false;
+    }
 
 } // namespace LinuxSampler

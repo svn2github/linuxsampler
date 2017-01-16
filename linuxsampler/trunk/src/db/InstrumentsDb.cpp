@@ -1191,172 +1191,143 @@ namespace LinuxSampler {
         FireInstrumentInfoChanged(Instr);
     }
 
-    void InstrumentsDb::AddInstrumentsFromFile(String DbDir, String File, int Index, ScanProgress* pProgress) {
-        dmsg(2,("InstrumentsDb: AddInstrumentsFromFile(DbDir=%s,File=%s,Index=%d)\n", DbDir.c_str(), File.c_str(), Index));
-        
-        if(File.length() < 4) return;
-        
+    void InstrumentsDb::AddInstrumentsFromFile(String DbDir, String file, int Index, ScanProgress* pProgress) {
+        dmsg(2,("InstrumentsDb: AddInstrumentsFromFile(DbDir=%s,File=%s,Index=%d)\n", DbDir.c_str(), file.c_str(), Index));
+
+        if (!InstrumentFileInfo::isSupportedFile(file)) return;
+
         try {
-            if(!strcasecmp(".gig", File.substr(File.length() - 4).c_str())) {
-                if (pProgress != NULL) {
-                    pProgress->SetStatus(0);
-                    pProgress->CurrentFile = File;
-                }
+            if (pProgress != NULL) {
+                pProgress->SetStatus(0);
+                pProgress->CurrentFile = file;
+            }
 
-                AddGigInstruments(DbDir, File, Index, pProgress);
+            int dirId = GetDirectoryId(DbDir);
+            if (dirId == -1) throw Exception("Invalid DB directory: " + toEscapedPath(DbDir));
 
-                if (pProgress != NULL) {
-                    pProgress->SetScannedFileCount(pProgress->GetScannedFileCount() + 1);
-                }
+            File f = File(file);
+            if (!f.Exist()) {
+                std::stringstream ss;
+                ss << "Fail to stat `" << file << "`: " << f.GetErrorMsg();
+                throw Exception(ss.str());
+            }
+
+            if (!f.IsFile()) {
+                std::stringstream ss;
+                ss << "`" << file << "` is not a regular file";
+                throw Exception(ss.str());
+            }
+
+            AddInstrumentsFromFilePriv(DbDir, dirId, file, f, Index, pProgress);
+
+            if (pProgress != NULL) {
+                pProgress->SetScannedFileCount(pProgress->GetScannedFileCount() + 1);
             }
         } catch(Exception e) {
             e.PrintMessage();
         }
     }
 
-    void InstrumentsDb::AddGigInstruments(String DbDir, String FilePath, int Index, ScanProgress* pProgress) {
+    void InstrumentsDb::AddInstrumentsFromFilePriv(String DbDir, const int dirId, String FilePath, File file, int Index, ScanProgress* pProgress) {
         dmsg(2,("InstrumentsDb: AddGigInstruments(DbDir=%s,FilePath=%s,Index=%d)\n", DbDir.c_str(), FilePath.c_str(), Index));
-        int dirId = GetDirectoryId(DbDir);
-        if (dirId == -1) throw Exception("Invalid DB directory: " + toEscapedPath(DbDir));
-
-        File f = File(FilePath);
-        if (!f.Exist()) {
-            std::stringstream ss;
-            ss << "Fail to stat `" << FilePath << "`: " << f.GetErrorMsg();
-            throw Exception(ss.str());
-        }
-
-        if (!f.IsFile()) {
-            std::stringstream ss;
-            ss << "`" << FilePath << "` is not a regular file";
-            throw Exception(ss.str());
-        }
 
         bool unlocked = false;
-        RIFF::File* riff = NULL;
-        gig::File* gig = NULL;
+        InstrumentFileInfo* fileInfo = NULL;
+        sqlite3_stmt* pStmt = NULL;
         try {
-            riff = new RIFF::File(FilePath);
-            gig::File* gig = new gig::File(riff);
-            gig->SetAutoLoad(false); // avoid time consuming samples scanning
+            fileInfo = InstrumentFileInfo::getFileInfoFor(FilePath);
+            if (!fileInfo) return;
 
             std::stringstream sql;
             sql << "INSERT INTO instruments (dir_id,instr_name,instr_file,";
             sql << "instr_nr,format_family,format_version,instr_size,";
             sql << "description,is_drum,product,artists,keywords) VALUES (";
-            sql << dirId << ",?,?,?,'GIG',?," << f.GetSize() << ",?,?,?,?,?)";
+            sql << dirId << ",?,?,?,?,?," << file.GetSize() << ",?,?,?,?,?)";
 
-            sqlite3_stmt* pStmt = NULL;
+            // instr_name 1
+            // instr_file 2
+            // instr_nr 3
+            // format_family 4
+            // format_version 5
+            // description 6
+            // is_drum 7
+            // product 8
+            // artists 9
+            // keywords 10
 
             int res = sqlite3_prepare(GetDb(), sql.str().c_str(), -1, &pStmt, NULL);
             if (res != SQLITE_OK) {
                 throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
             }
 
-            String s = FilePath;
-            s = toEscapedFsPath(s);
-            BindTextParam(pStmt, 2, s);
-            String ver = "";
-            if (gig->pVersion != NULL) ver = ToString(gig->pVersion->major);
-            BindTextParam(pStmt, 4, ver);
+            BindTextParam(pStmt, 2, toEscapedFsPath(FilePath));
+            BindTextParam(pStmt, 4, fileInfo->formatName());
+            BindTextParam(pStmt, 5, fileInfo->formatVersion());
 
-            if (Index == -1) {
-                int instrIndex = 0;
-                // Assume that it's locked and should be unlocked at this point
-                // to be able to use the database from another threads
-                if (!InTransaction) {
-                    DbInstrumentsMutex.Unlock();
-                    unlocked = true;
-                } else {
-                    std::cerr << "Shouldn't be in transaction when adding instruments." << std::endl;
-                }
+            int instrIndex = (Index == -1) ? 0 : Index;
 
-                if (pProgress != NULL) gig->GetInstrument(0, &(pProgress->GigFileProgress)); // TODO: this workaround should be fixed
-                gig::Instrument* pInstrument = gig->GetFirstInstrument();
-
-                if (!InTransaction) DbInstrumentsMutex.Lock();
-                while (pInstrument) {
-                    BindTextParam(pStmt, 7, gig->pInfo->Product);
-                    BindTextParam(pStmt, 8, gig->pInfo->Artists);
-                    BindTextParam(pStmt, 9, gig->pInfo->Keywords);
-                    AddGigInstrument(pStmt, DbDir, dirId, FilePath, pInstrument, instrIndex);
-
-                    instrIndex++;
-                    pInstrument = gig->GetNextInstrument();
-                }
+            // Assume that it's locked and should be unlocked at this point
+            // to be able to use the database from another threads
+            if (!InTransaction) {
+                DbInstrumentsMutex.Unlock();
+                unlocked = true;
             } else {
-                gig::Instrument* pInstrument;
-                if (pProgress == NULL) pInstrument = gig->GetInstrument(Index);
-                else pInstrument = gig->GetInstrument(Index, &(pProgress->GigFileProgress));
-                if (pInstrument != NULL) {
-                    BindTextParam(pStmt, 7, gig->pInfo->Product);
-                    BindTextParam(pStmt, 8, gig->pInfo->Artists);
-                    BindTextParam(pStmt, 9, gig->pInfo->Keywords);
-                    AddGigInstrument(pStmt, DbDir, dirId, FilePath, pInstrument, Index);
-                }
+                std::cerr << "Shouldn't be in transaction when adding instruments." << std::endl;
             }
 
-            sqlite3_finalize(pStmt);
-            delete gig;
-            delete riff;
-        } catch (RIFF::Exception e) {
-            if (gig != NULL) delete gig;
-            if (riff != NULL) delete riff;
+            optional<InstrumentInfo> info = fileInfo->getInstrumentInfo(0, pProgress);
+            if (!InTransaction) DbInstrumentsMutex.Lock();
+            while (info) {
+                String instrumentName = info->instrumentName;
+                if (instrumentName.empty())
+                    instrumentName = Path::getBaseName(FilePath);
+                instrumentName = GetUniqueName(dirId, instrumentName);
+
+                BindTextParam(pStmt, 8, info->product);
+                BindTextParam(pStmt, 9, info->artists);
+                BindTextParam(pStmt, 10, info->keywords);
+
+                std::stringstream sql2;
+                sql2 << "SELECT COUNT(*) FROM instruments WHERE instr_file=? AND ";
+                sql2 << "instr_nr=" << instrIndex;
+                String s = toEscapedFsPath(FilePath);
+                if (ExecSqlInt(sql2.str(), s) > 0) goto next;
+
+                BindTextParam(pStmt, 1, instrumentName);
+                BindIntParam(pStmt, 3, instrIndex);
+
+                BindTextParam(pStmt, 6, info->comments);
+                BindIntParam(pStmt, 7, info->isDrum);
+
+                res = sqlite3_step(pStmt);
+                if (res != SQLITE_DONE) {
+                    throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
+                }
+                res = sqlite3_reset(pStmt);
+                FireInstrumentCountChanged(DbDir);
+
+            next:
+                if (Index != -1) break;
+
+                instrIndex++;
+                info = fileInfo->getInstrumentInfo(instrIndex, pProgress);
+            }
+        } catch (Exception e) {
+            if (pStmt) sqlite3_finalize(pStmt);
+            if (fileInfo) delete fileInfo;
             if (unlocked) DbInstrumentsMutex.Lock();
             std::stringstream ss;
-            ss << "Failed to scan `" << FilePath << "`: " << e.Message;
-            
+            ss << "Failed to scan `" << FilePath << "`: " << e.Message();
             throw Exception(ss.str());
-        } catch (Exception e) {
-            if (gig != NULL) delete gig;
-            if (riff != NULL) delete riff;
-            if (unlocked) DbInstrumentsMutex.Lock();
-            throw e;
         } catch (...) {
-            if (gig != NULL) delete gig;
-            if (riff != NULL) delete riff;
+            if (pStmt) sqlite3_finalize(pStmt);
+            if (fileInfo) delete fileInfo;
             if (unlocked) DbInstrumentsMutex.Lock();
             throw Exception("Failed to scan `" + FilePath + "`");
         }
-    }
-
-    void InstrumentsDb::AddGigInstrument(sqlite3_stmt* pStmt, String DbDir, int DirId, String File, gig::Instrument* pInstrument, int Index) {
-        dmsg(2,("InstrumentsDb: AddGigInstrument(DbDir=%s,DirId=%d,File=%s,Index=%d)\n", DbDir.c_str(), DirId, File.c_str(), Index));
-        String name = pInstrument->pInfo->Name;
-        if (name == "") return;
-        name = GetUniqueName(DirId, name);
-        
-        std::stringstream sql2;
-        sql2 << "SELECT COUNT(*) FROM instruments WHERE instr_file=? AND ";
-        sql2 << "instr_nr=" << Index;
-        String s = toEscapedFsPath(File);
-        if (ExecSqlInt(sql2.str(), s) > 0) return;
-
-        BindTextParam(pStmt, 1, name);
-        BindIntParam(pStmt, 3, Index);
-
-        BindTextParam(pStmt, 5, pInstrument->pInfo->Comments);
-        BindIntParam(pStmt, 6, pInstrument->IsDrum);
-
-        if (!pInstrument->pInfo->Product.empty()) {
-            BindTextParam(pStmt, 7, pInstrument->pInfo->Product);
-        }
-        if (!pInstrument->pInfo->Artists.empty()) {
-            BindTextParam(pStmt, 8, pInstrument->pInfo->Artists);
-        }
-
-        if (!pInstrument->pInfo->Keywords.empty()) {
-            BindTextParam(pStmt, 9, pInstrument->pInfo->Keywords);
-        }
-
-        int res = sqlite3_step(pStmt);
-        if(res != SQLITE_DONE) {
-            sqlite3_finalize(pStmt);
-            throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
-        }
-
-        res = sqlite3_reset(pStmt);
-        FireInstrumentCountChanged(DbDir);
+        if (pStmt) sqlite3_finalize(pStmt);
+        if (fileInfo) delete fileInfo;
+        if (unlocked) DbInstrumentsMutex.Lock();
     }
 
     void InstrumentsDb::DirectoryTreeWalk(String AbstractPath, DirectoryHandler* pHandler) {

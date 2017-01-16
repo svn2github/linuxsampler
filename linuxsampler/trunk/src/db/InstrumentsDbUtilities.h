@@ -33,6 +33,7 @@
 #include <sqlite3.h>
 
 #include "../common/File.h"
+#include "../common/optional.h"
 
 namespace LinuxSampler {
 
@@ -415,7 +416,34 @@ namespace LinuxSampler {
         private:
             int FileCount;
     };
-            
+
+    struct InstrumentInfo {
+        String instrumentName;
+        String product;
+        String artists;
+        String keywords;
+        String comments;
+        bool   isDrum;
+
+        InstrumentInfo() : isDrum(false) {}
+    };
+
+    class InstrumentFileInfo {
+    public:
+        virtual ~InstrumentFileInfo() {}
+        virtual optional<InstrumentInfo> getInstrumentInfo(int index, ScanProgress* pProgress) = 0;
+        virtual String formatName() = 0;
+        virtual String formatVersion() = 0;
+
+        static InstrumentFileInfo* getFileInfoFor(String filename);
+        static bool isSupportedFile(String filename);
+
+    protected:
+        InstrumentFileInfo(String filename) : m_fileName(filename) {}
+
+        String m_fileName;
+    };
+
 } // namespace LinuxSampler
 
 #endif // __LS_INSTRUMENTSDBUTILITIES_H__

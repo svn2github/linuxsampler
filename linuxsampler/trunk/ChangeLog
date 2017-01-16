@@ -148,6 +148,8 @@ Version SVN trunk (?)
     - Cleanup of instruments DB file creation and opening code.
     - The instrument DB path of linuxsampler's --create-instruments-db argument
       is now optional, if it is missing, then a default location is used.
+    - Added support for scanning SFZ (.sfz) files.
+    - Added support for scanning Sound Font (.sf2) files.
 
 Version 2.0.0 (15 July 2015)
 

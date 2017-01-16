@@ -761,17 +761,8 @@ namespace LinuxSampler {
              * Specify NULL if you don't want to monitor the scanning process.
              * @throws Exception if the operation failed.
              */
-            void AddGigInstruments(String DbDir, String FilePath, int Index = -1, ScanProgress* pProgress = NULL);
+            void AddInstrumentsFromFilePriv(String DbDir, const int dirId, String FilePath, File file, int Index = -1, ScanProgress* pProgress = NULL);
 
-            /**
-             * Adds the specified GIG instrument.
-             * @param DbDir The instruments database directory
-             * in which the instrument will be added.
-             * All slashes in the directory names should be replaced with '\0'.
-             * @throws Exception if the operation failed.
-             */
-            void AddGigInstrument(sqlite3_stmt* pStmt, String DbDir, int DirId, String File, ::gig::Instrument* pInstrument, int Index);
-            
             void DirectoryTreeWalk(String AbstractPath, DirectoryHandler* pHandler);
 
             void DirectoryTreeWalk(DirectoryHandler* pHandler, String AbstractPath, int DirId, int Level);
