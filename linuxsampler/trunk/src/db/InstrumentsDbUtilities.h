@@ -25,7 +25,11 @@
 
 #include <memory>
 #include <vector>
-#include <gig.h>
+#if AC_APPLE_UNIVERSAL_BUILD
+# include <libgig/gig.h>
+#else
+# include <gig.h>
+#endif
 #include <sqlite3.h>
 
 #include "../common/File.h"
@@ -104,7 +108,7 @@ namespace LinuxSampler {
         FLAT = 2
     };
 
-#if __cplusplus >= 201103L
+#if __cplusplus >= 201103L && !CONFIG_NO_CPP11STL
     typedef std::unique_ptr<std::vector<int>> IntListPtr;
     typedef std::unique_ptr<std::vector<String>> StringListPtr;
 #else

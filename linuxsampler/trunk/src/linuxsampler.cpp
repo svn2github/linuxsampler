@@ -340,17 +340,17 @@ void parse_options(int argc, char **argv) {
     int option_index = 0;
     static struct option long_options[] =
         {
-            {"help",0,0,0},
-            {"version",0,0,0},
-            {"profile",0,0,0},
-            {"no-tune",0,0,0},
-            {"statistics",0,0,0},
-            {"instruments-db-location",1,0,0},
-            {"create-instruments-db",1,0,0},
-            {"lscp-addr",1,0,0},
-            {"lscp-port",1,0,0},
-            {"stacktrace",0,0,0},
-            {"exec-after-init",1,0,0},
+            {"help",no_argument,0,0},
+            {"version",no_argument,0,0},
+            {"profile",no_argument,0,0},
+            {"no-tune",no_argument,0,0},
+            {"statistics",no_argument,0,0},
+            {"instruments-db-location",required_argument,0,0},
+            {"create-instruments-db",optional_argument,0,0},
+            {"lscp-addr",required_argument,0,0},
+            {"lscp-port",required_argument,0,0},
+            {"stacktrace",no_argument,0,0},
+            {"exec-after-init",required_argument,0,0},
             {0,0,0,0}
         };
 
@@ -431,11 +431,12 @@ void parse_options(int argc, char **argv) {
                 case 6: // --create-instruments-db
 #if HAVE_SQLITE3
                     try {
-                        if (optarg) {
-                            std::cout << "Creating instruments database..." << std::endl;
-                            InstrumentsDb::CreateInstrumentsDb(String(optarg));
-                            std::cout << "Done" << std::endl;
-                        }
+                        std::cout << "Creating instruments database..." << std::endl;
+                        if (optarg)
+                            InstrumentsDb::GetInstrumentsDb()->CreateInstrumentsDb(String(optarg));
+                        else
+                            InstrumentsDb::GetInstrumentsDb()->CreateInstrumentsDb(); // use default instruments db location
+                        std::cout << "Done" << std::endl;
                     } catch(Exception e) {
                         std::cerr << e.Message() << std::endl;
                         exit(EXIT_FAILURE);

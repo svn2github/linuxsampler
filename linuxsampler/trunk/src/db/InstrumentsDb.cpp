@@ -41,12 +41,17 @@ namespace LinuxSampler {
     InstrumentsDb InstrumentsDb::instance;
 
     void InstrumentsDb::CreateInstrumentsDb(String FilePath) {
+        if (FilePath.empty()) {
+            FilePath = GetDefaultDBLocation();
+            dmsg(0,("InstrumentsDb: Creating database at default location '%s'\n", FilePath.c_str()));
+        }
+
         File f = File(FilePath);
         if (f.Exist()) {
             throw Exception("File exists: " + FilePath);
         }
-        
-        GetInstrumentsDb()->SetDbFile(FilePath);
+
+        SetDbFile(FilePath);
 
         String sql = 
             "  CREATE TABLE instr_dirs (                                      "
@@ -60,10 +65,10 @@ namespace LinuxSampler {
             "      UNIQUE (parent_dir_id,dir_name)                            "
             "  );                                                             ";
         
-        GetInstrumentsDb()->ExecSql(sql);
+        ExecSql(sql);
 
         sql = "INSERT INTO instr_dirs (dir_id, parent_dir_id, dir_name) VALUES (0, -2, '/');";
-        GetInstrumentsDb()->ExecSql(sql);
+        ExecSql(sql);
 
         sql =
             "  CREATE TABLE instruments (                                "
@@ -86,7 +91,7 @@ namespace LinuxSampler {
             "      UNIQUE (dir_id,instr_name)                            "
             "  );                                                        ";
         
-        GetInstrumentsDb()->ExecSql(sql);
+        ExecSql(sql);
     }
 
     InstrumentsDb::InstrumentsDb() {
@@ -118,36 +123,78 @@ namespace LinuxSampler {
         DbFile = File;
     }
 
-    sqlite3* InstrumentsDb::GetDb() {
-        if ( db != NULL) return db;
+    String InstrumentsDb::GetDefaultDBLocation() {
+        #ifdef WIN32
+        char* userprofile = getenv("USERPROFILE");
+        if (userprofile) {
+            String s = userprofile;
+            s += "\\.linuxsampler\\instruments.db";
+            return s;
+        } else {
+            // in case USERPROFILE is not set (which should not occur)
+            return "instruments.db";
+        }
+        #else // POSIX ...
+        String s = CONFIG_DEFAULT_INSTRUMENTS_DB_LOCATION;
+        # if defined(__APPLE__)
+        if (s.find("~") == 0)
+            s.replace(0, 1, getenv("HOME"));
+        # endif
+        return s;
+        #endif
+    }
 
-        if (DbFile.empty()) {
-		    #ifndef WIN32
-		    DbFile = CONFIG_DEFAULT_INSTRUMENTS_DB_LOCATION;
-			#else
-			char *userprofile = getenv("USERPROFILE");
-			if(userprofile) {
-			    String DbPath = userprofile;
-				DbPath += "\\.linuxsampler";
-			    DbFile = DbPath + "\\instruments.db";
-				File InstrumentsDbFile(DbFile);
-				// if no DB exists create the subdir and then the DB
-				if( !InstrumentsDbFile.Exist() ) {
-				    _mkdir( DbPath.c_str() );
-					// formats the DB, which creates a new instruments.db file
-					Format();
-				}
-		    }
-			else {
-			    // in case USERPROFILE is not set (which should not occur)
-			    DbFile = "instruments.db";
-			}
-			#endif
-	    }
+    void InstrumentsDb::EnsureDBFileExists() {
+        if (DbFile.empty())
+            DbFile = GetDefaultDBLocation();
 		#if defined(__APPLE__)  /* 20071224 Toshi Nagata  */
 		if (DbFile.find("~") == 0)
 			DbFile.replace(0, 1, getenv("HOME"));
 		#endif
+        Path DbPath(DbFile);
+        String DbDir = DbPath.stripLastName();
+        // create directory if it does not exist yet
+        if (!DbPath.nodes().empty()) {
+            File d(DbDir);
+            if (!d.Exist()) {
+                #ifdef WIN32
+                if (_mkdir(DbDir.c_str()))
+                    throw Exception("Could not create instruments DB directory '" + DbDir + "'");
+                #else
+                if (mkdir(DbDir.c_str(), S_IRWXU))
+                    throw Exception("Could not create instruments DB directory '" + DbDir + "'");
+                #endif
+            }
+        }
+        // create database file if it does not exist yet
+        File f(DbFile);
+        if (!f.Exist()) {
+            // formats the DB, which creates a new instruments.db file
+            Format();
+        }
+    }
+
+    sqlite3* InstrumentsDb::GetDb() {
+        if ( db != NULL) return db;
+
+        if (DbFile.empty())
+            DbFile = GetDefaultDBLocation();
+
+        {
+            // first check if the instruments DB's directory exists, if not give up
+            Path path(DbFile);
+            String sDir = path.stripLastName();
+            File d(sDir);
+            if (!d.Exist())
+                throw Exception("Instruments DB directory '" + sDir + "' does not exist!");
+
+            // just to give the user a notice about the DB file being created in case it does not exist yet
+            File f(DbFile);
+            if (!f.Exist())
+                dmsg(0,("Instruments DB file '%s' does not exist yet. Trying to create it now.\n", DbFile.c_str()));
+        }
+
+        dmsg(0,("Opening instruments DB at '%s'\n", DbFile.c_str()));
         int rc = sqlite3_open(DbFile.c_str(), &db);
         if (rc) {
             sqlite3_close(db);
@@ -1730,7 +1777,7 @@ namespace LinuxSampler {
                 db = NULL;
             }
 
-            if (DbFile.empty()) DbFile = CONFIG_DEFAULT_INSTRUMENTS_DB_LOCATION;
+            if (DbFile.empty()) DbFile = GetDefaultDBLocation();
             String bkp = DbFile + ".bkp";
             remove(bkp.c_str());
             if (rename(DbFile.c_str(), bkp.c_str()) && errno != ENOENT) {

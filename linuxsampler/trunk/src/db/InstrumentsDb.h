@@ -24,7 +24,11 @@
 #define __LS_INSTRUMENTSDB_H__
 
 #include <sqlite3.h>
-#include <gig.h>
+#if AC_APPLE_UNIVERSAL_BUILD
+# include <libgig/gig.h>
+#else
+# include <gig.h>
+#endif
 #include "../common/Mutex.h"
 #include "../common/WorkerThread.h"
 #include "../EventListeners.h"
@@ -124,10 +128,10 @@ namespace LinuxSampler {
 
             /**
              * Creates an instruments database file.
-             * @param FilePath the pathname of the file to create.
+             * @param FilePath optional pathname of the file to create.
              * @throws Exception If the creation of the database file failed.
              */
-            static void CreateInstrumentsDb(String FilePath);
+            void CreateInstrumentsDb(String FilePath = "");
 
             /**
              * This method is used to access the instruments database.
@@ -861,6 +865,8 @@ namespace LinuxSampler {
              */
             String PrepareSubdirectory(String DbDir, String FsPath);
 
+            void EnsureDBFileExists();
+
             /**
              * Adds the specified node to the specified database directory path.
              * @returns The newly created instruments database path.
@@ -920,6 +926,8 @@ namespace LinuxSampler {
              * @throws Exception - if the specified file name is invalid.
              */
             static void CheckFileName(String File);
+
+            static String GetDefaultDBLocation();
 
 #ifndef WIN32
             /** SQLite user function for handling regular expressions */

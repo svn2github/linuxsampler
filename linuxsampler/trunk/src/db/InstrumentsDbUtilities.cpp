@@ -251,7 +251,7 @@ namespace LinuxSampler {
     }
 
     StringListPtr DirectoryFinder::GetDirectories() {
-#if __cplusplus >= 201103L
+#if __cplusplus >= 201103L && !CONFIG_NO_CPP11STL
         return std::move(pDirectories);
 #else
         return pDirectories;
@@ -368,7 +368,7 @@ namespace LinuxSampler {
     }
 
     StringListPtr InstrumentFinder::GetInstruments() {
-#if __cplusplus >= 201103L
+#if __cplusplus >= 201103L && !CONFIG_NO_CPP11STL
         return std::move(pInstruments);
 #else
         return pInstruments;

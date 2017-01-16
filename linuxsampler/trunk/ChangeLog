@@ -145,6 +145,9 @@ Version SVN trunk (?)
   * Instruments DB:
     - Fixed memory access bug of general DB access code which lead to
       undefined behavior.
+    - Cleanup of instruments DB file creation and opening code.
+    - The instrument DB path of linuxsampler's --create-instruments-db argument
+      is now optional, if it is missing, then a default location is used.
 
 Version 2.0.0 (15 July 2015)
 

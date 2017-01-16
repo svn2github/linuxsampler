@@ -1,4 +1,4 @@
-.TH "linuxsampler" "1" "05 Feb 2014" "linuxsampler @VERSION@" "User Manuals"
+.TH "linuxsampler" "1" "16 Jan 2017" "linuxsampler @VERSION@" "User Manuals"
 .SH NAME
 linuxsampler \- modular, streaming capable sampler
 .SH SYNOPSIS
@@ -69,11 +69,12 @@ Output voice and disk stream count periodically on the console.
 Defines IP address on which the LSCP server should listen to (default: any).
 .IP "--lscp-port NUMBER"
 Defines TCP port on which the LSCP server should listen to (default: 8888).
-.IP "--create-instruments-db FILE"
+.IP "--create-instruments-db [FILE]"
 Creates a database file with the given filename which can be used by the
 sampler's instruments database system to maintain the user's collection of
 instrument libraries. When this argument is given, the sampler will just
-create the instruments DB file and exit.
+create the instruments DB file and exit. If the optional file argument is
+omitted, then a default location for the instrument DB file is used instead.
 .IP "--instruments-db-location FILE"
 Overrides the location of the database file, which the sampler shall use for
 its instruments database system

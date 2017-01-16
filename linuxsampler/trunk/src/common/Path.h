@@ -191,6 +191,8 @@ public:
      */
     bool isAbsolute() const;
 
+    std::vector<std::string>& nodes();
+
 private:
     std::vector<std::string> elements; ///< stores the path names raw = unencoded, each element is one node of the path
     char                     drive;

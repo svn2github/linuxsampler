@@ -346,4 +346,8 @@ bool Path::isAbsolute() const {
     return absolute;
 }
 
+std::vector<std::string>& Path::nodes() {
+    return elements;
+}
+
 } // namespace LinuxSampler
