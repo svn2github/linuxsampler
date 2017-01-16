@@ -1,5 +1,5 @@
 if HAVE_SQLITE3
-AM_CPPFLAGS = $(all_includes) $(GIG_CFLAGS)
+AM_CPPFLAGS = $(all_includes) $(GIG_CFLAGS) $(SNDFILE_CFLAGS) $(LIB_SF2)
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 METASOURCES = AUTO
 
