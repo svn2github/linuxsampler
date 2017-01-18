@@ -18,7 +18,14 @@ include '../tmpl/header.php';
   editor. This page documents the current status of LinuxSampler regarding
   support of the SFZ format. Since development of the SFZ format engine in
   LinuxSampler is quickly evolving, this page may not be always up to date,
-  so please also check the <a href="/">latest Subversion commits on our frontsite</a>.
+  so please also check the <a href="/">latest Subversion commits on our frontsite</a>.<br>
+  <br>
+  Since there is currently no useful or complete SFZ reference documentation available for
+  free on the net, <a href="http://doc.linuxsampler.org/sfz/">we started creating one</a>.
+  Wanna help us to complete this SFZ reference documentation? Great, <a href="http://linuxsampler.org/developers.html">get in touch with us!</a>
+  Keep in mind, the better the SFZ format becomes documented, the better we can assure it
+  will be implemented correctly and the better it can evolve to become a real standard
+  among sample players!
       </td>
     </tr>
   </table>
