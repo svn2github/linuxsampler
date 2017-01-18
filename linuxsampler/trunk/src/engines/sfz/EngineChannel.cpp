@@ -115,6 +115,17 @@ namespace LinuxSampler { namespace sfz {
                 throw InstrumentManagerException("resource was not created");
             }
 
+            // if requested by set_ccN opcode in sfz file, set initial CC values
+            for (std::map<uint8_t,uint8_t>::const_iterator itCC = newInstrument->initialCCValues.begin();
+                 itCC != newInstrument->initialCCValues.end(); ++itCC)
+            {
+                const uint8_t& cc = itCC->first;
+                uint8_t value = itCC->second;
+                if (cc >= CTRL_TABLE_SIZE) continue;
+                if ((cc < 128 || cc == CTRL_TABLE_IDX_AFTERTOUCH) && value > 127) value = 127;
+                ControllerTable[cc] = value;
+            }
+
             if (newInstrument->scripts.size() > 1) {
                 std::cerr << "WARNING: Executing more than one real-time instrument script slot is not implemented yet!\n";
             }

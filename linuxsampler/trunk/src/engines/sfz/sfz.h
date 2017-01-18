@@ -646,6 +646,7 @@ namespace sfz
         std::vector<Region*> regions;
         ::LinuxSampler::ArrayList<Curve> curves;
         std::vector<Script> scripts;
+        std::map<uint8_t,uint8_t> initialCCValues;
 
         friend class File;
         friend class Query;

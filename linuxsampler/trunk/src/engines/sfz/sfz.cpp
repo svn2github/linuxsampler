@@ -1936,8 +1936,12 @@ namespace sfz
                 
                 num_cc_str = _defined_macros[num_cc_str]; 
             }
-            
+
             int num_cc = ToInt(num_cc_str);
+            if (num_cc < 0 || num_cc > 127) {
+                std::cerr << "sfz: WARNING: CC " << num_cc << " of opcode '" << key;
+                std::cerr << "' is an invalid MIDI controller number." << std::endl;
+            }
 
             // input controls
             if ("lo" == key_cc) pCurDef->locc.set(num_cc, ToInt(value));
@@ -2043,6 +2047,7 @@ namespace sfz
             else if ("pan_curve" == key_cc) pCurDef->pan_curvecc.add( CC(num_cc, 0, check(key, 0, 30000, ToInt(value))) );
             else if ("pan_smooth" == key_cc) pCurDef->pan_smoothcc.add( CC(num_cc, 0, -1, check(key, 0.0f, 100000.0f /* max? */, ToFloat(value))) );
             else if ("pan_step" == key_cc) pCurDef->pan_stepcc.add( CC(num_cc, 0, -1, 0, check(key, -100.0f, 100.0f, ToFloat(value))) );
+            else if ("set_" == key_cc) _instrument->initialCCValues[num_cc] = (num_cc < 128) ? check(key, 0, 127, ToInt(value)) : ToInt(value);
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
 

@@ -37,6 +37,7 @@
 
 #define CTRL_TABLE_IDX_AFTERTOUCH   128
 #define CTRL_TABLE_IDX_PITCHBEND    129
+#define CTRL_TABLE_SIZE             130
 
 namespace LinuxSampler {
 
@@ -146,7 +147,7 @@ namespace LinuxSampler {
                     queue.clear();
                 }
             } delayedEvents;
-            uint8_t                   ControllerTable[130];     ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel. Number 128 is for channel pressure (mono aftertouch), 129 for pitch bend.
+            uint8_t                   ControllerTable[CTRL_TABLE_SIZE];     ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel. Number 128 is for channel pressure (mono aftertouch), 129 for pitch bend.
             String                    InstrumentFile;
             int                       InstrumentIdx;
             String                    InstrumentIdxName;
