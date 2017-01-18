@@ -305,7 +305,7 @@ include '../tmpl/header.php';
 <tr><td class="decocomp">default_path<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">octave_offset<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">note_offset<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
-<tr><td class="decocomp">set_ccN<td style="background: #ff9090; text-align: center">No</td><td class="decocomp">&nbsp;</td></tr>
+<tr><td class="decocomp">set_ccN<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 <tr><td class="decocomp">#define<td style="background: #90ff90; text-align: center">Yes</td><td class="decocomp">&nbsp;</td></tr>
 
 <tr><td class="decocomp_header" colspan="3"><b>Loading</b></td></tr>
