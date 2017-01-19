@@ -1,0 +1,52 @@
+<html>
+  <head>
+    <meta name="author" content="Christian Schoenebeck">
+    <meta name="description" content="Assign initial value to MIDI controller.">
+  </head>
+  <body>
+    <h1>set_ccN Opcode</h1>
+    <p>
+      Sets a different initial MIDI controller value to the requested MIDI controller.
+    </p>
+    
+    <h3>Opcode Prototype</h3>
+    <p/>
+    <code lang="sfz">
+set_cc??N??=??value??
+    </code>
+
+    <h3>Parameters</h3>
+    <table>
+      <tr>
+        <th>Parameter Name</th> <th>Description</th>
+      </tr>
+      <tr>
+        <td><code>??N??</code></td>
+        <td>Defines the MIDI controller which should be altered.<br>
+            [required]</td>
+      </tr>
+      <tr>
+        <td><code>??value??</code></td>
+        <td>Defines the MIDI controller's new initial value (0-127).<br>
+            [required]</td>
+      </tr>
+    </table>
+
+    <h3>Allowed Sections</h3>
+    <p>Should be used in <code>&lt;control&gt;</code> section.
+    
+    <h3>Examples</h3>
+    <p>
+      Sets the so called "MIDI Expression Controller" (MIDI CC #11) to its maximum value (127).
+    <p/>
+    <code lang="sfz">
+&lt;control&gt;
+set_cc11=127
+    </code>
+
+    <h3>Availabilty</h3>
+    <p>Since LinuxSampler 2.0.0.svn41<p>
+    <p>Conforms to SFZ v2<p>
+
+  </body>
+</html>
