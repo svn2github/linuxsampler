@@ -25,6 +25,6 @@
 
 namespace LinuxSampler {
     bool SignalUnit::DelayStage() {
-        return (DelayTrigger() >= pRack->GetCurrentStep());
+        return (DelayTrigger() > pRack->GetCurrentStep());
     }
 } // namespace LinuxSampler

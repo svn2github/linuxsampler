@@ -6,6 +6,7 @@ Version SVN trunk (?)
     - Added support for sfz extension opcode 'script' which may be used to
       load real-time instrument script file (NKSP script language).
     - Implemented opcode set_ccN (initial patch by Giovanni Senatore).
+    - Fixed unintended volume fade-in of voices under certain conditions.
 
   * Gigasampler format engine:
     - Fixed clicks and pumping noise with Lowpass Turbo filter on very low
