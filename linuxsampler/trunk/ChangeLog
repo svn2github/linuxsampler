@@ -152,6 +152,7 @@ Version SVN trunk (?)
       is now optional, if it is missing, then a default location is used.
     - Added support for scanning SFZ (.sfz) files.
     - Added support for scanning Sound Font (.sf2) files.
+    - Fixed undefined DB transaction behavior.
 
 Version 2.0.0 (15 July 2015)
 

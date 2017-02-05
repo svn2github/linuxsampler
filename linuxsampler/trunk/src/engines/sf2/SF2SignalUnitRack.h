@@ -93,17 +93,17 @@ namespace LinuxSampler { namespace sf2 {
 
             EndpointUnit(SF2SignalUnitRack* rack);
 
-            virtual void Trigger();
+            virtual void Trigger() OVERRIDE;
 
             /** The endpoint should be active until the volume EG is active. */
-            virtual bool Active();
+            virtual bool Active() OVERRIDE;
             
-            virtual float GetVolume();
-            virtual float GetFilterCutoff();
-            virtual float GetPitch();
-            virtual float GetResonance();
-            virtual float GetPan() { return 0; }
-            virtual uint8_t CalculatePan(uint8_t pan) { return pan; }
+            virtual float GetVolume() OVERRIDE;
+            virtual float GetFilterCutoff() OVERRIDE;
+            virtual float GetPitch() OVERRIDE;
+            virtual float GetResonance() OVERRIDE;
+            virtual float GetPan() OVERRIDE { return 0; }
+            virtual uint8_t CalculatePan(int pan) OVERRIDE { return pan; }
     };
     
     class SF2SignalUnitRack : public SignalUnitRack {

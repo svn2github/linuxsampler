@@ -230,12 +230,12 @@ namespace LinuxSampler {
     void SearchQuery::SetFormatFamilies(String s) {
         if (s.length() == 0) return;
         int i = 0;
-        int j = s.find(',', 0);
+        int j = (int) s.find(',', 0);
         
         while (j != std::string::npos) {
             FormatFamilies.push_back(s.substr(i, j - i));
             i = j + 1;
-            j = s.find(',', i);
+            j = (int) s.find(',', i);
         }
         
         if (i < s.length()) FormatFamilies.push_back(s.substr(i));
@@ -264,7 +264,7 @@ namespace LinuxSampler {
     String SearchQuery::GetMin(String s) {
         if (s.length() < 3) return "";
         if (s.at(0) == '.' && s.at(1) == '.') return "";
-        int i = s.find("..");
+        int i = (int) s.find("..");
         if (i == std::string::npos) return "";
         return s.substr(0, i);
     }
@@ -272,7 +272,7 @@ namespace LinuxSampler {
     String SearchQuery::GetMax(String s) {
         if (s.length() < 3) return "";
         if (s.find("..", s.length() - 2) != std::string::npos) return "";
-        int i = s.find("..");
+        int i = (int) s.find("..");
         if (i == std::string::npos) return "";
         return s.substr(i + 2);
     }

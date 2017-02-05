@@ -312,13 +312,13 @@ namespace LinuxSampler {
         }
         
         int id = 0, i = 1;
-        int j = Dir.find('/', i);
+        int j = (int) Dir.find('/', i);
 
         while(j != std::string::npos) {
             id = GetDirectoryId(id, Dir.substr(i, j - i));
             i = j + 1;
             if (i >= Dir.length()) return id;
-            j = Dir.find('/', i);
+            j = (int) Dir.find('/', i);
         }
         
         return GetDirectoryId(id, Dir.substr(i));
@@ -1403,12 +1403,12 @@ namespace LinuxSampler {
                 File f(toNonEscapedFsPath(files->at(i)));
                 if (!f.Exist()) result->push_back(files->at(i));
             }
+            EndTransaction();
             return result;
         } catch (Exception e) {
             EndTransaction();
             throw e;
         }
-        EndTransaction();
     }
     
     void InstrumentsDb::SetInstrumentFilePath(String OldPath, String NewPath) {
@@ -1703,7 +1703,7 @@ namespace LinuxSampler {
         if (File.at(0) != '/') String("");
         if (File.length() == 1) return File;
         if (File.at(File.length() - 1) == '/') return File.substr(0, File.length() - 1);
-        int i = File.rfind('/', File.length() - 1);
+        int i = (int) File.rfind('/', File.length() - 1);
         if(i == std::string::npos) return String("");
         if(i == 0) return String("/");
         return File.substr(0, i);
@@ -1713,28 +1713,28 @@ namespace LinuxSampler {
         if (Path.length() < 2) return String("");
         if (Path.at(0) != '/') String("");
         if (Path.at(Path.length() - 1) == '/') return String("");
-        int i = Path.rfind('/', Path.length() - 1);
+        int i = (int) Path.rfind('/', Path.length() - 1);
         return Path.substr(i + 1);
     }
 
     void InstrumentsDb::CheckPathName(String Path) {
         if (Path.empty()) return;
 
-        int i = 0, j = Path.find('/', i);
+        int i = 0, j = (int)Path.find('/', i);
 
         while(j != std::string::npos) {
             if (j + 1 >= Path.length()) return;
             if (Path.at(j + 1) == '/') throw Exception("Invalid path name: " + Path);
             
             i = j + 1;
-            j = Path.find('/', i);
+            j = (int) Path.find('/', i);
         }
     }
     
     String InstrumentsDb::GetParentDirectory(String Dir) {
         if (Dir.length() < 2) return String("");
         if (Dir.at(0) != '/') String("");
-        int i = Dir.rfind('/', Dir.length() - 2);
+        int i = (int) Dir.rfind('/', Dir.length() - 2);
         if (i == 0) return "/";
         return Dir.substr(0, i);
     }
