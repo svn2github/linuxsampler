@@ -44,44 +44,44 @@ namespace LinuxSampler { namespace sf2 {
         public:
             EGUnit(SF2SignalUnitRack* rack): SFSignalUnit(rack) { }
 
-            virtual bool  Active() { return active(); }
-            virtual float GetLevel() { return getLevel(); }
-            virtual void  EnterReleaseStage();
-            virtual void  CancelRelease();
+            virtual bool  Active() OVERRIDE { return active(); }
+            virtual float GetLevel() OVERRIDE { return getLevel(); }
+            virtual void  EnterReleaseStage() OVERRIDE;
+            virtual void  CancelRelease() OVERRIDE;
     };
 
     class VolEGUnit : public EGUnit {
         public:
             VolEGUnit(SF2SignalUnitRack* rack): EGUnit(rack) { }
 
-            virtual void  Trigger();
-            virtual void  Increment();
+            virtual void  Trigger() OVERRIDE;
+            virtual void  Increment() OVERRIDE;
     };
 
     class ModEGUnit : public EGUnit {
         public:
             ModEGUnit(SF2SignalUnitRack* rack): EGUnit(rack) { }
 
-            virtual void  Trigger();
-            virtual void  Increment();
+            virtual void  Trigger() OVERRIDE;
+            virtual void  Increment() OVERRIDE;
     };
 
     class ModLfoUnit : public SFSignalUnit, public LFOSigned {
         public:
             ModLfoUnit(SF2SignalUnitRack* rack): SFSignalUnit(rack), LFOSigned(1200.0f) { }
-            virtual bool  Active() { return true; }
-            virtual void  Trigger();
-            virtual void  Increment();
-            virtual float GetLevel() { return Level; }
+            virtual bool  Active() OVERRIDE { return true; }
+            virtual void  Trigger() OVERRIDE;
+            virtual void  Increment() OVERRIDE;
+            virtual float GetLevel() OVERRIDE { return Level; }
     };
 
     class VibLfoUnit : public SFSignalUnit, public LFOSigned {
         public:
             VibLfoUnit(SF2SignalUnitRack* rack): SFSignalUnit(rack), LFOSigned(1200.0f) { }
-            virtual bool  Active() { return true; }
-            virtual void  Trigger();
-            virtual void  Increment();
-            virtual float GetLevel() { return Level; }
+            virtual bool  Active() OVERRIDE { return true; }
+            virtual void  Trigger() OVERRIDE;
+            virtual void  Increment() OVERRIDE;
+            virtual float GetLevel() OVERRIDE { return Level; }
     };
     
     class EndpointUnit : public EndpointSignalUnit {
@@ -123,13 +123,13 @@ namespace LinuxSampler { namespace sf2 {
              */
             SF2SignalUnitRack(Voice* Voice);
 
-            virtual EndpointSignalUnit* GetEndpointUnit();
-            virtual void EnterFadeOutStage();
-            virtual void EnterFadeOutStage(int maxFadeOutSteps);
+            virtual EndpointSignalUnit* GetEndpointUnit() OVERRIDE;
+            virtual void EnterFadeOutStage() OVERRIDE;
+            virtual void EnterFadeOutStage(int maxFadeOutSteps) OVERRIDE;
 
             void CalculateFadeOutCoeff(float FadeOutTime, float SampleRate);
             
-            virtual void UpdateEqSettings(EqSupport* pEqSupport) { }
+            virtual void UpdateEqSettings(EqSupport* pEqSupport) OVERRIDE { }
     };
     
 }} // namespace LinuxSampler::sf2
