@@ -92,13 +92,20 @@ DimRegionChooser::DimRegionChooser(Gtk::Window& window) :
     modifybothchannels = modifyalldimregs = modifybothchannels = false;
     set_can_focus();
 
+    const Glib::ustring txtUseCheckBoxAllRegions =
+        _("Use checkbox 'all regions' to control whether this should apply to all regions.");
+
     actionGroup = Gtk::ActionGroup::create();
+    actionSplitDimZone = Gtk::Action::create("SplitDimZone", _("Split Dimensions Zone"), txtUseCheckBoxAllRegions);
+    actionSplitDimZone->set_tooltip(txtUseCheckBoxAllRegions); //FIXME: doesn't work? why???
     actionGroup->add(
-        Gtk::Action::create("SplitDimZone", _("Split Dimensions Zone")),
+        actionSplitDimZone,
         sigc::mem_fun(*this, &DimRegionChooser::split_dimension_zone)
     );
+    actionDeleteDimZone = Gtk::Action::create("DeleteDimZone", _("Delete Dimension Zone"), txtUseCheckBoxAllRegions);
+    actionDeleteDimZone->set_tooltip(txtUseCheckBoxAllRegions); //FIXME: doesn't work? why???
     actionGroup->add(
-        Gtk::Action::create("DeleteDimZone", _("Delete Dimension Zone")),
+        actionDeleteDimZone,
         sigc::mem_fun(*this, &DimRegionChooser::delete_dimension_zone)
     );
 
@@ -153,6 +160,9 @@ void DimRegionChooser::setModifyAllDimensionRegions(bool b) {
 
 void DimRegionChooser::setModifyAllRegions(bool b) {
     modifyallregions = b;
+
+    actionDeleteDimZone->set_label(b ? _("Delete Dimension Zone [ALL REGIONS]") : _("Delete Dimension Zone"));
+    actionSplitDimZone->set_label(b ? _("Split Dimensions Zone [ALL REGIONS]") : _("Split Dimensions Zone"));
 }
 
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
@@ -1008,7 +1018,53 @@ bool DimRegionChooser::on_focus(Gtk::DirectionType direction)
 void DimRegionChooser::split_dimension_zone() {    
     printf("split_dimension_zone() type=%d, zone=%d\n", maindimtype, maindimcase[maindimtype]);
     try {
-        region->SplitDimensionZone(maindimtype, maindimcase[maindimtype]);
+        if (!modifyallregions) {
+            region->SplitDimensionZone(maindimtype, maindimcase[maindimtype]);
+        } else {
+            gig::Instrument* instr = (gig::Instrument*)region->GetParent();
+            gig::dimension_def_t* pMaindimdef = region->GetDimensionDefinition(maindimtype);
+            assert(pMaindimdef != NULL);
+            // retain structure by value since the original region will be
+            // modified in the loop below as well
+            gig::dimension_def_t maindimdef = *pMaindimdef;
+            std::vector<gig::Region*> ignoredAll;
+            std::vector<gig::Region*> ignoredMinor;
+            std::vector<gig::Region*> ignoredCritical;
+            gig::Region* rgn = NULL;
+            for (int key = 0; key < 128; ++key) {
+                if (!instr->GetRegion(key) || instr->GetRegion(key) == rgn) continue;
+                rgn = instr->GetRegion(key);
+
+                // ignore all regions which do not exactly match the dimension
+                // layout of the selected region where this operation was emitted
+                gig::dimension_def_t* dimdef = rgn->GetDimensionDefinition(maindimtype);
+                if (!dimdef) {
+                    ignoredAll.push_back(rgn);
+                    ignoredMinor.push_back(rgn);
+                    continue;
+                }
+                if (dimdef->zones != maindimdef.zones) {
+                    ignoredAll.push_back(rgn);
+                    ignoredCritical.push_back(rgn);
+                    continue;
+                }
+
+                rgn->SplitDimensionZone(maindimtype, maindimcase[maindimtype]);
+            }
+            if (!ignoredAll.empty()) {
+                Glib::ustring txt;
+                if (ignoredCritical.empty())
+                    txt = ToString(ignoredMinor.size()) + _(" regions have been ignored since they don't have that dimension type.");
+                else if (ignoredMinor.empty())
+                    txt = ToString(ignoredCritical.size()) + _(" regions have been ignored due to different amount of dimension zones!");
+                else
+                    txt = ToString(ignoredCritical.size()) + _(" regions have been ignored due to different amount of dimension zones (and ") +
+                    ToString(ignoredMinor.size()) + _(" regions have been ignored since they don't have that dimension type)!");
+                Gtk::MessageType type = (ignoredCritical.empty()) ? Gtk::MESSAGE_INFO : Gtk::MESSAGE_WARNING;
+                Gtk::MessageDialog msg(txt, false, type);
+                msg.run();
+            }
+        }
     } catch (RIFF::Exception e) {
         Gtk::MessageDialog msg(e.Message, false, Gtk::MESSAGE_ERROR);
         msg.run();
@@ -1023,7 +1079,53 @@ void DimRegionChooser::split_dimension_zone() {
 void DimRegionChooser::delete_dimension_zone() {
     printf("delete_dimension_zone() type=%d, zone=%d\n", maindimtype, maindimcase[maindimtype]);
     try {
-        region->DeleteDimensionZone(maindimtype, maindimcase[maindimtype]);
+        if (!modifyallregions) {
+            region->DeleteDimensionZone(maindimtype, maindimcase[maindimtype]);
+        } else {
+            gig::Instrument* instr = (gig::Instrument*)region->GetParent();
+            gig::dimension_def_t* pMaindimdef = region->GetDimensionDefinition(maindimtype);
+            assert(pMaindimdef != NULL);
+            // retain structure by value since the original region will be
+            // modified in the loop below as well
+            gig::dimension_def_t maindimdef = *pMaindimdef;
+            std::vector<gig::Region*> ignoredAll;
+            std::vector<gig::Region*> ignoredMinor;
+            std::vector<gig::Region*> ignoredCritical;
+            gig::Region* rgn = NULL;
+            for (int key = 0; key < 128; ++key) {
+                if (!instr->GetRegion(key) || instr->GetRegion(key) == rgn) continue;
+                rgn = instr->GetRegion(key);
+
+                // ignore all regions which do not exactly match the dimension
+                // layout of the selected region where this operation was emitted
+                gig::dimension_def_t* dimdef = rgn->GetDimensionDefinition(maindimtype);
+                if (!dimdef) {
+                    ignoredAll.push_back(rgn);
+                    ignoredMinor.push_back(rgn);
+                    continue;
+                }
+                if (dimdef->zones != maindimdef.zones) {
+                    ignoredAll.push_back(rgn);
+                    ignoredCritical.push_back(rgn);
+                    continue;
+                }
+
+                rgn->DeleteDimensionZone(maindimtype, maindimcase[maindimtype]);
+            }
+            if (!ignoredAll.empty()) {
+                Glib::ustring txt;
+                if (ignoredCritical.empty())
+                    txt = ToString(ignoredMinor.size()) + _(" regions have been ignored since they don't have that dimension type.");
+                else if (ignoredMinor.empty())
+                    txt = ToString(ignoredCritical.size()) + _(" regions have been ignored due to different amount of dimension zones!");
+                else
+                    txt = ToString(ignoredCritical.size()) + _(" regions have been ignored due to different amount of dimension zones (and ") +
+                          ToString(ignoredMinor.size()) + _(" regions have been ignored since they don't have that dimension type)!");
+                Gtk::MessageType type = (ignoredCritical.empty()) ? Gtk::MESSAGE_INFO : Gtk::MESSAGE_WARNING;
+                Gtk::MessageDialog msg(txt, false, type);
+                msg.run();
+            }
+        }
     } catch (RIFF::Exception e) {
         Gtk::MessageDialog msg(e.Message, false, Gtk::MESSAGE_ERROR);
         msg.run();

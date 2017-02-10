@@ -51,6 +51,10 @@ Version SVN HEAD (?)
   * Implemented resizing multiple dimension region zones at once, which is
     controlled by the infamous checkbox trio "all regions",
     "all dimension splits" and "both channels".
+  * Implemented deleting dimension region zones of all regions at once, which
+    is controlled by checkbox "all regions".
+  * Implemented splitting up dimension region zones of all regions at once,
+    which is controlled by checkbox "all regions".
 
 Version 1.0.0 (2015-07-17)
 

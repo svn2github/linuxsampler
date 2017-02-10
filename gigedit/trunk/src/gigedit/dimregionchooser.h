@@ -130,6 +130,10 @@ protected:
     Glib::RefPtr<Gtk::UIManager> uiManager;
     Gtk::Menu* popup_menu_inside_dimregion;
     Gtk::Menu* popup_menu_outside_dimregion;
+
+private:
+    Glib::RefPtr<Gtk::Action> actionDeleteDimZone;
+    Glib::RefPtr<Gtk::Action> actionSplitDimZone;
 };
 
 #endif

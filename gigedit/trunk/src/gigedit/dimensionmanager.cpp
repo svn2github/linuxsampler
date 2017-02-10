@@ -521,6 +521,10 @@ void DimensionManager::onColumnClicked() {
                 msg.run();
             }
         }
+    } else if (focus_column == treeView.get_column(1) || focus_column == treeView.get_column(2)) {
+        Glib::ustring txt = _("Right-click on a specific dimension zone of the dimension region selector to delete or split that particular dimension zone!");
+        Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_INFO);
+        msg.run();
     }
 }
 
