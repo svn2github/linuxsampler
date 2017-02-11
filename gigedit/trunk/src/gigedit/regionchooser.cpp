@@ -24,14 +24,36 @@
 #include <cairomm/context.h>
 #include <gdkmm/general.h>
 #include <gdkmm/cursor.h>
+#include <gdkmm/pixbuf.h>
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/dialog.h>
 
 #include "global.h"
 #include "Settings.h"
+#include "gfx/builtinpix.h"
 
 #define REGION_BLOCK_HEIGHT             30
 #define KEYBOARD_HEIGHT                 40
+
+struct RegionFeatures {
+    int sampleRefs;
+    int loops;
+
+    RegionFeatures() {
+        sampleRefs = loops = 0;
+    }
+};
+
+static RegionFeatures regionFeatures(gig::Region* rgn) {
+    RegionFeatures f;
+    for (int i = 0; i < rgn->DimensionRegions; ++i) {
+        gig::DimensionRegion* dr = rgn->pDimensionRegions[i];
+        if (dr->pSample) f.sampleRefs++;
+        // the user doesn't care about loop if there is no valid sample reference
+        if (dr->pSample && dr->SampleLoops) f.loops++;
+    }
+    return f;
+}
 
 void SortedRegions::update(gig::Instrument* instrument) {
     // Usually, the regions in a gig file are ordered after their key
@@ -70,6 +92,8 @@ RegionChooser::RegionChooser() :
     currentActiveKey(-1)
 {
     set_size_request(500, KEYBOARD_HEIGHT + REGION_BLOCK_HEIGHT);
+
+    loadBuiltInPix();
 
     instrument = 0;
     region = 0;
@@ -316,6 +340,47 @@ void RegionChooser::draw_regions(const Cairo::RefPtr<Cairo::Context>& cr,
                 Gdk::Cairo::set_source_rgba(cr, black);
             }
             x3 = -1;
+        }
+    }
+
+    for (gig::Region* r = regions.first() ; r ; r = regions.next()) {
+        int x = key_to_x(r->KeyRange.low, w);
+        int x2 = key_to_x(r->KeyRange.high + 1, w);
+
+        RegionFeatures features = regionFeatures(r);
+
+        const bool bShowLoopSymbol = features.loops > 0;
+        const bool bShowSampleRefSymbol = features.sampleRefs < r->DimensionRegions;
+        if (bShowLoopSymbol || bShowSampleRefSymbol) {
+            const int margin = 2;
+            const int wRgn = x2 - x;
+            //printf("x=%d x2=%d wRgn=%d\n", x, x2, wRgn);
+
+            cr->save();
+            cr->set_line_width(1);
+            cr->rectangle(x, 1, wRgn, h1 - 1);
+            cr->clip();
+            if (bShowSampleRefSymbol) {
+                const int wPic = 8;
+                const int hPic = 8;
+                Gdk::Cairo::set_source_pixbuf(
+                    cr, (features.sampleRefs) ? yellowDot : redDot,
+                    x + (wRgn-wPic)/2.f,
+                    (bShowLoopSymbol) ? margin : (h1-hPic)/2.f
+                );
+                cr->paint();
+            }
+            if (bShowLoopSymbol) {
+                const int wPic = 12;
+                const int hPic = 14;
+                Gdk::Cairo::set_source_pixbuf(
+                    cr, (features.loops == r->DimensionRegions) ? blackLoop : grayLoop,
+                    x + (wRgn-wPic)/2.f,
+                    (bShowSampleRefSymbol) ? h1 - hPic - margin : (h1-hPic)/2.f
+                );
+                cr->paint();
+            }
+            cr->restore();
         }
     }
 
@@ -682,7 +747,8 @@ void RegionChooser::motion_resize_region(int x, int y)
 
         update_after_resize();
 
-        get_window()->invalidate_rect(rect, false);
+        //get_window()->invalidate_rect(rect, false);
+        get_window()->invalidate(false); // repaint entire region, otherwise it would create visual artifacts
     }
 }
 

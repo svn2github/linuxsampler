@@ -57,18 +57,23 @@
 #include "ReferencesView.h"
 #include "../../gfx/status_attached.xpm"
 #include "../../gfx/status_detached.xpm"
-
+#include "gfx/builtinpix.h"
 
 MainWindow::MainWindow() :
     m_DimRegionChooser(*this),
     dimreg_label(_("Changes apply to:")),
     dimreg_all_regions(_("all regions")),
     dimreg_all_dimregs(_("all dimension splits")),
-    dimreg_stereo(_("both channels"))
+    dimreg_stereo(_("both channels")),
+    labelNoSample(_(" No Sample")),
+    labelMissingSample(_(" Missing some Sample(s)")),
+    labelLooped(_(" Looped")),
+    labelSomeLoops(_(" Some Loop(s)"))
 {
+    loadBuiltInPix();
+
 //    set_border_width(5);
 //    set_default_size(400, 200);
-
 
     add(m_VBox);
 
@@ -103,6 +108,34 @@ MainWindow::MainWindow() :
     dimreg_hbox.add(dimreg_stereo);
     dimreg_vbox.add(dimreg_edit);
     dimreg_vbox.pack_start(dimreg_hbox, Gtk::PACK_SHRINK);
+    {
+        imageNoSample.set(redDot);
+        imageNoSample.set_alignment(Gtk::ALIGN_RIGHT);
+        labelNoSample.set_alignment(Gtk::ALIGN_LEFT);
+        legend_hbox.add(imageNoSample);
+        legend_hbox.add(labelNoSample);
+
+        imageMissingSample.set(yellowDot);
+        imageMissingSample.set_alignment(Gtk::ALIGN_RIGHT);
+        labelMissingSample.set_alignment(Gtk::ALIGN_LEFT);
+        legend_hbox.add(imageMissingSample);
+        legend_hbox.add(labelMissingSample);
+
+        imageLooped.set(blackLoop);
+        imageLooped.set_alignment(Gtk::ALIGN_RIGHT);
+        labelLooped.set_alignment(Gtk::ALIGN_LEFT);
+        legend_hbox.add(imageLooped);
+        legend_hbox.add(labelLooped);
+
+        imageSomeLoops.set(grayLoop);
+        imageSomeLoops.set_alignment(Gtk::ALIGN_RIGHT);
+        labelSomeLoops.set_alignment(Gtk::ALIGN_LEFT);
+        legend_hbox.add(imageSomeLoops);
+        legend_hbox.add(labelSomeLoops);
+
+        legend_hbox.show_all_children();
+    }
+    dimreg_vbox.pack_start(legend_hbox, Gtk::PACK_SHRINK);
     m_HPaned.add2(dimreg_vbox);
 
     dimreg_label.set_tooltip_text(_("To automatically apply your changes above globally to the entire instrument, check all 3 check boxes on the right."));

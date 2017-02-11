@@ -55,6 +55,8 @@ Version SVN HEAD (?)
     is controlled by checkbox "all regions".
   * Implemented splitting up dimension region zones of all regions at once,
     which is controlled by checkbox "all regions".
+  * Show graphical symbol on region that uses loop(s).
+  * Show graphical symbol on region that misses sample reference(s).
 
 Version 1.0.0 (2015-07-17)
 

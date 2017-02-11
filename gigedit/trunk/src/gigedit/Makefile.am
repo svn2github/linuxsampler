@@ -15,6 +15,8 @@ mac_src =
 mac_ld =
 endif
 
+SUBDIRS = gfx
+
 pkglib_LTLIBRARIES = libgigedit.la
 libgigedit_la_SOURCES = \
 	global.h \
@@ -41,6 +43,9 @@ libgigedit_la_CXXFLAGS = \
 libgigedit_la_LDFLAGS = \
 	-version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@ -no-undefined \
 	$(mac_ld)
+
+libgigedit_la_LIBADD = \
+    gfx/libgigeditgfx.la \
 
 bin_PROGRAMS = gigedit
 gigedit_SOURCES = main.cpp

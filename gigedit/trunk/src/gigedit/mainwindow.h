@@ -364,6 +364,16 @@ protected:
     Gtk::CheckButton dimreg_all_regions;
     Gtk::CheckButton dimreg_all_dimregs;
     Gtk::CheckButton dimreg_stereo;
+
+    Gtk::HBox legend_hbox;
+    Gtk::Image imageNoSample;
+    Gtk::Label labelNoSample;
+    Gtk::Image imageMissingSample;
+    Gtk::Label labelMissingSample;
+    Gtk::Image imageLooped;
+    Gtk::Label labelLooped;
+    Gtk::Image imageSomeLoops;
+    Gtk::Label labelSomeLoops;
     DimRegionEdit dimreg_edit;
 
     Gtk::Notebook m_TreeViewNotebook;

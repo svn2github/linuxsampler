@@ -5,7 +5,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 m4_define(gigedit_ver_major, 1)
 m4_define(gigedit_ver_minor, 0)
-m4_define(gigedit_ver_release, 0.svn26)
+m4_define(gigedit_ver_release, 0.svn27)
 
 AC_INIT([gigedit], [gigedit_ver_major.gigedit_ver_minor.gigedit_ver_release])
 AC_CONFIG_SRCDIR([configure.ac])
@@ -198,6 +198,7 @@ AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
 	src/gigedit/Makefile
+    src/gigedit/gfx/Makefile
 	src/plugin/Makefile
 	gfx/Makefile
 	po/Makefile.in
