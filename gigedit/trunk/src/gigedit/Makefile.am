@@ -37,15 +37,12 @@ libgigedit_la_SOURCES = \
 	ManagedWindow.cpp ManagedWindow.h \
 	$(wraplabel) $(mac_src)
 libgigedit_la_LIBADD = \
-	$(GTKMM_LIBS) $(GIG_LIBS) $(SNDFILE_LIBS)
+	$(GTKMM_LIBS) $(GIG_LIBS) $(SNDFILE_LIBS) gfx/libgigeditgfx.la
 libgigedit_la_CXXFLAGS = \
 	$(SNDFILE_CFLAGS)
 libgigedit_la_LDFLAGS = \
 	-version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@ -no-undefined \
 	$(mac_ld)
-
-libgigedit_la_LIBADD = \
-    gfx/libgigeditgfx.la \
 
 bin_PROGRAMS = gigedit
 gigedit_SOURCES = main.cpp
