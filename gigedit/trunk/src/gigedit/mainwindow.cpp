@@ -65,6 +65,7 @@ MainWindow::MainWindow() :
     dimreg_all_regions(_("all regions")),
     dimreg_all_dimregs(_("all dimension splits")),
     dimreg_stereo(_("both channels")),
+    labelLegend(_("Legend:")),
     labelNoSample(_(" No Sample")),
     labelMissingSample(_(" Missing some Sample(s)")),
     labelLooped(_(" Looped")),
@@ -109,6 +110,8 @@ MainWindow::MainWindow() :
     dimreg_vbox.add(dimreg_edit);
     dimreg_vbox.pack_start(dimreg_hbox, Gtk::PACK_SHRINK);
     {
+        legend_hbox.add(labelLegend);
+
         imageNoSample.set(redDot);
         imageNoSample.set_alignment(Gtk::ALIGN_END);
         labelNoSample.set_alignment(Gtk::ALIGN_START);

@@ -366,6 +366,7 @@ protected:
     Gtk::CheckButton dimreg_stereo;
 
     Gtk::HBox legend_hbox;
+    Gtk::Label labelLegend;
     Gtk::Image imageNoSample;
     Gtk::Label labelNoSample;
     Gtk::Image imageMissingSample;
