@@ -110,26 +110,26 @@ MainWindow::MainWindow() :
     dimreg_vbox.pack_start(dimreg_hbox, Gtk::PACK_SHRINK);
     {
         imageNoSample.set(redDot);
-        imageNoSample.set_alignment(Gtk::ALIGN_RIGHT);
-        labelNoSample.set_alignment(Gtk::ALIGN_LEFT);
+        imageNoSample.set_alignment(Gtk::ALIGN_END);
+        labelNoSample.set_alignment(Gtk::ALIGN_START);
         legend_hbox.add(imageNoSample);
         legend_hbox.add(labelNoSample);
 
         imageMissingSample.set(yellowDot);
-        imageMissingSample.set_alignment(Gtk::ALIGN_RIGHT);
-        labelMissingSample.set_alignment(Gtk::ALIGN_LEFT);
+        imageMissingSample.set_alignment(Gtk::ALIGN_END);
+        labelMissingSample.set_alignment(Gtk::ALIGN_START);
         legend_hbox.add(imageMissingSample);
         legend_hbox.add(labelMissingSample);
 
         imageLooped.set(blackLoop);
-        imageLooped.set_alignment(Gtk::ALIGN_RIGHT);
-        labelLooped.set_alignment(Gtk::ALIGN_LEFT);
+        imageLooped.set_alignment(Gtk::ALIGN_END);
+        labelLooped.set_alignment(Gtk::ALIGN_START);
         legend_hbox.add(imageLooped);
         legend_hbox.add(labelLooped);
 
         imageSomeLoops.set(grayLoop);
-        imageSomeLoops.set_alignment(Gtk::ALIGN_RIGHT);
-        labelSomeLoops.set_alignment(Gtk::ALIGN_LEFT);
+        imageSomeLoops.set_alignment(Gtk::ALIGN_END);
+        labelSomeLoops.set_alignment(Gtk::ALIGN_START);
         legend_hbox.add(imageSomeLoops);
         legend_hbox.add(labelSomeLoops);
 
