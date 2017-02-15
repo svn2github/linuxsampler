@@ -4443,7 +4443,7 @@ namespace {
         EffectSend = 0;
         Attenuation = 0;
         FineTune = 0;
-        PitchbendRange = 0;
+        PitchbendRange = 2;
         PianoReleaseMode = false;
         DimensionKeyRange.low = 0;
         DimensionKeyRange.high = 0;

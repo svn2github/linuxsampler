@@ -22,6 +22,7 @@ Version SVN trunk
     - Fix: samples' CRC checksums were misordered when a Sample was deleted.
     - Added new method Sample::GetWaveDataCRC32Checksum().
     - Changed default value of EG2Release (filter release time) to 60s.
+    - Instruments' default pitch bend range is now +-2 semi tones.
 
   * src/DLS.cpp, src/DLS.h:
     - Sample: wave pool offsets are now 64 bits (to allow support for files
